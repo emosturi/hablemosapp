@@ -586,7 +586,70 @@
               <h2 id="autorizacionesTitle">Autorizaciones</h2>
               <span class="hint">Marca Sí o No en cada autorización</span>
             </div>
-            <div id="autorizacionesQuestions" class="grid"></div>
+            <div class="grid">
+              <div id="autorizacionesQuestions" class="col-12"></div>
+
+              <div class="field col-12" id="cuentaBancariaField" hidden>
+                <label for="cuenta_bancaria">Datos de mi cuenta bancaria (si corresponde)</label>
+                <textarea id="cuenta_bancaria" name="autorizaciones.cuentaBancaria"></textarea>
+                <div class="error" data-error-for="cuenta_bancaria"></div>
+              </div>
+
+              <div class="field col-12">
+                <label>Autorizo a retirar los siguientes certificados (si corresponde):</label>
+                <div class="radio-row" role="group" aria-label="Certificados a retirar">
+                  <label class="radio-pill">
+                    <input
+                      type="checkbox"
+                      name="autorizaciones.certificados"
+                      value="Historico de cotizaciones"
+                    />
+                    Histórico de cotizaciones
+                  </label>
+                  <label class="radio-pill">
+                    <input
+                      type="checkbox"
+                      name="autorizaciones.certificados"
+                      value="Antecedente previsional"
+                    />
+                    Antecedente previsional
+                  </label>
+                  <label class="radio-pill">
+                    <input
+                      type="checkbox"
+                      name="autorizaciones.certificados"
+                      value="Certificado de trabajo pesado"
+                    />
+                    Certificado de trabajo pesado
+                  </label>
+                  <label class="radio-pill">
+                    <input
+                      type="checkbox"
+                      name="autorizaciones.certificados"
+                      value="Certificado de vacaciones progresivas"
+                    />
+                    Certificado de vacaciones progresivas
+                  </label>
+                  <label class="radio-pill">
+                    <input
+                      type="checkbox"
+                      name="autorizaciones.certificados"
+                      value="Certificado de estado de cuentas"
+                    />
+                    Certificado de estado de cuentas
+                  </label>
+                  <label class="radio-pill">
+                    <input
+                      type="checkbox"
+                      name="autorizaciones.certificados"
+                      value="Certificado de calidad de pensionado"
+                    />
+                    Certificado de calidad de pensionado
+                  </label>
+                </div>
+                <div class="error" data-error-for="autorizaciones.certificados"></div>
+              </div>
+            </div>
           </div>
 
           <div class="section" aria-labelledby="empleadorTitle">
@@ -677,6 +740,12 @@
         {
           key: "suscribirMantenerValorNominal",
           label: "Suscribir opción por mantener el valor nominal del saldo destinado a pensión",
+        },
+        { key: "retirarDuplicadoScompOriginal", label: "Retirar duplicado de SCOMP original?" },
+        { key: "ingresarDatosCuentaBancaria", label: "Ingresar datos de mi cuenta bancaria?" },
+        {
+          key: "obtenerInfoPagoPensionYTraspaso",
+          label: "Obtener información verbal o escrita del pago de mi pensión y traspaso de fondos?",
         },
       ];
 
@@ -793,8 +862,13 @@
           for (let i = 0; i < parts.length; i++) {
             const p = parts[i];
             const isLast = i === parts.length - 1;
-            if (isLast) cur[p] = value;
-            else cur = cur[p] = cur[p] && typeof cur[p] === "object" ? cur[p] : {};
+            if (isLast) {
+              if (cur[p] === undefined) cur[p] = value;
+              else if (Array.isArray(cur[p])) cur[p].push(value);
+              else cur[p] = [cur[p], value];
+            } else {
+              cur = cur[p] = cur[p] && typeof cur[p] === "object" ? cur[p] : {};
+            }
           }
         }
         return out;
@@ -919,6 +993,8 @@
         const btnGuardar = document.getElementById("btnGuardar");
         const btnDescargar = document.getElementById("btnDescargar");
         const btnLimpiar = document.getElementById("btnLimpiar");
+        const cuentaField = document.getElementById("cuentaBancariaField");
+        const cuentaTextarea = document.getElementById("cuenta_bancaria");
 
         renderYesNo(document.getElementById("antecedentesQuestions"), "antecedentes", antecedentesItems);
         renderYesNo(document.getElementById("autorizacionesQuestions"), "autorizaciones", autorizacionesItems);
@@ -932,6 +1008,29 @@
           } catch {
             // ignore
           }
+        }
+
+        function updateCuentaBancariaVisibility() {
+          if (!cuentaField || !cuentaTextarea) return;
+          const selected = form.querySelector(
+            'input[type="radio"][name="autorizaciones.ingresarDatosCuentaBancaria"]:checked',
+          );
+          const show = !!selected && selected.value === "Sí";
+          cuentaField.hidden = !show;
+          if (show) {
+            cuentaTextarea.setAttribute("required", "true");
+          } else {
+            cuentaTextarea.removeAttribute("required");
+            cuentaTextarea.value = "";
+          }
+        }
+
+        updateCuentaBancariaVisibility();
+
+        for (const r of form.querySelectorAll(
+          'input[type="radio"][name="autorizaciones.ingresarDatosCuentaBancaria"]',
+        )) {
+          r.addEventListener("change", updateCuentaBancariaVisibility);
         }
 
         const rutInputs = ["mandante_rut", "mandatario_rut", "empleador_rut"];
