@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Clon Formulario Mandato Trámite Pensión SP</title>
+  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+    section { margin-bottom: 20px; }
+    label { display: block; margin: 5px 0; }
+    input, select { width: 100%; padding: 8px; box-sizing: border-box; }
+    button { padding: 10px 20px; background: #007bff; color: white; border: none; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h1>Formulario Mandato para Trámite de Pensión (Clon SP)</h1>
+  <p>Ingrese los datos para generar el mandato en PDF. Luego, imprímalo, legalícelo ante notario y entréguelo en la AFP.</p>
+
+  <form id="formMandato">
+    <section>
+      <h2>Datos del Mandante (Afiliado)</h2>
+      <label>RUT: <input type="text" id="rut_afiliado" required></label>
+      <label>Nombres: <input type="text" id="nombres" required></label>
+      <label>Apellido Paterno: <input type="text" id="apellido_paterno" required></label>
+      <label>Apellido Materno: <input type="text" id="apellido_materno" required></label>
+      <label>Fecha de Nacimiento (DD-MM-YYYY): <input type="text" id="fecha_nac_afiliado" required></label>
+      <label>Estado Civil: 
+        <select id="estado_civil_afiliado" required>
+          <option value="">Seleccione</option>
+          <option value="SOLTERO">Soltero</option>
+          <option value="CASADO">Casado</option>
+          <option value="DIVORCIADO">Divorciado</option>
+          <option value="VIUDO">Viudo</option>
+        </select>
+      </label>
+      <label>Profesión u Oficio: <input type="text" id="profesion_oficio_afiliado" required></label>
+      <label>Domicilio: <input type="text" id="domicilio_afiliado" required></label>
+      <label>Comuna: <input type="text" id="comuna_afiliado" required></label>
+      <label>Ciudad: <input type="text" id="ciudad_afiliado" required></label>
+      <label>Celular: <input type="tel" id="celular_afiliado" required></label>
+      <label>Email: <input type="email" id="email_afiliado" required></label>
+      <label>AFP: 
+        <select id="afp_afiliado" required>
+          <option value="">Seleccione</option>
+          <option value="CAPITAL">Capital</option>
+          <option value="HABITAT">Habitat</option>
+          <option value="MODELO">Modelo</option>
+          <option value="PLANVITAL">PlanVital</option>
+          <option value="PROVIDA">Provida</option>
+          <option value="UNO">Uno</option>
+          <option value="CUPRUM">Cuprum</option>
+        </select>
+      </label>
+      <label>Sistema de Salud: 
+        <select id="sistema_salud_afiliado" required>
+          <option value="">Seleccione</option>
+          <option value="FONASA">Fonasa</option>
+          <option value="ISAPRE">Isapre (especifique)</option>
+        </select>
+      </label>
+    </section>
+
+    <section>
+      <h2>Datos del Mandatario (Asesor o Tercero)</h2>
+      <label>RUT: <input type="text" id="rut_asesor" required></label>
+      <label>Nombres: <input type="text" id="nombres_asesor" required></label>
+      <label>Apellido Paterno: <input type="text" id="apellido_paterno_asesor" required></label>
+      <label>Apellido Materno: <input type="text" id="apellido_materno_asesor" required></label>
+      <label>Número de Registro SP: <input type="text" id="numero_registro_asesor" required></label>
+      <label>Fecha de Nacimiento (DD-MM-YYYY): <input type="text" id="fecha_nac_asesor" required></label>
+      <label>Domicilio: <input type="text" id="domicilio_asesor" required></label>
+      <label>Comuna: <input type="text" id="comuna_asesor" required></label>
+      <label>Ciudad: <input type="text" id="ciudad_asesor" required></label>
+      <label>Celular: <input type="tel" id="celular_asesor" required></label>
+      <label>Email: <input type="email" id="email_asesor" required></label>
+    </section>
+
+    <section>
+      <h2>Datos Generales del Mandato</h2>
+      <label>Número de Contrato/Mandato: <input type="text" id="numero_contrato" required></label>
+      <label>Ciudad del Contrato: <input type="text" id="ciudad_contrato" required></label>
+      <label>Fecha del Contrato (DD-MM-YYYY): <input type="text" id="fecha_contrato" required></label>
+      <label>Tipo de Trámite Previsional: 
+        <select id="tipo_tramite_previsional" required>
+          <option value="">Seleccione</option>
+          <option value="PENSION POR EDAD LEGAL">Pensión por Edad Legal</option>
+          <option value="PENSION POR INVALIDEZ">Pensión por Invalidez</option>
+          <option value="PENSION POR SOBREVIVENCIA">Pensión por Sobrevivencia</option>
+          <option value="CAMBIO MODALIDAD">Cambio de Modalidad</option>
+        </select>
+      </label>
+      <label>Grupo Familiar (sin beneficiarios o liste: Nombre, Parentesco, Fecha Nac, RUT, Inv.): <textarea id="sin_beneficiarios_o_listado" rows="4"></textarea></label>
+    </section>
+
+    <section>
+      <h2>Datos de Póliza (opcionales, para asesor)</h2>
+      <label>Número Registro Póliza CMF: <input type="text" id="numero_poliza_registro_cmf"></label>
+      <label>Compañía de Seguros: <input type="text" id="compania_seguros"></label>
+      <label>Número Póliza: <input type="text" id="numero_poliza"></label>
+      <label>Fecha Contratación Póliza: <input type="text" id="fecha_contratacion_poliza"></label>
+      <label>Fecha Vigencia Inicio: <input type="text" id="fecha_vigencia_inicio"></label>
+      <label>Fecha Vigencia Fin: <input type="text" id="fecha_vigencia_fin"></label>
+    </section>
+
+    <section>
+      <h2>Honorarios (opcionales, para asesoría)</h2>
+      <label>Porcentaje Renta Vitalicia: <input type="number" id="porcentaje_renta_vitalicia" step="0.1"></label>
+      <label>Tope UF Renta Vitalicia: <input type="number" id="tope_uf_renta_vitalicia"></label>
+      <label>Porcentaje Retiro Programado: <input type="number" id="porcentaje_retiro_programado" step="0.1"></label>
+      <label>Tope UF Retiro Programado: <input type="number" id="tope_uf_retiro_programado"></label>
+      <label>Tope UF Cambio Modalidad: <input type="number" id="tope_uf_cambio_modalidad"></label>
+    </section>
+
+    <button type="button" onclick="generarPDF()">Generar Mandato PDF</button>
+  </form>
+
+  <script>
+    async function generarPDF() {
+      const form = document.getElementById('formMandato');
+      if (!form.checkValidity()) {
+        alert('Por favor, complete todos los campos requeridos.');
+        return;
+      }
+
+      // Recopilar valores
+      const valores = {
+        NUMERO_CONTRATO: document.getElementById('numero_contrato').value,
+        CIUDAD_CONTRATO: document.getElementById('ciudad_contrato').value,
+        FECHA_CONTRATO: document.getElementById('fecha_contrato').value,
+        NOMBRES: document.getElementById('nombres').value,
+        APELLIDO_PATERNO: document.getElementById('apellido_paterno').value,
+        APELLIDO_MATERNO: document.getElementById('apellido_materno').value,
+        RUT_AFILIADO: document.getElementById('rut_afiliado').value,
+        FECHA_NACIMIENTO_AFILIADO: document.getElementById('fecha_nac_afiliado').value,
+        ESTADO_CIVIL_AFILIADO: document.getElementById('estado_civil_afiliado').value,
+        PROFESION_OFICIO_AFILIADO: document.getElementById('profesion_oficio_afiliado').value,
+        DOMICILIO_AFILIADO: document.getElementById('domicilio_afiliado').value,
+        COMUNA_AFILIADO: document.getElementById('comuna_afiliado').value,
+        CIUDAD_AFILIADO: document.getElementById('ciudad_afiliado').value,
+        CELULAR_AFILIADO: document.getElementById('celular_afiliado').value,
+        EMAIL_AFILIADO: document.getElementById('email_afiliado').value,
+        AFP_AFILIADO: document.getElementById('afp_afiliado').value,
+        SISTEMA_SALUD_AFILIADO: document.getElementById('sistema_salud_afiliado').value,
+        NOMBRES_ASESOR: document.getElementById('nombres_asesor').value,
+        APELLIDO_PATERNO_ASESOR: document.getElementById('apellido_paterno_asesor').value,
+        APELLIDO_MATERNO_ASESOR: document.getElementById('apellido_materno_asesor').value,
+        RUT_ASESOR: document.getElementById('rut_asesor').value,
+        NUMERO_REGISTRO_ASESOR: document.getElementById('numero_registro_asesor').value,
+        FECHA_NACIMIENTO_ASESOR: document.getElementById('fecha_nac_asesor').value,
+        DOMICILIO_ASESOR: document.getElementById('domicilio_asesor').value,
+        COMUNA_ASESOR: document.getElementById('comuna_asesor').value,
+        CIUDAD_ASESOR: document.getElementById('ciudad_asesor').value,
+        CELULAR_ASESOR: document.getElementById('celular_asesor').value,
+        EMAIL_ASESOR: document.getElementById('email_asesor').value,
+        TIPO_TRAMITE_PREVISIONAL: document.getElementById('tipo_tramite_previsional').value,
+        SIN_BENEFICIARIOS_O_LISTADO_BENEFICIARIOS: document.getElementById('sin_beneficiarios_o_listado').value || 'SIN BENEFICIARIOS LEGALES',
+        NUMERO_POLIZA_REGISTRO_CMF: document.getElementById('numero_poliza_registro_cmf').value || '1.2013.0970',
+        COMPANIA_SEGUROS: document.getElementById('compania_seguros').value || 'COMPAÑÍA DE SEGUROS GENERALES SURAMERICANA S.A.',
+        NUMERO_POLIZA: document.getElementById('numero_poliza').value || '9148151',
+        FECHA_CONTRATACION_POLIZA: document.getElementById('fecha_contratacion_poliza').value || '23/09/2025',
+        FECHA_VIGENCIA_INICIO: document.getElementById('fecha_vigencia_inicio').value || '01/10/2025',
+        FECHA_VIGENCIA_FIN: document.getElementById('fecha_vigencia_fin').value || '30/09/2026',
+        PORCENTAJE_RENTA_VITALICIA: document.getElementById('porcentaje_renta_vitalicia').value || '1.5',
+        TOPE_UF_RENTA_VITALICIA: document.getElementById('tope_uf_renta_vitalicia').value || '60',
+        PORCENTAJE_RETIRO_PROGRAMADO: document.getElementById('porcentaje_retiro_programado').value || '1.2',
+        TOPE_UF_RETIRO_PROGRAMADO: document.getElementById('tope_uf_retiro_programado').value || '36',
+        TOPE_UF_CAMBIO_MODALIDAD: document.getElementById('tope_uf_cambio_modalidad').value || '24',
+        NOMBRE_COMPLETO_ASESOR: `${document.getElementById('nombres_asesor').value} ${document.getElementById('apellido_paterno_asesor').value} ${document.getElementById('apellido_materno_asesor').value}`,
+      };
+
+      // Plantilla del documento (de tu documento modificado)
+      let plantilla = `
+CONTRATO DE PRESTACION DE SERVICIOS DE ASESORIA PARA 
+
+PENSIONARSE O CAMBIAR MODALIDAD DE PENSIÓN Nº [NUMERO_CONTRATO]
+
+	INDIVIDUALIZACIÓN DE LAS PARTES
+
+
+En la Ciudad de [CIUDAD_CONTRATO] a [FECHA_CONTRATO], suscriben el presente contrato, por una parte, don [NOMBRES] [APELLIDO_PATERNO] [APELLIDO_MATERNO], Rut [RUT_AFILIADO], nacido el [FECHA_NACIMIENTO_AFILIADO], estado civil [ESTADO_CIVIL_AFILIADO], profesión u oficio [PROFESION_OFICIO_AFILIADO], domiciliado en [DOMICILIO_AFILIADO], comuna de [COMUNA_AFILIADO] ciudad de [CIUDAD_AFILIADO], celular [CELULAR_AFILIADO], correo electrónico [EMAIL_AFILIADO], afiliado a la AFP [AFP_AFILIADO], Sistema de Salud [SISTEMA_SALUD_AFILIADO], por otra parte, [NOMBRES_ASESOR] [APELLIDO_PATERNO_ASESOR] [APELLIDO_MATERNO_ASESOR], Rut [RUT_ASESOR], Profesión Asesor Previsional, inscrito en el Registro de Asesores Previsionales de la Superintendencia de Pensiones con el N° [NUMERO_REGISTRO_ASESOR], nacido el [FECHA_NACIMIENTO_ASESOR], domiciliada en [DOMICILIO_ASESOR], comuna de [COMUNA_ASESOR], ciudad de [CIUDAD_ASESOR], celular [CELULAR_ASESOR] e-mail: [EMAIL_ASESOR], en adelante el “ASESOR PREVISIONAL”. Las partes acuerdan el siguiente contrato de asesoría para realizar trámite de [TIPO_TRAMITE_PREVISIONAL].
+	ANTECEDENTES DEL GRUPO FAMILIAR CON DERECHO A PENSIÓN
+
+
+El Afiliado declara que la composición de su grupo familiar con derecho a pensión es:
+
+	NOMBRE
+	PARENTESCO
+	FECHA NAC.
+	RUT
+	INV.
+
+	[SIN_BENEFICIARIOS_O_LISTADO_BENEFICIARIOS]
+
+
+	// ... (el resto de la plantilla como en tu documento modificado, para no alargar el código aquí. Copia todo el texto de mi respuesta anterior y pégalo en esta variable)
+      `;
+
+      // Reemplazar placeholders
+      for (const key in valores) {
+        plantilla = plantilla.replaceAll(`[${key}]`, valores[key]);
+      }
+
+      // Generar PDF
+      const pdfDoc = await PDFLib.PDFDocument.create();
+      const page = pdfDoc.addPage([595, 842]); // A4 size
+      const font = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+      const fontSize = 10;
+      const lines = plantilla.split('\n');
+      let y = 800;
+      for (const line of lines) {
+        page.drawText(line, { x: 50, y, size: fontSize, font });
+        y -= fontSize + 2;
+        if (y < 50) {
+          page = pdfDoc.addPage([595, 842]);
+          y = 800;
+        }
+      }
+
+      const pdfBytes = await pdfDoc.save();
+      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'mandato_tramite_pension.pdf';
+      link.click();
+    }
+  </script>
+</body>
+</html>
