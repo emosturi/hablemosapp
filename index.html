@@ -1,226 +1,1004 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <title>Formulario Mandato Trámite Pensión SP (Clon)</title>
-  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-  <style>
-    body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
-    section { margin-bottom: 20px; border: 1px solid #ddd; padding: 10px; border-radius: 5px; }
-    label { display: block; margin: 5px 0; }
-    input, select, textarea { width: 100%; padding: 8px; box-sizing: border-box; }
-    .conditional { display: none; }
-    button { padding: 10px 20px; background: #007bff; color: white; border: none; cursor: pointer; }
-    button:hover { background: #0056b3; }
-  </style>
-</head>
-<body>
-  <h1>Formulario Mandato para Trámite de Pensión (Clon SP)</h1>
-  <p>Complete los campos para generar el mandato en PDF. Luego, imprímalo, legalícelo ante notario y entréguelo en la AFP.</p>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Formulario Solicitud de Pensión</title>
+    <style>
+      :root {
+        --bg: #0b1220;
+        --panel: rgba(255, 255, 255, 0.06);
+        --panel2: rgba(255, 255, 255, 0.08);
+        --text: rgba(255, 255, 255, 0.92);
+        --muted: rgba(255, 255, 255, 0.72);
+        --border: rgba(255, 255, 255, 0.14);
+        --accent: #8b5cf6;
+        --accent2: #22c55e;
+        --danger: #ef4444;
+        --shadow: 0 16px 50px rgba(0, 0, 0, 0.45);
+        --radius: 16px;
+      }
 
-  <form id="formMandato">
-    <section>
-      <h2>Mandante</h2>
-      <label>Tipo de Pensión:</label>
-      <input type="radio" id="tipo_vejez_edad" name="tipo_pension" value="Pensión de Vejez por edad" required> Pensión de Vejez por edad<br>
-      <input type="radio" id="tipo_vejez_anticipada" name="tipo_pension" value="Pensión de Vejez anticipada"> Pensión de Vejez anticipada<br>
-      <label>RUT: <input type="text" id="rut_mandante" required></label>
-      <label>Nacionalidad: <input type="text" id="nacionalidad_mandante" required></label>
-      <label>Sexo:</label>
-      <input type="radio" id="sexo_m" name="sexo" value="Masculino" required> Masculino<br>
-      <input type="radio" id="sexo_f" name="sexo" value="Femenino"> Femenino<br>
-      <label>Apellido Paterno: <input type="text" id="apellido_paterno_mandante" required></label>
-      <label>Apellido Materno: <input type="text" id="apellido_materno_mandante" required></label>
-      <label>Nombres: <input type="text" id="nombres_mandante" required></label>
-      <label>Domicilio: <input type="text" id="domicilio_mandante" required></label>
-      <label>Comuna: <input type="text" id="comuna_mandante" required></label>
-      <label>Ciudad: <input type="text" id="ciudad_mandante" required></label>
-      <label>Fecha Nacimiento (DD-MM-YYYY): <input type="text" id="fecha_nac_mandante" required></label>
-      <label>Estado Civil: 
-        <select id="estado_civil_mandante" required>
-          <option value="">Seleccione</option>
-          <option value="Soltero">Soltero</option>
-          <option value="Casado">Casado</option>
-          <option value="Divorciado">Divorciado</option>
-          <option value="Viudo">Viudo</option>
-        </select>
-      </label>
-      <label>Profesión u Oficio: <input type="text" id="profesion_mandante" required></label>
-      <label>Teléfono: <input type="tel" id="telefono_mandante" required></label>
-      <label>Email (Opcional): <input type="email" id="email_mandante"></label>
-      <label>AFP: 
-        <select id="afp_mandante" required>
-          <option value="">Seleccione</option>
-          <option value="Capital">Capital</option>
-          <option value="Habitat">Habitat</option>
-          <option value="Modelo">Modelo</option>
-          <option value="PlanVital">PlanVital</option>
-          <option value="Provida">Provida</option>
-          <option value="Uno">Uno</option>
-          <option value="Cuprum">Cuprum</option>
-        </select>
-      </label>
-      <label>Institución de Salud: 
-        <select id="institucion_salud_mandante" required>
-          <option value="">Seleccione</option>
-          <option value="Fonasa">Fonasa</option>
-          <option value="Isapre">Isapre (especifique)</option>
-        </select>
-      </label>
-      <label>N° de Beneficiarios: <input type="number" id="num_beneficiarios" min="0" required></label>
-    </section>
+      * {
+        box-sizing: border-box;
+      }
 
-    <section>
-      <h2>Mandatario</h2>
-      <label>RUT: <input type="text" id="rut_mandatario" required></label>
-      <label>Nacionalidad: <input type="text" id="nacionalidad_mandatario" required></label>
-      <label>N° Registro de Asesor Previsional (Opcional): <input type="text" id="num_registro_asesor"></label>
-      <label>Apellido Paterno: <input type="text" id="apellido_paterno_mandatario" required></label>
-      <label>Apellido Materno: <input type="text" id="apellido_materno_mandatario" required></label>
-      <label>Nombres: <input type="text" id="nombres_mandatario" required></label>
-      <label>Domicilio: <input type="text" id="domicilio_mandatario" required></label>
-      <label>Comuna: <input type="text" id="comuna_mandatario" required></label>
-      <label>Ciudad: <input type="text" id="ciudad_mandatario" required></label>
-      <label>Teléfono: <input type="tel" id="telefono_mandatario" required></label>
-      <label>Email (Opcional): <input type="email" id="email_mandatario"></label>
-    </section>
+      body {
+        margin: 0;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell,
+          Noto Sans, Helvetica Neue, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+        color: var(--text);
+        background: radial-gradient(1200px 700px at 20% 0%, rgba(139, 92, 246, 0.25), transparent 60%),
+          radial-gradient(900px 600px at 90% 20%, rgba(34, 197, 94, 0.18), transparent 55%),
+          radial-gradient(1000px 700px at 40% 110%, rgba(59, 130, 246, 0.15), transparent 55%),
+          var(--bg);
+        min-height: 100vh;
+      }
 
-    <section>
-      <h2>Antecedentes</h2>
-      <label>Deseo pensión preliminar:</label>
-      <input type="radio" id="pension_preliminar_si" name="pension_preliminar" value="Sí" required> Sí<br>
-      <input type="radio" id="pension_preliminar_no" name="pension_preliminar" value="No"> No<br>
-      <label>Solicito aporte previsional solidario (APS):</label>
-      <input type="radio" id="aps_si" name="aps" value="Sí" required> Sí<br>
-      <input type="radio" id="aps_no" name="aps" value="No"> No<br>
-      <label>Recibo pensión antiguo sistema:</label>
-      <input type="radio" id="pension_antiguo_si" name="pension_antiguo" value="Sí" required> Sí<br>
-      <input type="radio" id="pension_antiguo_no" name="pension_antiguo" value="No"> No<br>
-      <div class="conditional" id="pension_antiguo_details">
-        <label>Entidad Pagadora: <input type="text" id="entidad_pagadora"></label>
-        <label>Fecha de Otorgamiento (DD-MM-YYYY): <input type="text" id="fecha_otorgamiento"></label>
-      </div>
-      <label>Recibo pensión invalidez de este Sistema:</label>
-      <input type="radio" id="pension_invalidez_si" name="pension_invalidez" value="Sí" required> Sí<br>
-      <input type="radio" id="pension_invalidez_no" name="pension_invalidez" value="No"> No<br>
-      <label>Deseo que mi pensión se ajuste a la pensión mínima:</label>
-      <input type="radio" id="ajuste_minima_si" name="ajuste_minima" value="Sí" required> Sí<br>
-      <input type="radio" id="ajuste_minima_no" name="ajuste_minima" value="No"> No<br>
-      <label>Deseo que mi pensión se ajuste a la pensión básica solidaria:</label>
-      <input type="radio" id="ajuste_basica_si" name="ajuste_basica" value="Sí" required> Sí<br>
-      <input type="radio" id="ajuste_basica_no" name="ajuste_basica" value="No"> No<br>
-      <label>Estoy afecto al Estatuto Administrativo...:</label>
-      <input type="radio" id="estatuto_si" name="estatuto" value="Sí" required> Sí<br>
-      <input type="radio" id="estatuto_no" name="estatuto" value="No"> No<br>
-      <label>Destinaré Ahorro Previsional Voluntario al financiamiento de mi pensión:</label>
-      <input type="radio" id="apv_si" name="apv" value="Sí" required> Sí<br>
-      <input type="radio" id="apv_no" name="apv" value="No"> No<br>
-      <div class="conditional" id="apv_details">
-        <label>Nombre de la AFP o Institución autorizada: <input type="text" id="afp_apv"></label>
-      </div>
-      <label>Destinaré Ahorro Previsional Voluntario Colectivo al financiamiento de mi pensión:</label>
-      <input type="radio" id="apvc_si" name="apvc" value="Sí" required> Sí<br>
-      <input type="radio" id="apvc_no" name="apvc" value="No"> No<br>
-      <div class="conditional" id="apvc_details">
-        <label>Nombre de la AFP o Institución autorizada: <input type="text" id="afp_apvc"></label>
-      </div>
-      <label>Traspasaré fondos desde mi Cuenta de Ahorro Voluntario para el financiamiento de mi pensión:</label>
-      <input type="radio" id="traspaso_cav_si" name="traspaso_cav" value="Sí" required> Sí<br>
-      <input type="radio" id="traspaso_cav_no" name="traspaso_cav" value="No"> No<br>
-      <div class="conditional" id="traspaso_cav_details">
-        <label>Nombre de la AFP o Institución autorizada: <input type="text" id="afp_traspaso_cav"></label>
-      </div>
-      <label>Poseo depósitos convenidos:</label>
-      <input type="radio" id="depositos_convenidos_si" name="depositos_convenidos" value="Sí" required> Sí<br>
-      <input type="radio" id="depositos_convenidos_no" name="depositos_convenidos" value="No"> No<br>
-      <div class="conditional" id="depositos_convenidos_details">
-        <label>Nombre de la AFP o Institución autorizada: <input type="text" id="afp_depositos_convenidos"></label>
-      </div>
-      <label>Traspasaré fondos desde mi Cuenta Individual de Cesantía:</label>
-      <input type="radio" id="traspaso_cic_si" name="traspaso_cic" value="Sí" required> Sí<br>
-      <input type="radio" id="traspaso_cic_no" name="traspaso_cic" value="No"> No<br>
-      <label>Tengo cotizaciones en otro país:</label>
-      <input type="radio" id="cotizaciones_otro_pais_si" name="cotizaciones_otro_pais" value="Sí" required> Sí<br>
-      <input type="radio" id="cotizaciones_otro_pais_no" name="cotizaciones_otro_pais" value="No"> No<br>
-      <div class="conditional" id="cotizaciones_otro_pais_details">
-        <label>País: <input type="text" id="pais_cotizaciones"></label>
-      </div>
-      <label>Tengo períodos de residencia en otro país:</label>
-      <input type="radio" id="residencia_otro_pais_si" name="residencia_otro_pais" value="Sí" required> Sí<br>
-      <input type="radio" id="residencia_otro_pais_no" name="residencia_otro_pais" value="No"> No<br>
-      <div class="conditional" id="residencia_otro_pais_details">
-        <label>País: <input type="text" id="pais_residencia"></label>
-      </div>
-      <label>Deseo cambiar de Tipo de Fondo:</label>
-      <input type="radio" id="cambio_fondo_si" name="cambio_fondo" value="Sí" required> Sí<br>
-      <input type="radio" id="cambio_fondo_no" name="cambio_fondo" value="No"> No<br>
-      <label>Deseo que mis datos personales aparezcan en un LISTADO PÚBLICO DE INFORMACIÓN:</label>
-      <input type="radio" id="listado_publico_si" name="listado_publico" value="Sí" required> Sí<br>
-      <input type="radio" id="listado_publico_no" name="listado_publico" value="No"> No<br>
-    </section>
+      .page {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 28px 16px 60px;
+      }
 
-    <section>
-      <h2>Autorizaciones</h2>
-      <label>Suscribir solicitud de Bono de Reconocimiento:</label>
-      <input type="radio" id="bono_reconocimiento_si" name="bono_reconocimiento" value="Sí" required> Sí<br>
-      <input type="radio" id="bono_reconocimiento_no" name="bono_reconocimiento" value="No"> No<br>
-      <label>Solicitar información respecto del estado del trámite de pensión:</label>
-      <input type="radio" id="info_tramite_si" name="info_tramite" value="Sí" required> Sí<br>
-      <input type="radio" id="info_tramite_no" name="info_tramite" value="No"> No<br>
-      <label>Retirar en la AFP el Certificado de Saldo:</label>
-      <input type="radio" id="certificado_saldo_si" name="certificado_saldo" value="Sí" required> Sí<br>
-      <input type="radio" id="certificado_saldo_no" name="certificado_saldo" value="No"> No<br>
-      <label>Suscribir formulario "Destino de Cotizaciones Voluntarias":</label>
-      <input type="radio" id="destino_cot_vol_si" name="destino_cot_vol" value="Sí" required> Sí<br>
-      <input type="radio" id="destino_cot_vol_no" name="destino_cot_vol" value="No"> No<br>
-      <label>Suscribir formulario "Transferencia de Fondos desde la Cuentas de Ahorro Voluntario":</label>
-      <input type="radio" id="transferencia_cav_si" name="transferencia_cav" value="Sí" required> Sí<br>
-      <input type="radio" id="transferencia_cav_no" name="transferencia_cav" value="No"> No<br>
-      <label>Suscribir formulario "Selección de Alternativas de Ahorro Previsional Voluntario":</label>
-      <input type="radio" id="seleccion_apv_si" name="seleccion_apv" value="Sí" required> Sí<br>
-      <input type="radio" id="seleccion_apv_no" name="seleccion_apv" value="No"> No<br>
-      <label>Suscribir solicitud de cambio de modalidad de pensión:</label>
-      <input type="radio" id="cambio_modalidad_si" name="cambio_modalidad" value="Sí" required> Sí<br>
-      <input type="radio" id="cambio_modalidad_no" name="cambio_modalidad" value="No"> No<br>
-      <label>Suscribir solicitud de cálculo de excedente de libre disposición:</label>
-      <input type="radio" id="excedente_libre_si" name="excedente_libre" value="Sí" required> Sí<br>
-      <input type="radio" id="excedente_libre_no" name="excedente_libre" value="No"> No<br>
-      <label>Suscribir opción por mantener el valor nominal del saldo destinado a pensión:</label>
-      <input type="radio" id="valor_nominal_si" name="valor_nominal" value="Sí" required> Sí<br>
-      <input type="radio" id="valor_nominal_no" name="valor_nominal" value="No"> No<br>
-    </section>
+      header {
+        margin: 10px 0 18px;
+        display: grid;
+        gap: 6px;
+      }
 
-    <section>
-      <h2>Empleador (Opcional)</h2>
-      <label>RUT: <input type="text" id="rut_empleador"></label>
-      <label>Teléfono: <input type="tel" id="telefono_empleador"></label>
-      <label>Email: <input type="email" id="email_empleador"></label>
-      <label>Nombre o Razón social: <input type="text" id="nombre_razon_social_empleador"></label>
-    </section>
+      h1 {
+        font-size: clamp(22px, 2.6vw, 32px);
+        letter-spacing: -0.02em;
+        margin: 0;
+      }
 
-    <button type="button" onclick="generarPDF()">Generar PDF del Mandato</button>
-  </form>
+      .subtitle {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.4;
+      }
 
-  <script>
-    // Mostrar/ocultar condicionales
-    document.querySelectorAll('input[type="radio"]').forEach(radio => {
-      radio.addEventListener('change', e => {
-        const name = e.target.name;
-        const value = e.target.value;
-        const detailId = name + '_details';
-        const detailElem = document.getElementById(detailId);
-        if (detailElem) {
-          detailElem.style.display = value === 'Sí' ? 'block' : 'none';
+      .panel {
+        background: linear-gradient(180deg, var(--panel), rgba(255, 255, 255, 0.03));
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+
+      form {
+        padding: 18px;
+      }
+
+      .section {
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: rgba(0, 0, 0, 0.12);
+        padding: 14px;
+        margin: 14px 0;
+      }
+
+      .section > .section-title {
+        display: flex;
+        gap: 10px;
+        align-items: baseline;
+        justify-content: space-between;
+        margin: 0 0 10px;
+      }
+
+      h2 {
+        font-size: 16px;
+        margin: 0;
+        letter-spacing: 0.02em;
+      }
+
+      .hint {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        gap: 10px;
+      }
+
+      .field {
+        grid-column: span 12;
+        display: grid;
+        gap: 6px;
+      }
+
+      .col-6 {
+        grid-column: span 12;
+      }
+      .col-4 {
+        grid-column: span 12;
+      }
+      .col-3 {
+        grid-column: span 12;
+      }
+      .col-12 {
+        grid-column: span 12;
+      }
+
+      @media (min-width: 860px) {
+        .col-6 {
+          grid-column: span 6;
         }
-      });
-    });
+        .col-4 {
+          grid-column: span 4;
+        }
+        .col-3 {
+          grid-column: span 3;
+        }
+      }
 
-    async function generarPDF() {
-      try {
-        const form = document.getElementById('formMandato');
-        if (!form.checkValidity()) {
-          alert('Por favor, complete todos los campos requeridos.');
-          return;
+      label {
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.86);
+      }
+
+      .req {
+        color: rgba(255, 255, 255, 0.7);
+        font-weight: 500;
+        margin-left: 6px;
+        font-size: 12px;
+      }
+
+      input,
+      select,
+      textarea {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 12px;
+        color: var(--text);
+        padding: 10px 12px;
+        outline: none;
+        transition: border-color 120ms ease, background 120ms ease, box-shadow 120ms ease;
+      }
+
+      textarea {
+        min-height: 84px;
+        resize: vertical;
+      }
+
+      input:focus,
+      select:focus,
+      textarea:focus {
+        border-color: rgba(139, 92, 246, 0.8);
+        box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.18);
+      }
+
+      select option {
+        background: #0b1220;
+        color: var(--text);
+      }
+
+      .radio-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      .radio-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(0, 0, 0, 0.15);
+      }
+
+      .radio-pill input {
+        width: auto;
+      }
+
+      .error {
+        color: rgba(239, 68, 68, 0.95);
+        font-size: 12px;
+        min-height: 16px;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 14px;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .btns {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      button {
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--text);
+        padding: 10px 12px;
+        border-radius: 12px;
+        cursor: pointer;
+        font-weight: 650;
+        letter-spacing: 0.01em;
+        transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
+      }
+
+      button:hover {
+        background: rgba(255, 255, 255, 0.09);
+        transform: translateY(-1px);
+      }
+
+      button:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .primary {
+        border-color: rgba(139, 92, 246, 0.55);
+        background: linear-gradient(180deg, rgba(139, 92, 246, 0.4), rgba(139, 92, 246, 0.18));
+      }
+
+      .ok {
+        border-color: rgba(34, 197, 94, 0.5);
+        background: linear-gradient(180deg, rgba(34, 197, 94, 0.35), rgba(34, 197, 94, 0.12));
+      }
+
+      .danger {
+        border-color: rgba(239, 68, 68, 0.55);
+        background: linear-gradient(180deg, rgba(239, 68, 68, 0.26), rgba(239, 68, 68, 0.1));
+      }
+
+      .status {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .output {
+        margin-top: 14px;
+        padding: 14px;
+        border-radius: 14px;
+        border: 1px dashed rgba(255, 255, 255, 0.22);
+        background: rgba(0, 0, 0, 0.14);
+      }
+
+      pre {
+        margin: 0;
+        overflow: auto;
+        max-height: 340px;
+        padding: 12px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header>
+        <h1>Formulario de Solicitud de Pensión</h1>
+        <p class="subtitle">
+          Completa los datos. Al enviar, se validará el RUT y la fecha (DD-MM-YYYY) y podrás
+          descargar un JSON con la información.
+        </p>
+      </header>
+
+      <div class="panel">
+        <form id="pensionForm" novalidate>
+          <div class="section" aria-labelledby="mandanteTitle">
+            <div class="section-title">
+              <h2 id="mandanteTitle">Mandante</h2>
+              <span class="hint">Campos con * son obligatorios</span>
+            </div>
+
+            <div class="grid">
+              <div class="field col-6">
+                <label for="mandante_nombre">Mandante <span class="req">*</span></label>
+                <input id="mandante_nombre" name="mandante.mandante" required autocomplete="name" />
+                <div class="error" data-error-for="mandante_nombre"></div>
+              </div>
+
+              <div class="field col-6">
+                <label>Tipo de Pensión <span class="req">*</span></label>
+                <div class="radio-row" role="group" aria-label="Tipo de Pensión">
+                  <label class="radio-pill">
+                    <input
+                      type="radio"
+                      name="mandante.tipoPension"
+                      value="Pensión de Vejez por edad"
+                      required
+                    />
+                    Pensión de Vejez por edad
+                  </label>
+                  <label class="radio-pill">
+                    <input
+                      type="radio"
+                      name="mandante.tipoPension"
+                      value="Pensión de Vejez anticipada"
+                      required
+                    />
+                    Pensión de Vejez anticipada
+                  </label>
+                </div>
+                <div class="error" data-error-for="mandante.tipoPension"></div>
+              </div>
+
+              <div class="field col-4">
+                <label for="mandante_rut">RUT <span class="req">*</span></label>
+                <input
+                  id="mandante_rut"
+                  name="mandante.rut"
+                  required
+                  inputmode="text"
+                  autocomplete="off"
+                  placeholder="12.345.678-5"
+                />
+                <div class="error" data-error-for="mandante_rut"></div>
+              </div>
+
+              <div class="field col-4">
+                <label for="mandante_nacionalidad">Nacionalidad <span class="req">*</span></label>
+                <input
+                  id="mandante_nacionalidad"
+                  name="mandante.nacionalidad"
+                  required
+                  autocomplete="country-name"
+                />
+                <div class="error" data-error-for="mandante_nacionalidad"></div>
+              </div>
+
+              <div class="field col-4">
+                <label>Sexo <span class="req">*</span></label>
+                <div class="radio-row" role="group" aria-label="Sexo">
+                  <label class="radio-pill">
+                    <input type="radio" name="mandante.sexo" value="Masculino" required />
+                    Masculino
+                  </label>
+                  <label class="radio-pill">
+                    <input type="radio" name="mandante.sexo" value="Femenino" required />
+                    Femenino
+                  </label>
+                </div>
+                <div class="error" data-error-for="mandante.sexo"></div>
+              </div>
+
+              <div class="field col-4">
+                <label for="mandante_apPaterno">Apellido Paterno <span class="req">*</span></label>
+                <input id="mandante_apPaterno" name="mandante.apellidoPaterno" required />
+                <div class="error" data-error-for="mandante_apPaterno"></div>
+              </div>
+
+              <div class="field col-4">
+                <label for="mandante_apMaterno">Apellido Materno <span class="req">*</span></label>
+                <input id="mandante_apMaterno" name="mandante.apellidoMaterno" required />
+                <div class="error" data-error-for="mandante_apMaterno"></div>
+              </div>
+
+              <div class="field col-4">
+                <label for="mandante_nombres">Nombres <span class="req">*</span></label>
+                <input id="mandante_nombres" name="mandante.nombres" required />
+                <div class="error" data-error-for="mandante_nombres"></div>
+              </div>
+
+              <div class="field col-6">
+                <label for="mandante_domicilio">Domicilio <span class="req">*</span></label>
+                <textarea id="mandante_domicilio" name="mandante.domicilio" required></textarea>
+                <div class="error" data-error-for="mandante_domicilio"></div>
+              </div>
+
+              <div class="field col-3">
+                <label for="mandante_comuna">Comuna <span class="req">*</span></label>
+                <input id="mandante_comuna" name="mandante.comuna" required />
+                <div class="error" data-error-for="mandante_comuna"></div>
+              </div>
+
+              <div class="field col-3">
+                <label for="mandante_ciudad">Ciudad <span class="req">*</span></label>
+                <input id="mandante_ciudad" name="mandante.ciudad" required />
+                <div class="error" data-error-for="mandante_ciudad"></div>
+              </div>
+
+              <div class="field col-4">
+                <label for="mandante_fechaNac">Fecha Nacimiento (DD-MM-YYYY) <span class="req">*</span></label>
+                <input
+                  id="mandante_fechaNac"
+                  name="mandante.fechaNacimiento"
+                  required
+                  inputmode="numeric"
+                  placeholder="31-12-1970"
+                />
+                <div class="error" data-error-for="mandante_fechaNac"></div>
+              </div>
+
+              <div class="field col-4">
+                <label for="mandante_estadoCivil">Estado Civil <span class="req">*</span></label>
+                <select id="mandante_estadoCivil" name="mandante.estadoCivil" required>
+                  <option value="" selected disabled>Selecciona…</option>
+                  <option>Soltero/a</option>
+                  <option>Casado/a</option>
+                  <option>Conviviente Civil</option>
+                  <option>Divorciado/a</option>
+                  <option>Viudo/a</option>
+                  <option>Separado/a</option>
+                  <option>Otro</option>
+                </select>
+                <div class="error" data-error-for="mandante_estadoCivil"></div>
+              </div>
+
+              <div class="field col-4">
+                <label for="mandante_profesion">Profesión u Oficio <span class="req">*</span></label>
+                <input id="mandante_profesion" name="mandante.profesionUOficio" required />
+                <div class="error" data-error-for="mandante_profesion"></div>
+              </div>
+
+              <div class="field col-4">
+                <label for="mandante_telefono">Teléfono <span class="req">*</span></label>
+                <input
+                  id="mandante_telefono"
+                  name="mandante.telefono"
+                  required
+                  inputmode="tel"
+                  autocomplete="tel"
+                  placeholder="+56 9 1234 5678"
+                />
+                <div class="error" data-error-for="mandante_telefono"></div>
+              </div>
+
+              <div class="field col-4">
+                <label for="mandante_email">Email (Opcional)</label>
+                <input id="mandante_email" name="mandante.email" inputmode="email" autocomplete="email" />
+                <div class="error" data-error-for="mandante_email"></div>
+              </div>
+
+              <div class="field col-4">
+                <label for="mandante_afp">AFP <span class="req">*</span></label>
+                <input id="mandante_afp" name="mandante.afp" required />
+                <div class="error" data-error-for="mandante_afp"></div>
+              </div>
+
+              <div class="field col-6">
+                <label for="mandante_salud">Institución de Salud <span class="req">*</span></label>
+                <input id="mandante_salud" name="mandante.institucionSalud" required />
+                <div class="error" data-error-for="mandante_salud"></div>
+              </div>
+
+              <div class="field col-6">
+                <label for="mandante_benef">N° de Beneficiarios <span class="req">*</span></label>
+                <input
+                  id="mandante_benef"
+                  name="mandante.numeroBeneficiarios"
+                  type="number"
+                  min="0"
+                  step="1"
+                  required
+                  inputmode="numeric"
+                />
+                <div class="error" data-error-for="mandante_benef"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section" aria-labelledby="mandatarioTitle">
+            <div class="section-title">
+              <h2 id="mandatarioTitle">Mandatario</h2>
+              <span class="hint">Completa los datos del mandatario</span>
+            </div>
+
+            <div class="grid">
+              <div class="field col-4">
+                <label for="mandatario_rut">RUT <span class="req">*</span></label>
+                <input
+                  id="mandatario_rut"
+                  name="mandatario.rut"
+                  required
+                  inputmode="text"
+                  autocomplete="off"
+                  placeholder="12.345.678-5"
+                />
+                <div class="error" data-error-for="mandatario_rut"></div>
+              </div>
+
+              <div class="field col-4">
+                <label for="mandatario_nacionalidad">Nacionalidad <span class="req">*</span></label>
+                <input id="mandatario_nacionalidad" name="mandatario.nacionalidad" required />
+                <div class="error" data-error-for="mandatario_nacionalidad"></div>
+              </div>
+
+              <div class="field col-4">
+                <label for="mandatario_registro">N° Registro de Asesor Previsional (Opcional)</label>
+                <input id="mandatario_registro" name="mandatario.numeroRegistroAsesorPrevisional" />
+                <div class="error" data-error-for="mandatario_registro"></div>
+              </div>
+
+              <div class="field col-4">
+                <label for="mandatario_apPaterno">Apellido Paterno <span class="req">*</span></label>
+                <input id="mandatario_apPaterno" name="mandatario.apellidoPaterno" required />
+                <div class="error" data-error-for="mandatario_apPaterno"></div>
+              </div>
+
+              <div class="field col-4">
+                <label for="mandatario_apMaterno">Apellido Materno <span class="req">*</span></label>
+                <input id="mandatario_apMaterno" name="mandatario.apellidoMaterno" required />
+                <div class="error" data-error-for="mandatario_apMaterno"></div>
+              </div>
+
+              <div class="field col-4">
+                <label for="mandatario_nombres">Nombres <span class="req">*</span></label>
+                <input id="mandatario_nombres" name="mandatario.nombres" required />
+                <div class="error" data-error-for="mandatario_nombres"></div>
+              </div>
+
+              <div class="field col-6">
+                <label for="mandatario_domicilio">Domicilio <span class="req">*</span></label>
+                <textarea id="mandatario_domicilio" name="mandatario.domicilio" required></textarea>
+                <div class="error" data-error-for="mandatario_domicilio"></div>
+              </div>
+
+              <div class="field col-3">
+                <label for="mandatario_comuna">Comuna <span class="req">*</span></label>
+                <input id="mandatario_comuna" name="mandatario.comuna" required />
+                <div class="error" data-error-for="mandatario_comuna"></div>
+              </div>
+
+              <div class="field col-3">
+                <label for="mandatario_ciudad">Ciudad <span class="req">*</span></label>
+                <input id="mandatario_ciudad" name="mandatario.ciudad" required />
+                <div class="error" data-error-for="mandatario_ciudad"></div>
+              </div>
+
+              <div class="field col-6">
+                <label for="mandatario_telefono">Teléfono <span class="req">*</span></label>
+                <input
+                  id="mandatario_telefono"
+                  name="mandatario.telefono"
+                  required
+                  inputmode="tel"
+                  autocomplete="tel"
+                  placeholder="+56 9 1234 5678"
+                />
+                <div class="error" data-error-for="mandatario_telefono"></div>
+              </div>
+
+              <div class="field col-6">
+                <label for="mandatario_email">Email (Opcional)</label>
+                <input id="mandatario_email" name="mandatario.email" inputmode="email" autocomplete="email" />
+                <div class="error" data-error-for="mandatario_email"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section" aria-labelledby="antecedentesTitle">
+            <div class="section-title">
+              <h2 id="antecedentesTitle">Antecedentes</h2>
+              <span class="hint">Marca Sí o No en cada opción</span>
+            </div>
+            <div id="antecedentesQuestions" class="grid"></div>
+          </div>
+
+          <div class="section" aria-labelledby="autorizacionesTitle">
+            <div class="section-title">
+              <h2 id="autorizacionesTitle">Autorizaciones</h2>
+              <span class="hint">Marca Sí o No en cada autorización</span>
+            </div>
+            <div id="autorizacionesQuestions" class="grid"></div>
+          </div>
+
+          <div class="section" aria-labelledby="empleadorTitle">
+            <div class="section-title">
+              <h2 id="empleadorTitle">Empleador (Opcional)</h2>
+              <span class="hint">Completar solo si corresponde</span>
+            </div>
+            <div class="grid">
+              <div class="field col-4">
+                <label for="empleador_rut">RUT</label>
+                <input id="empleador_rut" name="empleador.rut" inputmode="text" placeholder="12.345.678-5" />
+                <div class="error" data-error-for="empleador_rut"></div>
+              </div>
+              <div class="field col-4">
+                <label for="empleador_telefono">Teléfono</label>
+                <input id="empleador_telefono" name="empleador.telefono" inputmode="tel" />
+                <div class="error" data-error-for="empleador_telefono"></div>
+              </div>
+              <div class="field col-4">
+                <label for="empleador_email">Email</label>
+                <input id="empleador_email" name="empleador.email" inputmode="email" />
+                <div class="error" data-error-for="empleador_email"></div>
+              </div>
+              <div class="field col-12">
+                <label for="empleador_nombre">Nombre o Razón social</label>
+                <input id="empleador_nombre" name="empleador.nombreORazonSocial" />
+                <div class="error" data-error-for="empleador_nombre"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="actions">
+            <div class="btns">
+              <button type="submit" class="primary">Validar y generar</button>
+              <button type="button" id="btnGuardar" class="ok">Guardar borrador</button>
+              <button type="button" id="btnDescargar" disabled>Descargar JSON</button>
+              <button type="button" id="btnLimpiar" class="danger">Limpiar</button>
+            </div>
+            <div id="status" class="status" aria-live="polite"></div>
+          </div>
+
+          <div class="output" id="output" hidden>
+            <h2 style="margin: 0 0 10px">Salida (JSON)</h2>
+            <pre id="jsonPreview"></pre>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      const STORAGE_KEY = "hablemosapp_pension_form_v1";
+
+      const antecedentesItems = [
+        { key: "deseoPensionPreliminar", label: "Deseo pensión preliminar" },
+        { key: "solicitoAps", label: "Solicito aporte previsional solidario (APS)" },
+        { key: "reciboPensionAntiguoSistema", label: "Recibo pensión antiguo sistema" },
+        { key: "reciboPensionInvalidezEsteSistema", label: "Recibo pensión invalidez de este Sistema" },
+        { key: "ajustePensionMinima", label: "Deseo que mi pensión se ajuste a la pensión mínima" },
+        { key: "ajustePensionBasicaSolidaria", label: "Deseo que mi pensión se ajuste a la pensión básica solidaria" },
+        { key: "afectoEstatutoAdministrativo", label: "Estoy afecto al Estatuto Administrativo..." },
+        { key: "destinareApv", label: "Destinaré Ahorro Previsional Voluntario al financiamiento de mi pensión" },
+        { key: "destinareApvc", label: "Destinaré Ahorro Previsional Voluntario Colectivo al financiamiento de mi pensión" },
+        { key: "traspasareCtaAhorroVoluntario", label: "Traspasaré fondos desde mi Cuenta de Ahorro Voluntario para el financiamiento de mi pensión" },
+        { key: "poseoDepositosConvenidos", label: "Poseo depósitos convenidos" },
+        { key: "traspasareCesantia", label: "Traspasaré fondos desde mi Cuenta Individual de Cesantía" },
+        { key: "cotizacionesOtroPais", label: "Tengo cotizaciones en otro país" },
+        { key: "residenciaOtroPais", label: "Tengo períodos de residencia en otro país" },
+        { key: "cambioTipoFondo", label: "Deseo cambiar de Tipo de Fondo" },
+        { key: "listadoPublico", label: "Deseo que mis datos personales aparezcan en un LISTADO PÚBLICO DE INFORMACIÓN" },
+      ];
+
+      const autorizacionesItems = [
+        { key: "suscribirBonoReconocimiento", label: "Suscribir solicitud de Bono de Reconocimiento" },
+        { key: "solicitarInfoEstadoTramite", label: "Solicitar información respecto del estado del trámite de pensión" },
+        { key: "retirarCertificadoSaldo", label: "Retirar en la AFP el Certificado de Saldo" },
+        { key: "suscribirDestinoCotizacionesVoluntarias", label: 'Suscribir formulario "Destino de Cotizaciones Voluntarias"' },
+        {
+          key: "suscribirTransferenciaAhorroVoluntario",
+          label: 'Suscribir formulario "Transferencia de Fondos desde la Cuentas de Ahorro Voluntario"',
+        },
+        {
+          key: "suscribirSeleccionAlternativasApv",
+          label: 'Suscribir formulario "Selección de Alternativas de Ahorro Previsional Voluntario"',
+        },
+        { key: "suscribirCambioModalidadPension", label: "Suscribir solicitud de cambio de modalidad de pensión" },
+        { key: "suscribirCalculoExcedente", label: "Suscribir solicitud de cálculo de excedente de libre disposición" },
+        {
+          key: "suscribirMantenerValorNominal",
+          label: "Suscribir opción por mantener el valor nominal del saldo destinado a pensión",
+        },
+      ];
+
+      function el(tag, attrs = {}, children = []) {
+        const node = document.createElement(tag);
+        for (const [k, v] of Object.entries(attrs)) {
+          if (k === "class") node.className = v;
+          else if (k.startsWith("on") && typeof v === "function") node.addEventListener(k.slice(2), v);
+          else if (v === false || v === null || v === undefined) continue;
+          else node.setAttribute(k, String(v));
+        }
+        for (const child of Array.isArray(children) ? children : [children]) {
+          node.append(child instanceof Node ? child : document.createTextNode(String(child)));
+        }
+        return node;
+      }
+
+      function renderYesNo(container, groupName, items) {
+        container.innerHTML = "";
+        for (const item of items) {
+          const name = `${groupName}.${item.key}`;
+          const field = el("div", { class: "field col-12" }, [
+            el("label", {}, `${item.label} `),
+            el("div", { class: "radio-row", role: "group", "aria-label": item.label }, [
+              el("label", { class: "radio-pill" }, [
+                el("input", { type: "radio", name, value: "Sí", required: "true" }),
+                "Sí",
+              ]),
+              el("label", { class: "radio-pill" }, [
+                el("input", { type: "radio", name, value: "No", required: "true" }),
+                "No",
+              ]),
+            ]),
+            el("div", { class: "error", "data-error-for": name }),
+          ]);
+          container.append(field);
+        }
+      }
+
+      function normalizeRut(raw) {
+        if (!raw) return "";
+        let s = String(raw).trim().toUpperCase();
+        s = s.replace(/[^0-9K]/g, "");
+        if (s.length < 2) return s;
+        const body = s.slice(0, -1);
+        const dv = s.slice(-1);
+        const bodyWithDots = body
+          .split("")
+          .reverse()
+          .join("")
+          .replace(/(\d{3})(?=\d)/g, "$1.")
+          .split("")
+          .reverse()
+          .join("");
+        return `${bodyWithDots}-${dv}`;
+      }
+
+      function rutIsValid(rut) {
+        const s = String(rut || "").toUpperCase().replace(/[^0-9K]/g, "");
+        if (s.length < 2) return false;
+        const body = s.slice(0, -1);
+        const dv = s.slice(-1);
+        if (!/^\d+$/.test(body)) return false;
+        let sum = 0;
+        let mul = 2;
+        for (let i = body.length - 1; i >= 0; i--) {
+          sum += Number(body[i]) * mul;
+          mul = mul === 7 ? 2 : mul + 1;
+        }
+        const mod = 11 - (sum % 11);
+        const expected = mod === 11 ? "0" : mod === 10 ? "K" : String(mod);
+        return expected === dv;
+      }
+
+      function parseDDMMYYYY(value) {
+        const s = String(value || "").trim();
+        const m = s.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+        if (!m) return null;
+        const dd = Number(m[1]);
+        const mm = Number(m[2]);
+        const yyyy = Number(m[3]);
+        if (yyyy < 1900 || yyyy > 2200) return null;
+        const d = new Date(Date.UTC(yyyy, mm - 1, dd));
+        if (d.getUTCFullYear() !== yyyy || d.getUTCMonth() !== mm - 1 || d.getUTCDate() !== dd) return null;
+        return {
+          dd,
+          mm,
+          yyyy,
+          iso: `${String(yyyy).padStart(4, "0")}-${String(mm).padStart(2, "0")}-${String(dd).padStart(2, "0")}`,
+        };
+      }
+
+      function setStatus(msg) {
+        document.getElementById("status").textContent = msg || "";
+      }
+
+      function clearErrors(form) {
+        for (const node of form.querySelectorAll("[data-error-for]")) node.textContent = "";
+        for (const el of form.querySelectorAll("[aria-invalid='true']")) el.removeAttribute("aria-invalid");
+      }
+
+      function setError(form, keyOrId, message) {
+        const target = form.querySelector(`[data-error-for="${CSS.escape(keyOrId)}"]`);
+        if (target) target.textContent = message;
+      }
+
+      function formDataToObject(form) {
+        const fd = new FormData(form);
+        const out = {};
+        for (const [k, v] of fd.entries()) {
+          const value = typeof v === "string" ? v.trim() : v;
+          const parts = k.split(".");
+          let cur = out;
+          for (let i = 0; i < parts.length; i++) {
+            const p = parts[i];
+            const isLast = i === parts.length - 1;
+            if (isLast) cur[p] = value;
+            else cur = cur[p] = cur[p] && typeof cur[p] === "object" ? cur[p] : {};
+          }
+        }
+        return out;
+      }
+
+      function setFormFromObject(form, data) {
+        if (!data || typeof data !== "object") return;
+        const flat = {};
+        const walk = (obj, path = []) => {
+          for (const [k, v] of Object.entries(obj)) {
+            const next = [...path, k];
+            if (v && typeof v === "object" && !Array.isArray(v)) walk(v, next);
+            else flat[next.join(".")] = v;
+          }
+        };
+        walk(data);
+
+        for (const [name, value] of Object.entries(flat)) {
+          const nodes = form.querySelectorAll(`[name="${CSS.escape(name)}"]`);
+          if (!nodes.length) continue;
+          const first = nodes[0];
+          if (first.type === "radio") {
+            for (const n of nodes) n.checked = String(n.value) === String(value);
+          } else {
+            first.value = value ?? "";
+          }
+        }
+      }
+
+      function downloadJson(filename, obj) {
+        const blob = new Blob([JSON.stringify(obj, null, 2)], { type: "application/json;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      }
+
+      function validate(form) {
+        clearErrors(form);
+        let ok = true;
+
+        const requiredInvalid = [];
+        for (const el of form.querySelectorAll("input, select, textarea")) {
+          if (el.disabled) continue;
+          if (el.type === "radio") continue;
+          if (!el.checkValidity()) requiredInvalid.push(el);
         }
 
-        
+        if (requiredInvalid.length) {
+          ok = false;
+          for (const el of requiredInvalid) {
+            el.setAttribute("aria-invalid", "true");
+            const msg = el.validity.valueMissing ? "Este campo es obligatorio." : "Valor inválido.";
+            if (el.id) setError(form, el.id, msg);
+          }
+        }
+
+        const radioGroups = new Set();
+        for (const r of form.querySelectorAll("input[type='radio'][required]")) radioGroups.add(r.name);
+        for (const name of radioGroups) {
+          const checked = form.querySelector(`input[type="radio"][name="${CSS.escape(name)}"]:checked`);
+          if (!checked) {
+            ok = false;
+            setError(form, name, "Selecciona una opción.");
+          }
+        }
+
+        const rutFields = [
+          { id: "mandante_rut", label: "Mandante", optional: false },
+          { id: "mandatario_rut", label: "Mandatario", optional: false },
+          { id: "empleador_rut", label: "Empleador", optional: true },
+        ];
+
+        for (const f of rutFields) {
+          const input = document.getElementById(f.id);
+          if (!input) continue;
+          const v = String(input.value || "").trim();
+          if (!v && f.optional) continue;
+          input.value = normalizeRut(v);
+          if (!rutIsValid(input.value)) {
+            ok = false;
+            input.setAttribute("aria-invalid", "true");
+            setError(form, f.id, `RUT inválido (${f.label}).`);
+          }
+        }
+
+        const fecha = document.getElementById("mandante_fechaNac");
+        const parsed = parseDDMMYYYY(fecha?.value);
+        if (!parsed) {
+          ok = false;
+          if (fecha) {
+            fecha.setAttribute("aria-invalid", "true");
+            setError(form, "mandante_fechaNac", "Usa formato DD-MM-YYYY y una fecha válida.");
+          }
+        }
+
+        const emailIds = ["mandante_email", "mandatario_email", "empleador_email"];
+        for (const id of emailIds) {
+          const input = document.getElementById(id);
+          if (!input) continue;
+          const v = String(input.value || "").trim();
+          if (!v) continue;
+          const looksOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+          if (!looksOk) {
+            ok = false;
+            input.setAttribute("aria-invalid", "true");
+            setError(form, id, "Email inválido.");
+          }
+        }
+
+        return { ok, parsedBirth: parsed };
+      }
+
+      function init() {
+        const form = document.getElementById("pensionForm");
+        const out = document.getElementById("output");
+        const preview = document.getElementById("jsonPreview");
+        const btnGuardar = document.getElementById("btnGuardar");
+        const btnDescargar = document.getElementById("btnDescargar");
+        const btnLimpiar = document.getElementById("btnLimpiar");
+
+        renderYesNo(document.getElementById("antecedentesQuestions"), "antecedentes", antecedentesItems);
+        renderYesNo(document.getElementById("autorizacionesQuestions"), "autorizaciones", autorizacionesItems);
+
+        const draftRaw = localStorage.getItem(STORAGE_KEY);
+        if (draftRaw) {
+          try {
+            const data = JSON.parse(draftRaw);
+            setFormFromObject(form, data);
+            setStatus("Borrador cargado desde el navegador.");
+          } catch {
+            // ignore
+          }
+        }
+
+        const rutInputs = ["mandante_rut", "mandatario_rut", "empleador_rut"];
+        for (const id of rutInputs) {
+          const input = document.getElementById(id);
+          if (!input) continue;
+          input.addEventListener("blur", () => {
+            input.value = normalizeRut(input.value);
+          });
+        }
+
+        btnGuardar.addEventListener("click", () => {
+          const data = formDataToObject(form);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+          setStatus("Borrador guardado.");
+        });
+
+        btnLimpiar.addEventListener("click", () => {
+          if (!confirm("¿Seguro que quieres limpiar el formulario?")) return;
+          localStorage.removeItem(STORAGE_KEY);
+          form.reset();
+          clearErrors(form);
+          out.hidden = true;
+          preview.textContent = "";
+          btnDescargar.disabled = true;
+          setStatus("Formulario limpio.");
+        });
+
+        let lastJson = null;
+        btnDescargar.addEventListener("click", () => {
+          if (!lastJson) return;
+          const rut = normalizeRut(lastJson?.mandante?.rut || "mandante");
+          const safe = rut.replace(/[^0-9K.-]/g, "_");
+          downloadJson(`solicitud_pension_${safe}.json`, lastJson);
+          setStatus("JSON descargado.");
+        });
+
+        form.addEventListener("submit", (e) => {
+          e.preventDefault();
+          setStatus("");
+          const result = validate(form);
+          if (!result.ok) {
+            setStatus("Revisa los campos marcados en rojo.");
+            btnDescargar.disabled = true;
+            return;
+          }
+          const data = formDataToObject(form);
+          data.meta = {
+            generadoEn: new Date().toISOString(),
+            fechaNacimientoISO: result.parsedBirth?.iso || null,
+          };
+
+          lastJson = data;
+          out.hidden = false;
+          preview.textContent = JSON.stringify(data, null, 2);
+          btnDescargar.disabled = false;
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+          setStatus("Validación OK. JSON listo.");
+        });
+      }
+
+      init();
+    </script>
+  </body>
+</html>
