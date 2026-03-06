@@ -2,119 +2,218 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Clon Formulario Mandato Trámite Pensión SP</title>
+  <title>Formulario Mandato Trámite Pensión SP (Clon)</title>
   <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
   <style>
     body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
-    section { margin-bottom: 20px; }
+    section { margin-bottom: 20px; border: 1px solid #ddd; padding: 10px; border-radius: 5px; }
     label { display: block; margin: 5px 0; }
-    input, select { width: 100%; padding: 8px; box-sizing: border-box; }
+    input, select, textarea { width: 100%; padding: 8px; box-sizing: border-box; }
+    .conditional { display: none; }
     button { padding: 10px 20px; background: #007bff; color: white; border: none; cursor: pointer; }
   </style>
 </head>
 <body>
   <h1>Formulario Mandato para Trámite de Pensión (Clon SP)</h1>
-  <p>Ingrese los datos para generar el mandato en PDF. Luego, imprímalo, legalícelo ante notario y entréguelo en la AFP.</p>
+  <p>Complete los campos para generar el mandato en PDF. Luego, imprímalo, legalícelo ante notario y entréguelo en la AFP.</p>
 
   <form id="formMandato">
     <section>
-      <h2>Datos del Mandante (Afiliado)</h2>
-      <label>RUT: <input type="text" id="rut_afiliado" required></label>
-      <label>Nombres: <input type="text" id="nombres" required></label>
-      <label>Apellido Paterno: <input type="text" id="apellido_paterno" required></label>
-      <label>Apellido Materno: <input type="text" id="apellido_materno" required></label>
-      <label>Fecha de Nacimiento (DD-MM-YYYY): <input type="text" id="fecha_nac_afiliado" required></label>
+      <h2>Mandante</h2>
+      <label>Tipo de Pensión:</label>
+      <input type="radio" id="tipo_vejez_edad" name="tipo_pension" value="Pensión de Vejez por edad" required> Pensión de Vejez por edad<br>
+      <input type="radio" id="tipo_vejez_anticipada" name="tipo_pension" value="Pensión de Vejez anticipada"> Pensión de Vejez anticipada<br>
+      <label>RUT: <input type="text" id="rut_mandante" required></label>
+      <label>Nacionalidad: <input type="text" id="nacionalidad_mandante" required></label>
+      <label>Sexo:</label>
+      <input type="radio" id="sexo_m" name="sexo" value="Masculino" required> Masculino<br>
+      <input type="radio" id="sexo_f" name="sexo" value="Femenino"> Femenino<br>
+      <label>Apellido Paterno: <input type="text" id="apellido_paterno_mandante" required></label>
+      <label>Apellido Materno: <input type="text" id="apellido_materno_mandante" required></label>
+      <label>Nombres: <input type="text" id="nombres_mandante" required></label>
+      <label>Domicilio: <input type="text" id="domicilio_mandante" required></label>
+      <label>Comuna: <input type="text" id="comuna_mandante" required></label>
+      <label>Ciudad: <input type="text" id="ciudad_mandante" required></label>
+      <label>Fecha Nacimiento (DD-MM-YYYY): <input type="text" id="fecha_nac_mandante" required></label>
       <label>Estado Civil: 
-        <select id="estado_civil_afiliado" required>
+        <select id="estado_civil_mandante" required>
           <option value="">Seleccione</option>
-          <option value="SOLTERO">Soltero</option>
-          <option value="CASADO">Casado</option>
-          <option value="DIVORCIADO">Divorciado</option>
-          <option value="VIUDO">Viudo</option>
+          <option value="Soltero">Soltero</option>
+          <option value="Casado">Casado</option>
+          <option value="Divorciado">Divorciado</option>
+          <option value="Viudo">Viudo</option>
         </select>
       </label>
-      <label>Profesión u Oficio: <input type="text" id="profesion_oficio_afiliado" required></label>
-      <label>Domicilio: <input type="text" id="domicilio_afiliado" required></label>
-      <label>Comuna: <input type="text" id="comuna_afiliado" required></label>
-      <label>Ciudad: <input type="text" id="ciudad_afiliado" required></label>
-      <label>Celular: <input type="tel" id="celular_afiliado" required></label>
-      <label>Email: <input type="email" id="email_afiliado" required></label>
+      <label>Profesión u Oficio: <input type="text" id="profesion_mandante" required></label>
+      <label>Teléfono: <input type="tel" id="telefono_mandante" required></label>
+      <label>Email (Opcional): <input type="email" id="email_mandante"></label>
       <label>AFP: 
-        <select id="afp_afiliado" required>
+        <select id="afp_mandante" required>
           <option value="">Seleccione</option>
-          <option value="CAPITAL">Capital</option>
-          <option value="HABITAT">Habitat</option>
-          <option value="MODELO">Modelo</option>
-          <option value="PLANVITAL">PlanVital</option>
-          <option value="PROVIDA">Provida</option>
-          <option value="UNO">Uno</option>
-          <option value="CUPRUM">Cuprum</option>
+          <option value="Capital">Capital</option>
+          <option value="Habitat">Habitat</option>
+          <option value="Modelo">Modelo</option>
+          <option value="PlanVital">PlanVital</option>
+          <option value="Provida">Provida</option>
+          <option value="Uno">Uno</option>
+          <option value="Cuprum">Cuprum</option>
         </select>
       </label>
-      <label>Sistema de Salud: 
-        <select id="sistema_salud_afiliado" required>
+      <label>Institución de Salud: 
+        <select id="institucion_salud_mandante" required>
           <option value="">Seleccione</option>
-          <option value="FONASA">Fonasa</option>
-          <option value="ISAPRE">Isapre (especifique)</option>
+          <option value="Fonasa">Fonasa</option>
+          <option value="Isapre">Isapre (especifique)</option>
         </select>
       </label>
+      <label>N° de Beneficiarios: <input type="number" id="num_beneficiarios" min="0" required></label>
     </section>
 
     <section>
-      <h2>Datos del Mandatario (Asesor o Tercero)</h2>
-      <label>RUT: <input type="text" id="rut_asesor" required></label>
-      <label>Nombres: <input type="text" id="nombres_asesor" required></label>
-      <label>Apellido Paterno: <input type="text" id="apellido_paterno_asesor" required></label>
-      <label>Apellido Materno: <input type="text" id="apellido_materno_asesor" required></label>
-      <label>Número de Registro SP: <input type="text" id="numero_registro_asesor" required></label>
-      <label>Fecha de Nacimiento (DD-MM-YYYY): <input type="text" id="fecha_nac_asesor" required></label>
-      <label>Domicilio: <input type="text" id="domicilio_asesor" required></label>
-      <label>Comuna: <input type="text" id="comuna_asesor" required></label>
-      <label>Ciudad: <input type="text" id="ciudad_asesor" required></label>
-      <label>Celular: <input type="tel" id="celular_asesor" required></label>
-      <label>Email: <input type="email" id="email_asesor" required></label>
+      <h2>Mandatario</h2>
+      <label>RUT: <input type="text" id="rut_mandatario" required></label>
+      <label>Nacionalidad: <input type="text" id="nacionalidad_mandatario" required></label>
+      <label>N° Registro de Asesor Previsional (Opcional): <input type="text" id="num_registro_asesor"></label>
+      <label>Apellido Paterno: <input type="text" id="apellido_paterno_mandatario" required></label>
+      <label>Apellido Materno: <input type="text" id="apellido_materno_mandatario" required></label>
+      <label>Nombres: <input type="text" id="nombres_mandatario" required></label>
+      <label>Domicilio: <input type="text" id="domicilio_mandatario" required></label>
+      <label>Comuna: <input type="text" id="comuna_mandatario" required></label>
+      <label>Ciudad: <input type="text" id="ciudad_mandatario" required></label>
+      <label>Teléfono: <input type="tel" id="telefono_mandatario" required></label>
+      <label>Email (Opcional): <input type="email" id="email_mandatario"></label>
     </section>
 
     <section>
-      <h2>Datos Generales del Mandato</h2>
-      <label>Número de Contrato/Mandato: <input type="text" id="numero_contrato" required></label>
-      <label>Ciudad del Contrato: <input type="text" id="ciudad_contrato" required></label>
-      <label>Fecha del Contrato (DD-MM-YYYY): <input type="text" id="fecha_contrato" required></label>
-      <label>Tipo de Trámite Previsional: 
-        <select id="tipo_tramite_previsional" required>
-          <option value="">Seleccione</option>
-          <option value="PENSION POR EDAD LEGAL">Pensión por Edad Legal</option>
-          <option value="PENSION POR INVALIDEZ">Pensión por Invalidez</option>
-          <option value="PENSION POR SOBREVIVENCIA">Pensión por Sobrevivencia</option>
-          <option value="CAMBIO MODALIDAD">Cambio de Modalidad</option>
-        </select>
-      </label>
-      <label>Grupo Familiar (sin beneficiarios o liste: Nombre, Parentesco, Fecha Nac, RUT, Inv.): <textarea id="sin_beneficiarios_o_listado" rows="4"></textarea></label>
+      <h2>Antecedentes</h2>
+      <label>Deseo pensión preliminar:</label>
+      <input type="radio" id="pension_preliminar_si" name="pension_preliminar" value="Sí" required> Sí<br>
+      <input type="radio" id="pension_preliminar_no" name="pension_preliminar" value="No"> No<br>
+      <label>Solicito aporte previsional solidario (APS):</label>
+      <input type="radio" id="aps_si" name="aps" value="Sí" required> Sí<br>
+      <input type="radio" id="aps_no" name="aps" value="No"> No<br>
+      <label>Recibo pensión antiguo sistema:</label>
+      <input type="radio" id="pension_antiguo_si" name="pension_antiguo" value="Sí" required> Sí<br>
+      <input type="radio" id="pension_antiguo_no" name="pension_antiguo" value="No"> No<br>
+      <div class="conditional" id="pension_antiguo_details">
+        <label>Entidad Pagadora: <input type="text" id="entidad_pagadora"></label>
+        <label>Fecha de Otorgamiento (DD-MM-YYYY): <input type="text" id="fecha_otorgamiento"></label>
+      </div>
+      <label>Recibo pensión invalidez de este Sistema:</label>
+      <input type="radio" id="pension_invalidez_si" name="pension_invalidez" value="Sí" required> Sí<br>
+      <input type="radio" id="pension_invalidez_no" name="pension_invalidez" value="No"> No<br>
+      <label>Deseo que mi pensión se ajuste a la pensión mínima:</label>
+      <input type="radio" id="ajuste_minima_si" name="ajuste_minima" value="Sí" required> Sí<br>
+      <input type="radio" id="ajuste_minima_no" name="ajuste_minima" value="No"> No<br>
+      <label>Deseo que mi pensión se ajuste a la pensión básica solidaria:</label>
+      <input type="radio" id="ajuste_basica_si" name="ajuste_basica" value="Sí" required> Sí<br>
+      <input type="radio" id="ajuste_basica_no" name="ajuste_basica" value="No"> No<br>
+      <label>Estoy afecto al Estatuto Administrativo...:</label>
+      <input type="radio" id="estatuto_si" name="estatuto" value="Sí" required> Sí<br>
+      <input type="radio" id="estatuto_no" name="estatuto" value="No"> No<br>
+      <label>Destinaré Ahorro Previsional Voluntario al financiamiento de mi pensión:</label>
+      <input type="radio" id="apv_si" name="apv" value="Sí" required> Sí<br>
+      <input type="radio" id="apv_no" name="apv" value="No"> No<br>
+      <div class="conditional" id="apv_details">
+        <label>Nombre de la AFP o Institución autorizada: <input type="text" id="afp_apv"></label>
+      </div>
+      <label>Destinaré Ahorro Previsional Voluntario Colectivo al financiamiento de mi pensión:</label>
+      <input type="radio" id="apvc_si" name="apvc" value="Sí" required> Sí<br>
+      <input type="radio" id="apvc_no" name="apvc" value="No"> No<br>
+      <div class="conditional" id="apvc_details">
+        <label>Nombre de la AFP o Institución autorizada: <input type="text" id="afp_apvc"></label>
+      </div>
+      <label>Traspasaré fondos desde mi Cuenta de Ahorro Voluntario para el financiamiento de mi pensión:</label>
+      <input type="radio" id="traspaso_cav_si" name="traspaso_cav" value="Sí" required> Sí<br>
+      <input type="radio" id="traspaso_cav_no" name="traspaso_cav" value="No"> No<br>
+      <div class="conditional" id="traspaso_cav_details">
+        <label>Nombre de la AFP o Institución autorizada: <input type="text" id="afp_traspaso_cav"></label>
+      </div>
+      <label>Poseo depósitos convenidos:</label>
+      <input type="radio" id="depositos_convenidos_si" name="depositos_convenidos" value="Sí" required> Sí<br>
+      <input type="radio" id="depositos_convenidos_no" name="depositos_convenidos" value="No"> No<br>
+      <div class="conditional" id="depositos_convenidos_details">
+        <label>Nombre de la AFP o Institución autorizada: <input type="text" id="afp_depositos_convenidos"></label>
+      </div>
+      <label>Traspasaré fondos desde mi Cuenta Individual de Cesantía:</label>
+      <input type="radio" id="traspaso_cic_si" name="traspaso_cic" value="Sí" required> Sí<br>
+      <input type="radio" id="traspaso_cic_no" name="traspaso_cic" value="No"> No<br>
+      <label>Tengo cotizaciones en otro país:</label>
+      <input type="radio" id="cotizaciones_otro_pais_si" name="cotizaciones_otro_pais" value="Sí" required> Sí<br>
+      <input type="radio" id="cotizaciones_otro_pais_no" name="cotizaciones_otro_pais" value="No"> No<br>
+      <div class="conditional" id="cotizaciones_otro_pais_details">
+        <label>País: <input type="text" id="pais_cotizaciones"></label>
+      </div>
+      <label>Tengo períodos de residencia en otro país:</label>
+      <input type="radio" id="residencia_otro_pais_si" name="residencia_otro_pais" value="Sí" required> Sí<br>
+      <input type="radio" id="residencia_otro_pais_no" name="residencia_otro_pais" value="No"> No<br>
+      <div class="conditional" id="residencia_otro_pais_details">
+        <label>País: <input type="text" id="pais_residencia"></label>
+      </div>
+      <label>Deseo cambiar de Tipo de Fondo:</label>
+      <input type="radio" id="cambio_fondo_si" name="cambio_fondo" value="Sí" required> Sí<br>
+      <input type="radio" id="cambio_fondo_no" name="cambio_fondo" value="No"> No<br>
+      <label>Deseo que mis datos personales aparezcan en un LISTADO PÚBLICO DE INFORMACIÓN:</label>
+      <input type="radio" id="listado_publico_si" name="listado_publico" value="Sí" required> Sí<br>
+      <input type="radio" id="listado_publico_no" name="listado_publico" value="No"> No<br>
     </section>
 
     <section>
-      <h2>Datos de Póliza (opcionales, para asesor)</h2>
-      <label>Número Registro Póliza CMF: <input type="text" id="numero_poliza_registro_cmf"></label>
-      <label>Compañía de Seguros: <input type="text" id="compania_seguros"></label>
-      <label>Número Póliza: <input type="text" id="numero_poliza"></label>
-      <label>Fecha Contratación Póliza: <input type="text" id="fecha_contratacion_poliza"></label>
-      <label>Fecha Vigencia Inicio: <input type="text" id="fecha_vigencia_inicio"></label>
-      <label>Fecha Vigencia Fin: <input type="text" id="fecha_vigencia_fin"></label>
+      <h2>Autorizaciones</h2>
+      <label>Suscribir solicitud de Bono de Reconocimiento:</label>
+      <input type="radio" id="bono_reconocimiento_si" name="bono_reconocimiento" value="Sí" required> Sí<br>
+      <input type="radio" id="bono_reconocimiento_no" name="bono_reconocimiento" value="No"> No<br>
+      <label>Solicitar información respecto del estado del trámite de pensión:</label>
+      <input type="radio" id="info_tramite_si" name="info_tramite" value="Sí" required> Sí<br>
+      <input type="radio" id="info_tramite_no" name="info_tramite" value="No"> No<br>
+      <label>Retirar en la AFP el Certificado de Saldo:</label>
+      <input type="radio" id="certificado_saldo_si" name="certificado_saldo" value="Sí" required> Sí<br>
+      <input type="radio" id="certificado_saldo_no" name="certificado_saldo" value="No"> No<br>
+      <label>Suscribir formulario "Destino de Cotizaciones Voluntarias":</label>
+      <input type="radio" id="destino_cot_vol_si" name="destino_cot_vol" value="Sí" required> Sí<br>
+      <input type="radio" id="destino_cot_vol_no" name="destino_cot_vol" value="No"> No<br>
+      <label>Suscribir formulario "Transferencia de Fondos desde la Cuentas de Ahorro Voluntario":</label>
+      <input type="radio" id="transferencia_cav_si" name="transferencia_cav" value="Sí" required> Sí<br>
+      <input type="radio" id="transferencia_cav_no" name="transferencia_cav" value="No"> No<br>
+      <label>Suscribir formulario "Selección de Alternativas de Ahorro Previsional Voluntario":</label>
+      <input type="radio" id="seleccion_apv_si" name="seleccion_apv" value="Sí" required> Sí<br>
+      <input type="radio" id="seleccion_apv_no" name="seleccion_apv" value="No"> No<br>
+      <label>Suscribir solicitud de cambio de modalidad de pensión:</label>
+      <input type="radio" id="cambio_modalidad_si" name="cambio_modalidad" value="Sí" required> Sí<br>
+      <input type="radio" id="cambio_modalidad_no" name="cambio_modalidad" value="No"> No<br>
+      <label>Suscribir solicitud de cálculo de excedente de libre disposición:</label>
+      <input type="radio" id="excedente_libre_si" name="excedente_libre" value="Sí" required> Sí<br>
+      <input type="radio" id="excedente_libre_no" name="excedente_libre" value="No"> No<br>
+      <label>Suscribir opción por mantener el valor nominal del saldo destinado a pensión:</label>
+      <input type="radio" id="valor_nominal_si" name="valor_nominal" value="Sí" required> Sí<br>
+      <input type="radio" id="valor_nominal_no" name="valor_nominal" value="No"> No<br>
     </section>
 
     <section>
-      <h2>Honorarios (opcionales, para asesoría)</h2>
-      <label>Porcentaje Renta Vitalicia: <input type="number" id="porcentaje_renta_vitalicia" step="0.1"></label>
-      <label>Tope UF Renta Vitalicia: <input type="number" id="tope_uf_renta_vitalicia"></label>
-      <label>Porcentaje Retiro Programado: <input type="number" id="porcentaje_retiro_programado" step="0.1"></label>
-      <label>Tope UF Retiro Programado: <input type="number" id="tope_uf_retiro_programado"></label>
-      <label>Tope UF Cambio Modalidad: <input type="number" id="tope_uf_cambio_modalidad"></label>
+      <h2>Empleador (Opcional)</h2>
+      <label>RUT: <input type="text" id="rut_empleador"></label>
+      <label>Teléfono: <input type="tel" id="telefono_empleador"></label>
+      <label>Email: <input type="email" id="email_empleador"></label>
+      <label>Nombre o Razón social: <input type="text" id="nombre_razon_social_empleador"></label>
     </section>
 
-    <button type="button" onclick="generarPDF()">Generar Mandato PDF</button>
+    <button type="button" onclick="generarPDF()">Generar PDF del Mandato</button>
   </form>
 
   <script>
+    // Mostrar/ocultar condicionales
+    document.querySelectorAll('input[type="radio"]').forEach(radio => {
+      radio.addEventListener('change', e => {
+        const name = e.target.name;
+        const value = e.target.value;
+        const detailId = name + '_details';
+        const detailElem = document.getElementById(detailId);
+        if (detailElem) {
+          detailElem.style.display = value === 'Sí' ? 'block' : 'none';
+        }
+      });
+    });
+
     async function generarPDF() {
       const form = document.getElementById('formMandato');
       if (!form.checkValidity()) {
@@ -122,97 +221,200 @@
         return;
       }
 
-      // Recopilar valores
+      // Recopilar valores (ejemplo para algunos; agrega todos)
       const valores = {
-        NUMERO_CONTRATO: document.getElementById('numero_contrato').value,
-        CIUDAD_CONTRATO: document.getElementById('ciudad_contrato').value,
-        FECHA_CONTRATO: document.getElementById('fecha_contrato').value,
-        NOMBRES: document.getElementById('nombres').value,
-        APELLIDO_PATERNO: document.getElementById('apellido_paterno').value,
-        APELLIDO_MATERNO: document.getElementById('apellido_materno').value,
-        RUT_AFILIADO: document.getElementById('rut_afiliado').value,
-        FECHA_NACIMIENTO_AFILIADO: document.getElementById('fecha_nac_afiliado').value,
-        ESTADO_CIVIL_AFILIADO: document.getElementById('estado_civil_afiliado').value,
-        PROFESION_OFICIO_AFILIADO: document.getElementById('profesion_oficio_afiliado').value,
-        DOMICILIO_AFILIADO: document.getElementById('domicilio_afiliado').value,
-        COMUNA_AFILIADO: document.getElementById('comuna_afiliado').value,
-        CIUDAD_AFILIADO: document.getElementById('ciudad_afiliado').value,
-        CELULAR_AFILIADO: document.getElementById('celular_afiliado').value,
-        EMAIL_AFILIADO: document.getElementById('email_afiliado').value,
-        AFP_AFILIADO: document.getElementById('afp_afiliado').value,
-        SISTEMA_SALUD_AFILIADO: document.getElementById('sistema_salud_afiliado').value,
-        NOMBRES_ASESOR: document.getElementById('nombres_asesor').value,
-        APELLIDO_PATERNO_ASESOR: document.getElementById('apellido_paterno_asesor').value,
-        APELLIDO_MATERNO_ASESOR: document.getElementById('apellido_materno_asesor').value,
-        RUT_ASESOR: document.getElementById('rut_asesor').value,
-        NUMERO_REGISTRO_ASESOR: document.getElementById('numero_registro_asesor').value,
-        FECHA_NACIMIENTO_ASESOR: document.getElementById('fecha_nac_asesor').value,
-        DOMICILIO_ASESOR: document.getElementById('domicilio_asesor').value,
-        COMUNA_ASESOR: document.getElementById('comuna_asesor').value,
-        CIUDAD_ASESOR: document.getElementById('ciudad_asesor').value,
-        CELULAR_ASESOR: document.getElementById('celular_asesor').value,
-        EMAIL_ASESOR: document.getElementById('email_asesor').value,
-        TIPO_TRAMITE_PREVISIONAL: document.getElementById('tipo_tramite_previsional').value,
-        SIN_BENEFICIARIOS_O_LISTADO_BENEFICIARIOS: document.getElementById('sin_beneficiarios_o_listado').value || 'SIN BENEFICIARIOS LEGALES',
-        NUMERO_POLIZA_REGISTRO_CMF: document.getElementById('numero_poliza_registro_cmf').value || '1.2013.0970',
-        COMPANIA_SEGUROS: document.getElementById('compania_seguros').value || 'COMPAÑÍA DE SEGUROS GENERALES SURAMERICANA S.A.',
-        NUMERO_POLIZA: document.getElementById('numero_poliza').value || '9148151',
-        FECHA_CONTRATACION_POLIZA: document.getElementById('fecha_contratacion_poliza').value || '23/09/2025',
-        FECHA_VIGENCIA_INICIO: document.getElementById('fecha_vigencia_inicio').value || '01/10/2025',
-        FECHA_VIGENCIA_FIN: document.getElementById('fecha_vigencia_fin').value || '30/09/2026',
-        PORCENTAJE_RENTA_VITALICIA: document.getElementById('porcentaje_renta_vitalicia').value || '1.5',
-        TOPE_UF_RENTA_VITALICIA: document.getElementById('tope_uf_renta_vitalicia').value || '60',
-        PORCENTAJE_RETIRO_PROGRAMADO: document.getElementById('porcentaje_retiro_programado').value || '1.2',
-        TOPE_UF_RETIRO_PROGRAMADO: document.getElementById('tope_uf_retiro_programado').value || '36',
-        TOPE_UF_CAMBIO_MODALIDAD: document.getElementById('tope_uf_cambio_modalidad').value || '24',
-        NOMBRE_COMPLETO_ASESOR: `${document.getElementById('nombres_asesor').value} ${document.getElementById('apellido_paterno_asesor').value} ${document.getElementById('apellido_materno_asesor').value}`,
+        TIPO_PENSION: document.querySelector('input[name="tipo_pension"]:checked')?.value || '',
+        RUT_MANDANTE: document.getElementById('rut_mandante').value,
+        NACIONALIDAD_MANDANTE: document.getElementById('nacionalidad_mandante').value,
+        SEXO_MANDANTE: document.querySelector('input[name="sexo"]:checked')?.value || '',
+        APELLIDO_PATERNO_MANDANTE: document.getElementById('apellido_paterno_mandante').value,
+        APELLIDO_MATERNO_MANDANTE: document.getElementById('apellido_materno_mandante').value,
+        NOMBRES_MANDANTE: document.getElementById('nombres_mandante').value,
+        DOMICILIO_MANDANTE: document.getElementById('domicilio_mandante').value,
+        COMUNA_MANDANTE: document.getElementById('comuna_mandante').value,
+        CIUDAD_MANDANTE: document.getElementById('ciudad_mandante').value,
+        FECHA_NAC_MANDANTE: document.getElementById('fecha_nac_mandante').value,
+        ESTADO_CIVIL_MANDANTE: document.getElementById('estado_civil_mandante').value,
+        PROFESION_MANDANTE: document.getElementById('profesion_mandante').value,
+        TELEFONO_MANDANTE: document.getElementById('telefono_mandante').value,
+        EMAIL_MANDANTE: document.getElementById('email_mandante').value,
+        AFP_MANDANTE: document.getElementById('afp_mandante').value,
+        INSTITUCION_SALUD_MANDANTE: document.getElementById('institucion_salud_mandante').value,
+        NUM_BENEFICIARIOS: document.getElementById('num_beneficiarios').value,
+        RUT_MANDATARIO: document.getElementById('rut_mandatario').value,
+        NACIONALIDAD_MANDATARIO: document.getElementById('nacionalidad_mandatario').value,
+        NUM_REGISTRO_ASESOR: document.getElementById('num_registro_asesor').value,
+        APELLIDO_PATERNO_MANDATARIO: document.getElementById('apellido_paterno_mandatario').value,
+        APELLIDO_MATERNO_MANDATARIO: document.getElementById('apellido_materno_mandatario').value,
+        NOMBRES_MANDATARIO: document.getElementById('nombres_mandatario').value,
+        DOMICILIO_MANDATARIO: document.getElementById('domicilio_mandatario').value,
+        COMUNA_MANDATARIO: document.getElementById('comuna_mandatario').value,
+        CIUDAD_MANDATARIO: document.getElementById('ciudad_mandatario').value,
+        TELEFONO_MANDATARIO: document.getElementById('telefono_mandatario').value,
+        EMAIL_MANDATARIO: document.getElementById('email_mandatario').value,
+        PENSION_PRELIMINAR: document.querySelector('input[name="pension_preliminar"]:checked')?.value || '',
+        APS: document.querySelector('input[name="aps"]:checked')?.value || '',
+        PENSION_ANTIGUO: document.querySelector('input[name="pension_antiguo"]:checked')?.value || '',
+        ENTIDAD_PAGADORA: document.getElementById('entidad_pagadora').value,
+        FECHA_OTORGAMIENTO: document.getElementById('fecha_otorgamiento').value,
+        PENSION_INVALID EZ: document.querySelector('input[name="pension_invalidez"]:checked')?.value || '',
+        AJUSTE_MINIMA: document.querySelector('input[name="ajuste_minima"]:checked')?.value || '',
+        AJUSTE_BASICA: document.querySelector('input[name="ajuste_basica"]:checked')?.value || '',
+        ESTATUTO: document.querySelector('input[name="estatuto"]:checked')?.value || '',
+        APV: document.querySelector('input[name="apv"]:checked')?.value || '',
+        AFP_APV: document.getElementById('afp_apv').value,
+        APVC: document.querySelector('input[name="apvc"]:checked')?.value || '',
+        AFP_APVC: document.getElementById('afp_apvc').value,
+        TRASPASO_CAV: document.querySelector('input[name="traspaso_cav"]:checked')?.value || '',
+        AFP_TRASPASO_CAV: document.getElementById('afp_traspaso_cav').value,
+        DEPOSITOS_CONVENIDOS: document.querySelector('input[name="depositos_convenidos"]:checked')?.value || '',
+        AFP_DEPOSITOS_CONVENIDOS: document.getElementById('afp_depositos_convenidos').value,
+        TRASPASO_CIC: document.querySelector('input[name="traspaso_cic"]:checked')?.value || '',
+        COTIZACIONES_OTRO_PAIS: document.querySelector('input[name="cotizaciones_otro_pais"]:checked')?.value || '',
+        PAIS_COTIZACIONES: document.getElementById('pais_cotizaciones').value,
+        RESIDENCIA_OTRO_PAIS: document.querySelector('input[name="residencia_otro_pais"]:checked')?.value || '',
+        PAIS_RESIDENCIA: document.getElementById('pais_residencia').value,
+        CAMBIO_FONDO: document.querySelector('input[name="cambio_fondo"]:checked')?.value || '',
+        LISTADO_PUBLICO: document.querySelector('input[name="listado_publico"]:checked')?.value || '',
+        BONO_RECONOCIMIENTO: document.querySelector('input[name="bono_reconocimiento"]:checked')?.value || '',
+        INFO_TRAMITE: document.querySelector('input[name="info_tramite"]:checked')?.value || '',
+        CERTIFICADO_SALDO: document.querySelector('input[name="certificado_saldo"]:checked')?.value || '',
+        DESTINO_COT_VOL: document.querySelector('input[name="destino_cot_vol"]:checked')?.value || '',
+        TRANSFERENCIA_CAV: document.querySelector('input[name="transferencia_cav"]:checked')?.value || '',
+        SELECCION_APV: document.querySelector('input[name="seleccion_apv"]:checked')?.value || '',
+        CAMBIO_MODALIDAD: document.querySelector('input[name="cambio_modalidad"]:checked')?.value || '',
+        EXCEDENTE_LIBRE: document.querySelector('input[name="excedente_libre"]:checked')?.value || '',
+        VALOR_NOMINAL: document.querySelector('input[name="valor_nominal"]:checked')?.value || '',
+        RUT_EMPLEADOR: document.getElementById('rut_empleador').value,
+        TELEFONO_EMPLEADOR: document.getElementById('telefono_empleador').value,
+        EMAIL_EMPLEADOR: document.getElementById('email_empleador').value,
+        NOMBRE_RAZON_SOCIAL_EMPLEADOR: document.getElementById('nombre_razon_social_empleador').value,
       };
 
-      // Plantilla del documento (de tu documento modificado)
-      let plantilla = `
-CONTRATO DE PRESTACION DE SERVICIOS DE ASESORIA PARA 
+      // Construir el texto del mandato dinámicamente
+      let textoMandato = `MANDATO PARA TRÁMITE DE PENSIÓN
 
-PENSIONARSE O CAMBIAR MODALIDAD DE PENSIÓN Nº [NUMERO_CONTRATO]
+Individualización del Mandante:
+Tipo de Pensión: [TIPO_PENSION]
+RUT: [RUT_MANDANTE]
+Nacionalidad: [NACIONALIDAD_MANDANTE]
+Sexo: [SEXO_MANDANTE]
+Apellido Paterno: [APELLIDO_PATERNO_MANDANTE]
+Apellido Materno: [APELLIDO_MATERNO_MANDANTE]
+Nombres: [NOMBRES_MANDANTE]
+Domicilio: [DOMICILIO_MANDANTE]
+Comuna: [COMUNA_MANDANTE]
+Ciudad: [CIUDAD_MANDANTE]
+Fecha Nacimiento: [FECHA_NAC_MANDANTE]
+Estado Civil: [ESTADO_CIVIL_MANDANTE]
+Profesión u Oficio: [PROFESION_MANDANTE]
+Teléfono: [TELEFONO_MANDANTE]
+Email: [EMAIL_MANDANTE]
+AFP: [AFP_MANDANTE]
+Institución de Salud: [INSTITUCION_SALUD_MANDANTE]
+N° de Beneficiarios: [NUM_BENEFICIARIOS]
 
-	INDIVIDUALIZACIÓN DE LAS PARTES
+Individualización del Mandatario:
+RUT: [RUT_MANDATARIO]
+Nacionalidad: [NACIONALIDAD_MANDATARIO]
+N° Registro de Asesor Previsional: [NUM_REGISTRO_ASESOR]
+Apellido Paterno: [APELLIDO_PATERNO_MANDATARIO]
+Apellido Materno: [APELLIDO_MATERNO_MANDATARIO]
+Nombres: [NOMBRES_MANDATARIO]
+Domicilio: [DOMICILIO_MANDATARIO]
+Comuna: [COMUNA_MANDATARIO]
+Ciudad: [CIUDAD_MANDATARIO]
+Teléfono: [TELEFONO_MANDATARIO]
+Email: [EMAIL_MANDATARIO]
 
+Antecedentes:
+Deseo pensión preliminar: [PENSION_PRELIMINAR]
+Solicito aporte previsional solidario (APS): [APS]
+Recibo pensión antiguo sistema: [PENSION_ANTIGUO]
+${valores.PENSION_ANTIGUO === 'Sí' ? `Entidad Pagadora: [ENTIDAD_PAGADORA]
+Fecha de Otorgamiento: [FECHA_OTORGAMIENTO]` : ''}
+Recibo pensión invalidez de este Sistema: [PENSION_INVALIDEZ]
+Deseo que mi pensión se ajuste a la pensión mínima: [AJUSTE_MINIMA]
+Deseo que mi pensión se ajuste a la pensión básica solidaria: [AJUSTE_BASICA]
+Estoy afecto al Estatuto Administrativo: [ESTATUTO]
+Destinaré Ahorro Previsional Voluntario: [APV]
+${valores.AP V === 'Sí' ? `AFP o Institución: [AFP_APV]` : ''}
+Destinaré Ahorro Previsional Voluntario Colectivo: [APVC]
+${valores.APVC === 'Sí' ? `AFP o Institución: [AFP_APVC]` : ''}
+Traspasaré fondos desde Cuenta de Ahorro Voluntario: [TRASPASO_CAV]
+${valores.TRASPASO_CAV === 'Sí' ? `AFP o Institución: [AFP_TRASPASO_CAV]` : ''}
+Poseo depósitos convenidos: [DEPOSITOS_CONVENIDOS]
+${valores.DEPOSITOS_CONVENIDOS === 'Sí' ? `AFP o Institución: [AFP_DEPOSITOS_CONVENIDOS]` : ''}
+Traspasaré fondos desde Cuenta Individual de Cesantía: [TRASPASO_CIC]
+Tengo cotizaciones en otro país: [COTIZACIONES_OTRO_PAIS]
+${valores.COTIZACIONES_OTRO_PAIS === 'Sí' ? `País: [PAIS_COTIZACIONES]` : ''}
+Tengo períodos de residencia en otro país: [RESIDENCIA_OTRO_PAIS]
+${valores.RESIDENCIA_OTRO_PAIS === 'Sí' ? `País: [PAIS_RESIDENCIA]` : ''}
+Deseo cambiar de Tipo de Fondo: [CAMBIO_FONDO]
+Deseo que mis datos aparezcan en listado público: [LISTADO_PUBLICO]
 
-En la Ciudad de [CIUDAD_CONTRATO] a [FECHA_CONTRATO], suscriben el presente contrato, por una parte, don [NOMBRES] [APELLIDO_PATERNO] [APELLIDO_MATERNO], Rut [RUT_AFILIADO], nacido el [FECHA_NACIMIENTO_AFILIADO], estado civil [ESTADO_CIVIL_AFILIADO], profesión u oficio [PROFESION_OFICIO_AFILIADO], domiciliado en [DOMICILIO_AFILIADO], comuna de [COMUNA_AFILIADO] ciudad de [CIUDAD_AFILIADO], celular [CELULAR_AFILIADO], correo electrónico [EMAIL_AFILIADO], afiliado a la AFP [AFP_AFILIADO], Sistema de Salud [SISTEMA_SALUD_AFILIADO], por otra parte, [NOMBRES_ASESOR] [APELLIDO_PATERNO_ASESOR] [APELLIDO_MATERNO_ASESOR], Rut [RUT_ASESOR], Profesión Asesor Previsional, inscrito en el Registro de Asesores Previsionales de la Superintendencia de Pensiones con el N° [NUMERO_REGISTRO_ASESOR], nacido el [FECHA_NACIMIENTO_ASESOR], domiciliada en [DOMICILIO_ASESOR], comuna de [COMUNA_ASESOR], ciudad de [CIUDAD_ASESOR], celular [CELULAR_ASESOR] e-mail: [EMAIL_ASESOR], en adelante el “ASESOR PREVISIONAL”. Las partes acuerdan el siguiente contrato de asesoría para realizar trámite de [TIPO_TRAMITE_PREVISIONAL].
-	ANTECEDENTES DEL GRUPO FAMILIAR CON DERECHO A PENSIÓN
+Autorizaciones:
+El mandante autoriza al mandatario a realizar el trámite de pensión en su representación, y específicamente:
+${valores.BONO_RECONOCIMIENTO === 'Sí' ? '- Suscribir solicitud de Bono de Reconocimiento\n' : ''}
+${valores.INFO_TRAMITE === 'Sí' ? '- Solicitar información respecto del estado del trámite de pensión\n' : ''}
+${valores.CERTIFICADO_SALDO === 'Sí' ? '- Retirar en la AFP el Certificado de Saldo\n' : ''}
+${valores.DESTINO_COT_VOL === 'Sí' ? '- Suscribir formulario "Destino de Cotizaciones Voluntarias"\n' : ''}
+${valores.TRANSFERENCIA_CAV === 'Sí' ? '- Suscribir formulario "Transferencia de Fondos desde la Cuentas de Ahorro Voluntario"\n' : ''}
+${valores.SELECCION_APV === 'Sí' ? '- Suscribir formulario "Selección de Alternativas de Ahorro Previsional Voluntario"\n' : ''}
+${valores.CAMBIO_MODALIDAD === 'Sí' ? '- Suscribir solicitud de cambio de modalidad de pensión\n' : ''}
+${valores.EXCEDENTE_LIBRE === 'Sí' ? '- Suscribir solicitud de cálculo de excedente de libre disposición\n' : ''}
+${valores.VALOR_NOMINAL === 'Sí' ? '- Suscribir opción por mantener el valor nominal del saldo destinado a pensión\n' : ''}
 
+Empleador (si aplica):
+RUT: [RUT_EMPLEADOR]
+Teléfono: [TELEFONO_EMPLEADOR]
+Email: [EMAIL_EMPLEADOR]
+Nombre o Razón social: [NOMBRE_RAZON_SOCIAL_EMPLEADOR]
 
-El Afiliado declara que la composición de su grupo familiar con derecho a pensión es:
+El presente mandato se suscribe libre y voluntariamente, de acuerdo a la normativa de la Superintendencia de Pensiones. El mandato debe ser legalizado ante notario.
 
-	NOMBRE
-	PARENTESCO
-	FECHA NAC.
-	RUT
-	INV.
+Firma Mandante: ___________________________     Firma Mandatario: ___________________________
 
-	[SIN_BENEFICIARIOS_O_LISTADO_BENEFICIARIOS]
-
-
-	// ... (el resto de la plantilla como en tu documento modificado, para no alargar el código aquí. Copia todo el texto de mi respuesta anterior y pégalo en esta variable)
-      `;
+Fecha: [FECHA_ACTUAL]`;
 
       // Reemplazar placeholders
       for (const key in valores) {
-        plantilla = plantilla.replaceAll(`[${key}]`, valores[key]);
+        textoMandato = textoMandato.replaceAll(`[${key}]`, valores[key] || 'N/A');
       }
+      textoMandato = textoMandato.replace('[FECHA_ACTUAL]', new Date().toLocaleDateString('es-CL'));
 
       // Generar PDF
       const pdfDoc = await PDFLib.PDFDocument.create();
-      const page = pdfDoc.addPage([595, 842]); // A4 size
+      let page = pdfDoc.addPage([595, 842]); // A4
       const font = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
       const fontSize = 10;
-      const lines = plantilla.split('\n');
+      const maxWidth = 495; // Márgenes de 50px
       let y = 800;
-      for (const line of lines) {
-        page.drawText(line, { x: 50, y, size: fontSize, font });
-        y -= fontSize + 2;
-        if (y < 50) {
-          page = pdfDoc.addPage([595, 842]);
-          y = 800;
+      const lines = textoMandato.split('\n');
+      for (let line of lines) {
+        let currentLine = '';
+        const words = line.split(' ');
+        for (let word of words) {
+          const test = currentLine + (currentLine ? ' ' : '') + word;
+          if (font.widthOfTextAtSize(test, fontSize) > maxWidth) {
+            page.drawText(currentLine, { x: 50, y, size: fontSize, font });
+            y -= fontSize + 5; // Altura de línea
+            if (y < 50) {
+              page = pdfDoc.addPage([595, 842]);
+              y = 800;
+            }
+            currentLine = word;
+          } else {
+            currentLine = test;
+          }
+        }
+        if (currentLine) {
+          page.drawText(currentLine, { x: 50, y, size: fontSize, font });
+          y -= fontSize + 5;
+          if (y < 50) {
+            page = pdfDoc.addPage([595, 842]);
+            y = 800;
+          }
         }
       }
 
