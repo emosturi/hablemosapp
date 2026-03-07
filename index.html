@@ -738,7 +738,7 @@
 
           <div class="actions">
             <div class="btns">
-              <button type="button" id="btnMandato" class="primary">Generar Mandato</button>
+              <button id="btnMandatoSimple">Generar mandato</button>
               <button type="submit" class="primary">Validar y generar</button>
               <button type="button" id="btnGuardar" class="ok">Guardar borrador</button>
               <button type="button" id="btnDescargar" disabled>Descargar JSON</button>
@@ -805,201 +805,157 @@
         },
       ];
 
-      async function generarMandato(data){
+      function generarMandatoSimple(data){
 
-        const response = await fetch("mandato_template_corregido.docx?v=3");
-        const arrayBuffer = await response.arrayBuffer();
+        const beneficiarios = (data.beneficiarios || []).map(b => `
+        <tr>
+        <td>${b.apellidoPaterno || ""}</td>
+        <td>${b.apellidoMaterno || ""}</td>
+        <td>${b.nombres || ""}</td>
+        <td>${b.sexo || ""}</td>
+        <td>${b.rut || ""}</td>
+        <td>${b.fechaNacimiento || ""}</td>
+        <td>${b.parentesco || ""}</td>
+        <td>${b.observaciones || ""}</td>
+        </tr>
+        `).join("");
 
-        const zip = new PizZip(arrayBuffer);
-        const doc = new window.docxtemplater(zip);
+        const html = `
+        <html>
+        <head>
+        <meta charset="utf-8">
+        <style>
+        body{font-family:Arial; font-size:12pt;}
+        table{border-collapse:collapse; width:100%;}
+        td,th{border:1px solid black; padding:4px;}
+        h2,h3{margin-top:20px;}
+        </style>
+        </head>
 
-        const fecha = new Date().toLocaleDateString("es-CL");
+        <body>
 
+        <h2>MANDATO PARA ${data.mandante_tipoPension || ""}</h2>
 
-        /* antecedentes */
+        <p>
+        Con fecha ${data.fecha_actual || ""} yo 
+        <b>${data.mandante_nombre_completo || ""}</b>,
+        RUT ${data.mandante_rut || ""},
+        de nacionalidad ${data.nacionalidad || ""},
+        de sexo ${data.sexo || ""},
+        nacido el ${data.fecha_nacimiento || ""},
+        estado civil ${data.estado_civil || ""},
+        de profesión u oficio ${data.profesion || ""},
+        domiciliado en ${data.direccion || ""},
+        comuna de ${data.comuna || ""},
+        ciudad de ${data.ciudad || ""},
+        teléfono ${data.telefono || ""},
+        correo electrónico ${data.email || ""},
+        confiero poder a 
+        <b>${data.mandatario_nombre || ""}</b>,
+        RUT ${data.mandatario_rut || ""},
+        domiciliado en ${data.mandatario_direccion || ""},
+        comuna de ${data.mandatario_comuna || ""},
+        ciudad de ${data.mandatario_ciudad || ""},
+        teléfono ${data.mandatario_telefono || ""},
+        correo electrónico ${data.mandatario_email || ""},
+        para que en mi nombre suscriba en ${data.mandante_afp || ""} una solicitud de ${data.mandante_tipoPension || ""}.
+        </p>
 
-        const antPreliminar = marcar(data.antecedentes.pensionPreliminar);
-        const antAPS = marcar(data.antecedentes.aps);
-        const antAntiguo = marcar(data.antecedentes.pensionAntiguo);
-        const antInvalidez = marcar(data.antecedentes.pensionInvalidez);
-        const antMinima = marcar(data.antecedentes.pensionMinima);
-        const antPBS = marcar(data.antecedentes.pbs);
-        const antEstatuto = marcar(data.antecedentes.estatuto);
-        const antAPV = marcar(data.antecedentes.apv);
-        const antAPVC = marcar(data.antecedentes.apvc);
-        const antCAV = marcar(data.antecedentes.cav);
-        const antDepositos = marcar(data.antecedentes.depositos);
-        const antCesantia = marcar(data.antecedentes.cesantia);
-        const antOtroPais = marcar(data.antecedentes.otroPais);
-        const antResidencia = marcar(data.antecedentes.residencia);
-        const antFondo = marcar(data.antecedentes.cambioFondo);
-        const antListado = marcar(data.antecedentes.listadoPublico);
+        <h3>Beneficiarios</h3>
 
+        <table>
 
-        /* autorizaciones */
+        <tr>
+        <th>Apellido Paterno</th>
+        <th>Apellido Materno</th>
+        <th>Nombres</th>
+        <th>Sexo</th>
+        <th>RUT</th>
+        <th>Fecha Nacimiento</th>
+        <th>Parentesco</th>
+        <th>Observaciones</th>
+        </tr>
 
-        const autBono = marcar(data.autorizaciones.bono);
-        const autEstado = marcar(data.autorizaciones.estado);
-        const autCertificado = marcar(data.autorizaciones.certificado);
-        const autDestino = marcar(data.autorizaciones.destinoVoluntarias);
-        const autTransferencia = marcar(data.autorizaciones.transferenciaCAV);
-        const autSeleccionAPV = marcar(data.autorizaciones.seleccionAPV);
-        const autModalidad = marcar(data.autorizaciones.modalidad);
-        const autExcedente = marcar(data.autorizaciones.excedente);
-        const autValorNominal = marcar(data.autorizaciones.valorNominal);
+        ${beneficiarios}
 
+        </table>
 
+        <h3>Antecedentes</h3>
 
-        const templateData = {
+        <table>
 
-        fecha_actual: fecha,
+        <tr>
+        <td>Deseo pensión preliminar</td>
+        <td>${data.ant_pension_preliminar ? "Sí" : "No"}</td>
+        </tr>
 
-        /* mandante */
+        <tr>
+        <td>Solicito aporte previsional solidario (APS)</td>
+        <td>${data.ant_aps ? "Sí" : "No"}</td>
+        </tr>
 
-        mandante_nombre_completo:
-        data.mandante.nombres + " " +
-        data.mandante.apellidoPaterno + " " +
-        data.mandante.apellidoMaterno,
+        <tr>
+        <td>Recibo pensión antiguo sistema</td>
+        <td>${data.ant_antiguo ? "Sí" : "No"}</td>
+        </tr>
 
-        mandante_rut: data.mandante.rut,
-        nacionalidad: data.mandante.nacionalidad,
-        sexo: data.mandante.sexo,
-        fecha_nacimiento: data.mandante.fechaNacimiento,
-        estado_civil: data.mandante.estadoCivil,
-        profesion: data.mandante.profesionUOficio,
+        <tr>
+        <td>Recibo pensión invalidez de este Sistema</td>
+        <td>${data.ant_invalidez ? "Sí" : "No"}</td>
+        </tr>
 
-        direccion: data.mandante.domicilio,
-        comuna: data.mandante.comuna,
-        ciudad: data.mandante.ciudad,
-        telefono: data.mandante.telefono,
-        email: data.mandante.email,
-        salud: data.mandante.institucionSalud,
+        </table>
 
-        mandante_afp: data.mandante.afp,
-        mandante_tipoPension: data.mandante.tipoPension,
+        <h3>Autorizaciones</h3>
 
-        /* mandatario */
+        <table>
 
-        mandatario_nombre:
-        data.mandatario.nombres + " " +
-        data.mandatario.apellidoPaterno + " " +
-        data.mandatario.apellidoMaterno,
+        <tr>
+        <td>Suscribir solicitud de Bono de Reconocimiento</td>
+        <td>${data.aut_bono ? "Sí" : "No"}</td>
+        </tr>
 
-        mandatario_rut: data.mandatario.rut,
-        mandatario_direccion: data.mandatario.domicilio,
-        mandatario_comuna: data.mandatario.comuna,
-        mandatario_ciudad: data.mandatario.ciudad,
-        mandatario_telefono: data.mandatario.telefono,
-        mandatario_email: data.mandatario.email,
+        <tr>
+        <td>Solicitar información respecto del estado del trámite de pensión</td>
+        <td>${data.aut_estado ? "Sí" : "No"}</td>
+        </tr>
 
-        /* empleador */
+        <tr>
+        <td>Retirar en la AFP el Certificado de Saldo</td>
+        <td>${data.aut_certificado ? "Sí" : "No"}</td>
+        </tr>
 
-        empleador_nombre: data.empleador?.nombreORazonSocial || "",
-        empleador_rut: data.empleador?.rut || "",
-        empleador_direccion: data.empleador?.direccion || "",
-        empleador_telefono: data.empleador?.telefono || "",
+        </table>
 
-        /* beneficiarios */
+        <br><br><br><br>
 
-        beneficiarios: data.beneficiarios || [],
+        <p>______________________________</p>
+        <p>${data.mandante_nombre_completo || ""}</p>
+        <p>RUT: ${data.mandante_rut || ""}</p>
 
-        /* antecedentes */
+        <br><br>
 
-        ant_pension_preliminar_si: antPreliminar.si,
-        ant_pension_preliminar_no: antPreliminar.no,
+        <p>______________________________</p>
+        <p>${data.mandatario_nombre || ""}</p>
+        <p>RUT: ${data.mandatario_rut || ""}</p>
 
-        ant_aps_si: antAPS.si,
-        ant_aps_no: antAPS.no,
+        </body>
+        </html>
+        `;
 
-        ant_antiguo_si: antAntiguo.si,
-        ant_antiguo_no: antAntiguo.no,
+        const blob = new Blob(
+        ["\ufeff", html],
+        {type:"application/msword"}
+        );
 
-        ant_invalidez_si: antInvalidez.si,
-        ant_invalidez_no: antInvalidez.no,
+        const url = URL.createObjectURL(blob);
 
-        ant_minima_si: antMinima.si,
-        ant_minima_no: antMinima.no,
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "mandato.doc";
+        a.click();
 
-        ant_pbs_si: antPBS.si,
-        ant_pbs_no: antPBS.no,
-
-        ant_estatuto_si: antEstatuto.si,
-        ant_estatuto_no: antEstatuto.no,
-
-        ant_apv_si: antAPV.si,
-        ant_apv_no: antAPV.no,
-
-        ant_apvc_si: antAPVC.si,
-        ant_apvc_no: antAPVC.no,
-
-        ant_cav_si: antCAV.si,
-        ant_cav_no: antCAV.no,
-
-        ant_depositos_si: antDepositos.si,
-        ant_depositos_no: antDepositos.no,
-
-        ant_cesantia_si: antCesantia.si,
-        ant_cesantia_no: antCesantia.no,
-
-        ant_otro_pais_si: antOtroPais.si,
-        ant_otro_pais_no: antOtroPais.no,
-
-        ant_residencia_si: antResidencia.si,
-        ant_residencia_no: antResidencia.no,
-
-        ant_fondo_si: antFondo.si,
-        ant_fondo_no: antFondo.no,
-
-        ant_listado_si: antListado.si,
-        ant_listado_no: antListado.no,
-
-        /* autorizaciones */
-
-        aut_bono_si: autBono.si,
-        aut_bono_no: autBono.no,
-
-        aut_estado_si: autEstado.si,
-        aut_estado_no: autEstado.no,
-
-        aut_certificado_si: autCertificado.si,
-        aut_certificado_no: autCertificado.no,
-
-        aut_destino_si: autDestino.si,
-        aut_destino_no: autDestino.no,
-
-        aut_transferencia_si: autTransferencia.si,
-        aut_transferencia_no: autTransferencia.no,
-
-        aut_seleccion_apv_si: autSeleccionAPV.si,
-        aut_seleccion_apv_no: autSeleccionAPV.no,
-
-        aut_modalidad_si: autModalidad.si,
-        aut_modalidad_no: autModalidad.no,
-
-        aut_excedente_si: autExcedente.si,
-        aut_excedente_no: autExcedente.no,
-
-        aut_valor_nominal_si: autValorNominal.si,
-        aut_valor_nominal_no: autValorNominal.no
-
-        };
-
-        doc.setData(templateData);
-
-        try{
-        doc.render();
-        }catch(error){
-        console.error(error);
-        alert("Error generando el mandato");
-        return;
-        }
-
-        const blob = doc.getZip().generate({
-        type:"blob",
-        mimeType:"application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-        });
-
-        saveAs(blob,"mandato_generado.docx");
+        URL.revokeObjectURL(url);
 
       }
 
@@ -1333,18 +1289,18 @@ return div
         const benefContainer = document.getElementById("beneficiariosContainer");
 
 
-        document.getElementById("btnMandato").addEventListener("click", ()=>{
+        document.getElementById("btnMandatoSimple").addEventListener("click", ()=>{
 
-          const result = validate(form);
+        const result = validate(form);
 
-          if(!result.ok){
-          setStatus("Debes completar el formulario primero");
-          return;
-          }
+        if(!result.ok){
+        setStatus("Debes completar el formulario primero");
+        return;
+        }
 
-          const data = formDataToObject(form);
+        const data = formDataToObject(form);
 
-          generarMandato(data);
+        generarMandatoSimple(data);
 
         }); 
 
