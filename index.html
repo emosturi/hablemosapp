@@ -502,6 +502,15 @@
             </div>
           </div>
 
+          <div class="section" id="beneficiariosSection" style="display:none">
+            <div class="section-title">
+              <h2>Datos de Beneficiarios</h2>
+              <span class="hint">Completa los datos de cada beneficiario</span>
+            </div>
+          
+            <div id="beneficiariosContainer" class="grid"></div>
+          </div>
+
           <div class="section" aria-labelledby="mandatarioTitle">
             <div class="section-title">
               <h2 id="mandatarioTitle">Mandatario</h2>
@@ -787,6 +796,66 @@
         return node;
       }
 
+      function crearBeneficiario(i){
+
+const div = document.createElement("div")
+div.className = "section"
+
+div.innerHTML = `
+<h3>Beneficiario ${i+1}</h3>
+
+<div class="grid">
+
+<div class="field col-4">
+<label>Nombres *</label>
+<input name="beneficiarios.${i}.nombres" required>
+</div>
+
+<div class="field col-4">
+<label>Apellido paterno *</label>
+<input name="beneficiarios.${i}.apellidoPaterno" required>
+</div>
+
+<div class="field col-4">
+<label>Apellido materno *</label>
+<input name="beneficiarios.${i}.apellidoMaterno" required>
+</div>
+
+<div class="field col-4">
+<label>RUT *</label>
+<input class="rut-benef" name="beneficiarios.${i}.rut" placeholder="12.345.678-5" required>
+</div>
+
+<div class="field col-4">
+<label>Sexo *</label>
+<select name="beneficiarios.${i}.sexo" required>
+<option value="">Selecciona</option>
+<option>Masculino</option>
+<option>Femenino</option>
+</select>
+</div>
+
+<div class="field col-4">
+<label>Parentezco *</label>
+<input name="beneficiarios.${i}.parentesco" required>
+</div>
+
+<div class="field col-4">
+<label>Fecha nacimiento *</label>
+<input class="fecha-benef" name="beneficiarios.${i}.fechaNacimiento" placeholder="DD-MM-YYYY" required>
+</div>
+
+<div class="field col-12">
+<label>Observaciones</label>
+<textarea name="beneficiarios.${i}.observaciones"></textarea>
+</div>
+
+</div>
+`
+
+return div
+}
+
       function renderYesNo(container, groupName, items) {
         container.innerHTML = "";
         for (const item of items) {
@@ -1019,7 +1088,29 @@
         const btnLimpiar = document.getElementById("btnLimpiar");
         const cuentaField = document.getElementById("cuentaBancariaField");
         const cuentaInput = document.getElementById("cuenta_bancaria");
+        const benefInput = document.getElementById("mandante_benef");
+        const benefSection = document.getElementById("beneficiariosSection");
+        const benefContainer = document.getElementById("beneficiariosContainer");
 
+        function actualizarBeneficiarios(){
+          const n = parseInt(benefInput.value || 0);
+          const actual = benefContainer.children.length;
+
+          if(n > actual){
+            for(let i = actual; i < n; i++){
+              benefContainer.appendChild(crearBeneficiario(i));
+            }
+          }
+
+          if(n < actual){
+            for(let i = actual; i > n; i--){
+              benefContainer.removeChild(benefContainer.lastChild);
+            }
+          }
+        }
+
+        benefInput.addEventListener("input", actualizarBeneficiarios);
+        
         renderYesNo(document.getElementById("antecedentesQuestions"), "antecedentes", antecedentesItems);
         renderYesNo(document.getElementById("autorizacionesQuestions"), "autorizaciones", autorizacionesItems);
 
@@ -1035,18 +1126,18 @@
         }
 
         function updateCuentaBancariaVisibility() {
-  const selected = form.querySelector(
-    'input[name="autorizaciones.ingresarDatosCuentaBancaria"]:checked'
-  );
+          const selected = form.querySelector(
+          'input[name="autorizaciones.ingresarDatosCuentaBancaria"]:checked'
+          );
 
-  if (!selected) return;
+          if (!selected) return;
 
-  if (selected.value === "Sí") {
-    cuentaField.style.display = "grid";
-    cuentaInput.required = true;
-  } else {
-    cuentaField.style.display = "none";
-    cuentaInput.required = false;
+          if (selected.value === "Sí") {
+            cuentaField.style.display = "grid";
+            cuentaInput.required = true;
+          } else {
+          cuentaField.style.display = "none";
+        cuentaInput.required = false;
     cuentaInput.value = "";
   }
 }
@@ -1054,10 +1145,10 @@
         updateCuentaBancariaVisibility();
 
         form.addEventListener("change", function (e) {
-  if (e.target.name === "autorizaciones.ingresarDatosCuentaBancaria") {
-    updateCuentaBancariaVisibility();
-  }
-});
+          if (e.target.name === "autorizaciones.ingresarDatosCuentaBancaria") {
+            updateCuentaBancariaVisibility();
+          }
+          });
 
         const rutInputs = ["mandante_rut", "mandatario_rut", "empleador_rut"];
         for (const id of rutInputs) {
@@ -1119,6 +1210,17 @@
       }
 
       init();
+
+      document.addEventListener("blur", function(e){
+
+        if(e.target.classList.contains("rut-benef")){
+          e.target.value = normalizeRut(e.target.value);
+          if(!rutIsValid(e.target.value)){
+            e.target.setAttribute("aria-invalid","true");
+          }
+        }
+      });
+
     </script>
   </body>
 </html>
