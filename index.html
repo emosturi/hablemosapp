@@ -880,7 +880,7 @@
         <h2>MANDATO PARA ${mandante.tipoPension || ""}</h2>
 
         <p>
-        Con fecha ${fechaHoy} yo 
+        Con fecha ${fechaHoy} y por medio del siguiente instrumento, yo 
         <b>${nombreMandante}</b>,
         RUT ${mandante.rut || ""},
         de nacionalidad ${mandante.nacionalidad || ""},
@@ -893,6 +893,8 @@
         ciudad de ${mandante.ciudad || ""},
         teléfono ${mandante.telefono || ""},
         correo electrónico ${mandante.email || ""},
+        he incorporado a la institución de salud
+        ${mandante.institucionSalud || ""}
         confiero poder a 
         <b>${nombreMandatario}</b>,
         RUT ${mandatario.rut || ""},
@@ -902,6 +904,14 @@
         teléfono ${mandatario.telefono || ""},
         correo electrónico ${mandatario.email || ""},
         para que en mi nombre suscriba en ${mandante.afp || ""} una solicitud de ${mandante.tipoPension || ""}.
+        </p>
+
+        <p>
+        Asimismo, expongo que a la fecha, los datos de mi empleador son los siguientes:   
+        <b>Razón social: ${empleador.nombreORazonSocial || ""}</b>
+        <b>Rut: ${empleador.rut || ""}</b>
+        <b>Correo electrónico: ${empleador.email || ""}</b>
+        <b>Telefono: ${empleador.telefono || ""}</b>
         </p>
 
         <h3>Beneficiarios</h3>
@@ -925,7 +935,7 @@
 
         <h3>Antecedentes</h3>
 
-        <table>
+        <table border="1" style="border-collapse:collapse;width:100%;">
 
         <tr>
         <td>Deseo pensión preliminar</td>
@@ -938,6 +948,11 @@
         </tr>
 
         <tr>
+        <td>Solicitar aporte solidario de invalidez (si corresponde)</td>
+        <td>${antecedentes.aporteSolidarioInvalidez === "Sí" ? "Sí" : "No"}</td>
+        </tr>
+
+        <tr>
         <td>Recibo pensión antiguo sistema</td>
         <td>${antecedentes.reciboPensionAntiguoSistema === "Sí" ? "Sí" : "No"}</td>
         </tr>
@@ -947,25 +962,135 @@
         <td>${antecedentes.reciboPensionInvalidezEsteSistema === "Sí" ? "Sí" : "No"}</td>
         </tr>
 
+        <tr>
+        <td>Deseo que mi pensión se ajuste a la pensión mínima</td>
+        <td>${antecedentes.pensionAjustadaMinima === "Sí" ? "Sí" : "No"}</td>
+        </tr>
+
+        <tr>
+        <td>Deseo que mi pensión se ajuste a la pensión básica solidaria</td>
+        <td>${antecedentes.pensionAjustadaPbs === "Sí" ? "Sí" : "No"}</td>
+        </tr>
+
+        <tr>
+        <td>Estoy afecto al Estatuto Administrativo</td>
+        <td>${antecedentes.estatutoAdministrativo === "Sí" ? "Sí" : "No"}</td>
+        </tr>
+
+        <tr>
+        <td>Destinaré Ahorro Previsional Voluntario al financiamiento de mi pensión</td>
+        <td>${antecedentes.destinarApv === "Sí" ? "Sí" : "No"}</td>
+        </tr>
+
+        <tr>
+        <td>Destinaré Ahorro Previsional Voluntario Colectivo al financiamiento de mi pensión</td>
+        <td>${antecedentes.destinarApvc === "Sí" ? "Sí" : "No"}</td>
+        </tr>
+
+        <tr>
+        <td>Traspasaré fondos desde mi Cuenta de Ahorro Voluntario para financiar mi pensión</td>
+        <td>${antecedentes.traspasoCuentaAhorroVoluntario === "Sí" ? "Sí" : "No"}</td>
+        </tr>
+
+        <tr>
+        <td>Poseo depósitos convenidos</td>
+        <td>${antecedentes.depositosConvenidos === "Sí" ? "Sí" : "No"}</td>
+        </tr>
+
+        <tr>
+        <td>Traspasaré fondos desde mi Cuenta Individual de Cesantía</td>
+        <td>${antecedentes.traspasoCic === "Sí" ? "Sí" : "No"}</td>
+        </tr>
+
+        <tr>
+        <td>Tengo cotizaciones en otro país</td>
+        <td>${antecedentes.cotizacionesOtroPais === "Sí" ? "Sí" : "No"}</td>
+        </tr>
+
+        <tr>
+        <td>Tengo períodos de residencia en otro país</td>
+        <td>${antecedentes.residenciaOtroPais === "Sí" ? "Sí" : "No"}</td>
+        </tr>
+
+        <tr>
+        <td>Deseo cambiar de Tipo de Fondo</td>
+        <td>${antecedentes.cambiarTipoFondo === "Sí" ? "Sí" : "No"}</td>
+        </tr>
+
+        <tr>
+        <td>Deseo que mis datos personales aparezcan en un listado público de información</td>
+        <td>${antecedentes.listadoPublico === "Sí" ? "Sí" : "No"}</td>
+        </tr>
+
         </table>
 
         <h3>Autorizaciones</h3>
 
-        <table>
+        <table border="1" style="border-collapse:collapse;width:100%;">
 
         <tr>
         <td>Suscribir solicitud de Bono de Reconocimiento</td>
-        <td>${autorizaciones.suscribirBonoReconocimiento === "Sí" ? "Sí" : "No"}</td>
+        <td>${autorizaciones.bonoReconocimiento === "Sí" ? "Sí" : "No"}</td>
         </tr>
 
         <tr>
-        <td>Solicitar información respecto del estado del trámite</td>
-        <td>${autorizaciones.solicitarInfoEstadoTramite === "Sí" ? "Sí" : "No"}</td>
+        <td>Solicitar información respecto del estado del trámite de pensión</td>
+        <td>${autorizaciones.estadoTramitePension === "Sí" ? "Sí" : "No"}</td>
         </tr>
 
         <tr>
         <td>Retirar en la AFP el Certificado de Saldo</td>
-        <td>${autorizaciones.retirarCertificadoSaldo === "Sí" ? "Sí" : "No"}</td>
+        <td>${autorizaciones.certificadoSaldo === "Sí" ? "Sí" : "No"}</td>
+        </tr>
+
+        <tr>
+        <td>Suscribir formulario "Destino de Cotizaciones Voluntarias"</td>
+        <td>${autorizaciones.destinoCotizacionesVoluntarias === "Sí" ? "Sí" : "No"}</td>
+        </tr>
+
+        <tr>
+        <td>Suscribir formulario "Transferencia de Fondos desde la Cuenta de Ahorro Voluntario"</td>
+        <td>${autorizaciones.transferenciaCuentaAhorroVoluntario === "Sí" ? "Sí" : "No"}</td>
+        </tr>
+
+        <tr>
+        <td>Suscribir formulario "Selección de Alternativas de Ahorro Previsional Voluntario"</td>
+        <td>${autorizaciones.seleccionApv === "Sí" ? "Sí" : "No"}</td>
+        </tr>
+
+        <tr>
+        <td>Suscribir solicitud de cambio de modalidad de pensión</td>
+        <td>${autorizaciones.cambioModalidadPension === "Sí" ? "Sí" : "No"}</td>
+        </tr>
+
+        <tr>
+        <td>Suscribir solicitud de cálculo de excedente de libre disposición</td>
+        <td>${autorizaciones.excedenteLibreDisposicion === "Sí" ? "Sí" : "No"}</td>
+        </tr>
+
+        <tr>
+        <td>Suscribir opción por mantener el valor nominal del saldo destinado a pensión</td>
+        <td>${autorizaciones.valorNominalSaldo === "Sí" ? "Sí" : "No"}</td>
+        </tr>
+
+        <tr>
+        <td>Retirar duplicado de SCOMP original</td>
+        <td>${autorizaciones.duplicadoScomp === "Sí" ? "Sí" : "No"}</td>
+        </tr>
+
+        <tr>
+        <td>Ingresar datos de mi cuenta bancaria</td>
+        <td>${autorizaciones.ingresarCuentaBancaria === "Sí" ? "Sí" : "No"}</td>
+        </tr>
+
+        <tr>
+        <td>Obtener información verbal o escrita del pago de mi pensión y traspaso de fondos</td>
+        <td>${autorizaciones.infoPagoPension === "Sí" ? "Sí" : "No"}</td>
+        </tr>
+
+        <tr>
+        <td>Número de cuenta</td>
+        <td>${autorizaciones.numeroCuenta || ""}</td>
         </tr>
 
         </table>
