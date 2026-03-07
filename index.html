@@ -808,7 +808,7 @@
       function generarMandatoSimple(data){
 
         let beneficiarios = "";
-
+        
         if(data.beneficiarios){
 
         const lista = Object.values(data.beneficiarios);
@@ -831,7 +831,7 @@
         });
 
         }
-
+        const empleador = data.empleador || {};
         const mandante = data.mandante || {};
         const mandatario = data.mandatario || {};
         const antecedentes = data.antecedentes || {};
