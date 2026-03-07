@@ -608,8 +608,14 @@
               <div id="autorizacionesQuestions" class="col-12"></div>
 
               <div class="field col-12" id="cuentaBancariaField" hidden>
-                <label for="cuenta_bancaria">Datos de mi cuenta bancaria (si corresponde)</label>
-                <textarea id="cuenta_bancaria" name="autorizaciones.cuentaBancaria"></textarea>
+                <label for="cuenta_bancaria">Número de cuenta</label>
+                <input
+                  id="cuenta_bancaria"
+                  name="autorizaciones.numeroCuenta"
+                  type="text"
+                  placeholder="Ej: 12345678-9"
+                  inputmode="numeric"
+                />
                 <div class="error" data-error-for="cuenta_bancaria"></div>
               </div>
 
@@ -1012,7 +1018,7 @@
         const btnDescargar = document.getElementById("btnDescargar");
         const btnLimpiar = document.getElementById("btnLimpiar");
         const cuentaField = document.getElementById("cuentaBancariaField");
-        const cuentaTextarea = document.getElementById("cuenta_bancaria");
+        const cuentaInput = document.getElementById("cuenta_bancaria");
 
         renderYesNo(document.getElementById("antecedentesQuestions"), "antecedentes", antecedentesItems);
         renderYesNo(document.getElementById("autorizacionesQuestions"), "autorizaciones", autorizacionesItems);
@@ -1029,17 +1035,17 @@
         }
 
         function updateCuentaBancariaVisibility() {
-          if (!cuentaField || !cuentaTextarea) return;
+          if (!cuentaField || !cuentaInput) return;
           const selected = form.querySelector(
             'input[type="radio"][name="autorizaciones.ingresarDatosCuentaBancaria"]:checked',
           );
           const show = !!selected && selected.value === "Sí";
           cuentaField.hidden = !show;
           if (show) {
-            cuentaTextarea.setAttribute("required", "true");
+            cuentaInput.setAttribute("required", "true");
           } else {
-            cuentaTextarea.removeAttribute("required");
-            cuentaTextarea.value = "";
+            cuentaInput.removeAttribute("required");
+            cuentaInput.value = "";
           }
         }
 
