@@ -491,7 +491,17 @@
 
               <div class="field col-6">
                 <label for="mandante_salud">Institución de Salud <span class="req">*</span></label>
-                <input id="mandante_salud" name="mandante.institucionSalud" required />
+                <select id="mandante_salud" name="mandante.institucionSalud" required>
+                  <option value="" selected disabled>Selecciona…</option>
+                  <option>FONASA</option>
+                  <option>Isapre Banmédica</option>
+                  <option>Isapre Colmena</option>
+                  <option>Isapre Consalud</option>
+                  <option>Isapre Cruz Blanca</option>
+                  <option>Isapre Nueva Masvida</option>
+                  <option>Isapre Vida Tres</option>
+                  <option>Isapre Esencial</option>
+                </select>
                 <div class="error" data-error-for="mandante_salud"></div>
               </div>
 
