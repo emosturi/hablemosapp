@@ -807,68 +807,101 @@
 
       function generarMandatoSimple(data){
 
-        const filas = document.querySelectorAll("#tablaBeneficiarios tbody tr");
-
         let beneficiarios = "";
 
-        filas.forEach(row => {
+        if(data.beneficiarios){
 
-        const c = row.querySelectorAll("input,select");
+        const lista = Object.values(data.beneficiarios);
+
+        lista.forEach(b => {
 
         beneficiarios += `
         <tr>
-        <td>${c[0]?.value || ""}</td>
-        <td>${c[1]?.value || ""}</td>
-        <td>${c[2]?.value || ""}</td>
-        <td>${c[3]?.value || ""}</td>
-        <td>${c[4]?.value || ""}</td>
-        <td>${c[5]?.value || ""}</td>
-        <td>${c[6]?.value || ""}</td>
-        <td>${c[7]?.value || ""}</td>
+        <td>${b.apellidoPaterno || ""}</td>
+        <td>${b.apellidoMaterno || ""}</td>
+        <td>${b.nombres || ""}</td>
+        <td>${b.sexo || ""}</td>
+        <td>${b.rut || ""}</td>
+        <td>${b.fechaNacimiento || ""}</td>
+        <td>${b.parentesco || ""}</td>
+        <td>${b.observaciones || ""}</td>
         </tr>
         `;
 
         });
+
+        }
+
+        const mandante = data.mandante || {};
+        const mandatario = data.mandatario || {};
+        const antecedentes = data.antecedentes || {};
+        const autorizaciones = data.autorizaciones || {};
+
+        const nombreMandante =
+        `${mandante.nombres || ""} ${mandante.apellidoPaterno || ""} ${mandante.apellidoMaterno || ""}`;
+
+        const nombreMandatario =
+        `${mandatario.nombres || ""} ${mandatario.apellidoPaterno || ""} ${mandatario.apellidoMaterno || ""}`;
+
+        const fechaHoy = new Date().toLocaleDateString("es-CL");
 
         const html = `
         <html>
         <head>
         <meta charset="utf-8">
         <style>
-        body{font-family:Arial; font-size:12pt;}
-        table{border-collapse:collapse; width:100%;}
-        td,th{border:1px solid black; padding:4px;}
-        h2,h3{margin-top:20px;}
+
+        body{
+        font-family:Arial;
+        font-size:12pt;
+        line-height:1.5;
+        }
+
+        table{
+        border-collapse:collapse;
+        width:100%;
+        margin-top:10px;
+        }
+
+        td,th{
+        border:1px solid black;
+        padding:4px;
+        }
+
+        h2,h3{
+        margin-top:20px;
+        }
+
         </style>
         </head>
 
         <body>
 
-        <h2>MANDATO PARA ${data.mandante_tipoPension || ""}</h2>
+        <h2>MANDATO PARA ${mandante.tipoPension || ""}</h2>
 
         <p>
-        Con fecha ${data.fecha_actual || ""} yo 
-        <b>${data.mandante_nombre_completo || ""}</b>,
-        RUT ${data.mandante_rut || ""},
-        de nacionalidad ${data.nacionalidad || ""},
-        de sexo ${data.sexo || ""},
-        nacido el ${data.fecha_nacimiento || ""},
-        estado civil ${data.estado_civil || ""},
-        de profesión u oficio ${data.profesion || ""},
-        domiciliado en ${data.direccion || ""},
-        comuna de ${data.comuna || ""},
-        ciudad de ${data.ciudad || ""},
-        teléfono ${data.telefono || ""},
-        correo electrónico ${data.email || ""},
+        Con fecha ${fechaHoy} yo 
+        <b>${nombreMandante}</b>,
+        RUT ${mandante.rut || ""},
+        de nacionalidad ${mandante.nacionalidad || ""},
+        de sexo ${mandante.sexo || ""},
+        nacido el ${mandante.fechaNacimiento || ""},
+        estado civil ${mandante.estadoCivil || ""},
+        de profesión u oficio ${mandante.profesionUOficio || ""},
+        domiciliado en ${mandante.domicilio || ""},
+        comuna de ${mandante.comuna || ""},
+        ciudad de ${mandante.ciudad || ""},
+        teléfono ${mandante.telefono || ""},
+        correo electrónico ${mandante.email || ""},
         confiero poder a 
-        <b>${data.mandatario_nombre || ""}</b>,
-        RUT ${data.mandatario_rut || ""},
-        domiciliado en ${data.mandatario_direccion || ""},
-        comuna de ${data.mandatario_comuna || ""},
-        ciudad de ${data.mandatario_ciudad || ""},
-        teléfono ${data.mandatario_telefono || ""},
-        correo electrónico ${data.mandatario_email || ""},
-        para que en mi nombre suscriba en ${data.mandante_afp || ""} una solicitud de ${data.mandante_tipoPension || ""}.
+        <b>${nombreMandatario}</b>,
+        RUT ${mandatario.rut || ""},
+        domiciliado en ${mandatario.domicilio || ""},
+        comuna de ${mandatario.comuna || ""},
+        ciudad de ${mandatario.ciudad || ""},
+        teléfono ${mandatario.telefono || ""},
+        correo electrónico ${mandatario.email || ""},
+        para que en mi nombre suscriba en ${mandante.afp || ""} una solicitud de ${mandante.tipoPension || ""}.
         </p>
 
         <h3>Beneficiarios</h3>
@@ -896,22 +929,22 @@
 
         <tr>
         <td>Deseo pensión preliminar</td>
-        <td>${data.ant_pension_preliminar ? "Sí" : "No"}</td>
+        <td>${antecedentes.deseoPensionPreliminar === "Sí" ? "Sí" : "No"}</td>
         </tr>
 
         <tr>
-        <td>Solicito aporte previsional solidario (APS)</td>
-        <td>${data.ant_aps ? "Sí" : "No"}</td>
+        <td>Solicitar Pensión Garantizada Universal</td>
+        <td>${antecedentes.solicitarPgu === "Sí" ? "Sí" : "No"}</td>
         </tr>
 
         <tr>
         <td>Recibo pensión antiguo sistema</td>
-        <td>${data.ant_antiguo ? "Sí" : "No"}</td>
+        <td>${antecedentes.reciboPensionAntiguoSistema === "Sí" ? "Sí" : "No"}</td>
         </tr>
 
         <tr>
-        <td>Recibo pensión invalidez de este Sistema</td>
-        <td>${data.ant_invalidez ? "Sí" : "No"}</td>
+        <td>Recibo pensión invalidez de este sistema</td>
+        <td>${antecedentes.reciboPensionInvalidezEsteSistema === "Sí" ? "Sí" : "No"}</td>
         </tr>
 
         </table>
@@ -922,32 +955,32 @@
 
         <tr>
         <td>Suscribir solicitud de Bono de Reconocimiento</td>
-        <td>${data.aut_bono ? "Sí" : "No"}</td>
+        <td>${autorizaciones.suscribirBonoReconocimiento === "Sí" ? "Sí" : "No"}</td>
         </tr>
 
         <tr>
-        <td>Solicitar información respecto del estado del trámite de pensión</td>
-        <td>${data.aut_estado ? "Sí" : "No"}</td>
+        <td>Solicitar información respecto del estado del trámite</td>
+        <td>${autorizaciones.solicitarInfoEstadoTramite === "Sí" ? "Sí" : "No"}</td>
         </tr>
 
         <tr>
         <td>Retirar en la AFP el Certificado de Saldo</td>
-        <td>${data.aut_certificado ? "Sí" : "No"}</td>
+        <td>${autorizaciones.retirarCertificadoSaldo === "Sí" ? "Sí" : "No"}</td>
         </tr>
 
         </table>
 
-        <br><br><br><br>
+        <br><br><br>
 
         <p>______________________________</p>
-        <p>${data.mandante_nombre_completo || ""}</p>
-        <p>RUT: ${data.mandante_rut || ""}</p>
+        <p>${nombreMandante}</p>
+        <p>RUT: ${mandante.rut || ""}</p>
 
         <br><br>
 
         <p>______________________________</p>
-        <p>${data.mandatario_nombre || ""}</p>
-        <p>RUT: ${data.mandatario_rut || ""}</p>
+        <p>${nombreMandatario}</p>
+        <p>RUT: ${mandatario.rut || ""}</p>
 
         </body>
         </html>
