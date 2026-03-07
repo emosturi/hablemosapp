@@ -807,7 +807,7 @@
 
       async function generarMandato(data){
 
-        const response = await fetch("mandato_template.docx");
+        const response = await fetch("mandato_template_corregido.docx?v=3");
         const arrayBuffer = await response.arrayBuffer();
 
         const zip = new PizZip(arrayBuffer);
