@@ -1051,11 +1051,11 @@
 
         updateCuentaBancariaVisibility();
 
-        for (const r of form.querySelectorAll(
-          'input[type="radio"][name="autorizaciones.ingresarDatosCuentaBancaria"]',
-        )) {
-          r.addEventListener("change", updateCuentaBancariaVisibility);
-        }
+        form.addEventListener("change", (e) => {
+  if (e.target.name === "autorizaciones.ingresarDatosCuentaBancaria") {
+    updateCuentaBancariaVisibility();
+  }
+});
 
         const rutInputs = ["mandante_rut", "mandatario_rut", "empleador_rut"];
         for (const id of rutInputs) {
