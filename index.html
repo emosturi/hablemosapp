@@ -807,18 +807,28 @@
 
       function generarMandatoSimple(data){
 
-        const beneficiarios = (data.beneficiarios || []).map(b => `
+        const filas = document.querySelectorAll("#tablaBeneficiarios tbody tr");
+
+        let beneficiarios = "";
+
+        filas.forEach(row => {
+
+        const c = row.querySelectorAll("input,select");
+
+        beneficiarios += `
         <tr>
-        <td>${b.apellidoPaterno || ""}</td>
-        <td>${b.apellidoMaterno || ""}</td>
-        <td>${b.nombres || ""}</td>
-        <td>${b.sexo || ""}</td>
-        <td>${b.rut || ""}</td>
-        <td>${b.fechaNacimiento || ""}</td>
-        <td>${b.parentesco || ""}</td>
-        <td>${b.observaciones || ""}</td>
+        <td>${c[0]?.value || ""}</td>
+        <td>${c[1]?.value || ""}</td>
+        <td>${c[2]?.value || ""}</td>
+        <td>${c[3]?.value || ""}</td>
+        <td>${c[4]?.value || ""}</td>
+        <td>${c[5]?.value || ""}</td>
+        <td>${c[6]?.value || ""}</td>
+        <td>${c[7]?.value || ""}</td>
         </tr>
-        `).join("");
+        `;
+
+        });
 
         const html = `
         <html>
