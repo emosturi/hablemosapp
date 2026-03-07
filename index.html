@@ -607,7 +607,7 @@
             <div class="grid">
               <div id="autorizacionesQuestions" class="col-12"></div>
 
-              <div class="field col-12" id="cuentaBancariaField" hidden>
+              <div class="field col-12" id="cuentaBancariaField" style="display:none">
                 <label for="cuenta_bancaria">Número de cuenta</label>
                 <input
                   id="cuenta_bancaria"
@@ -1035,23 +1035,25 @@
         }
 
         function updateCuentaBancariaVisibility() {
-          if (!cuentaField || !cuentaInput) return;
-          const selected = form.querySelector(
-            'input[type="radio"][name="autorizaciones.ingresarDatosCuentaBancaria"]:checked',
-          );
-          const show = !!selected && selected.value === "Sí";
-          cuentaField.hidden = !show;
-          if (show) {
-            cuentaInput.setAttribute("required", "true");
-          } else {
-            cuentaInput.removeAttribute("required");
-            cuentaInput.value = "";
-          }
-        }
+  const selected = form.querySelector(
+    'input[name="autorizaciones.ingresarDatosCuentaBancaria"]:checked'
+  );
+
+  if (!selected) return;
+
+  if (selected.value === "Sí") {
+    cuentaField.style.display = "grid";
+    cuentaInput.required = true;
+  } else {
+    cuentaField.style.display = "none";
+    cuentaInput.required = false;
+    cuentaInput.value = "";
+  }
+}
 
         updateCuentaBancariaVisibility();
 
-        form.addEventListener("change", (e) => {
+        form.addEventListener("change", function (e) {
   if (e.target.name === "autorizaciones.ingresarDatosCuentaBancaria") {
     updateCuentaBancariaVisibility();
   }
