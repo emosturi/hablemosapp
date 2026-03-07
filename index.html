@@ -284,6 +284,9 @@
         border: 1px solid rgba(255, 255, 255, 0.12);
       }
     </style>
+    <script src="https://unpkg.com/pizzip@3.1.5/dist/pizzip.min.js"></script>
+    <script src="https://unpkg.com/docxtemplater@3.44.0/build/docxtemplater.js"></script>
+    <script src="https://unpkg.com/file-saver@2.0.5/dist/FileSaver.min.js"></script>
   </head>
   <body>
     <div class="page">
@@ -735,6 +738,7 @@
 
           <div class="actions">
             <div class="btns">
+              <button type="button" id="btnMandato" class="primary">Generar Mandato</button>
               <button type="submit" class="primary">Validar y generar</button>
               <button type="button" id="btnGuardar" class="ok">Guardar borrador</button>
               <button type="button" id="btnDescargar" disabled>Descargar JSON</button>
@@ -801,6 +805,204 @@
         },
       ];
 
+      async function generarMandato(data){
+
+        const response = await fetch("mandato_template.docx");
+        const arrayBuffer = await response.arrayBuffer();
+
+        const zip = new PizZip(arrayBuffer);
+        const doc = new window.docxtemplater(zip);
+
+        const fecha = new Date().toLocaleDateString("es-CL");
+
+
+        /* antecedentes */
+
+        const antPreliminar = marcar(data.antecedentes.pensionPreliminar);
+        const antAPS = marcar(data.antecedentes.aps);
+        const antAntiguo = marcar(data.antecedentes.pensionAntiguo);
+        const antInvalidez = marcar(data.antecedentes.pensionInvalidez);
+        const antMinima = marcar(data.antecedentes.pensionMinima);
+        const antPBS = marcar(data.antecedentes.pbs);
+        const antEstatuto = marcar(data.antecedentes.estatuto);
+        const antAPV = marcar(data.antecedentes.apv);
+        const antAPVC = marcar(data.antecedentes.apvc);
+        const antCAV = marcar(data.antecedentes.cav);
+        const antDepositos = marcar(data.antecedentes.depositos);
+        const antCesantia = marcar(data.antecedentes.cesantia);
+        const antOtroPais = marcar(data.antecedentes.otroPais);
+        const antResidencia = marcar(data.antecedentes.residencia);
+        const antFondo = marcar(data.antecedentes.cambioFondo);
+        const antListado = marcar(data.antecedentes.listadoPublico);
+
+
+        /* autorizaciones */
+
+        const autBono = marcar(data.autorizaciones.bono);
+        const autEstado = marcar(data.autorizaciones.estado);
+        const autCertificado = marcar(data.autorizaciones.certificado);
+        const autDestino = marcar(data.autorizaciones.destinoVoluntarias);
+        const autTransferencia = marcar(data.autorizaciones.transferenciaCAV);
+        const autSeleccionAPV = marcar(data.autorizaciones.seleccionAPV);
+        const autModalidad = marcar(data.autorizaciones.modalidad);
+        const autExcedente = marcar(data.autorizaciones.excedente);
+        const autValorNominal = marcar(data.autorizaciones.valorNominal);
+
+
+
+        const templateData = {
+
+        fecha_actual: fecha,
+
+        /* mandante */
+
+        mandante_nombre_completo:
+        data.mandante.nombres + " " +
+        data.mandante.apellidoPaterno + " " +
+        data.mandante.apellidoMaterno,
+
+        mandante_rut: data.mandante.rut,
+        nacionalidad: data.mandante.nacionalidad,
+        sexo: data.mandante.sexo,
+        fecha_nacimiento: data.mandante.fechaNacimiento,
+        estado_civil: data.mandante.estadoCivil,
+        profesion: data.mandante.profesionUOficio,
+
+        direccion: data.mandante.domicilio,
+        comuna: data.mandante.comuna,
+        ciudad: data.mandante.ciudad,
+        telefono: data.mandante.telefono,
+        email: data.mandante.email,
+        salud: data.mandante.institucionSalud,
+
+        mandante_afp: data.mandante.afp,
+        mandante_tipoPension: data.mandante.tipoPension,
+
+        /* mandatario */
+
+        mandatario_nombre:
+        data.mandatario.nombres + " " +
+        data.mandatario.apellidoPaterno + " " +
+        data.mandatario.apellidoMaterno,
+
+        mandatario_rut: data.mandatario.rut,
+        mandatario_direccion: data.mandatario.domicilio,
+        mandatario_comuna: data.mandatario.comuna,
+        mandatario_ciudad: data.mandatario.ciudad,
+        mandatario_telefono: data.mandatario.telefono,
+        mandatario_email: data.mandatario.email,
+
+        /* empleador */
+
+        empleador_nombre: data.empleador?.nombreORazonSocial || "",
+        empleador_rut: data.empleador?.rut || "",
+        empleador_direccion: data.empleador?.direccion || "",
+        empleador_telefono: data.empleador?.telefono || "",
+
+        /* beneficiarios */
+
+        beneficiarios: data.beneficiarios || [],
+
+        /* antecedentes */
+
+        ant_pension_preliminar_si: antPreliminar.si,
+        ant_pension_preliminar_no: antPreliminar.no,
+
+        ant_aps_si: antAPS.si,
+        ant_aps_no: antAPS.no,
+
+        ant_antiguo_si: antAntiguo.si,
+        ant_antiguo_no: antAntiguo.no,
+
+        ant_invalidez_si: antInvalidez.si,
+        ant_invalidez_no: antInvalidez.no,
+
+        ant_minima_si: antMinima.si,
+        ant_minima_no: antMinima.no,
+
+        ant_pbs_si: antPBS.si,
+        ant_pbs_no: antPBS.no,
+
+        ant_estatuto_si: antEstatuto.si,
+        ant_estatuto_no: antEstatuto.no,
+
+        ant_apv_si: antAPV.si,
+        ant_apv_no: antAPV.no,
+
+        ant_apvc_si: antAPVC.si,
+        ant_apvc_no: antAPVC.no,
+
+        ant_cav_si: antCAV.si,
+        ant_cav_no: antCAV.no,
+
+        ant_depositos_si: antDepositos.si,
+        ant_depositos_no: antDepositos.no,
+
+        ant_cesantia_si: antCesantia.si,
+        ant_cesantia_no: antCesantia.no,
+
+        ant_otro_pais_si: antOtroPais.si,
+        ant_otro_pais_no: antOtroPais.no,
+
+        ant_residencia_si: antResidencia.si,
+        ant_residencia_no: antResidencia.no,
+
+        ant_fondo_si: antFondo.si,
+        ant_fondo_no: antFondo.no,
+
+        ant_listado_si: antListado.si,
+        ant_listado_no: antListado.no,
+
+        /* autorizaciones */
+
+        aut_bono_si: autBono.si,
+        aut_bono_no: autBono.no,
+
+        aut_estado_si: autEstado.si,
+        aut_estado_no: autEstado.no,
+
+        aut_certificado_si: autCertificado.si,
+        aut_certificado_no: autCertificado.no,
+
+        aut_destino_si: autDestino.si,
+        aut_destino_no: autDestino.no,
+
+        aut_transferencia_si: autTransferencia.si,
+        aut_transferencia_no: autTransferencia.no,
+
+        aut_seleccion_apv_si: autSeleccionAPV.si,
+        aut_seleccion_apv_no: autSeleccionAPV.no,
+
+        aut_modalidad_si: autModalidad.si,
+        aut_modalidad_no: autModalidad.no,
+
+        aut_excedente_si: autExcedente.si,
+        aut_excedente_no: autExcedente.no,
+
+        aut_valor_nominal_si: autValorNominal.si,
+        aut_valor_nominal_no: autValorNominal.no
+
+        };
+
+        doc.setData(templateData);
+
+        try{
+        doc.render();
+        }catch(error){
+        console.error(error);
+        alert("Error generando el mandato");
+        return;
+        }
+
+        const blob = doc.getZip().generate({
+        type:"blob",
+        mimeType:"application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        });
+
+        saveAs(blob,"mandato_generado.docx");
+
+      }
+
       function el(tag, attrs = {}, children = []) {
         const node = document.createElement(tag);
         for (const [k, v] of Object.entries(attrs)) {
@@ -815,7 +1017,12 @@
         return node;
       }
 
-      
+      function marcar(valor){
+        return {
+          si: valor ? "X" : "X",
+          no: valor ? "X" : "",
+        };
+      }
 
       function renderYesNo(container, groupName, items) {
         container.innerHTML = "";
@@ -1124,6 +1331,22 @@ return div
         const benefInput = document.getElementById("mandante_benef");
         const benefSection = document.getElementById("beneficiariosSection");
         const benefContainer = document.getElementById("beneficiariosContainer");
+
+
+        document.getElementById("btnMandato").addEventListener("click", ()=>{
+
+          const result = validate(form);
+
+          if(!result.ok){
+          setStatus("Debes completar el formulario primero");
+          return;
+          }
+
+          const data = formDataToObject(form);
+
+          generarMandato(data);
+
+        }); 
 
         function actualizarBeneficiarios(){
 
