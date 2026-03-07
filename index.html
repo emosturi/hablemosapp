@@ -796,65 +796,7 @@
         return node;
       }
 
-      function crearBeneficiario(i){
-
-const div = document.createElement("div")
-div.className = "section"
-
-div.innerHTML = `
-<h3>Beneficiario ${i+1}</h3>
-
-<div class="grid">
-
-<div class="field col-4">
-<label>Nombres *</label>
-<input name="beneficiarios.${i}.nombres" required>
-</div>
-
-<div class="field col-4">
-<label>Apellido paterno *</label>
-<input name="beneficiarios.${i}.apellidoPaterno" required>
-</div>
-
-<div class="field col-4">
-<label>Apellido materno *</label>
-<input name="beneficiarios.${i}.apellidoMaterno" required>
-</div>
-
-<div class="field col-4">
-<label>RUT *</label>
-<input class="rut-benef" name="beneficiarios.${i}.rut" placeholder="12.345.678-5" required>
-</div>
-
-<div class="field col-4">
-<label>Sexo *</label>
-<select name="beneficiarios.${i}.sexo" required>
-<option value="">Selecciona</option>
-<option>Masculino</option>
-<option>Femenino</option>
-</select>
-</div>
-
-<div class="field col-4">
-<label>Parentezco *</label>
-<input name="beneficiarios.${i}.parentesco" required>
-</div>
-
-<div class="field col-4">
-<label>Fecha nacimiento *</label>
-<input class="fecha-benef" name="beneficiarios.${i}.fechaNacimiento" placeholder="DD-MM-YYYY" required>
-</div>
-
-<div class="field col-12">
-<label>Observaciones</label>
-<textarea name="beneficiarios.${i}.observaciones"></textarea>
-</div>
-
-</div>
-`
-
-return div
-}
+      
 
       function renderYesNo(container, groupName, items) {
         container.innerHTML = "";
@@ -1078,6 +1020,66 @@ return div
 
         return { ok, parsedBirth: parsed };
       }
+
+      function crearBeneficiario(i){
+
+const div = document.createElement("div")
+div.className = "section"
+
+div.innerHTML = `
+<h3>Beneficiario ${i+1}</h3>
+
+<div class="grid">
+
+<div class="field col-4">
+<label>Nombres *</label>
+<input name="beneficiarios.${i}.nombres" required>
+</div>
+
+<div class="field col-4">
+<label>Apellido paterno *</label>
+<input name="beneficiarios.${i}.apellidoPaterno" required>
+</div>
+
+<div class="field col-4">
+<label>Apellido materno *</label>
+<input name="beneficiarios.${i}.apellidoMaterno" required>
+</div>
+
+<div class="field col-4">
+<label>RUT *</label>
+<input class="rut-benef" name="beneficiarios.${i}.rut" placeholder="12.345.678-5" required>
+</div>
+
+<div class="field col-4">
+<label>Sexo *</label>
+<select name="beneficiarios.${i}.sexo" required>
+<option value="">Selecciona</option>
+<option>Masculino</option>
+<option>Femenino</option>
+</select>
+</div>
+
+<div class="field col-4">
+<label>Parentezco *</label>
+<input name="beneficiarios.${i}.parentesco" required>
+</div>
+
+<div class="field col-4">
+<label>Fecha nacimiento *</label>
+<input class="fecha-benef" name="beneficiarios.${i}.fechaNacimiento" placeholder="DD-MM-YYYY" required>
+</div>
+
+<div class="field col-12">
+<label>Observaciones</label>
+<textarea name="beneficiarios.${i}.observaciones"></textarea>
+</div>
+
+</div>
+`
+
+return div
+}
 
       function init() {
         const form = document.getElementById("pensionForm");
