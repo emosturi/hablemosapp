@@ -1095,21 +1095,29 @@ return div
         const benefContainer = document.getElementById("beneficiariosContainer");
 
         function actualizarBeneficiarios(){
-          const n = parseInt(benefInput.value || 0);
-          const actual = benefContainer.children.length;
 
-          if(n > actual){
-            for(let i = actual; i < n; i++){
-              benefContainer.appendChild(crearBeneficiario(i));
-            }
-          }
+const n = parseInt(benefInput.value || 0);
+const actual = benefContainer.children.length;
 
-          if(n < actual){
-            for(let i = actual; i > n; i--){
-              benefContainer.removeChild(benefContainer.lastChild);
-            }
-          }
-        }
+if(n > 0){
+  benefSection.style.display = "block";
+}else{
+  benefSection.style.display = "none";
+}
+
+if(n > actual){
+  for(let i = actual; i < n; i++){
+    benefContainer.appendChild(crearBeneficiario(i));
+  }
+}
+
+if(n < actual){
+  for(let i = actual; i > n; i--){
+    benefContainer.removeChild(benefContainer.lastChild);
+  }
+}
+
+}
 
         benefInput.addEventListener("input", actualizarBeneficiarios);
         
