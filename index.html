@@ -649,62 +649,15 @@
                 />
                 <div class="error" data-error-for="cuenta_bancaria"></div>
               </div>
-
-              <div class="field col-12">
-                <label>Autorizo a retirar los siguientes certificados (si corresponde):</label>
-                <div class="radio-row" role="group" aria-label="Certificados a retirar">
-                  <label class="radio-pill">
-                    <input
-                      type="checkbox"
-                      name="autorizaciones.certificados"
-                      value="Historico de cotizaciones"
-                    />
-                    Histórico de cotizaciones
-                  </label>
-                  <label class="radio-pill">
-                    <input
-                      type="checkbox"
-                      name="autorizaciones.certificados"
-                      value="Antecedente previsional"
-                    />
-                    Antecedente previsional
-                  </label>
-                  <label class="radio-pill">
-                    <input
-                      type="checkbox"
-                      name="autorizaciones.certificados"
-                      value="Certificado de trabajo pesado"
-                    />
-                    Certificado de trabajo pesado
-                  </label>
-                  <label class="radio-pill">
-                    <input
-                      type="checkbox"
-                      name="autorizaciones.certificados"
-                      value="Certificado de vacaciones progresivas"
-                    />
-                    Certificado de vacaciones progresivas
-                  </label>
-                  <label class="radio-pill">
-                    <input
-                      type="checkbox"
-                      name="autorizaciones.certificados"
-                      value="Certificado de estado de cuentas"
-                    />
-                    Certificado de estado de cuentas
-                  </label>
-                  <label class="radio-pill">
-                    <input
-                      type="checkbox"
-                      name="autorizaciones.certificados"
-                      value="Certificado de calidad de pensionado"
-                    />
-                    Certificado de calidad de pensionado
-                  </label>
-                </div>
-                <div class="error" data-error-for="autorizaciones.certificados"></div>
-              </div>
             </div>
+          </div>
+
+          <div class="section" aria-labelledby="certificadosTitle">
+            <div class="section-title">
+              <h2 id="certificadosTitle">Certificados</h2>
+              <span class="hint">Marca Sí o No en cada certificado a retirar</span>
+            </div>
+            <div id="certificadosQuestions" class="grid"></div>
           </div>
 
           <div class="section" aria-labelledby="empleadorTitle">
@@ -803,6 +756,15 @@
           key: "obtenerInfoPagoPensionYTraspaso",
           label: "Obtener información verbal o escrita del pago de mi pensión y traspaso de fondos?",
         },
+      ];
+
+      const certificadosItems = [
+        { key: "historicoCotizaciones", label: "Histórico de cotizaciones" },
+        { key: "antecedentePrevisional", label: "Antecedente previsional" },
+        { key: "certificadoTrabajoPesado", label: "Certificado de trabajo pesado" },
+        { key: "certificadoVacacionesProgresivas", label: "Certificado de vacaciones progresivas" },
+        { key: "certificadoEstadoCuentas", label: "Certificado de estado de cuentas" },
+        { key: "certificadoCalidadPensionado", label: "Certificado de calidad de pensionado" },
       ];
 
       function generarMandatoSimple(data){
@@ -1538,6 +1500,7 @@ if(n < actual){
         
         renderYesNo(document.getElementById("antecedentesQuestions"), "antecedentes", antecedentesItems);
         renderYesNo(document.getElementById("autorizacionesQuestions"), "autorizaciones", autorizacionesItems);
+        renderYesNo(document.getElementById("certificadosQuestions"), "certificados", certificadosItems);
 
         const draftRaw = localStorage.getItem(STORAGE_KEY);
         if (draftRaw) {
