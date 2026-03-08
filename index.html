@@ -827,6 +827,7 @@
         const mandatario = data.mandatario || {};
         const antecedentes = data.antecedentes || {};
         const autorizaciones = data.autorizaciones || {};
+        const certificados = data.certificados || {};
 
         const nombreMandante =
         `${mandante.nombres || ""} ${mandante.apellidoPaterno || ""} ${mandante.apellidoMaterno || ""}`;
@@ -1097,10 +1098,52 @@
         </tr>
 
         <tr>
+        <td>Certificado histórico de cotizaciones</td>
+        <td>${certificados.historicoCotizaciones === "Sí" ? "Sí" : "No"}</td>
+        </tr>
+
+        <tr>
+        <td>Certificado de antecedente previsional</td>
+        <td>${certificados.antecedentePrevisional === "Sí" ? "Sí" : "No"}</td>
+        </tr>
+
+        <tr>
+        <td>Certificado de trabajo pesado</td>
+        <td>${certificados.certificadoTrabajoPesado === "Sí" ? "Sí" : "No"}</td>
+        </tr>
+
+        <tr>
+        <td>Certificado de vacaciones progresivas</td>
+        <td>${certificados.certificadoVacacionesProgresivas === "Sí" ? "Sí" : "No"}</td>
+        </tr>
+
+        <tr>
+        <td>Certificado de estado de cuentas</td>
+        <td>${certificados.certificadoEstadoCuentas === "Sí" ? "Sí" : "No"}</td>
+        </tr>
+
+        <tr>
+        <td>Certificado de calidad de pensionado</td>
+        <td>${certificados.certificadoCalidadPensionado === "Sí" ? "Sí" : "No"}</td>
+        </tr>
+
+        </table>
+        <br>
+
+        <h3>Datos de cuenta bancaria</h3>
+        <table border="1" style="border-collapse:collapse;width:100%;">
+        <tr>
+        <td>Banco</td>
+        <td>${autorizaciones.banco || ""}</td>
+        </tr>
+        <tr>
+        <td>Tipo de cuenta</td>
+        <td>${autorizaciones.tipoCuenta || ""}</td>
+        </tr>
+        <tr>
         <td>Número de cuenta</td>
         <td>${autorizaciones.numeroCuenta || ""}</td>
         </tr>
-
         </table>
         <br>
         <p>
