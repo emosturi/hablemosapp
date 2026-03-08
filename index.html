@@ -638,16 +638,45 @@
             <div class="grid">
               <div id="autorizacionesQuestions" class="col-12"></div>
 
-              <div class="field col-12" id="cuentaBancariaField" style="display:none">
-                <label for="cuenta_bancaria">Número de cuenta</label>
-                <input
-                  id="cuenta_bancaria"
-                  name="autorizaciones.numeroCuenta"
-                  type="text"
-                  placeholder="Ej: 12345678-9"
-                  inputmode="numeric"
-                />
-                <div class="error" data-error-for="cuenta_bancaria"></div>
+              <div id="cuentaBancariaField" class="grid" style="display:none">
+                <div class="field col-4">
+                  <label for="cuenta_banco">Banco</label>
+                  <select id="cuenta_banco" name="autorizaciones.banco">
+                    <option value="" selected disabled>Selecciona…</option>
+                    <option>Banco de Chile</option>
+                    <option>Banco Santander Chile</option>
+                    <option>BCI</option>
+                    <option>Scotiabank Chile</option>
+                    <option>BancoEstado</option>
+                    <option>Banco Itaú Chile</option>
+                    <option>Banco BICE</option>
+                    <option>Banco Falabella</option>
+                    <option>Banco Ripley</option>
+                    <option>Banco Consorcio</option>
+                  </select>
+                  <div class="error" data-error-for="cuenta_banco"></div>
+                </div>
+                <div class="field col-4">
+                  <label for="cuenta_tipo">Tipo de cuenta</label>
+                  <select id="cuenta_tipo" name="autorizaciones.tipoCuenta">
+                    <option value="" selected disabled>Selecciona…</option>
+                    <option>Cuenta Corriente</option>
+                    <option>Cuenta de Ahorro</option>
+                    <option>Cuenta Vista</option>
+                  </select>
+                  <div class="error" data-error-for="cuenta_tipo"></div>
+                </div>
+                <div class="field col-4">
+                  <label for="cuenta_bancaria">Número de cuenta</label>
+                  <input
+                    id="cuenta_bancaria"
+                    name="autorizaciones.numeroCuenta"
+                    type="text"
+                    placeholder="Ej: 12345678-9"
+                    inputmode="numeric"
+                  />
+                  <div class="error" data-error-for="cuenta_bancaria"></div>
+                </div>
               </div>
             </div>
           </div>
@@ -1450,6 +1479,8 @@ return div
         const btnDescargar = document.getElementById("btnDescargar");
         const btnLimpiar = document.getElementById("btnLimpiar");
         const cuentaField = document.getElementById("cuentaBancariaField");
+        const cuentaBanco = document.getElementById("cuenta_banco");
+        const cuentaTipo = document.getElementById("cuenta_tipo");
         const cuentaInput = document.getElementById("cuenta_bancaria");
         const benefInput = document.getElementById("mandante_benef");
         const benefSection = document.getElementById("beneficiariosSection");
@@ -1522,12 +1553,18 @@ if(n < actual){
 
           if (selected.value === "Sí") {
             cuentaField.style.display = "grid";
+            cuentaBanco.required = true;
+            cuentaTipo.required = true;
             cuentaInput.required = true;
           } else {
-          cuentaField.style.display = "none";
-        cuentaInput.required = false;
-    cuentaInput.value = "";
-  }
+            cuentaField.style.display = "none";
+            cuentaBanco.required = false;
+            cuentaTipo.required = false;
+            cuentaInput.required = false;
+            cuentaBanco.value = "";
+            cuentaTipo.value = "";
+            cuentaInput.value = "";
+          }
 }
 
         updateCuentaBancariaVisibility();
