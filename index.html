@@ -906,6 +906,7 @@
         <br/>Telefono: ${empleador.telefono || ""}
         </p>
         
+        ${parseInt(mandante.numeroBeneficiarios || 0, 10) > 0 ? `
         <p>
         Para efectos de la suscripción de la pensión antes mencionada, declaro concoer que tienes la calidad de beneficiarios y de pensión de sobrevivencia: el cónyuge, los hijos, la madre o padre de hijos de filiación no matrimonial y, a falta de todos los anteriores, los padres. En consecuencia, efectúo la siguiente declaración de beneficiarios:  
         </p>
@@ -930,6 +931,7 @@
         </table>
         
         </br>
+        ` : ''}
         <p>
         Por otra parte, señalo los siguientes antecedentes 
         que el mandatario deberá considerar para suscribir 
