@@ -899,6 +899,9 @@
         .empleador-datos{
         text-align:left;
         }
+        .tabla-firmas td{
+        border:none;
+        }
 
         </style>
         </head>
@@ -1208,16 +1211,16 @@
 
         <br><br><br><br><br><br>
 
-        <table style="width:100%; margin-top:40px; text-align:center; border-collapse:separate; border-spacing:40px 0;">
+        <table class="tabla-firmas" style="width:100%; margin-top:40px; text-align:center; border-collapse:separate; border-spacing:40px 0;">
           <tr>
 
-          <td style="width:50%;">
+          <td style="width:70%;">
           <p>______________________________</p>
           <p>${nombreMandante}</p>
           <p>RUT: ${mandante.rut || ""}</p>
           </td>
 
-          <td style="width:50%;">
+          <td style="width:30%;">
           <p>______________________________</p>
           <p>${nombreMandatario}</p>
           <p>RUT: ${mandatario.rut || ""}</p>
