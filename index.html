@@ -899,8 +899,16 @@
         .empleador-datos{
         text-align:left;
         }
-        .tabla-firmas td{
-        border:none;
+        .firmas{
+        display:flex;
+        justify-content:space-between;
+        gap:60px;
+        margin-top:40px;
+        width:100%;
+        }
+        .firma-block{
+        flex:1;
+        text-align:center;
         }
 
         </style>
@@ -1211,23 +1219,18 @@
 
         <br><br><br><br><br><br>
 
-        <table class="tabla-firmas" style="width:100%; margin-top:40px; text-align:center; border-collapse:separate; border-spacing:40px 0;">
-          <tr>
-
-          <td style="width:70%;">
-          <p>______________________________</p>
-          <p>${nombreMandante}</p>
-          <p>RUT: ${mandante.rut || ""}</p>
-          </td>
-
-          <td style="width:30%;">
-          <p>______________________________</p>
-          <p>${nombreMandatario}</p>
-          <p>RUT: ${mandatario.rut || ""}</p>
-          </td>
-
-          </tr>
-        </table>
+        <div class="firmas">
+        <div class="firma-block">
+        <p>______________________________</p>
+        <p>${nombreMandante}</p>
+        <p>RUT: ${mandante.rut || ""}</p>
+        </div>
+        <div class="firma-block">
+        <p>______________________________</p>
+        <p>${nombreMandatario}</p>
+        <p>RUT: ${mandatario.rut || ""}</p>
+        </div>
+        </div>
 
         </body>
         </html>
