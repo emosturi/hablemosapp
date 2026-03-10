@@ -1563,60 +1563,60 @@ return div
 }
 
       function init() {
-        const form = document.getElementById("pensionForm");
-        const out = document.getElementById("output");
-        const preview = document.getElementById("jsonPreview");
-        const btnGuardar = document.getElementById("btnGuardar");
-        const btnDescargar = document.getElementById("btnDescargar");
-        const btnLimpiar = document.getElementById("btnLimpiar");
-        const cuentaField = document.getElementById("cuentaBancariaField");
-        const cuentaBanco = document.getElementById("cuenta_banco");
-        const cuentaTipo = document.getElementById("cuenta_tipo");
-        const cuentaInput = document.getElementById("cuenta_bancaria");
-        const benefInput = document.getElementById("mandante_benef");
-        const benefSection = document.getElementById("beneficiariosSection");
-        const benefContainer = document.getElementById("beneficiariosContainer");
+            const form = document.getElementById("pensionForm");
+            const out = document.getElementById("output");
+            const preview = document.getElementById("jsonPreview");
+            const btnGuardar = document.getElementById("btnGuardar");
+            const btnDescargar = document.getElementById("btnDescargar");
+            const btnLimpiar = document.getElementById("btnLimpiar");
+            const cuentaField = document.getElementById("cuentaBancariaField");
+            const cuentaBanco = document.getElementById("cuenta_banco");
+            const cuentaTipo = document.getElementById("cuenta_tipo");
+            const cuentaInput = document.getElementById("cuenta_bancaria");
+            const benefInput = document.getElementById("mandante_benef");
+            const benefSection = document.getElementById("beneficiariosSection");
+            const benefContainer = document.getElementById("beneficiariosContainer");
 
 
-        document.getElementById("btnMandatoSimple").addEventListener("click", ()=>{
+            document.getElementById("btnMandatoSimple").addEventListener("click", ()=>{
 
-        const result = validate(form);
+              const result = validate(form);
 
-        if(!result.ok){
-        setStatus("Debes completar el formulario primero");
-        return;
-        }
+              if(!result.ok){
+              setStatus("Debes completar el formulario primero");
+              return;
+              }
 
-        const data = formDataToObject(form);
+              const data = formDataToObject(form);
 
-        generarMandatoSimple(data);
+              generarMandatoSimple(data);
 
-        }); 
+            }); 
 
-        function actualizarBeneficiarios(){
+          function actualizarBeneficiarios(){
 
-        const n = parseInt(benefInput.value || 0);
-        const actual = benefContainer.children.length;
+            const n = parseInt(benefInput.value || 0);
+            const actual = benefContainer.children.length;
 
-        if(n > 0){
-          benefSection.style.display = "block";
-        }else{
-          benefSection.style.display = "none";
-        }
+            if(n > 0){
+              benefSection.style.display = "block";
+            }else{
+              benefSection.style.display = "none";
+            }
 
-        if(n > actual){
-          for(let i = actual; i < n; i++){
-            benefContainer.appendChild(crearBeneficiario(i));
+            if(n > actual){
+              for(let i = actual; i < n; i++){
+                benefContainer.appendChild(crearBeneficiario(i));
+              }
+            }
+
+            if(n < actual){
+              for(let i = actual; i > n; i--){
+                benefContainer.removeChild(benefContainer.lastChild);
+              }
+            }
+
           }
-        }
-
-        if(n < actual){
-          for(let i = actual; i > n; i--){
-            benefContainer.removeChild(benefContainer.lastChild);
-          }
-        }
-
-        }
 
         benefInput.addEventListener("input", actualizarBeneficiarios);
         
@@ -1657,87 +1657,88 @@ return div
             cuentaBanco.value = "";
             cuentaTipo.value = "";
             cuentaInput.value = "";
-          }
-}
+            }
+            }
 
-        updateCuentaBancariaVisibility();
-
-        form.addEventListener("change", function (e) {
-          if (e.target.name === "autorizaciones.ingresarDatosCuentaBancaria") {
             updateCuentaBancariaVisibility();
-          }
-          });
 
-        const rutInputs = ["mandante_rut", "mandatario_rut", "empleador_rut"];
-        for (const id of rutInputs) {
-          const input = document.getElementById(id);
-          if (!input) continue;
-          input.addEventListener("blur", () => {
-            input.value = normalizeRut(input.value);
-          });
-        }
+            form.addEventListener("change", function (e) {
+            if (e.target.name === "autorizaciones.ingresarDatosCuentaBancaria") {
+            updateCuentaBancariaVisibility();
+            }
+            });
 
-        btnGuardar.addEventListener("click", () => {
-          const data = formDataToObject(form);
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-          setStatus("Borrador guardado.");
-        });
+            const rutInputs = ["mandante_rut", "mandatario_rut", "empleador_rut"];
+              for (const id of rutInputs) {
+                const input = document.getElementById(id);
+                if (!input) continue;
+                input.addEventListener("blur", () => {
+                input.value = normalizeRut(input.value);
+                });
+              }
 
-        btnLimpiar.addEventListener("click", () => {
-          if (!confirm("¿Seguro que quieres limpiar el formulario?")) return;
-          localStorage.removeItem(STORAGE_KEY);
-          form.reset();
-          clearErrors(form);
-          out.hidden = true;
-          preview.textContent = "";
-          btnDescargar.disabled = true;
-          setStatus("Formulario limpio.");
-        });
+                btnGuardar.addEventListener("click", () => {
+                const data = formDataToObject(form);
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+                setStatus("Borrador guardado.");
+                });
 
-        let lastJson = null;
-        btnDescargar.addEventListener("click", () => {
-          if (!lastJson) return;
-          const rut = normalizeRut(lastJson?.mandante?.rut || "mandante");
-          const safe = rut.replace(/[^0-9K.-]/g, "_");
-          downloadJson(`solicitud_pension_${safe}.json`, lastJson);
-          setStatus("JSON descargado.");
-        });
+                btnLimpiar.addEventListener("click", () => {
+                  if (!confirm("¿Seguro que quieres limpiar el formulario?")) return;
+                  localStorage.removeItem(STORAGE_KEY);
+                  form.reset();
+                  clearErrors(form);
+                  out.hidden = true;
+                  preview.textContent = "";
+                  btnDescargar.disabled = true;
+                  setStatus("Formulario limpio.");
+                });
 
-        form.addEventListener("submit", (e) => {
-          e.preventDefault();
-          setStatus("");
-          const result = validate(form);
-          if (!result.ok) {
-            setStatus("Revisa los campos marcados en rojo.");
-            btnDescargar.disabled = true;
-            return;
-          }
-          const data = formDataToObject(form);
-          data.meta = {
-            generadoEn: new Date().toISOString(),
-            fechaNacimientoISO: result.parsedBirth?.iso || null,
-          };
+                let lastJson = null;
+                btnDescargar.addEventListener("click", () => {
+                  if (!lastJson) return;
+                    const rut = normalizeRut(lastJson?.mandante?.rut || "mandante");
+                    const safe = rut.replace(/[^0-9K.-]/g, "_");
+                    downloadJson(`solicitud_pension_${safe}.json`, lastJson);
+                    setStatus("JSON descargado.");
+                });
 
-          lastJson = data;
-          out.hidden = false;
-          preview.textContent = JSON.stringify(data, null, 2);
-          btnDescargar.disabled = false;
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-          setStatus("Validación OK. JSON listo.");
-        });
-      }
+                form.addEventListener("submit", (e) => {
+                  e.preventDefault();
+                  setStatus("");
+                  const result = validate(form);
+                  if (!result.ok) {
+                    setStatus("Revisa los campos marcados en rojo.");
+                    btnDescargar.disabled = true;
+                    return;
+                  }
+                  const data = formDataToObject(form);
+                  data.meta = {
+                    generadoEn: new Date().toISOString(),
+                    fechaNacimientoISO: result.parsedBirth?.iso || null,
+                  };
 
-      init();
+                  lastJson = data;
+                  out.hidden = false;
+                  preview.textContent = JSON.stringify(data, null, 2);
+                  btnDescargar.disabled = false;
+                  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+                  setStatus("Validación OK. JSON listo.");
+                  });
+                }
 
-      document.addEventListener("blur", function(e){
+                init();
 
-        if(e.target.classList.contains("rut-benef")){
-          e.target.value = normalizeRut(e.target.value);
-          if(!rutIsValid(e.target.value)){
-            e.target.setAttribute("aria-invalid","true");
-          }
-        }
-      });
+                document.addEventListener("blur", function (e) {
+                  if (!e.target.classList.contains("rut-benef")) return;
+
+                  e.target.value = normalizeRut(e.target.value);
+                  if (rutIsValid(e.target.value)) {
+                    e.target.removeAttribute("aria-invalid");
+                  } else {
+                    e.target.setAttribute("aria-invalid", "true");
+                  }
+                });
     </script>
   </body>
 </html>
