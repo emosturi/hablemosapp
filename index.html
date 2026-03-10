@@ -828,11 +828,10 @@
 
         lista.forEach(b => {
 
+        const nombreCompleto = [b.nombres, b.apellidoPaterno, b.apellidoMaterno].filter(Boolean).join(" ");
         beneficiarios += `
         <tr>
-        <td>${b.apellidoPaterno || ""}</td>
-        <td>${b.apellidoMaterno || ""}</td>
-        <td>${b.nombres || ""}</td>
+        <td>${nombreCompleto}</td>
         <td>${b.sexo || ""}</td>
         <td>${b.rut || ""}</td>
         <td>${fechaAHablado(b.fechaNacimiento)}</td>
@@ -891,6 +890,10 @@
         }
         h2{
         text-transform:uppercase;
+        text-align:center;
+        }
+        .empleador-datos{
+        text-align:left;
         }
 
         </style>
@@ -927,13 +930,15 @@
         para que en mi nombre suscriba en ${mandante.afp || ""}, una solicitud de ${mandante.tipoPension || ""}.
         </p>
 
-        <p>
+        <p class="empleador-datos">
+        <br/>
         Asimismo, expongo que a la fecha, los datos de mi empleador son los siguientes:   
-        <br/>Razón social: ${empleador.nombreORazonSocial || ""}
-        <br/>Rut: ${empleador.rut || ""}
-        <br/>Dirección: ${empleador.domicilio || ""}
-        <br/>Correo electrónico: ${empleador.email || ""}
-        <br/>Telefono: ${empleador.telefono || ""}
+        <br/>
+        <br/><b>Razón social:</b> ${empleador.nombreORazonSocial || ""}
+        <br/><b>Rut:</b> ${empleador.rut || ""}
+        <br/><b>Dirección:</b> ${empleador.domicilio || ""}
+        <br/><b>Correo electrónico:</b> ${empleador.email || ""}
+        <br/><b>Telefono:</b> ${empleador.telefono || ""}
         </p>
         
         
@@ -950,9 +955,7 @@
         <table>
 
         <tr>
-        <th>Apellido Paterno</th>
-        <th>Apellido Materno</th>
-        <th>Nombres</th>
+        <th>Nombre Completo</th>
         <th>Sexo</th>
         <th>RUT</th>
         <th>Fecha Nacimiento</th>
