@@ -903,16 +903,21 @@
         margin-top:40px;
         width:100%;
         border:none;
+        table-layout:fixed;
         }
         .tabla-firmas td{
         border:none;
-        width:50%;
         text-align:center;
         vertical-align:top;
-        padding:0 30px 0 0;
         }
-        .tabla-firmas td:last-child{
-        padding:0 0 0 30px;
+        .tabla-firmas .firma-izq{
+        width:45%;
+        }
+        .tabla-firmas .firma-espacio{
+        width:10%;
+        }
+        .tabla-firmas .firma-der{
+        width:45%;
         }
 
         </style>
@@ -1225,12 +1230,13 @@
 
         <table class="tabla-firmas" border="0" cellpadding="0" cellspacing="0">
         <tr>
-        <td>
+        <td class="firma-izq">
         <p>______________________________</p>
         <p>${nombreMandante}</p>
         <p>RUT: ${mandante.rut || ""}</p>
         </td>
-        <td>
+        <td class="firma-espacio">&nbsp;</td>
+        <td class="firma-der">
         <p>______________________________</p>
         <p>${nombreMandatario}</p>
         <p>RUT: ${mandatario.rut || ""}</p>
