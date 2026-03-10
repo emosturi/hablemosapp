@@ -1595,33 +1595,35 @@ return div
 
         function actualizarBeneficiarios(){
 
-const n = parseInt(benefInput.value || 0);
-const actual = benefContainer.children.length;
+        const n = parseInt(benefInput.value || 0);
+        const actual = benefContainer.children.length;
 
-if(n > 0){
-  benefSection.style.display = "block";
-}else{
-  benefSection.style.display = "none";
-}
+        if(n > 0){
+          benefSection.style.display = "block";
+        }else{
+          benefSection.style.display = "none";
+        }
 
-if(n > actual){
-  for(let i = actual; i < n; i++){
-    benefContainer.appendChild(crearBeneficiario(i));
-  }
-}
+        if(n > actual){
+          for(let i = actual; i < n; i++){
+            benefContainer.appendChild(crearBeneficiario(i));
+          }
+        }
 
-if(n < actual){
-  for(let i = actual; i > n; i--){
-    benefContainer.removeChild(benefContainer.lastChild);
-  }
-}
+        if(n < actual){
+          for(let i = actual; i > n; i--){
+            benefContainer.removeChild(benefContainer.lastChild);
+          }
+        }
 
-}
+        }
 
         benefInput.addEventListener("input", actualizarBeneficiarios);
         
         renderYesNo(document.getElementById("antecedentesQuestions"), "antecedentes", antecedentesItems);
         renderYesNo(document.getElementById("autorizacionesQuestions"), "autorizaciones", autorizacionesItems);
+        const cuentaBancariaQuestion = form.querySelector('[name="autorizaciones.ingresarDatosCuentaBancaria"]')?.closest(".field");
+        if (cuentaBancariaQuestion && cuentaField) cuentaBancariaQuestion.after(cuentaField);
         renderYesNo(document.getElementById("certificadosQuestions"), "certificados", certificadosItems);
 
         const draftRaw = localStorage.getItem(STORAGE_KEY);
