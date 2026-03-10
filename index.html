@@ -790,6 +790,10 @@
           key: "obtenerInfoPagoPensionYTraspaso",
           label: "Obtener información verbal o escrita del pago de mi pensión y traspaso de fondos?",
         },
+        {
+          key: "firmarExencionCotizarEdadLegal",
+          label: "Firmar exención de cotizar por cumplimiento de edad legal al inicio de mi trámite.",
+        },
       ];
 
       const certificadosItems = [
@@ -1134,6 +1138,11 @@
         <tr>
         <td>Obtener información verbal o escrita del pago de mi pensión y traspaso de fondos</td>
         <td>${autorizaciones.obtenerInfoPagoPensionYTraspaso === "Sí" ? "Sí" : "No"}</td>
+        </tr>
+
+        <tr>
+        <td>Firmar exención de cotizar por cumplimiento de edad legal al inicio de mi trámite</td>
+        <td>${autorizaciones.firmarExencionCotizarEdadLegal === "Sí" ? "Sí" : "No"}</td>
         </tr>
 
         <tr>
