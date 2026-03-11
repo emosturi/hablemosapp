@@ -1328,6 +1328,335 @@
 
       }
 
+      // Genera el contrato de prestación de servicios de asesoría y lo descarga como archivo .doc.
+      function generarContrato(data){
+        const mandante = data.mandante || {};
+        const mandatario = data.mandatario || {};
+        const empleador = data.empleador || {};
+        const beneficiariosData = data.beneficiarios || {};
+
+        const nombreCompletoMandante =
+          `${mandante.nombres || ""} ${mandante.apellidoPaterno || ""} ${mandante.apellidoMaterno || ""}`.trim();
+        const nombreCompletoMandatario =
+          `${mandatario.nombres || ""} ${mandatario.apellidoPaterno || ""} ${mandatario.apellidoMaterno || ""}`.trim();
+
+        const fechaActualTexto = fechaHoyHablado();
+        const ciudad = mandante.ciudad || "";
+        const nombreTramite = mandante.tipoPension || "";
+
+        let filasBeneficiarios = "";
+        if (beneficiariosData && typeof beneficiariosData === "object") {
+          const lista = Object.values(beneficiariosData);
+          lista.forEach((b) => {
+            const nombreBenef =
+              `${b.nombres || ""} ${b.apellidoPaterno || ""} ${b.apellidoMaterno || ""}`.trim();
+            filasBeneficiarios += `
+        <tr>
+        <td>${nombreBenef}</td>
+        <td>${b.parentesco || ""}</td>
+        <td>${b.fechaNacimiento || ""}</td>
+        <td>${b.rut || ""}</td>
+        <td>${b.esInvalido || ""}</td>
+        </tr>
+        `;
+          });
+        }
+
+        const html = `
+        <html>
+        <head>
+        <meta charset="utf-8">
+        <style>
+        body{
+          font-family:Arial;
+          font-size:11pt;
+          line-height:1.4;
+        }
+        h1{
+          font-size:14pt;
+          text-align:center;
+          text-transform:uppercase;
+        }
+        h2{
+          font-size:12pt;
+          margin-top:18px;
+          text-transform:uppercase;
+        }
+        p{
+          text-align:justify;
+        }
+        table{
+          border-collapse:collapse;
+          width:100%;
+          margin-top:8px;
+        }
+        td,th{
+          border:1px solid #000;
+          padding:4px;
+          font-size:10pt;
+        }
+        .firmas{
+          margin-top:40px;
+          overflow:hidden;
+          width:100%;
+        }
+        .firma-izq{
+          float:left;
+          width:45%;
+          text-align:center;
+        }
+        .firma-der{
+          float:right;
+          width:45%;
+          text-align:center;
+        }
+        </style>
+        </head>
+        <body>
+
+        <h1>CONTRATO DE PRESTACIÓN DE SERVICIOS DE ASESORÍA PARA<br/>
+        PENSIONARSE O CAMBIAR MODALIDAD DE PENSIÓN Nº 1.026-</h1>
+
+        <h2>INDIVIDUALIZACIÓN DE LAS PARTES</h2>
+
+        <p>
+        En la Ciudad de ${ciudad} a ${fechaActualTexto}, suscriben el presente contrato, por una parte,
+        don ${nombreCompletoMandante}, Rut ${mandante.rut || ""}, nacido el ${fechaAHablado(mandante.fechaNacimiento)},
+        estado civil ${mandante.estadoCivil || ""}, profesión u oficio ${mandante.profesionUOficio || ""},
+        domiciliado en ${mandante.domicilio || ""}, comuna de ${mandante.comuna || ""} ciudad de ${mandante.ciudad || ""},
+        celular ${mandante.telefono || ""}, correo electrónico ${mandante.email || ""},
+        afiliado a la ${mandante.afp || ""}, Sistema de Salud ${mandante.institucionSalud || ""};
+        por otra parte, ${nombreCompletoMandatario}, Rut ${mandatario.rut || ""},
+        Profesión ${mandatario.profesionUOficio || "" || ""}, inscrito en el Registro de Asesores Previsionales de la
+        Superintendencia de Pensiones con el N° ${mandatario.numeroRegistroAsesorPrevisional || ""},
+        domiciliado en ${mandatario.domicilio || ""}, comuna de ${mandatario.comuna || ""} ciudad de ${mandatario.ciudad || ""},
+        celular ${mandatario.telefono || ""} e-mail: ${mandatario.email || ""}, en adelante el “ASESOR PREVISIONAL”.
+        Las partes acuerdan el siguiente contrato de asesoría para realizar trámite de ${nombreTramite}.
+        </p>
+
+        <h2>ANTECEDENTES DEL GRUPO FAMILIAR CON DERECHO A PENSIÓN</h2>
+
+        <p>
+        El Afiliado declara que la composición de su grupo familiar con derecho a pensión es:
+        </p>
+
+        <table>
+        <tr>
+          <th>NOMBRE</th>
+          <th>PARENTESCO</th>
+          <th>FECHA NAC.</th>
+          <th>RUT</th>
+          <th>INV.</th>
+        </tr>
+        ${filasBeneficiarios}
+        </table>
+
+        <h2>NATURALEZA U OBJETO DEL CONTRATO</h2>
+
+        <p>
+        El presente contrato de asesoría previsional, tiene por objeto otorgar información a los afiliados y
+        beneficiarios del Sistema de Pensiones, considerando de manera integral todos los aspectos que dicen
+        relación con su situación particular y que fueren necesarios para adoptar decisiones informadas, de acuerdo
+        a sus necesidades e intereses en relación con las prestaciones y beneficios que contempla el D.L. N° 3.500.
+        Dicha asesoría podrá comprender además la intermediación de Seguros Previsionales.
+        </p>
+
+        <p>
+        Si el afiliado confiere Mandato o Poder Especial al Asesor Previsional o a la Entidad de Asesoría Previsional,
+        aquel deberá formar parte del Contrato como anexo del mismo y deberá cumplir con las normas que para tal
+        efecto fije la Superintendencia de Pensiones, debiendo estipularse en forma detallada los trámites,
+        atribuciones y facultades que el mandante otorga al mandatario para la ejecución del encargo específico que
+        se le encomiende, debiendo entenderse que aquellas facultades que no fueron incluidas no han sido conferidas.
+        En consecuencia, el mandatario sólo podrá realizar aquellas gestiones para las cuales se le otorgó un poder
+        especial. En ningún caso, el poder podrá extenderse a la facultad de seleccionar modalidad de pensión o
+        percibir beneficios.
+        </p>
+
+        <h2>OBLIGACIONES DE LAS ENTIDADES DE ASESORÍA PREVISIONAL O DEL ASESOR PREVISIONAL</h2>
+
+        <p>
+        - Otorgar información, asesorar y orientar al afiliado o sus beneficiarios, según corresponda, considerando
+        de manera integral todos los aspectos que digan relación con su situación particular y que fueren necesarias
+        para que adopten decisiones informadas de acuerdo a sus necesidades e intereses, en relación con las
+        prestaciones y beneficios que contempla el D.L N° 3.500.
+        </p>
+
+        <p>
+        - Asesorar en la selección de modalidad de pensión, informando acerca de los procedimientos y funcionamiento
+        del Sistema de Consultas y Ofertas de Montos de Pensión, enviar y transmitir las consultas de montos de
+        pensión requeridas por los consultantes y asistirle en todas las gestiones que corresponda efectuar una vez
+        evacuadas las ofertas de pensión por el Sistema, ya sea en casos de aceptación de alguna de las ofertas
+        contenida en el Certificado de Ofertas, la participación en el sistema de remate electrónico de pensión,
+        el ingreso dentro de los plazos correspondientes de una nueva consulta en el Sistema, o bien la posibilidad
+        de desistirse de contratar conforme a las ofertas recibidas.
+        </p>
+
+        <p>
+        - En caso de que el afiliado o sus beneficiarios cumplan los requisitos para pensionarse, o se trate de un
+        pensionado bajo la modalidad de retiro programado, la asesoría deberá informar en especial sobre la forma
+        de hacer efectiva su pensión según las modalidades previstas en el artículo 61 del D.L. 3.500, sus
+        características y demás beneficios a que pudieren acceder según el caso, con una estimación de sus montos.
+        </p>
+
+        <p>
+        - Analizar y verificar la situación previsional tanto del pensionable como de sus beneficiarios legales.
+        El asesor deberá obtener o requerir del cliente los antecedentes que permitan establecer o verificar la
+        existencia o no de beneficiarios con derecho a pensión de sobrevivencia, a fin de evitar se incurra en la
+        conducta descrita en el artículo 13 del D.L. 3.500, de 1980.
+        </p>
+
+        <p>
+        - En caso de que el solicitante cumpliera con los requisitos legales para obtener pensión de invalidez,
+        deberá informarse el derecho que le asiste para acceder a dicha pensión con la misma compañía de seguros
+        obligada a efectuar el pago del aporte adicional en conformidad al artículo 60 del D.L. Nº 3.500, aun cuando
+        ésta no hubiera presentado una oferta de pensión, e informarle el plazo del cual dispone para ejercer dicha
+        opción.
+        </p>
+
+        <h2>PÓLIZAS O BOLETA DE GARANTÍA BANCARIA COMPROMETIDAS</h2>
+
+        <p>
+        Para responder del correcto y cabal cumplimiento de todas las obligaciones emanadas de la actividad, el
+        Asesor Previsional está cubierto por la Póliza de Responsabilidad Civil Profesional para Asesores
+        Previsionales o Entidades de Asesoría Previsional bajo el registro de póliza __________________ de la C.M.F.,
+        emitida por la __________________, Póliza N° __________ contratada el ____________, con fecha de vigencia a
+        partir del ____________ y vencimiento el ____________.
+        </p>
+
+        <h2>VIGENCIA DEL CONTRATO</h2>
+
+        <p>
+        Se entenderá terminada la vigencia de este contrato si el afiliado o beneficiario selecciona modalidad de
+        pensión o se desistiese de pensionarse.
+        </p>
+
+        <h2>HONORARIOS</h2>
+
+        <p>
+        Los honorarios brutos convenidos a pagar al “ASESOR PREVISIONAL” por la prestación de sus servicios,
+        deberán ajustarse al rango de comisiones que se encuentran establecidas en el Decreto Ley 3.500 y en el
+        Decreto Supremo conjunto del Ministerio de Hacienda, Trabajo y Previsión Social N° 25 publicado el
+        01 de Octubre.
+        </p>
+
+        <p>
+        Primera asesoría (selección de modalidad de pensión):
+        1,5% del saldo destinado a la modalidad de pensión, con tope de 60 UF en el caso de Renta Vitalicia y
+        1,2% del saldo destinado a la modalidad de pensión, con tope de 36 UF en caso de Retiro Programado.
+        </p>
+
+        <p>
+        Segunda asesoría (cambio de modalidad de pensión): saldo remanente con tope de 24 UF.
+        </p>
+
+        <p>
+        Además, se establece que el pago de los honorarios estarán sujetos a la prestación efectiva de la asesoría
+        y que estos honorarios o comisión se cobrará en términos brutos, es decir, el monto siempre deberá incluir
+        el impuesto al que está obligado el Asesor Previsional y dicho monto será cancelado por la entidad en la cual
+        decida quedar pensionado.
+        </p>
+
+        <h2>DERECHO A LA INFORMACIÓN</h2>
+
+        <p>
+        El contratante podrá requerir, en cualquier momento, información escrita respecto de las gestiones
+        realizadas durante el curso de la asesoría. Asimismo, el asesor se compromete a la entrega de un Informe
+        Final, en el cual explicitará la recomendación o sugerencia entregada, indicando los antecedentes, escenarios
+        o los considerandos que sirvieron de base para la recomendación. Este informe final deberá explicitar
+        claramente la fecha en que se extendió y las firmas de las partes, las que podrán ser electrónicas.
+        </p>
+
+        <h2>VOLUNTARIEDAD DEL CONTRATO DE ASESORÍA PREVISIONAL</h2>
+
+        <p>
+        El presente Contrato se suscribe libre y voluntariamente, toda vez que para ejercer derechos previsionales
+        no es requisito la contratación de Asesoría Previsional. La recomendación escrita que se otorgue por el
+        Asesor Previsional o por la Entidad de Asesoría Previsional, esto es por medio del informe final, no es
+        obligatoria para el afiliado o sus beneficiarios, pudiendo éstos optar por cualquier alternativa que les
+        parezca conveniente.
+        </p>
+
+        <p>
+        Cualquier disposición de este contrato que pudiere constituir una limitación a la libertad contractual y al
+        derecho del afiliado a elegir AFP, tipo de fondo, cuándo pensionarse, la modalidad de pensión y la entidad
+        que otorgue su pensión se tendrá por no escrita.
+        </p>
+
+        <h2>PRIVACIDAD DE LA INFORMACIÓN</h2>
+
+        <p>
+        El Asesor o la Entidad de Asesoría se obliga a resguardar la privacidad de toda la información a la que
+        acceda producto del contrato.
+        </p>
+
+        <h2>INDEPENDENCIA DEL ASESOR PREVISIONAL O DE LA ENTIDAD DE ASESORÍA PREVISIONAL</h2>
+
+        <p>
+        El Asesor Previsional, los directores, socios, accionistas, ejecutivos principales, gerentes, apoderados o
+        dependientes de una Entidad de Asesoría Previsional, declaran no ser directores, accionistas, ejecutivos
+        principales, gerentes, apoderados o dependientes de una AFP, Compañías de Seguros, Sociedad Administradora
+        de Fondos de Cesantía, Aseguradora, Reaseguradora, Liquidadora de Siniestros o Entidades que conformen el
+        grupo empresarial de esas sociedades. Asimismo, se comprometen a otorgar la Asesoría Previsional con absoluta
+        independencia, no pudiendo condicionarla a otros productos o servicios propios o de una relacionada.
+        </p>
+
+        <h2>PROHIBICIONES</h2>
+
+        <p>
+        Se encuentra prohibido limitar en forma alguna la libre elección del contratante respecto de tomar o no la
+        recomendación del Asesor. El asesor o entidad de asesoría no podrá entregar al contratante incentivos o
+        beneficios adicionales al objetivo de la asesoría.
+        </p>
+
+        <h2>TÉRMINO DEL CONTRATO</h2>
+
+        <p>
+        El afiliado podrá poner término en cualquier momento al presente contrato, sin que se establezca el pago de
+        una multa o algún otro tipo de penalización por dicha terminación, bastando para ello la comunicación de
+        esta decisión por escrito al Asesor o a la Entidad de Asesoría Previsional, la que deberá remitirse por
+        escrito al domicilio o correo electrónico de éste que figura en el Contrato. El Asesor o la Entidad de
+        Asesoría Previsional podrán poner término al contrato de igual forma, debiendo siempre remitir la comunicación
+        escrita al domicilio del afiliado vía correo certificado. Con todo, se entenderá terminada la vigencia del
+        contrato transcurrido el plazo de 3 días contado desde el envío de dicha comunicación.
+        </p>
+
+        <p>
+        El presente contrato de Asesoría Previsional se firma en dos ejemplares quedando un ejemplar en poder de
+        cada una de las partes.
+        </p>
+
+        <br/><br/><br/>
+
+        <div class="firmas">
+          <div class="firma-izq">
+            <p>______________________________</p>
+            <p>Firma Cliente</p>
+            <p>${nombreCompletoMandante}</p>
+            <p>RUT: ${mandante.rut || ""}</p>
+          </div>
+          <div class="firma-der">
+            <p>______________________________</p>
+            <p>Firma Asesor Previsional</p>
+            <p>${nombreCompletoMandatario || "Rose Marie Albistur Barros"}</p>
+            <p>RUT: ${mandatario.rut || "9526153-1"}</p>
+          </div>
+        </div>
+
+        </body>
+        </html>
+        `;
+
+        const blob = new Blob(["\ufeff", html], { type: "application/msword" });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "contrato_asesoria.doc";
+        a.click();
+
+        URL.revokeObjectURL(url);
+      }
+
       // Crea nodos de DOM de forma compacta (helper para construir el formulario).
       function el(tag, attrs = {}, children = []) {
         const node = document.createElement(tag);
@@ -1751,6 +2080,9 @@
             const out = document.getElementById("output");
             const preview = document.getElementById("jsonPreview");
             const btnLimpiar = document.getElementById("btnLimpiar");
+            const btnMandatoSimple = document.getElementById("btnMandatoSimple");
+            const btnMandatoCorto = document.getElementById("btnMandatoCorto");
+            const btnContrato = document.getElementById("btnContrato");
             const cuentaField = document.getElementById("cuentaBancariaField");
             const cuentaBanco = document.getElementById("cuenta_banco");
             const cuentaTipo = document.getElementById("cuenta_tipo");
@@ -1764,7 +2096,7 @@
             const mandanteHidden = document.getElementById("mandante_fechaNac");
 
 
-            document.getElementById("btnMandatoSimple").addEventListener("click", ()=>{
+            btnMandatoSimple.addEventListener("click", ()=>{
 
               const result = validate(form);
 
@@ -1778,6 +2110,20 @@
               generarMandatoSimple(data);
 
             }); 
+
+        if (btnContrato) {
+          btnContrato.addEventListener("click", () => {
+            const result = validate(form);
+
+            if (!result.ok) {
+              setStatus("Debes completar el formulario primero");
+              return;
+            }
+
+            const data = formDataToObject(form);
+            generarContrato(data);
+          });
+        }
 
         if (mandanteDia && mandanteMes && mandanteAnio && mandanteHidden) {
           llenarSelectFecha(mandanteDia, mandanteMes, mandanteAnio, 1900);
