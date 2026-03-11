@@ -904,7 +904,7 @@
         <tr>
         <td>${nombreCompleto}</td>
         <td>${b.sexo || ""}</td>
-        <td>${b.rut || ""}</td>
+        <td class="col-rut">${b.rut || ""}</td>
         <td>${b.fechaNacimiento || ""}</td>
         <td>${b.parentesco || ""}</td>
         <td>${b.observaciones || ""}</td>
@@ -954,6 +954,10 @@
         td,th{
         border:1px solid black;
         padding:4px;
+        }
+        .col-rut{
+        white-space:nowrap;
+        width:1%;
         }
 
         h2,h3{
@@ -1043,7 +1047,7 @@
         <tr>
         <th>Nombre Completo</th>
         <th>Sexo</th>
-        <th>RUT</th>
+        <th class="col-rut">RUT</th>
         <th>Fecha Nacimiento</th>
         <th>Parentesco</th>
         <th>Observaciones</th>
@@ -1355,7 +1359,7 @@
         <td>${nombreBenef}</td>
         <td>${b.parentesco || ""}</td>
         <td>${b.fechaNacimiento || ""}</td>
-        <td>${b.rut || ""}</td>
+        <td class="col-rut">${b.rut || ""}</td>
         <td>${b.esInvalido || ""}</td>
         </tr>
         `;
@@ -1394,6 +1398,10 @@
           border:1px solid #000;
           padding:4px;
           font-size:10pt;
+        }
+        .col-rut{
+          white-space:nowrap;
+          width:1%;
         }
         .firmas{
           margin-top:40px;
@@ -1445,7 +1453,7 @@
           <th>NOMBRE</th>
           <th>PARENTESCO</th>
           <th>FECHA NAC.</th>
-          <th>RUT</th>
+          <th class="col-rut">RUT</th>
           <th>INV.</th>
         </tr>
         ${filasBeneficiarios}
