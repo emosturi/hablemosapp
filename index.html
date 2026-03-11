@@ -826,6 +826,7 @@
 
       const MESES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
+      // Convierte una fecha en formato DD-MM-YYYY a un texto hablado en español.
       function fechaAHablado(str) {
         if (!str || typeof str !== "string") return "";
         const m = String(str).trim().match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
@@ -836,11 +837,13 @@
         return `${dd} de ${MESES[mm - 1]} del ${m[3]}`;
       }
 
+      // Obtiene la fecha actual en texto hablado en español.
       function fechaHoyHablado() {
         const d = new Date();
         return `${d.getDate()} de ${MESES[d.getMonth()]} del ${d.getFullYear()}`;
       }
 
+      // Rellena selectores de día, mes y año con rangos válidos.
       function llenarSelectFecha(diaSel, mesSel, anioSel, minYear = 1900, maxYear = new Date().getFullYear()) {
         if (diaSel) {
           for (let d = 1; d <= 31; d++) {
@@ -868,6 +871,7 @@
         }
       }
 
+      // Genera el HTML del mandato y lo descarga como archivo .doc.
       function generarMandatoSimple(data){
         console.log("Datos recibidos: ",data);
         let beneficiarios = "";
@@ -1302,6 +1306,7 @@
 
       }
 
+      // Crea nodos de DOM de forma compacta (helper para construir el formulario).
       function el(tag, attrs = {}, children = []) {
         const node = document.createElement(tag);
         for (const [k, v] of Object.entries(attrs)) {
@@ -1345,6 +1350,7 @@
         }
       }
 
+      // Normaliza un RUT (quita caracteres inválidos y aplica puntos y guion).
       function normalizeRut(raw) {
         if (!raw) return "";
         let s = String(raw).trim().toUpperCase();
@@ -1363,6 +1369,7 @@
         return `${bodyWithDots}-${dv}`;
       }
 
+      // Valida el dígito verificador de un RUT chileno.
       function rutIsValid(rut) {
         const s = String(rut || "").toUpperCase().replace(/[^0-9K]/g, "");
         if (s.length < 2) return false;
@@ -1380,6 +1387,7 @@
         return expected === dv;
       }
 
+      // Parsea una fecha DD-MM-YYYY y devuelve componentes y formato ISO si es válida.
       function parseDDMMYYYY(value) {
         const s = String(value || "").trim();
         const m = s.match(/^(\d{2})-(\d{2})-(\d{4})$/);
@@ -1398,20 +1406,24 @@
         };
       }
 
+      // Muestra un mensaje de estado no bloqueante debajo de los botones.
       function setStatus(msg) {
         document.getElementById("status").textContent = msg || "";
       }
 
+      // Limpia todos los mensajes y marcas de error del formulario.
       function clearErrors(form) {
         for (const node of form.querySelectorAll("[data-error-for]")) node.textContent = "";
         for (const el of form.querySelectorAll("[aria-invalid='true']")) el.removeAttribute("aria-invalid");
       }
 
+      // Asigna un mensaje de error a un campo identificado por id o nombre.
       function setError(form, keyOrId, message) {
         const target = form.querySelector(`[data-error-for="${CSS.escape(keyOrId)}"]`);
         if (target) target.textContent = message;
       }
 
+      // Convierte el FormData del formulario en un objeto anidado (usando nombres con puntos).
       function formDataToObject(form) {
         const fd = new FormData(form);
         const out = {};
@@ -1434,6 +1446,7 @@
         return out;
       }
 
+      // Rellena el formulario a partir de un objeto anidado (para cargar borradores).
       function setFormFromObject(form, data) {
         if (!data || typeof data !== "object") return;
         const flat = {};
@@ -1458,6 +1471,7 @@
         }
       }
 
+      // Descarga un objeto como archivo JSON con el nombre indicado.
       function downloadJson(filename, obj) {
         const blob = new Blob([JSON.stringify(obj, null, 2)], { type: "application/json;charset=utf-8" });
         const url = URL.createObjectURL(blob);
@@ -1470,6 +1484,7 @@
         URL.revokeObjectURL(url);
       }
 
+      // Realiza todas las validaciones del formulario y devuelve si es válido.
       function validate(form) {
         clearErrors(form);
         let ok = true;
@@ -1559,6 +1574,7 @@
         return { ok, parsedBirth: parsed };
       }
 
+      // Crea dinámicamente el bloque de campos para un beneficiario (incluyendo su fecha y RUT).
       function crearBeneficiario(i){
 
         const div = document.createElement("div");
@@ -1692,6 +1708,7 @@
         return div;
       }
 
+      // Inicializa todos los manejadores de eventos y estado inicial del formulario.
       function init() {
             const form = document.getElementById("pensionForm");
             const out = document.getElementById("output");
@@ -1878,18 +1895,19 @@
                   });
                 }
 
-                init();
+                init(); // Arranca la configuración del formulario al cargar el script.
 
-                document.addEventListener("blur", function (e) {
-                  if (!e.target.classList.contains("rut-benef")) return;
+      // Autoformatea y valida el RUT de cada beneficiario cuando el campo pierde el foco.
+      document.addEventListener("focusout", function (e) {
+        if (!e.target.classList.contains("rut-benef")) return;
 
-                  e.target.value = normalizeRut(e.target.value);
-                  if (rutIsValid(e.target.value)) {
-                    e.target.removeAttribute("aria-invalid");
-                  } else {
-                    e.target.setAttribute("aria-invalid", "true");
-                  }
-                });
+        e.target.value = normalizeRut(e.target.value);
+        if (rutIsValid(e.target.value)) {
+          e.target.removeAttribute("aria-invalid");
+        } else {
+          e.target.setAttribute("aria-invalid", "true");
+        }
+      });
     </script>
   </body>
 </html>
