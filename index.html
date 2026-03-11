@@ -1652,6 +1652,21 @@
   </div>
 
   <div class="field col-4">
+    <label>Beneficiario es inválido? <span class="req">*</span></label>
+    <div class="radio-row" role="group" aria-label="Beneficiario inválido">
+      <label class="radio-pill">
+        <input type="radio" name="beneficiarios.${i}.esInvalido" value="Sí" required />
+        Sí
+      </label>
+      <label class="radio-pill">
+        <input type="radio" name="beneficiarios.${i}.esInvalido" value="No" required />
+        No
+      </label>
+    </div>
+    <div class="error" data-error-for="beneficiarios.${i}.esInvalido"></div>
+  </div>
+
+  <div class="field col-4">
     <label>Fecha nacimiento <span class="req">*</span></label>
     <div class="date-group">
       <select id="benef_${i}_dia">
