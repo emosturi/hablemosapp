@@ -1519,6 +1519,19 @@
           }
         }
 
+        // Validar RUT de beneficiarios
+        for (const input of form.querySelectorAll(".rut-benef")) {
+          const v = String(input.value || "").trim();
+          if (!v) continue;
+          input.value = normalizeRut(v);
+          if (!rutIsValid(input.value)) {
+            ok = false;
+            input.setAttribute("aria-invalid", "true");
+            const name = input.getAttribute("name");
+            if (name) setError(form, name, "RUT inválido (Beneficiario).");
+          }
+        }
+
         const fecha = document.getElementById("mandante_fechaNac");
         const parsed = parseDDMMYYYY(fecha?.value);
         if (!parsed) {
