@@ -745,9 +745,6 @@
           <div class="actions">
             <div class="btns">
               <button id="btnMandatoSimple">Generar mandato</button>
-              <button type="submit" class="primary">Validar y generar</button>
-              <button type="button" id="btnGuardar" class="ok">Guardar borrador</button>
-              <button type="button" id="btnDescargar" disabled>Descargar JSON</button>
               <button type="button" id="btnLimpiar" class="danger">Limpiar</button>
             </div>
             <div id="status" class="status" aria-live="polite"></div>
@@ -1722,8 +1719,6 @@
             const form = document.getElementById("pensionForm");
             const out = document.getElementById("output");
             const preview = document.getElementById("jsonPreview");
-            const btnGuardar = document.getElementById("btnGuardar");
-            const btnDescargar = document.getElementById("btnDescargar");
             const btnLimpiar = document.getElementById("btnLimpiar");
             const cuentaField = document.getElementById("cuentaBancariaField");
             const cuentaBanco = document.getElementById("cuenta_banco");
@@ -1803,17 +1798,6 @@
         if (cuentaBancariaQuestion && cuentaField) cuentaBancariaQuestion.after(cuentaField);
         renderYesNo(document.getElementById("certificadosQuestions"), "certificados", certificadosItems);
 
-        const draftRaw = localStorage.getItem(STORAGE_KEY);
-        if (draftRaw) {
-          try {
-            const data = JSON.parse(draftRaw);
-            setFormFromObject(form, data);
-            setStatus("Borrador cargado desde el navegador.");
-          } catch {
-            // ignore
-          }
-        }
-
         function updateCuentaBancariaVisibility() {
           const selected = form.querySelector(
           'input[name="autorizaciones.ingresarDatosCuentaBancaria"]:checked'
@@ -1854,55 +1838,16 @@
                 });
               }
 
-                btnGuardar.addEventListener("click", () => {
-                const data = formDataToObject(form);
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-                setStatus("Borrador guardado.");
-                });
+              btnLimpiar.addEventListener("click", () => {
+                if (!confirm("¿Seguro que quieres limpiar el formulario?")) return;
+                form.reset();
+                clearErrors(form);
+                out.hidden = true;
+                preview.textContent = "";
+                setStatus("Formulario limpio.");
+              });
 
-                btnLimpiar.addEventListener("click", () => {
-                  if (!confirm("¿Seguro que quieres limpiar el formulario?")) return;
-                  localStorage.removeItem(STORAGE_KEY);
-                  form.reset();
-                  clearErrors(form);
-                  out.hidden = true;
-                  preview.textContent = "";
-                  btnDescargar.disabled = true;
-                  setStatus("Formulario limpio.");
-                });
-
-                let lastJson = null;
-                btnDescargar.addEventListener("click", () => {
-                  if (!lastJson) return;
-                    const rut = normalizeRut(lastJson?.mandante?.rut || "mandante");
-                    const safe = rut.replace(/[^0-9K.-]/g, "_");
-                    downloadJson(`solicitud_pension_${safe}.json`, lastJson);
-                    setStatus("JSON descargado.");
-                });
-
-                form.addEventListener("submit", (e) => {
-                  e.preventDefault();
-                  setStatus("");
-                  const result = validate(form);
-                  if (!result.ok) {
-                    setStatus("Revisa los campos marcados en rojo.");
-                    btnDescargar.disabled = true;
-                    return;
-                  }
-                  const data = formDataToObject(form);
-                  data.meta = {
-                    generadoEn: new Date().toISOString(),
-                    fechaNacimientoISO: result.parsedBirth?.iso || null,
-                  };
-
-                  lastJson = data;
-                  out.hidden = false;
-                  preview.textContent = JSON.stringify(data, null, 2);
-                  btnDescargar.disabled = false;
-                  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-                  setStatus("Validación OK. JSON listo.");
-                  });
-                }
+            }
 
                 init(); // Arranca la configuración del formulario al cargar el script.
 
