@@ -813,6 +813,10 @@
           key: "firmarExencionCotizarEdadLegal",
           label: "Firmar exención de cotizar por cumplimiento de edad legal al inicio de mi trámite.",
         },
+        {
+          key: "realizarReclamosTramite",
+          label: "Realizar requerimientos y reclamos del trámite y todo lo relacionado con este",
+        },
       ];
 
       const certificadosItems = [
@@ -1208,6 +1212,11 @@
         <tr>
         <td>Firmar exención de cotizar por cumplimiento de edad legal al inicio de mi trámite</td>
         <td>${autorizaciones.firmarExencionCotizarEdadLegal === "Sí" ? "Sí" : "No"}</td>
+        </tr>
+
+        <tr>
+        <td>Realizar requerimientos y reclamos del trámite y todo lo relacionado con este</td>
+        <td>${autorizaciones.realizarReclamosTramite === "Sí" ? "Sí" : "No"}</td>
         </tr>
 
         <tr>
