@@ -123,6 +123,15 @@
         grid-column: span 12;
       }
 
+      .date-group {
+        display: flex;
+        gap: 6px;
+      }
+
+      .date-group select {
+        flex: 1;
+      }
+
       @media (min-width: 860px) {
         .col-6 {
           grid-column: span 6;
@@ -428,13 +437,13 @@
               <div class="field col-4">
                 <label for="mandante_fechaNac">Fecha Nacimiento <span class="req">*</span></label>
                 <div class="date-group">
-                  <select id="mandante_fechaNac_dia" class="col-3">
+                  <select id="mandante_fechaNac_dia">
                     <option value="" selected disabled>Día</option>
                   </select>
-                  <select id="mandante_fechaNac_mes" class="col-3">
+                  <select id="mandante_fechaNac_mes">
                     <option value="" selected disabled>Mes</option>
                   </select>
-                  <select id="mandante_fechaNac_anio" class="col-3">
+                  <select id="mandante_fechaNac_anio">
                     <option value="" selected disabled>Año</option>
                   </select>
                   <input
@@ -1594,13 +1603,13 @@
   <div class="field col-4">
     <label>Fecha nacimiento <span class="req">*</span></label>
     <div class="date-group">
-      <select id="benef_${i}_dia" class="col-3">
+      <select id="benef_${i}_dia">
         <option value="" selected disabled>Día</option>
       </select>
-      <select id="benef_${i}_mes" class="col-3">
+      <select id="benef_${i}_mes">
         <option value="" selected disabled>Mes</option>
       </select>
-      <select id="benef_${i}_anio" class="col-3">
+      <select id="benef_${i}_anio">
         <option value="" selected disabled>Año</option>
       </select>
       <input
