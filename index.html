@@ -1860,14 +1860,19 @@
       }
 
       // Realiza todas las validaciones del formulario y devuelve si es válido.
-      function validate(form) {
+      // Si soloParaContrato es true, omite validar Antecedentes, Autorizaciones y Certificados.
+      function validate(form, { soloParaContrato = false } = {}) {
         clearErrors(form);
         let ok = true;
+
+        const omitirParaContrato = (name) =>
+          soloParaContrato && /^(antecedentes|autorizaciones|certificados)\./.test(name || "");
 
         const requiredInvalid = [];
         for (const el of form.querySelectorAll("input, select, textarea")) {
           if (el.disabled) continue;
           if (el.type === "radio") continue;
+          if (omitirParaContrato(el.name)) continue;
           if (!el.checkValidity()) requiredInvalid.push(el);
         }
 
@@ -1881,7 +1886,10 @@
         }
 
         const radioGroups = new Set();
-        for (const r of form.querySelectorAll("input[type='radio'][required]")) radioGroups.add(r.name);
+        for (const r of form.querySelectorAll("input[type='radio'][required]")) {
+          if (omitirParaContrato(r.name)) continue;
+          radioGroups.add(r.name);
+        }
         for (const name of radioGroups) {
           const checked = form.querySelector(`input[type="radio"][name="${CSS.escape(name)}"]:checked`);
           if (!checked) {
@@ -2137,7 +2145,7 @@
 
         if (btnContrato) {
           btnContrato.addEventListener("click", () => {
-            const result = validate(form);
+            const result = validate(form, { soloParaContrato: true });
 
             if (!result.ok) {
               setStatus("Debes completar el formulario primero");
