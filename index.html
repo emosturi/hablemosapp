@@ -582,55 +582,56 @@
                   inputmode="text"
                   autocomplete="off"
                   placeholder="12.345.678-5"
+                  value="9.526.153-1"
                 />
                 <div class="error" data-error-for="mandatario_rut"></div>
               </div>
 
               <div class="field col-4">
                 <label for="mandatario_nacionalidad">Nacionalidad <span class="req">*</span></label>
-                <input id="mandatario_nacionalidad" name="mandatario.nacionalidad" required />
+                <input id="mandatario_nacionalidad" name="mandatario.nacionalidad" required value="CHILENA" />
                 <div class="error" data-error-for="mandatario_nacionalidad"></div>
               </div>
 
               <div class="field col-4">
                 <label for="mandatario_registro">N° Registro de Asesor Previsional (Opcional)</label>
-                <input id="mandatario_registro" name="mandatario.numeroRegistroAsesorPrevisional" />
+                <input id="mandatario_registro" name="mandatario.numeroRegistroAsesorPrevisional" value="1026" />
                 <div class="error" data-error-for="mandatario_registro"></div>
               </div>
 
               <div class="field col-4">
                 <label for="mandatario_nombres">Nombres <span class="req">*</span></label>
-                <input id="mandatario_nombres" name="mandatario.nombres" required />
+                <input id="mandatario_nombres" name="mandatario.nombres" required value="ROSE MARIE" />
                 <div class="error" data-error-for="mandatario_nombres"></div>
               </div>
 
               <div class="field col-4">
                 <label for="mandatario_apPaterno">Apellido Paterno <span class="req">*</span></label>
-                <input id="mandatario_apPaterno" name="mandatario.apellidoPaterno" required />
+                <input id="mandatario_apPaterno" name="mandatario.apellidoPaterno" required value="ALBISTUR" />
                 <div class="error" data-error-for="mandatario_apPaterno"></div>
               </div>
 
               <div class="field col-4">
                 <label for="mandatario_apMaterno">Apellido Materno <span class="req">*</span></label>
-                <input id="mandatario_apMaterno" name="mandatario.apellidoMaterno" required />
+                <input id="mandatario_apMaterno" name="mandatario.apellidoMaterno" required value="BARROS" />
                 <div class="error" data-error-for="mandatario_apMaterno"></div>
               </div>
 
               <div class="field col-6">
                 <label for="mandatario_domicilio">Domicilio <span class="req">*</span></label>
-                <textarea id="mandatario_domicilio" name="mandatario.domicilio" required></textarea>
+                <textarea id="mandatario_domicilio" name="mandatario.domicilio" required>13 NORTE 853 OFICINA 803, EDIFICIO BOULEVARD</textarea>
                 <div class="error" data-error-for="mandatario_domicilio"></div>
               </div>
 
               <div class="field col-3">
                 <label for="mandatario_comuna">Comuna <span class="req">*</span></label>
-                <input id="mandatario_comuna" name="mandatario.comuna" required />
+                <input id="mandatario_comuna" name="mandatario.comuna" required value="VIÑA DEL MAR" />
                 <div class="error" data-error-for="mandatario_comuna"></div>
               </div>
 
               <div class="field col-3">
                 <label for="mandatario_ciudad">Ciudad <span class="req">*</span></label>
-                <input id="mandatario_ciudad" name="mandatario.ciudad" required />
+                <input id="mandatario_ciudad" name="mandatario.ciudad" required value="VIÑA DEL MAR" />
                 <div class="error" data-error-for="mandatario_ciudad"></div>
               </div>
 
@@ -643,13 +644,14 @@
                   inputmode="tel"
                   autocomplete="tel"
                   placeholder="+56 9 1234 5678"
+                  value="+56995399068"
                 />
                 <div class="error" data-error-for="mandatario_telefono"></div>
               </div>
 
               <div class="field col-6">
                 <label for="mandatario_email">Email (Opcional)</label>
-                <input id="mandatario_email" name="mandatario.email" inputmode="email" autocomplete="email" />
+                <input id="mandatario_email" name="mandatario.email" inputmode="email" autocomplete="email" value="ALBISTUR.AP@GMAIL.COM" />
                 <div class="error" data-error-for="mandatario_email"></div>
               </div>
             </div>
@@ -860,6 +862,11 @@
         return `${d.getDate()} de ${MESES[d.getMonth()]} del ${d.getFullYear()}`;
       }
 
+      // Convierte cualquier valor a string en mayúsculas para mandato y contrato.
+      function aMayus(s) {
+        return String(s ?? "").toUpperCase();
+      }
+
       // Rellena selectores de día, mes y año con rangos válidos.
       function llenarSelectFecha(diaSel, mesSel, anioSel, minYear = 1900, maxYear = new Date().getFullYear()) {
         if (diaSel) {
@@ -902,14 +909,14 @@
         const nombreCompleto = [b.nombres, b.apellidoPaterno, b.apellidoMaterno].filter(Boolean).join(" ");
         beneficiarios += `
         <tr>
-        <td>${nombreCompleto}</td>
-        <td>${b.sexo || ""}</td>
-        <td class="col-rut">${b.rut || ""}</td>
-        <td>${b.fechaNacimiento || ""}</td>
-        <td>${b.parentesco || ""}</td>
-        <td>${b.fechaMatrimonioUnionCivil || ""}</td>
-        <td>${b.ciudadMatrimonioUnionCivil || ""}</td>
-        <td>${b.observaciones || ""}</td>
+        <td>${aMayus(nombreCompleto)}</td>
+        <td>${aMayus(b.sexo)}</td>
+        <td class="col-rut">${aMayus(b.rut)}</td>
+        <td>${aMayus(b.fechaNacimiento)}</td>
+        <td>${aMayus(b.parentesco)}</td>
+        <td>${aMayus(b.fechaMatrimonioUnionCivil)}</td>
+        <td>${aMayus(b.ciudadMatrimonioUnionCivil)}</td>
+        <td>${aMayus(b.observaciones)}</td>
         </tr>
         `;
 
@@ -995,44 +1002,44 @@
 
         <body>
 
-        <h2>MANDATO PARA ${mandante.tipoPension || ""}</h2>
+        <h2>MANDATO PARA ${aMayus(mandante.tipoPension)}</h2>
 
         <p>
         Con fecha ${fechaHoy} y por medio del siguiente instrumento, yo 
-        <b>${nombreMandante}</b>,
-        RUT ${mandante.rut || ""},
-        de nacionalidad ${mandante.nacionalidad || ""},
-        de sexo ${mandante.sexo || ""},
+        <b>${aMayus(nombreMandante)}</b>,
+        RUT ${aMayus(mandante.rut)},
+        de nacionalidad ${aMayus(mandante.nacionalidad)},
+        de sexo ${aMayus(mandante.sexo)},
         nacido el ${fechaAHablado(mandante.fechaNacimiento)},
-        estado civil ${mandante.estadoCivil || ""},
-        de profesión u oficio ${mandante.profesionUOficio || ""},
-        domiciliado en ${mandante.domicilio || ""},
-        comuna de ${mandante.comuna || ""},
-        ciudad de ${mandante.ciudad || ""},
-        teléfono ${mandante.telefono || ""},
-        correo electrónico ${mandante.email || ""},
+        estado civil ${aMayus(mandante.estadoCivil)},
+        de profesión u oficio ${aMayus(mandante.profesionUOficio)},
+        domiciliado en ${aMayus(mandante.domicilio)},
+        comuna de ${aMayus(mandante.comuna)},
+        ciudad de ${aMayus(mandante.ciudad)},
+        teléfono ${aMayus(mandante.telefono)},
+        correo electrónico ${aMayus(mandante.email)},
         he incorporado a la institución de salud
-        ${mandante.institucionSalud || ""}
+        ${aMayus(mandante.institucionSalud)}
         confiero poder a 
-        <b>${nombreMandatario}</b>,
-        RUT ${mandatario.rut || ""},
-        domiciliado en ${mandatario.domicilio || ""},
-        comuna de ${mandatario.comuna || ""},
-        ciudad de ${mandatario.ciudad || ""},
-        teléfono ${mandatario.telefono || ""},
-        correo electrónico ${mandatario.email || ""},
-        para que en mi nombre suscriba en ${mandante.afp || ""}, una solicitud de ${mandante.tipoPension || ""}.
+        <b>${aMayus(nombreMandatario)}</b>,
+        RUT ${aMayus(mandatario.rut)},
+        domiciliado en ${aMayus(mandatario.domicilio)},
+        comuna de ${aMayus(mandatario.comuna)},
+        ciudad de ${aMayus(mandatario.ciudad)},
+        teléfono ${aMayus(mandatario.telefono)},
+        correo electrónico ${aMayus(mandatario.email)},
+        para que en mi nombre suscriba en ${aMayus(mandante.afp)}, una solicitud de ${aMayus(mandante.tipoPension)}.
         </p>
 
         <p class="empleador-datos">
         <br/>
         Asimismo, expongo que a la fecha, los datos de mi empleador son los siguientes:   
         <br/>
-        <br/><b>Razón social:</b> ${empleador.nombreORazonSocial || ""}
-        <br/><b>Rut:</b> ${empleador.rut || ""}
-        <br/><b>Dirección:</b> ${empleador.domicilio || ""}
-        <br/><b>Correo electrónico:</b> ${empleador.email || ""}
-        <br/><b>Telefono:</b> ${empleador.telefono || ""}
+        <br/><b>Razón social:</b> ${aMayus(empleador.nombreORazonSocial)}
+        <br/><b>Rut:</b> ${aMayus(empleador.rut)}
+        <br/><b>Dirección:</b> ${aMayus(empleador.domicilio)}
+        <br/><b>Correo electrónico:</b> ${aMayus(empleador.email)}
+        <br/><b>Telefono:</b> ${aMayus(empleador.telefono)}
         </p>
         
         
@@ -1069,7 +1076,7 @@
         Por otra parte, señalo los siguientes antecedentes 
         que el mandatario deberá considerar para suscribir 
         en mi nombre en la solicitud 
-        de ${mandante.tipoPension || ""}
+        de ${aMayus(mandante.tipoPension)}
         <p/>
 
         <h3>Antecedentes</h3>
@@ -1078,87 +1085,87 @@
 
         <tr>
         <td>Deseo pensión preliminar</td>
-        <td>${antecedentes.deseoPensionPreliminar === "Sí" ? "Sí" : "No"}</td>
+        <td>${aMayus(antecedentes.deseoPensionPreliminar === "Sí" ? "Sí" : "No")}</td>
         </tr>
 
         <tr>
         <td>Solicitar Pensión Garantizada Universal</td>
-        <td>${antecedentes.solicitarPgu === "Sí" ? "Sí" : "No"}</td>
+        <td>${aMayus(antecedentes.solicitarPgu === "Sí" ? "Sí" : "No")}</td>
         </tr>
 
         <tr>
         <td>Solicitar aporte solidario de invalidez (si corresponde)</td>
-        <td>${antecedentes.solicitarAporteSolidarioInvalidez === "Sí" ? "Sí" : "No"}</td>
+        <td>${aMayus(antecedentes.solicitarAporteSolidarioInvalidez === "Sí" ? "Sí" : "No")}</td>
         </tr>
 
         <tr>
         <td>Recibo pensión antiguo sistema</td>
-        <td>${antecedentes.reciboPensionAntiguoSistema === "Sí" ? "Sí" : "No"}</td>
+        <td>${aMayus(antecedentes.reciboPensionAntiguoSistema === "Sí" ? "Sí" : "No")}</td>
         </tr>
 
         <tr>
         <td>Recibo pensión invalidez de este sistema</td>
-        <td>${antecedentes.reciboPensionInvalidezEsteSistema === "Sí" ? "Sí" : "No"}</td>
+        <td>${aMayus(antecedentes.reciboPensionInvalidezEsteSistema === "Sí" ? "Sí" : "No")}</td>
         </tr>
 
         <tr>
         <td>Deseo que mi pensión se ajuste a la pensión mínima</td>
-        <td>${antecedentes.ajustePensionMinima === "Sí" ? "Sí" : "No"}</td>
+        <td>${aMayus(antecedentes.ajustePensionMinima === "Sí" ? "Sí" : "No")}</td>
         </tr>
 
         <tr>
         <td>Deseo que mi pensión se ajuste a la pensión básica solidaria</td>
-        <td>${antecedentes.ajustePensionBasicaSolidaria === "Sí" ? "Sí" : "No"}</td>
+        <td>${aMayus(antecedentes.ajustePensionBasicaSolidaria === "Sí" ? "Sí" : "No")}</td>
         </tr>
 
         <tr>
         <td>Estoy afecto al Estatuto Administrativo</td>
-        <td>${antecedentes.afectoEstatutoAdministrativo === "Sí" ? "Sí" : "No"}</td>
+        <td>${aMayus(antecedentes.afectoEstatutoAdministrativo === "Sí" ? "Sí" : "No")}</td>
         </tr>
 
         <tr>
         <td>Destinaré Ahorro Previsional Voluntario al financiamiento de mi pensión</td>
-        <td>${antecedentes.destinareApv === "Sí" ? "Sí" : "No"}</td>
+        <td>${aMayus(antecedentes.destinareApv === "Sí" ? "Sí" : "No")}</td>
         </tr>
 
         <tr>
         <td>Destinaré Ahorro Previsional Voluntario Colectivo al financiamiento de mi pensión</td>
-        <td>${antecedentes.destinareApvc === "Sí" ? "Sí" : "No"}</td>
+        <td>${aMayus(antecedentes.destinareApvc === "Sí" ? "Sí" : "No")}</td>
         </tr>
 
         <tr>
         <td>Traspasaré fondos desde mi Cuenta de Ahorro Voluntario para financiar mi pensión</td>
-        <td>${antecedentes.traspasareCtaAhorroVoluntario === "Sí" ? "Sí" : "No"}</td>
+        <td>${aMayus(antecedentes.traspasareCtaAhorroVoluntario === "Sí" ? "Sí" : "No")}</td>
         </tr>
 
         <tr>
         <td>Poseo depósitos convenidos</td>
-        <td>${antecedentes.poseoDepositosConvenidos === "Sí" ? "Sí" : "No"}</td>
+        <td>${aMayus(antecedentes.poseoDepositosConvenidos === "Sí" ? "Sí" : "No")}</td>
         </tr>
 
         <tr>
         <td>Traspasaré fondos desde mi Cuenta Individual de Cesantía</td>
-        <td>${antecedentes.traspasareCesantia === "Sí" ? "Sí" : "No"}</td>
+        <td>${aMayus(antecedentes.traspasareCesantia === "Sí" ? "Sí" : "No")}</td>
         </tr>
 
         <tr>
         <td>Tengo cotizaciones en otro país</td>
-        <td>${antecedentes.cotizacionesOtroPais === "Sí" ? "Sí" : "No"}</td>
+        <td>${aMayus(antecedentes.cotizacionesOtroPais === "Sí" ? "Sí" : "No")}</td>
         </tr>
 
         <tr>
         <td>Tengo períodos de residencia en otro país</td>
-        <td>${antecedentes.residenciaOtroPais === "Sí" ? "Sí" : "No"}</td>
+        <td>${aMayus(antecedentes.residenciaOtroPais === "Sí" ? "Sí" : "No")}</td>
         </tr>
 
         <tr>
         <td>Deseo cambiar de Tipo de Fondo</td>
-        <td>${antecedentes.cambioTipoFondo === "Sí" ? "Sí" : "No"}</td>
+        <td>${aMayus(antecedentes.cambioTipoFondo === "Sí" ? "Sí" : "No")}</td>
         </tr>
 
         <tr>
         <td>Deseo que mis datos personales aparezcan en un listado público de información</td>
-        <td>${antecedentes.listadoPublico === "Sí" ? "Sí" : "No"}</td>
+        <td>${aMayus(antecedentes.listadoPublico === "Sí" ? "Sí" : "No")}</td>
         </tr>
 
         </table>
@@ -1174,102 +1181,102 @@
 
         <tr>
         <td>Suscribir solicitud de Bono de Reconocimiento</td>
-        <td>${autorizaciones.suscribirBonoReconocimiento === "Sí" ? "Sí" : "No"}</td>
+        <td>${aMayus(autorizaciones.suscribirBonoReconocimiento === "Sí" ? "Sí" : "No")}</td>
         </tr>
 
         <tr>
         <td>Solicitar información respecto del estado del trámite de pensión</td>
-        <td>${autorizaciones.solicitarInfoEstadoTramite === "Sí" ? "Sí" : "No"}</td>
+        <td>${aMayus(autorizaciones.solicitarInfoEstadoTramite === "Sí" ? "Sí" : "No")}</td>
         </tr>
 
         <tr>
         <td>Retirar en la AFP el Certificado de Saldo</td>
-        <td>${autorizaciones.retirarCertificadoSaldo === "Sí" ? "Sí" : "No"}</td>
+        <td>${aMayus(autorizaciones.retirarCertificadoSaldo === "Sí" ? "Sí" : "No")}</td>
         </tr>
 
         <tr>
         <td>Suscribir formulario "Destino de Cotizaciones Voluntarias"</td>
-        <td>${autorizaciones.suscribirDestinoCotizacionesVoluntarias === "Sí" ? "Sí" : "No"}</td>
+        <td>${aMayus(autorizaciones.suscribirDestinoCotizacionesVoluntarias === "Sí" ? "Sí" : "No")}</td>
         </tr>
 
         <tr>
         <td>Suscribir formulario "Transferencia de Fondos desde la Cuenta de Ahorro Voluntario"</td>
-        <td>${autorizaciones.suscribirTransferenciaAhorroVoluntario === "Sí" ? "Sí" : "No"}</td>
+        <td>${aMayus(autorizaciones.suscribirTransferenciaAhorroVoluntario === "Sí" ? "Sí" : "No")}</td>
         </tr>
 
         <tr>
         <td>Suscribir formulario "Selección de Alternativas de Ahorro Previsional Voluntario"</td>
-        <td>${autorizaciones.suscribirSeleccionAlternativasApv === "Sí" ? "Sí" : "No"}</td>
+        <td>${aMayus(autorizaciones.suscribirSeleccionAlternativasApv === "Sí" ? "Sí" : "No")}</td>
         </tr>
 
         <tr>
         <td>Suscribir solicitud de cambio de modalidad de pensión</td>
-        <td>${autorizaciones.suscribirCambioModalidadPension === "Sí" ? "Sí" : "No"}</td>
+        <td>${aMayus(autorizaciones.suscribirCambioModalidadPension === "Sí" ? "Sí" : "No")}</td>
         </tr>
 
         <tr>
         <td>Suscribir solicitud de cálculo de excedente de libre disposición</td>
-        <td>${autorizaciones.suscribirCalculoExcedente === "Sí" ? "Sí" : "No"}</td>
+        <td>${aMayus(autorizaciones.suscribirCalculoExcedente === "Sí" ? "Sí" : "No")}</td>
         </tr>
 
         <tr>
         <td>Suscribir opción por mantener el valor nominal del saldo destinado a pensión</td>
-        <td>${autorizaciones.suscribirMantenerValorNominal === "Sí" ? "Sí" : "No"}</td>
+        <td>${aMayus(autorizaciones.suscribirMantenerValorNominal === "Sí" ? "Sí" : "No")}</td>
         </tr>
 
         <tr>
         <td>Retirar duplicado de SCOMP original</td>
-        <td>${autorizaciones.retirarDuplicadoScompOriginal === "Sí" ? "Sí" : "No"}</td>
+        <td>${aMayus(autorizaciones.retirarDuplicadoScompOriginal === "Sí" ? "Sí" : "No")}</td>
         </tr>
 
         <tr>
         <td>Ingresar datos de mi cuenta bancaria</td>
-        <td>${autorizaciones.ingresarDatosCuentaBancaria === "Sí" ? "Sí" : "No"}</td>
+        <td>${aMayus(autorizaciones.ingresarDatosCuentaBancaria === "Sí" ? "Sí" : "No")}</td>
         </tr>
 
         <tr>
         <td>Obtener información verbal o escrita del pago de mi pensión y traspaso de fondos</td>
-        <td>${autorizaciones.obtenerInfoPagoPensionYTraspaso === "Sí" ? "Sí" : "No"}</td>
+        <td>${aMayus(autorizaciones.obtenerInfoPagoPensionYTraspaso === "Sí" ? "Sí" : "No")}</td>
         </tr>
 
         <tr>
         <td>Firmar exención de cotizar por cumplimiento de edad legal al inicio de mi trámite</td>
-        <td>${autorizaciones.firmarExencionCotizarEdadLegal === "Sí" ? "Sí" : "No"}</td>
+        <td>${aMayus(autorizaciones.firmarExencionCotizarEdadLegal === "Sí" ? "Sí" : "No")}</td>
         </tr>
 
         <tr>
         <td>Realizar requerimientos y reclamos del trámite y todo lo relacionado con este</td>
-        <td>${autorizaciones.realizarReclamosTramite === "Sí" ? "Sí" : "No"}</td>
+        <td>${aMayus(autorizaciones.realizarReclamosTramite === "Sí" ? "Sí" : "No")}</td>
         </tr>
 
         <tr>
         <td>Certificado histórico de cotizaciones</td>
-        <td>${certificados.historicoCotizaciones === "Sí" ? "Sí" : "No"}</td>
+        <td>${aMayus(certificados.historicoCotizaciones === "Sí" ? "Sí" : "No")}</td>
         </tr>
 
         <tr>
         <td>Certificado de antecedente previsional</td>
-        <td>${certificados.antecedentePrevisional === "Sí" ? "Sí" : "No"}</td>
+        <td>${aMayus(certificados.antecedentePrevisional === "Sí" ? "Sí" : "No")}</td>
         </tr>
 
         <tr>
         <td>Certificado de trabajo pesado</td>
-        <td>${certificados.certificadoTrabajoPesado === "Sí" ? "Sí" : "No"}</td>
+        <td>${aMayus(certificados.certificadoTrabajoPesado === "Sí" ? "Sí" : "No")}</td>
         </tr>
 
         <tr>
         <td>Certificado de vacaciones progresivas</td>
-        <td>${certificados.certificadoVacacionesProgresivas === "Sí" ? "Sí" : "No"}</td>
+        <td>${aMayus(certificados.certificadoVacacionesProgresivas === "Sí" ? "Sí" : "No")}</td>
         </tr>
 
         <tr>
         <td>Certificado de estado de cuentas</td>
-        <td>${certificados.certificadoEstadoCuentas === "Sí" ? "Sí" : "No"}</td>
+        <td>${aMayus(certificados.certificadoEstadoCuentas === "Sí" ? "Sí" : "No")}</td>
         </tr>
 
         <tr>
         <td>Certificado de calidad de pensionado</td>
-        <td>${certificados.certificadoCalidadPensionado === "Sí" ? "Sí" : "No"}</td>
+        <td>${aMayus(certificados.certificadoCalidadPensionado === "Sí" ? "Sí" : "No")}</td>
         </tr>
 
         </table>
@@ -1279,15 +1286,15 @@
         <table border="1" style="border-collapse:collapse;width:100%;">
         <tr>
         <td>Banco</td>
-        <td>${autorizaciones.banco || ""}</td>
+        <td>${aMayus(autorizaciones.banco || "")}</td>
         </tr>
         <tr>
         <td>Tipo de cuenta</td>
-        <td>${autorizaciones.tipoCuenta || ""}</td>
+        <td>${aMayus(autorizaciones.tipoCuenta || "")}</td>
         </tr>
         <tr>
         <td>Número de cuenta</td>
-        <td>${autorizaciones.numeroCuenta || ""}</td>
+        <td>${aMayus(autorizaciones.numeroCuenta || "")}</td>
         </tr>
         </table>
         <br>
@@ -1308,13 +1315,13 @@
         <div class="firmas" style="margin-top:40px;overflow:hidden;width:100%;">
         <div class="firma-izq" style="float:left;width:45%;text-align:center;">
         <p>______________________________</p>
-        <p>${nombreMandante}</p>
-        <p>RUT: ${mandante.rut || ""}</p>
+        <p>${aMayus(nombreMandante)}</p>
+        <p>RUT: ${aMayus(mandante.rut)}</p>
         </div>
         <div class="firma-der" style="float:right;width:45%;text-align:center;">
         <p>______________________________</p>
-        <p>${nombreMandatario}</p>
-        <p>RUT: ${mandatario.rut || ""}</p>
+        <p>${aMayus(nombreMandatario)}</p>
+        <p>RUT: ${aMayus(mandatario.rut)}</p>
         </div>
         </div>
 
@@ -1366,13 +1373,13 @@
               `${b.nombres || ""} ${b.apellidoPaterno || ""} ${b.apellidoMaterno || ""}`.trim();
             filasBeneficiarios += `
         <tr>
-        <td><b>${nombreBenef}</b></td>
-        <td><b>${b.parentesco || ""}</b></td>
-        <td><b>${b.fechaNacimiento || ""}</b></td>
-        <td><b>${b.fechaMatrimonioUnionCivil || ""}</b></td>
-        <td><b>${b.ciudadMatrimonioUnionCivil || ""}</b></td>
-        <td class="col-rut"><b>${b.rut || ""}</b></td>
-        <td><b>${b.esInvalido || ""}</b></td>
+        <td><b>${aMayus(nombreBenef)}</b></td>
+        <td><b>${aMayus(b.parentesco)}</b></td>
+        <td><b>${aMayus(b.fechaNacimiento)}</b></td>
+        <td><b>${aMayus(b.fechaMatrimonioUnionCivil)}</b></td>
+        <td><b>${aMayus(b.ciudadMatrimonioUnionCivil)}</b></td>
+        <td class="col-rut"><b>${aMayus(b.rut)}</b></td>
+        <td><b>${aMayus(b.esInvalido)}</b></td>
         </tr>
         `;
           });
@@ -1459,18 +1466,18 @@
         <h2>INDIVIDUALIZACIÓN DE LAS PARTES</h2>
 
         <p>
-        En la Ciudad de <b>${ciudad}</b> a <b>${fechaActualTexto}</b>, suscriben el presente contrato, por una parte,
-        don <b>${nombreCompletoMandante}</b>, Rut <b>${mandante.rut || ""}</b>, nacido el <b>${fechaAHablado(mandante.fechaNacimiento)}</b>,
-        estado civil <b>${mandante.estadoCivil || ""}</b>, profesión u oficio <b>${mandante.profesionUOficio || ""}</b>,
-        domiciliado en <b>${mandante.domicilio || ""}</b>, comuna de <b>${mandante.comuna || ""}</b> ciudad de <b>${mandante.ciudad || ""}</b>,
-        celular <b>${mandante.telefono || ""}</b>, correo electrónico <b>${mandante.email || ""}</b>,
-        afiliado a la <b>${mandante.afp || ""}</b>, Sistema de Salud <b>${mandante.institucionSalud || ""}</b>;
-        por otra parte, <b>${nombreCompletoMandatario}</b>, Rut <b>${mandatario.rut || ""}</b>,
-        Profesión <b>${mandatario.profesionUOficio || ""}</b>, inscrito en el Registro de Asesores Previsionales de la
-        Superintendencia de Pensiones con el N° <b>${mandatario.numeroRegistroAsesorPrevisional || ""}</b>,
-        domiciliado en <b>${mandatario.domicilio || ""}</b>, comuna de <b>${mandatario.comuna || ""}</b> ciudad de <b>${mandatario.ciudad || ""}</b>,
-        celular <b>${mandatario.telefono || ""}</b> e-mail: <b>${mandatario.email || ""}</b>, en adelante el “ASESOR PREVISIONAL”.
-        Las partes acuerdan el siguiente contrato de asesoría para realizar trámite de <b>${nombreTramite}</b>.
+        En la Ciudad de <b>${aMayus(ciudad)}</b> a <b>${fechaActualTexto}</b>, suscriben el presente contrato, por una parte,
+        don <b>${aMayus(nombreCompletoMandante)}</b>, Rut <b>${aMayus(mandante.rut)}</b>, nacido el <b>${fechaAHablado(mandante.fechaNacimiento)}</b>,
+        estado civil <b>${aMayus(mandante.estadoCivil)}</b>, profesión u oficio <b>${aMayus(mandante.profesionUOficio)}</b>,
+        domiciliado en <b>${aMayus(mandante.domicilio)}</b>, comuna de <b>${aMayus(mandante.comuna)}</b> ciudad de <b>${aMayus(mandante.ciudad)}</b>,
+        celular <b>${aMayus(mandante.telefono)}</b>, correo electrónico <b>${aMayus(mandante.email)}</b>,
+        afiliado a la <b>${aMayus(mandante.afp)}</b>, Sistema de Salud <b>${aMayus(mandante.institucionSalud)}</b>;
+        por otra parte, <b>${aMayus(nombreCompletoMandatario)}</b>, Rut <b>${aMayus(mandatario.rut)}</b>,
+        Profesión <b>${aMayus(mandatario.profesionUOficio)}</b>, inscrito en el Registro de Asesores Previsionales de la
+        Superintendencia de Pensiones con el N° <b>${aMayus(mandatario.numeroRegistroAsesorPrevisional)}</b>,
+        domiciliado en <b>${aMayus(mandatario.domicilio)}</b>, comuna de <b>${aMayus(mandatario.comuna)}</b> ciudad de <b>${aMayus(mandatario.ciudad)}</b>,
+        celular <b>${aMayus(mandatario.telefono)}</b> e-mail: <b>${aMayus(mandatario.email)}</b>, en adelante el “ASESOR PREVISIONAL”.
+        Las partes acuerdan el siguiente contrato de asesoría para realizar trámite de <b>${aMayus(nombreTramite)}</b>.
         </p>
 
         <h2>ANTECEDENTES DEL GRUPO FAMILIAR CON DERECHO A PENSIÓN</h2>
@@ -1562,9 +1569,9 @@
         <p>
         Para responder del correcto y cabal cumplimiento de todas las obligaciones emanadas de la actividad, el
         Asesor Previsional está cubierto por la Póliza de Responsabilidad Civil Profesional para Asesores
-        Previsionales o Entidades de Asesoría Previsional bajo el registro de póliza <b>${poliza.registroPoliza}</b> de la C.M.F.,
-        emitida por la <b>${poliza.compania}</b>. Póliza N° <b>${poliza.numeroPoliza}</b> contratada el <b>${poliza.fechaContrato}</b>,
-        con fecha de vigencia a partir del <b>${poliza.fechaInicio}</b> y vencimiento el <b>${poliza.fechaVencimiento}</b>.
+        Previsionales o Entidades de Asesoría Previsional bajo el registro de póliza <b>${aMayus(poliza.registroPoliza)}</b> de la C.M.F.,
+        emitida por la <b>${aMayus(poliza.compania)}</b>. Póliza N° <b>${aMayus(poliza.numeroPoliza)}</b> contratada el <b>${aMayus(poliza.fechaContrato)}</b>,
+        con fecha de vigencia a partir del <b>${aMayus(poliza.fechaInicio)}</b> y vencimiento el <b>${aMayus(poliza.fechaVencimiento)}</b>.
         </p>
 
         <h2>VIGENCIA DEL CONTRATO</h2>
@@ -1676,14 +1683,14 @@
         <td>
         <p>______________________________</p>
         <p>Firma Cliente</p>
-        <p><b>${nombreCompletoMandante}</b></p>
-        <p>RUT: <b>${mandante.rut || ""}</b></p>
+        <p><b>${aMayus(nombreCompletoMandante)}</b></p>
+        <p>RUT: <b>${aMayus(mandante.rut)}</b></p>
         </td>
         <td>
         <p>______________________________</p>
         <p>Firma Asesor Previsional</p>
-        <p><b>${nombreCompletoMandatario || "Rose Marie Albistur Barros"}</b></p>
-        <p>RUT: <b>${mandatario.rut || "9526153-1"}</b></p>
+        <p><b>${aMayus(nombreCompletoMandatario) || "ROSE MARIE ALBISTUR BARROS"}</b></p>
+        <p>RUT: <b>${aMayus(mandatario.rut) || "9.526.153-1"}</b></p>
         </td>
         </tr>
         </table>
@@ -2042,25 +2049,27 @@
     <div class="error" data-error-for="beneficiarios.${i}.parentesco"></div>
   </div>
 
-  <div class="benef-matrimonio-fields grid" id="benef_${i}_matrimonio" style="display:none;">
-    <div class="field col-4">
-      <label>Fecha de matrimonio/unión civil</label>
-      <div class="date-group">
-        <select id="benef_${i}_mat_dia">
-          <option value="" selected disabled>Día</option>
-        </select>
-        <select id="benef_${i}_mat_mes">
-          <option value="" selected disabled>Mes</option>
-        </select>
-        <select id="benef_${i}_mat_anio">
-          <option value="" selected disabled>Año</option>
-        </select>
-        <input type="hidden" name="beneficiarios.${i}.fechaMatrimonioUnionCivil" id="benef_${i}_mat_fecha" />
+  <div class="benef-matrimonio-fields col-12" id="benef_${i}_matrimonio" style="display:none;">
+    <div class="grid">
+      <div class="field col-4">
+        <label>Fecha de matrimonio/unión civil</label>
+        <div class="date-group">
+          <select id="benef_${i}_mat_dia">
+            <option value="" selected disabled>Día</option>
+          </select>
+          <select id="benef_${i}_mat_mes">
+            <option value="" selected disabled>Mes</option>
+          </select>
+          <select id="benef_${i}_mat_anio">
+            <option value="" selected disabled>Año</option>
+          </select>
+          <input type="hidden" name="beneficiarios.${i}.fechaMatrimonioUnionCivil" id="benef_${i}_mat_fecha" />
+        </div>
       </div>
-    </div>
-    <div class="field col-4">
-      <label>Ciudad del matrimonio/unión civil</label>
-      <input name="beneficiarios.${i}.ciudadMatrimonioUnionCivil" />
+      <div class="field col-4">
+        <label>Ciudad del matrimonio/unión civil</label>
+        <input name="beneficiarios.${i}.ciudadMatrimonioUnionCivil" />
+      </div>
     </div>
   </div>
 
