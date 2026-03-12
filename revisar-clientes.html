@@ -83,7 +83,7 @@
       .btn-icon { display: none; }
       .btn-text { display: inline; }
       @media (max-width: 640px) {
-        .th-tel, .th-registro, .td-tel, .td-registro { display: none !important; }
+        .th-tel, .th-registro, .th-rut, .td-tel, .td-registro, .td-rut { display: none !important; }
         .btn-icon { display: inline; font-size: 1.1em; }
         .btn-text { display: none; }
         .btn-small { padding: 8px 10px; margin-right: 4px; min-width: 36px; text-align: center; }
@@ -147,7 +147,7 @@
           <thead>
             <tr>
               <th>Nombre</th>
-              <th>RUT</th>
+              <th class="th-rut">RUT</th>
               <th class="th-tel">Teléfono</th>
               <th class="th-registro">Registro</th>
               <th>Acciones</th>
@@ -247,7 +247,7 @@
                 tr.setAttribute("data-id", c.id);
                 tr.innerHTML =
                   "<td class=\"client-name\">" + (nombre || "-") + "</td>" +
-                  "<td>" + (c.rut || "") + "</td>" +
+                  "<td class=\"td-rut\">" + (c.rut || "") + "</td>" +
                   "<td class=\"td-tel\">" + (c.telefono || "-") + "</td>" +
                   "<td class=\"td-registro\">" + fecha + "</td>" +
                   '<td class="acciones">' +
