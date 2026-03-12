@@ -973,6 +973,8 @@
 
         h2,h3{
         margin-top:20px;
+        page-break-after:avoid;
+        page-break-before:always;
         }
         h2{
         text-transform:uppercase;
@@ -1085,87 +1087,87 @@
 
         <tr>
         <td>Deseo pensión preliminar</td>
-        <td>${aMayus(antecedentes.deseoPensionPreliminar === "Sí" ? "Sí" : "No")}</td>
+        <td>${antecedentes.deseoPensionPreliminar === "Sí" ? "Sí" : "No"}</td>
         </tr>
 
         <tr>
         <td>Solicitar Pensión Garantizada Universal</td>
-        <td>${aMayus(antecedentes.solicitarPgu === "Sí" ? "Sí" : "No")}</td>
+        <td>${antecedentes.solicitarPgu === "Sí" ? "Sí" : "No"}</td>
         </tr>
 
         <tr>
         <td>Solicitar aporte solidario de invalidez (si corresponde)</td>
-        <td>${aMayus(antecedentes.solicitarAporteSolidarioInvalidez === "Sí" ? "Sí" : "No")}</td>
+        <td>${antecedentes.solicitarAporteSolidarioInvalidez === "Sí" ? "Sí" : "No"}</td>
         </tr>
 
         <tr>
         <td>Recibo pensión antiguo sistema</td>
-        <td>${aMayus(antecedentes.reciboPensionAntiguoSistema === "Sí" ? "Sí" : "No")}</td>
+        <td>${antecedentes.reciboPensionAntiguoSistema === "Sí" ? "Sí" : "No"}</td>
         </tr>
 
         <tr>
         <td>Recibo pensión invalidez de este sistema</td>
-        <td>${aMayus(antecedentes.reciboPensionInvalidezEsteSistema === "Sí" ? "Sí" : "No")}</td>
+        <td>${antecedentes.reciboPensionInvalidezEsteSistema === "Sí" ? "Sí" : "No"}</td>
         </tr>
 
         <tr>
         <td>Deseo que mi pensión se ajuste a la pensión mínima</td>
-        <td>${aMayus(antecedentes.ajustePensionMinima === "Sí" ? "Sí" : "No")}</td>
+        <td>${antecedentes.ajustePensionMinima === "Sí" ? "Sí" : "No"}</td>
         </tr>
 
         <tr>
         <td>Deseo que mi pensión se ajuste a la pensión básica solidaria</td>
-        <td>${aMayus(antecedentes.ajustePensionBasicaSolidaria === "Sí" ? "Sí" : "No")}</td>
+        <td>${antecedentes.ajustePensionBasicaSolidaria === "Sí" ? "Sí" : "No"}</td>
         </tr>
 
         <tr>
         <td>Estoy afecto al Estatuto Administrativo</td>
-        <td>${aMayus(antecedentes.afectoEstatutoAdministrativo === "Sí" ? "Sí" : "No")}</td>
+        <td>${antecedentes.afectoEstatutoAdministrativo === "Sí" ? "Sí" : "No"}</td>
         </tr>
 
         <tr>
         <td>Destinaré Ahorro Previsional Voluntario al financiamiento de mi pensión</td>
-        <td>${aMayus(antecedentes.destinareApv === "Sí" ? "Sí" : "No")}</td>
+        <td>${antecedentes.destinareApv === "Sí" ? "Sí" : "No"}</td>
         </tr>
 
         <tr>
         <td>Destinaré Ahorro Previsional Voluntario Colectivo al financiamiento de mi pensión</td>
-        <td>${aMayus(antecedentes.destinareApvc === "Sí" ? "Sí" : "No")}</td>
+        <td>${antecedentes.destinareApvc === "Sí" ? "Sí" : "No"}</td>
         </tr>
 
         <tr>
         <td>Traspasaré fondos desde mi Cuenta de Ahorro Voluntario para financiar mi pensión</td>
-        <td>${aMayus(antecedentes.traspasareCtaAhorroVoluntario === "Sí" ? "Sí" : "No")}</td>
+        <td>${antecedentes.traspasareCtaAhorroVoluntario === "Sí" ? "Sí" : "No"}</td>
         </tr>
 
         <tr>
         <td>Poseo depósitos convenidos</td>
-        <td>${aMayus(antecedentes.poseoDepositosConvenidos === "Sí" ? "Sí" : "No")}</td>
+        <td>${antecedentes.poseoDepositosConvenidos === "Sí" ? "Sí" : "No"}</td>
         </tr>
 
         <tr>
         <td>Traspasaré fondos desde mi Cuenta Individual de Cesantía</td>
-        <td>${aMayus(antecedentes.traspasareCesantia === "Sí" ? "Sí" : "No")}</td>
+        <td>${antecedentes.traspasareCesantia === "Sí" ? "Sí" : "No"}</td>
         </tr>
 
         <tr>
         <td>Tengo cotizaciones en otro país</td>
-        <td>${aMayus(antecedentes.cotizacionesOtroPais === "Sí" ? "Sí" : "No")}</td>
+        <td>${antecedentes.cotizacionesOtroPais === "Sí" ? "Sí" : "No"}</td>
         </tr>
 
         <tr>
         <td>Tengo períodos de residencia en otro país</td>
-        <td>${aMayus(antecedentes.residenciaOtroPais === "Sí" ? "Sí" : "No")}</td>
+        <td>${antecedentes.residenciaOtroPais === "Sí" ? "Sí" : "No"}</td>
         </tr>
 
         <tr>
         <td>Deseo cambiar de Tipo de Fondo</td>
-        <td>${aMayus(antecedentes.cambioTipoFondo === "Sí" ? "Sí" : "No")}</td>
+        <td>${antecedentes.cambioTipoFondo === "Sí" ? "Sí" : "No"}</td>
         </tr>
 
         <tr>
         <td>Deseo que mis datos personales aparezcan en un listado público de información</td>
-        <td>${aMayus(antecedentes.listadoPublico === "Sí" ? "Sí" : "No")}</td>
+        <td>${antecedentes.listadoPublico === "Sí" ? "Sí" : "No"}</td>
         </tr>
 
         </table>
@@ -1181,102 +1183,102 @@
 
         <tr>
         <td>Suscribir solicitud de Bono de Reconocimiento</td>
-        <td>${aMayus(autorizaciones.suscribirBonoReconocimiento === "Sí" ? "Sí" : "No")}</td>
+        <td>${autorizaciones.suscribirBonoReconocimiento === "Sí" ? "Sí" : "No"}</td>
         </tr>
 
         <tr>
         <td>Solicitar información respecto del estado del trámite de pensión</td>
-        <td>${aMayus(autorizaciones.solicitarInfoEstadoTramite === "Sí" ? "Sí" : "No")}</td>
+        <td>${autorizaciones.solicitarInfoEstadoTramite === "Sí" ? "Sí" : "No"}</td>
         </tr>
 
         <tr>
         <td>Retirar en la AFP el Certificado de Saldo</td>
-        <td>${aMayus(autorizaciones.retirarCertificadoSaldo === "Sí" ? "Sí" : "No")}</td>
+        <td>${autorizaciones.retirarCertificadoSaldo === "Sí" ? "Sí" : "No"}</td>
         </tr>
 
         <tr>
         <td>Suscribir formulario "Destino de Cotizaciones Voluntarias"</td>
-        <td>${aMayus(autorizaciones.suscribirDestinoCotizacionesVoluntarias === "Sí" ? "Sí" : "No")}</td>
+        <td>${autorizaciones.suscribirDestinoCotizacionesVoluntarias === "Sí" ? "Sí" : "No"}</td>
         </tr>
 
         <tr>
         <td>Suscribir formulario "Transferencia de Fondos desde la Cuenta de Ahorro Voluntario"</td>
-        <td>${aMayus(autorizaciones.suscribirTransferenciaAhorroVoluntario === "Sí" ? "Sí" : "No")}</td>
+        <td>${autorizaciones.suscribirTransferenciaAhorroVoluntario === "Sí" ? "Sí" : "No"}</td>
         </tr>
 
         <tr>
         <td>Suscribir formulario "Selección de Alternativas de Ahorro Previsional Voluntario"</td>
-        <td>${aMayus(autorizaciones.suscribirSeleccionAlternativasApv === "Sí" ? "Sí" : "No")}</td>
+        <td>${autorizaciones.suscribirSeleccionAlternativasApv === "Sí" ? "Sí" : "No"}</td>
         </tr>
 
         <tr>
         <td>Suscribir solicitud de cambio de modalidad de pensión</td>
-        <td>${aMayus(autorizaciones.suscribirCambioModalidadPension === "Sí" ? "Sí" : "No")}</td>
+        <td>${autorizaciones.suscribirCambioModalidadPension === "Sí" ? "Sí" : "No"}</td>
         </tr>
 
         <tr>
         <td>Suscribir solicitud de cálculo de excedente de libre disposición</td>
-        <td>${aMayus(autorizaciones.suscribirCalculoExcedente === "Sí" ? "Sí" : "No")}</td>
+        <td>${autorizaciones.suscribirCalculoExcedente === "Sí" ? "Sí" : "No"}</td>
         </tr>
 
         <tr>
         <td>Suscribir opción por mantener el valor nominal del saldo destinado a pensión</td>
-        <td>${aMayus(autorizaciones.suscribirMantenerValorNominal === "Sí" ? "Sí" : "No")}</td>
+        <td>${autorizaciones.suscribirMantenerValorNominal === "Sí" ? "Sí" : "No"}</td>
         </tr>
 
         <tr>
         <td>Retirar duplicado de SCOMP original</td>
-        <td>${aMayus(autorizaciones.retirarDuplicadoScompOriginal === "Sí" ? "Sí" : "No")}</td>
+        <td>${autorizaciones.retirarDuplicadoScompOriginal === "Sí" ? "Sí" : "No"}</td>
         </tr>
 
         <tr>
         <td>Ingresar datos de mi cuenta bancaria</td>
-        <td>${aMayus(autorizaciones.ingresarDatosCuentaBancaria === "Sí" ? "Sí" : "No")}</td>
+        <td>${autorizaciones.ingresarDatosCuentaBancaria === "Sí" ? "Sí" : "No"}</td>
         </tr>
 
         <tr>
         <td>Obtener información verbal o escrita del pago de mi pensión y traspaso de fondos</td>
-        <td>${aMayus(autorizaciones.obtenerInfoPagoPensionYTraspaso === "Sí" ? "Sí" : "No")}</td>
+        <td>${autorizaciones.obtenerInfoPagoPensionYTraspaso === "Sí" ? "Sí" : "No"}</td>
         </tr>
 
         <tr>
         <td>Firmar exención de cotizar por cumplimiento de edad legal al inicio de mi trámite</td>
-        <td>${aMayus(autorizaciones.firmarExencionCotizarEdadLegal === "Sí" ? "Sí" : "No")}</td>
+        <td>${autorizaciones.firmarExencionCotizarEdadLegal === "Sí" ? "Sí" : "No"}</td>
         </tr>
 
         <tr>
         <td>Realizar requerimientos y reclamos del trámite y todo lo relacionado con este</td>
-        <td>${aMayus(autorizaciones.realizarReclamosTramite === "Sí" ? "Sí" : "No")}</td>
+        <td>${autorizaciones.realizarReclamosTramite === "Sí" ? "Sí" : "No"}</td>
         </tr>
 
         <tr>
         <td>Certificado histórico de cotizaciones</td>
-        <td>${aMayus(certificados.historicoCotizaciones === "Sí" ? "Sí" : "No")}</td>
+        <td>${certificados.historicoCotizaciones === "Sí" ? "Sí" : "No"}</td>
         </tr>
 
         <tr>
         <td>Certificado de antecedente previsional</td>
-        <td>${aMayus(certificados.antecedentePrevisional === "Sí" ? "Sí" : "No")}</td>
+        <td>${certificados.antecedentePrevisional === "Sí" ? "Sí" : "No"}</td>
         </tr>
 
         <tr>
         <td>Certificado de trabajo pesado</td>
-        <td>${aMayus(certificados.certificadoTrabajoPesado === "Sí" ? "Sí" : "No")}</td>
+        <td>${certificados.certificadoTrabajoPesado === "Sí" ? "Sí" : "No"}</td>
         </tr>
 
         <tr>
         <td>Certificado de vacaciones progresivas</td>
-        <td>${aMayus(certificados.certificadoVacacionesProgresivas === "Sí" ? "Sí" : "No")}</td>
+        <td>${certificados.certificadoVacacionesProgresivas === "Sí" ? "Sí" : "No"}</td>
         </tr>
 
         <tr>
         <td>Certificado de estado de cuentas</td>
-        <td>${aMayus(certificados.certificadoEstadoCuentas === "Sí" ? "Sí" : "No")}</td>
+        <td>${certificados.certificadoEstadoCuentas === "Sí" ? "Sí" : "No"}</td>
         </tr>
 
         <tr>
         <td>Certificado de calidad de pensionado</td>
-        <td>${aMayus(certificados.certificadoCalidadPensionado === "Sí" ? "Sí" : "No")}</td>
+        <td>${certificados.certificadoCalidadPensionado === "Sí" ? "Sí" : "No"}</td>
         </tr>
 
         </table>
@@ -1410,11 +1412,14 @@
           font-size:14pt;
           text-align:center;
           text-transform:uppercase;
+          page-break-after:avoid;
         }
         h2{
           font-size:12pt;
           margin-top:18px;
           text-transform:uppercase;
+          page-break-after:avoid;
+          page-break-before:always;
         }
         p{
           text-align:justify;
