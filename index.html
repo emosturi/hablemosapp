@@ -2291,6 +2291,10 @@
             const mandanteAnio = document.getElementById("mandante_fechaNac_anio");
             const mandanteHidden = document.getElementById("mandante_fechaNac");
 
+            form.addEventListener("keydown", function (e) {
+              if (e.key === "Enter" && e.target.tagName !== "TEXTAREA") e.preventDefault();
+            });
+
             document.querySelectorAll(".section.collapsible > .section-title").forEach((header) => {
               header.addEventListener("click", () => {
                 const section = header.closest(".section.collapsible");

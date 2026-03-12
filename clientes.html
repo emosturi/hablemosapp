@@ -448,6 +448,10 @@
       const hiddenFecha = document.getElementById("cliente_fechaNac");
       const rutInput = document.getElementById("cliente_rut");
 
+      form.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" && e.target.tagName !== "TEXTAREA") e.preventDefault();
+      });
+
       llenarSelectFecha(diaSel, mesSel, anioSel, 1900);
 
       if (diaSel && mesSel && anioSel && hiddenFecha) {
