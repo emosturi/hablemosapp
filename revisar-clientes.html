@@ -151,11 +151,21 @@
         opacity: 0.7;
       }
       .no-results { color: var(--muted); padding: 20px; display: none; }
+      .tabs-nav { display: flex; gap: 4px; padding: 0 16px; background: rgba(0,0,0,0.25); border-bottom: 1px solid var(--border); max-width: 1000px; margin: 0 auto; }
+      .tabs-nav a { padding: 14px 18px; color: var(--muted); text-decoration: none; font-size: 14px; font-weight: 500; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color 0.2s, border-color 0.2s; }
+      .tabs-nav a:hover { color: var(--text); }
+      .tabs-nav a.active { color: var(--accent); border-bottom-color: var(--accent); }
+      .tabs-nav .tab-logout { margin-left: auto; color: var(--muted); }
     </style>
   </head>
   <body>
+    <nav class="tabs-nav" role="navigation">
+      <a href="index.html">Formulario Pensión</a>
+      <a href="clientes.html">Alta Clientes</a>
+      <a href="revisar-clientes.html" class="active">Revisar Clientes</a>
+      <a href="#" id="btnCerrarSesion" class="tab-logout">Cerrar sesión</a>
+    </nav>
     <div class="page">
-      <a href="index.html" class="back">← Formulario de pensión</a>
       <header>
         <h1>Revisar clientes</h1>
         <p class="subtitle">Clientes que se han registrado. Revisa los datos y úsalos para llenar el formulario de mandatos y contratos.</p>
@@ -284,6 +294,14 @@
               modalOverlay.addEventListener("click", function (e) {
                 if (e.target === modalOverlay) closeModal();
               });
+
+              var btnCerrar = document.getElementById("btnCerrarSesion");
+              if (btnCerrar) {
+                btnCerrar.addEventListener("click", function (e) {
+                  e.preventDefault();
+                  supabase.auth.signOut().then(function () { window.location.href = "login.html"; });
+                });
+              }
 
               list.forEach(function (c) {
                 var fecha = c.created_at ? new Date(c.created_at).toLocaleDateString("es-CL") : "";

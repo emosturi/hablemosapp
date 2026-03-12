@@ -294,6 +294,32 @@
         font-size: 12px;
       }
 
+      .tabs-nav {
+        display: flex;
+        gap: 4px;
+        padding: 0 16px;
+        background: rgba(0,0,0,0.25);
+        border-bottom: 1px solid var(--border);
+        max-width: 1100px;
+        margin: 0 auto;
+      }
+      .tabs-nav a {
+        padding: 14px 18px;
+        color: var(--muted);
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 500;
+        border-bottom: 2px solid transparent;
+        margin-bottom: -1px;
+        transition: color 0.2s, border-color 0.2s;
+      }
+      .tabs-nav a:hover { color: var(--text); }
+      .tabs-nav a.active {
+        color: var(--accent);
+        border-bottom-color: var(--accent);
+      }
+      .tabs-nav .tab-logout { margin-left: auto; color: var(--muted); }
+
       .output {
         margin-top: 14px;
         padding: 14px;
@@ -317,6 +343,12 @@
     <script src="https://unpkg.com/file-saver@2.0.5/dist/FileSaver.min.js"></script>
   </head>
   <body>
+    <nav class="tabs-nav" role="navigation">
+      <a href="index.html" class="active">Formulario Pensión</a>
+      <a href="clientes.html">Alta Clientes</a>
+      <a href="revisar-clientes.html">Revisar Clientes</a>
+      <a href="#" id="btnCerrarSesion" class="tab-logout">Cerrar sesión</a>
+    </nav>
     <script src="supabase-config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script>
@@ -338,13 +370,6 @@
         <h1>Formulario de Solicitud de Pensión</h1>
         <p class="subtitle">
           Completa los datos. Al enviar, se validará el RUT y la fecha (DD-MM-YYYY).
-        </p>
-        <p style="margin: 12px 0 0;">
-          <a href="clientes.html" style="color: var(--muted); font-size: 14px;">Alta de clientes →</a>
-          &nbsp;·&nbsp;
-          <a href="revisar-clientes.html" style="color: var(--muted); font-size: 14px;">Revisar clientes</a>
-          &nbsp;·&nbsp;
-          <a href="#" id="btnCerrarSesion" style="color: var(--muted); font-size: 14px;">Cerrar sesión</a>
         </p>
       </header>
 

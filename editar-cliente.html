@@ -171,9 +171,18 @@
       }
       .btn-cancel:hover { color: var(--text); }
       .status { margin-top: 12px; font-size: 14px; color: var(--muted); }
+      .tabs-nav { display: flex; gap: 4px; padding: 0 16px; background: rgba(0,0,0,0.25); border-bottom: 1px solid var(--border); max-width: 900px; margin: 0 auto; }
+      .tabs-nav a { padding: 14px 18px; color: var(--muted); text-decoration: none; font-size: 14px; font-weight: 500; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color 0.2s, border-color 0.2s; }
+      .tabs-nav a:hover { color: var(--text); }
+      .tabs-nav a.active { color: var(--accent); border-bottom-color: var(--accent); }
     </style>
   </head>
   <body>
+    <nav class="tabs-nav" role="navigation">
+      <a href="index.html">Formulario Pensión</a>
+      <a href="clientes.html">Alta Clientes</a>
+      <a href="revisar-clientes.html" class="active">Revisar Clientes</a>
+    </nav>
     <div class="page">
       <a href="revisar-clientes.html" class="back">← Volver al listado</a>
       <header>
