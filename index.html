@@ -585,13 +585,15 @@
             <div id="beneficiariosContainer"></div>
           </div>
 
-          <div class="section" aria-labelledby="mandatarioTitle">
-            <div class="section-title">
+          <div class="section collapsible collapsed" aria-labelledby="mandatarioTitle">
+            <div class="section-title" role="button" tabindex="0" aria-expanded="false">
+              <span class="toggle-icon" aria-hidden="true">▼</span>
               <h2 id="mandatarioTitle">Mandatario</h2>
               <span class="hint">Completa los datos del mandatario</span>
             </div>
 
-            <div class="grid">
+            <div class="section-body">
+              <div class="grid">
               <div class="field col-4">
                 <label for="mandatario_rut">RUT <span class="req">*</span></label>
                 <input
@@ -673,6 +675,7 @@
                 <input id="mandatario_email" name="mandatario.email" inputmode="email" autocomplete="email" value="ALBISTUR.AP@GMAIL.COM" />
                 <div class="error" data-error-for="mandatario_email"></div>
               </div>
+            </div>
             </div>
           </div>
 
