@@ -1349,6 +1349,10 @@
         const ciudad = mandante.ciudad || "";
         const nombreTramite = mandante.tipoPension || "";
 
+        // Número de contrato: registro asesor + número secuencial (en el futuro vendrá de BD)
+        const numeroSecuencial = data.numeroContratoSecuencial ?? 327;
+        const numeroContrato = data.numeroContrato || `${mandatario.numeroRegistroAsesorPrevisional || ""}-${numeroSecuencial}`;
+
         let filasBeneficiarios = "";
         if (beneficiariosData && typeof beneficiariosData === "object") {
           const lista = Object.values(beneficiariosData);
@@ -1366,6 +1370,16 @@
         `;
           });
         }
+
+        // Datos de la póliza (en el futuro vendrán de un formulario distinto para actualizarse anualmente)
+        const poliza = data.poliza || {
+          registroPoliza: "1.2013.0970",
+          compania: "COMPAÑÍA DE SEGUROS GENERALES SURAMERICANA S.A.",
+          numeroPoliza: "9148151",
+          fechaContrato: "23/09/2025",
+          fechaInicio: "01/10/2025",
+          fechaVencimiento: "30/09/2026",
+        };
 
         const html = `
         <html>
@@ -1403,7 +1417,7 @@
         .col-rut{
           white-space:nowrap;
           width:1%;
-          min-width:7em;
+          min-width:8em;
         }
         .firmas{
           margin-top:40px;
@@ -1425,7 +1439,7 @@
         <body>
 
         <h1>CONTRATO DE PRESTACIÓN DE SERVICIOS DE ASESORÍA PARA<br/>
-        PENSIONARSE O CAMBIAR MODALIDAD DE PENSIÓN Nº 1.026-</h1>
+        PENSIONARSE O CAMBIAR MODALIDAD DE PENSIÓN Nº ${numeroContrato}</h1>
 
         <h2>INDIVIDUALIZACIÓN DE LAS PARTES</h2>
 
@@ -1528,9 +1542,9 @@
         <p>
         Para responder del correcto y cabal cumplimiento de todas las obligaciones emanadas de la actividad, el
         Asesor Previsional está cubierto por la Póliza de Responsabilidad Civil Profesional para Asesores
-        Previsionales o Entidades de Asesoría Previsional bajo el registro de póliza __________________ de la C.M.F.,
-        emitida por la __________________, Póliza N° __________ contratada el ____________, con fecha de vigencia a
-        partir del ____________ y vencimiento el ____________.
+        Previsionales o Entidades de Asesoría Previsional bajo el registro de póliza ${poliza.registroPoliza} de la C.M.F.,
+        emitida por la ${poliza.compania}. Póliza N° ${poliza.numeroPoliza} contratada el ${poliza.fechaContrato},
+        con fecha de vigencia a partir del ${poliza.fechaInicio} y vencimiento el ${poliza.fechaVencimiento}.
         </p>
 
         <h2>VIGENCIA DEL CONTRATO</h2>
