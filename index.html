@@ -2021,8 +2021,16 @@
   </div>
 
   <div class="field col-4">
-    <label>Parentezco <span class="req">*</span></label>
-    <input name="beneficiarios.${i}.parentesco" required>
+    <label>Parentesco <span class="req">*</span></label>
+    <select name="beneficiarios.${i}.parentesco" required>
+      <option value="" selected disabled>Selecciona…</option>
+      <option value="Cónyuge">Cónyuge</option>
+      <option value="Conviviente civil">Conviviente civil</option>
+      <option value="MPHFNM">MPHFNM</option>
+      <option value="Hijo/a">Hijo/a</option>
+      <option value="Madre">Madre</option>
+      <option value="Padre">Padre</option>
+    </select>
     <div class="error" data-error-for="beneficiarios.${i}.parentesco"></div>
   </div>
 
