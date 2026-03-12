@@ -907,6 +907,8 @@
         <td class="col-rut">${b.rut || ""}</td>
         <td>${b.fechaNacimiento || ""}</td>
         <td>${b.parentesco || ""}</td>
+        <td>${b.fechaMatrimonioUnionCivil || ""}</td>
+        <td>${b.ciudadMatrimonioUnionCivil || ""}</td>
         <td>${b.observaciones || ""}</td>
         </tr>
         `;
@@ -1052,6 +1054,8 @@
         <th class="col-rut">RUT</th>
         <th>Fecha Nacimiento</th>
         <th>Parentesco</th>
+        <th>Fecha mat./unión civil</th>
+        <th>Ciudad mat./unión civil</th>
         <th>Observaciones</th>
         </tr>
 
@@ -1365,6 +1369,8 @@
         <td><b>${nombreBenef}</b></td>
         <td><b>${b.parentesco || ""}</b></td>
         <td><b>${b.fechaNacimiento || ""}</b></td>
+        <td><b>${b.fechaMatrimonioUnionCivil || ""}</b></td>
+        <td><b>${b.ciudadMatrimonioUnionCivil || ""}</b></td>
         <td class="col-rut"><b>${b.rut || ""}</b></td>
         <td><b>${b.esInvalido || ""}</b></td>
         </tr>
@@ -1480,6 +1486,8 @@
           <th>NOMBRE</th>
           <th>PARENTESCO</th>
           <th>FECHA NAC.</th>
+          <th>F. MAT./UN. CIV.</th>
+          <th>CIUDAD MAT./UN. CIV.</th>
           <th class="col-rut">RUT</th>
           <th>INV.</th>
         </tr>
@@ -2022,7 +2030,7 @@
 
   <div class="field col-4">
     <label>Parentesco <span class="req">*</span></label>
-    <select name="beneficiarios.${i}.parentesco" required>
+    <select name="beneficiarios.${i}.parentesco" required class="benef-parentesco">
       <option value="" selected disabled>Selecciona…</option>
       <option value="Cónyuge">Cónyuge</option>
       <option value="Conviviente civil">Conviviente civil</option>
@@ -2032,6 +2040,28 @@
       <option value="Padre">Padre</option>
     </select>
     <div class="error" data-error-for="beneficiarios.${i}.parentesco"></div>
+  </div>
+
+  <div class="benef-matrimonio-fields grid" id="benef_${i}_matrimonio" style="display:none;">
+    <div class="field col-4">
+      <label>Fecha de matrimonio/unión civil</label>
+      <div class="date-group">
+        <select id="benef_${i}_mat_dia">
+          <option value="" selected disabled>Día</option>
+        </select>
+        <select id="benef_${i}_mat_mes">
+          <option value="" selected disabled>Mes</option>
+        </select>
+        <select id="benef_${i}_mat_anio">
+          <option value="" selected disabled>Año</option>
+        </select>
+        <input type="hidden" name="beneficiarios.${i}.fechaMatrimonioUnionCivil" id="benef_${i}_mat_fecha" />
+      </div>
+    </div>
+    <div class="field col-4">
+      <label>Ciudad del matrimonio/unión civil</label>
+      <input name="beneficiarios.${i}.ciudadMatrimonioUnionCivil" />
+    </div>
   </div>
 
   <div class="field col-4">
@@ -2123,6 +2153,51 @@
           diaSel.addEventListener("change", updateHidden);
           mesSel.addEventListener("change", updateHidden);
           anioSel.addEventListener("change", updateHidden);
+        }
+
+        // Mostrar/ocultar campos de matrimonio/unión civil según parentesco
+        const parentescoSel = div.querySelector(`select[name="beneficiarios.${i}.parentesco"]`);
+        const matrimonioBlock = div.querySelector(`#benef_${i}_matrimonio`);
+        if (parentescoSel && matrimonioBlock) {
+          const toggleMatrimonio = () => {
+            const v = parentescoSel.value;
+            matrimonioBlock.style.display = (v === "Cónyuge" || v === "Conviviente civil") ? "" : "none";
+          };
+          parentescoSel.addEventListener("change", toggleMatrimonio);
+        }
+
+        // Fecha de matrimonio/unión civil: dropdowns + hidden
+        const matDia = div.querySelector(`#benef_${i}_mat_dia`);
+        const matMes = div.querySelector(`#benef_${i}_mat_mes`);
+        const matAnio = div.querySelector(`#benef_${i}_mat_anio`);
+        const matHidden = div.querySelector(`#benef_${i}_mat_fecha`);
+        if (matDia && matMes && matAnio && matHidden) {
+          for (let d = 1; d <= 31; d++) {
+            const opt = document.createElement("option");
+            opt.value = String(d).padStart(2, "0");
+            opt.textContent = String(d);
+            matDia.appendChild(opt);
+          }
+          ["01","02","03","04","05","06","07","08","09","10","11","12"].forEach((m, idx) => {
+            const opt = document.createElement("option");
+            opt.value = m;
+            opt.textContent = String(idx + 1).padStart(2, "0");
+            matMes.appendChild(opt);
+          });
+          const currentYear = new Date().getFullYear();
+          for (let y = currentYear; y >= 1900; y--) {
+            const opt = document.createElement("option");
+            opt.value = String(y);
+            opt.textContent = String(y);
+            matAnio.appendChild(opt);
+          }
+          const updateMatHidden = () => {
+            const d = matDia.value, m = matMes.value, y = matAnio.value;
+            matHidden.value = (d && m && y) ? `${d}-${m}-${y}` : "";
+          };
+          matDia.addEventListener("change", updateMatHidden);
+          matMes.addEventListener("change", updateMatHidden);
+          matAnio.addEventListener("change", updateMatHidden);
         }
 
         return div;
