@@ -1469,10 +1469,12 @@
 
         <h2>ANTECEDENTES DEL GRUPO FAMILIAR CON DERECHO A PENSIÓN</h2>
 
+        
+
+        ${filasBeneficiarios ? `
         <p>
         El Afiliado declara que la composición de su grupo familiar con derecho a pensión es:
         </p>
-
         <table>
         <tr>
           <th>NOMBRE</th>
@@ -1483,6 +1485,7 @@
         </tr>
         ${filasBeneficiarios}
         </table>
+        ` : `<p><b>Sin beneficiarios legales</b></p>`}
 
         <h2>NATURALEZA U OBJETO DEL CONTRATO</h2>
 
