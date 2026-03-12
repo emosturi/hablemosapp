@@ -131,19 +131,19 @@
     <div class="page">
       <div class="panel">
         <h1>Acceso al formulario de pensión</h1>
-        <p class="subtitle">Ingresa tus credenciales para continuar</p>
+        <p class="subtitle">Ingresa tu email y contraseña para continuar</p>
 
         <form id="loginForm" novalidate>
           <div class="field">
-            <label for="usuario">Usuario</label>
+            <label for="email">Email</label>
             <input
-              id="usuario"
-              name="usuario"
-              type="text"
-              autocomplete="username"
+              id="email"
+              name="email"
+              type="email"
+              autocomplete="email"
               required
             />
-            <div class="error" id="error_usuario"></div>
+            <div class="error" id="error_email"></div>
           </div>
 
           <div class="field">
@@ -169,21 +169,17 @@
       </div>
     </div>
 
+    <script src="supabase-config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script>
       (function () {
-        var AUTH_KEY = "hablemosapp_auth";
-
-        // Credenciales de ejemplo (cambiar en producción o reemplazar por validación en servidor).
-        var USUARIO_VALIDO = "albistur.ap@gmail.com";
-        var PASSWORD_VALIDO = "romi1960";
-
         var form = document.getElementById("loginForm");
-        var inputUsuario = document.getElementById("usuario");
+        var inputEmail = document.getElementById("email");
         var inputPassword = document.getElementById("password");
         var errorGeneral = document.getElementById("error_general");
 
         function clearErrors() {
-          document.getElementById("error_usuario").textContent = "";
+          document.getElementById("error_email").textContent = "";
           document.getElementById("error_password").textContent = "";
           errorGeneral.textContent = "";
         }
@@ -192,12 +188,12 @@
           e.preventDefault();
           clearErrors();
 
-          var usuario = (inputUsuario.value || "").trim();
+          var email = (inputEmail.value || "").trim();
           var password = inputPassword.value || "";
 
-          if (!usuario) {
-            document.getElementById("error_usuario").textContent = "Ingresa el usuario";
-            inputUsuario.focus();
+          if (!email) {
+            document.getElementById("error_email").textContent = "Ingresa tu email";
+            inputEmail.focus();
             return;
           }
 
@@ -207,15 +203,29 @@
             return;
           }
 
-          if (usuario !== USUARIO_VALIDO || password !== PASSWORD_VALIDO) {
-            errorGeneral.textContent = "Usuario o contraseña incorrectos.";
-            inputPassword.value = "";
-            inputPassword.focus();
+          var url = window.SUPABASE_URL;
+          var key = window.SUPABASE_ANON_KEY;
+          if (!url || !key || url.indexOf("TU_PROYECTO") !== -1) {
+            errorGeneral.textContent = "Configura supabase-config.js con tu URL y anon key de Supabase.";
             return;
           }
 
-          sessionStorage.setItem(AUTH_KEY, "1");
-          window.location.href = "index.html";
+          var supabase = window.supabase.createClient(url, key);
+          errorGeneral.textContent = "Conectando…";
+
+          supabase.auth.signInWithPassword({ email: email, password: password })
+            .then(function (result) {
+              if (result.error) {
+                errorGeneral.textContent = result.error.message || "Usuario o contraseña incorrectos.";
+                inputPassword.value = "";
+                inputPassword.focus();
+                return;
+              }
+              window.location.href = "index.html";
+            })
+            .catch(function (err) {
+              errorGeneral.textContent = err.message || "Error al conectar. Revisa la consola.";
+            });
         });
       })();
     </script>

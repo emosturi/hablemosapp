@@ -317,12 +317,20 @@
     <script src="https://unpkg.com/file-saver@2.0.5/dist/FileSaver.min.js"></script>
   </head>
   <body>
+    <script src="supabase-config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script>
       (function () {
-        if (!sessionStorage.getItem("hablemosapp_auth")) {
+        var url = window.SUPABASE_URL;
+        var key = window.SUPABASE_ANON_KEY;
+        if (!url || !key || url.indexOf("TU_PROYECTO") !== -1) {
           window.location.replace("login.html");
           return;
         }
+        var supabase = window.supabase.createClient(url, key);
+        supabase.auth.getSession().then(function (r) {
+          if (!r.data.session) window.location.replace("login.html");
+        });
       })();
     </script>
     <div class="page">
@@ -2314,8 +2322,15 @@
             if (btnCerrarSesion) {
               btnCerrarSesion.addEventListener("click", (e) => {
                 e.preventDefault();
-                sessionStorage.removeItem("hablemosapp_auth");
-                window.location.href = "login.html";
+                var url = window.SUPABASE_URL;
+                var key = window.SUPABASE_ANON_KEY;
+                if (url && key && url.indexOf("TU_PROYECTO") === -1) {
+                  window.supabase.createClient(url, key).auth.signOut().then(function () {
+                    window.location.href = "login.html";
+                  });
+                } else {
+                  window.location.href = "login.html";
+                }
               });
             }
 

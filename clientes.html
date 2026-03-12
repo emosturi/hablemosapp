@@ -348,6 +348,8 @@
       </div>
     </div>
 
+    <script src="supabase-config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script>
       function normalizeRut(raw) {
         if (!raw) return "";
@@ -492,8 +494,55 @@
         }
 
         const data = formDataToObject(form);
-        setStatus("Cliente guardado correctamente. (En una implementación real se enviaría a un servidor.)");
-        console.log("Cliente:", data);
+        const c = data.cliente || {};
+
+        var fechaNac = fechaVal;
+        var m = fechaNac.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+        if (m) fechaNac = m[3] + "-" + m[2] + "-" + m[1];
+
+        var row = {
+          rut: (c.rut || "").trim(),
+          nacionalidad: (c.nacionalidad || "").trim() || null,
+          sexo: (c.sexo || "").trim() || null,
+          nombres: (c.nombres || "").trim() || null,
+          apellido_paterno: (c.apellidoPaterno || "").trim() || null,
+          apellido_materno: (c.apellidoMaterno || "").trim() || null,
+          domicilio: (c.domicilio || "").trim() || null,
+          comuna: (c.comuna || "").trim() || null,
+          ciudad: (c.ciudad || "").trim() || null,
+          fecha_nacimiento: fechaNac.match(/^\d{4}-\d{2}-\d{2}$/) ? fechaNac : null,
+          estado_civil: (c.estadoCivil || "").trim() || null,
+          profesion_oficio: (c.profesionUOficio || "").trim() || null,
+          telefono: (c.telefono || "").trim() || null,
+          email: (c.email || "").trim() || null,
+          afp: (c.afp || "").trim() || null,
+          institucion_salud: (c.institucionSalud || "").trim() || null
+        };
+
+        var url = window.SUPABASE_URL;
+        var key = window.SUPABASE_ANON_KEY;
+        if (!url || !key || url.indexOf("TU_PROYECTO") !== -1) {
+          setStatus("Configura supabase-config.js con tu URL y anon key de Supabase.");
+          return;
+        }
+
+        setStatus("Guardando…");
+        var supabase = window.supabase.createClient(url, key);
+        supabase.from("clientes").insert(row)
+          .then(function (result) {
+            if (result.error) {
+              setStatus("");
+              setError(form, "cliente_rut", result.error.message || "Error al guardar.");
+              return;
+            }
+            setStatus("Cliente guardado correctamente.");
+            form.reset();
+            if (hiddenFecha) hiddenFecha.value = "";
+          })
+          .catch(function (err) {
+            setStatus("");
+            setError(form, "cliente_rut", err.message || "Error de conexión.");
+          });
       });
 
       document.getElementById("btnLimpiar").addEventListener("click", function () {

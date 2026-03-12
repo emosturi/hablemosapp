@@ -1,0 +1,6 @@
+/**
+ * Configuración de Supabase. Rellena con los datos de tu proyecto en supabase.com
+ * Puedes copiar desde supabase-config.example.js
+ */
+window.SUPABASE_URL = "https://ndxelneraoabehyrplrv.supabase.co";
+window.SUPABASE_ANON_KEY = "sb_publishable_G3-iWOKWSEq84ndlF3kViw_msMmwBT9";
