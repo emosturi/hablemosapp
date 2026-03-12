@@ -1004,6 +1004,10 @@
         width:1%;
         min-width:7em;
         }
+        .col-respuesta{
+        min-width:4em;
+        white-space:nowrap;
+        }
 
         h2,h3{
         margin-top:20px;
@@ -1066,6 +1070,7 @@
         para que en mi nombre suscriba en <b>${aMayus(mandante.afp)}</b>, una solicitud de <b>${aMayus(mandante.tipoPension)}</b>.
         </p>
 
+        ${(empleador.nombreORazonSocial || empleador.rut || empleador.domicilio || empleador.email || empleador.telefono) ? `
         <p class="empleador-datos">
         <br/>
         Asimismo, expongo que a la fecha, los datos de mi empleador son los siguientes:   
@@ -1076,7 +1081,8 @@
         <br/><b>Correo electrónico:</b> <b>${aMayus(empleador.email)}</b>
         <br/><b>Telefono:</b> <b>${aMayus(empleador.telefono)}</b>
         </p>
-        
+        ` : ''}
+
         
         <p>
         Para efectos de la suscripción de la pensión antes mencionada, declaro conocer que tienen la calidad de beneficiarios y de pensión de sobrevivencia: el cónyuge, los hijos, la madre o padre de hijos de filiación no matrimonial y, a falta de todos los anteriores, los padres.
@@ -1120,87 +1126,87 @@
 
         <tr>
         <td>Deseo pensión preliminar</td>
-        <td><b>${antecedentes.deseoPensionPreliminar === "Sí" ? "Sí" : "No"}</b></td>
+        <td class="col-respuesta"><b>${antecedentes.deseoPensionPreliminar === "Sí" ? "Sí" : "No"}</b></td>
         </tr>
 
         <tr>
         <td>Solicitar Pensión Garantizada Universal</td>
-        <td><b>${antecedentes.solicitarPgu === "Sí" ? "Sí" : "No"}</b></td>
+        <td class="col-respuesta"><b>${antecedentes.solicitarPgu === "Sí" ? "Sí" : "No"}</b></td>
         </tr>
 
         <tr>
         <td>Solicitar aporte solidario de invalidez (si corresponde)</td>
-        <td><b>${antecedentes.solicitarAporteSolidarioInvalidez === "Sí" ? "Sí" : "No"}</b></td>
+        <td class="col-respuesta"><b>${antecedentes.solicitarAporteSolidarioInvalidez === "Sí" ? "Sí" : "No"}</b></td>
         </tr>
 
         <tr>
         <td>Recibo pensión antiguo sistema</td>
-        <td><b>${antecedentes.reciboPensionAntiguoSistema === "Sí" ? "Sí" : "No"}</b></td>
+        <td class="col-respuesta"><b>${antecedentes.reciboPensionAntiguoSistema === "Sí" ? "Sí" : "No"}</b></td>
         </tr>
 
         <tr>
         <td>Recibo pensión invalidez de este sistema</td>
-        <td><b>${antecedentes.reciboPensionInvalidezEsteSistema === "Sí" ? "Sí" : "No"}</b></td>
+        <td class="col-respuesta"><b>${antecedentes.reciboPensionInvalidezEsteSistema === "Sí" ? "Sí" : "No"}</b></td>
         </tr>
 
         <tr>
         <td>Deseo que mi pensión se ajuste a la pensión mínima</td>
-        <td><b>${antecedentes.ajustePensionMinima === "Sí" ? "Sí" : "No"}</b></td>
+        <td class="col-respuesta"><b>${antecedentes.ajustePensionMinima === "Sí" ? "Sí" : "No"}</b></td>
         </tr>
 
         <tr>
         <td>Deseo que mi pensión se ajuste a la pensión básica solidaria</td>
-        <td><b>${antecedentes.ajustePensionBasicaSolidaria === "Sí" ? "Sí" : "No"}</b></td>
+        <td class="col-respuesta"><b>${antecedentes.ajustePensionBasicaSolidaria === "Sí" ? "Sí" : "No"}</b></td>
         </tr>
 
         <tr>
         <td>Estoy afecto al Estatuto Administrativo</td>
-        <td><b>${antecedentes.afectoEstatutoAdministrativo === "Sí" ? "Sí" : "No"}</b></td>
+        <td class="col-respuesta"><b>${antecedentes.afectoEstatutoAdministrativo === "Sí" ? "Sí" : "No"}</b></td>
         </tr>
 
         <tr>
         <td>Destinaré Ahorro Previsional Voluntario al financiamiento de mi pensión</td>
-        <td><b>${antecedentes.destinareApv === "Sí" ? "Sí" : "No"}</b></td>
+        <td class="col-respuesta"><b>${antecedentes.destinareApv === "Sí" ? "Sí" : "No"}</b></td>
         </tr>
 
         <tr>
         <td>Destinaré Ahorro Previsional Voluntario Colectivo al financiamiento de mi pensión</td>
-        <td><b>${antecedentes.destinareApvc === "Sí" ? "Sí" : "No"}</b></td>
+        <td class="col-respuesta"><b>${antecedentes.destinareApvc === "Sí" ? "Sí" : "No"}</b></td>
         </tr>
 
         <tr>
         <td>Traspasaré fondos desde mi Cuenta de Ahorro Voluntario para financiar mi pensión</td>
-        <td><b>${antecedentes.traspasareCtaAhorroVoluntario === "Sí" ? "Sí" : "No"}</b></td>
+        <td class="col-respuesta"><b>${antecedentes.traspasareCtaAhorroVoluntario === "Sí" ? "Sí" : "No"}</b></td>
         </tr>
 
         <tr>
         <td>Poseo depósitos convenidos</td>
-        <td><b>${antecedentes.poseoDepositosConvenidos === "Sí" ? "Sí" : "No"}</b></td>
+        <td class="col-respuesta"><b>${antecedentes.poseoDepositosConvenidos === "Sí" ? "Sí" : "No"}</b></td>
         </tr>
 
         <tr>
         <td>Traspasaré fondos desde mi Cuenta Individual de Cesantía</td>
-        <td><b>${antecedentes.traspasareCesantia === "Sí" ? "Sí" : "No"}</b></td>
+        <td class="col-respuesta"><b>${antecedentes.traspasareCesantia === "Sí" ? "Sí" : "No"}</b></td>
         </tr>
 
         <tr>
         <td>Tengo cotizaciones en otro país</td>
-        <td><b>${antecedentes.cotizacionesOtroPais === "Sí" ? "Sí" : "No"}</b></td>
+        <td class="col-respuesta"><b>${antecedentes.cotizacionesOtroPais === "Sí" ? "Sí" : "No"}</b></td>
         </tr>
 
         <tr>
         <td>Tengo períodos de residencia en otro país</td>
-        <td><b>${antecedentes.residenciaOtroPais === "Sí" ? "Sí" : "No"}</b></td>
+        <td class="col-respuesta"><b>${antecedentes.residenciaOtroPais === "Sí" ? "Sí" : "No"}</b></td>
         </tr>
 
         <tr>
         <td>Deseo cambiar de Tipo de Fondo</td>
-        <td><b>${antecedentes.cambioTipoFondo === "Sí" ? "Sí" : "No"}</b></td>
+        <td class="col-respuesta"><b>${antecedentes.cambioTipoFondo === "Sí" ? "Sí" : "No"}</b></td>
         </tr>
 
         <tr>
         <td>Deseo que mis datos personales aparezcan en un listado público de información</td>
-        <td><b>${antecedentes.listadoPublico === "Sí" ? "Sí" : "No"}</b></td>
+        <td class="col-respuesta"><b>${antecedentes.listadoPublico === "Sí" ? "Sí" : "No"}</b></td>
         </tr>
 
         </table>
@@ -1216,102 +1222,102 @@
 
         <tr>
         <td>Suscribir solicitud de Bono de Reconocimiento</td>
-        <td><b>${autorizaciones.suscribirBonoReconocimiento === "Sí" ? "Sí" : "No"}</b></td>
+        <td class="col-respuesta"><b>${autorizaciones.suscribirBonoReconocimiento === "Sí" ? "Sí" : "No"}</b></td>
         </tr>
 
         <tr>
         <td>Solicitar información respecto del estado del trámite de pensión</td>
-        <td><b>${autorizaciones.solicitarInfoEstadoTramite === "Sí" ? "Sí" : "No"}</b></td>
+        <td class="col-respuesta"><b>${autorizaciones.solicitarInfoEstadoTramite === "Sí" ? "Sí" : "No"}</b></td>
         </tr>
 
         <tr>
         <td>Retirar en la AFP el Certificado de Saldo</td>
-        <td><b>${autorizaciones.retirarCertificadoSaldo === "Sí" ? "Sí" : "No"}</b></td>
+        <td class="col-respuesta"><b>${autorizaciones.retirarCertificadoSaldo === "Sí" ? "Sí" : "No"}</b></td>
         </tr>
 
         <tr>
         <td>Suscribir formulario "Destino de Cotizaciones Voluntarias"</td>
-        <td><b>${autorizaciones.suscribirDestinoCotizacionesVoluntarias === "Sí" ? "Sí" : "No"}</b></td>
+        <td class="col-respuesta"><b>${autorizaciones.suscribirDestinoCotizacionesVoluntarias === "Sí" ? "Sí" : "No"}</b></td>
         </tr>
 
         <tr>
         <td>Suscribir formulario "Transferencia de Fondos desde la Cuenta de Ahorro Voluntario"</td>
-        <td><b>${autorizaciones.suscribirTransferenciaAhorroVoluntario === "Sí" ? "Sí" : "No"}</b></td>
+        <td class="col-respuesta"><b>${autorizaciones.suscribirTransferenciaAhorroVoluntario === "Sí" ? "Sí" : "No"}</b></td>
         </tr>
 
         <tr>
         <td>Suscribir formulario "Selección de Alternativas de Ahorro Previsional Voluntario"</td>
-        <td><b>${autorizaciones.suscribirSeleccionAlternativasApv === "Sí" ? "Sí" : "No"}</b></td>
+        <td class="col-respuesta"><b>${autorizaciones.suscribirSeleccionAlternativasApv === "Sí" ? "Sí" : "No"}</b></td>
         </tr>
 
         <tr>
         <td>Suscribir solicitud de cambio de modalidad de pensión</td>
-        <td><b>${autorizaciones.suscribirCambioModalidadPension === "Sí" ? "Sí" : "No"}</b></td>
+        <td class="col-respuesta"><b>${autorizaciones.suscribirCambioModalidadPension === "Sí" ? "Sí" : "No"}</b></td>
         </tr>
 
         <tr>
         <td>Suscribir solicitud de cálculo de excedente de libre disposición</td>
-        <td><b>${autorizaciones.suscribirCalculoExcedente === "Sí" ? "Sí" : "No"}</b></td>
+        <td class="col-respuesta"><b>${autorizaciones.suscribirCalculoExcedente === "Sí" ? "Sí" : "No"}</b></td>
         </tr>
 
         <tr>
         <td>Suscribir opción por mantener el valor nominal del saldo destinado a pensión</td>
-        <td><b>${autorizaciones.suscribirMantenerValorNominal === "Sí" ? "Sí" : "No"}</b></td>
+        <td class="col-respuesta"><b>${autorizaciones.suscribirMantenerValorNominal === "Sí" ? "Sí" : "No"}</b></td>
         </tr>
 
         <tr>
         <td>Retirar duplicado de SCOMP original</td>
-        <td><b>${autorizaciones.retirarDuplicadoScompOriginal === "Sí" ? "Sí" : "No"}</b></td>
+        <td class="col-respuesta"><b>${autorizaciones.retirarDuplicadoScompOriginal === "Sí" ? "Sí" : "No"}</b></td>
         </tr>
 
         <tr>
         <td>Ingresar datos de mi cuenta bancaria</td>
-        <td><b>${autorizaciones.ingresarDatosCuentaBancaria === "Sí" ? "Sí" : "No"}</b></td>
+        <td class="col-respuesta"><b>${autorizaciones.ingresarDatosCuentaBancaria === "Sí" ? "Sí" : "No"}</b></td>
         </tr>
 
         <tr>
         <td>Obtener información verbal o escrita del pago de mi pensión y traspaso de fondos</td>
-        <td><b>${autorizaciones.obtenerInfoPagoPensionYTraspaso === "Sí" ? "Sí" : "No"}</b></td>
+        <td class="col-respuesta"><b>${autorizaciones.obtenerInfoPagoPensionYTraspaso === "Sí" ? "Sí" : "No"}</b></td>
         </tr>
 
         <tr>
         <td>Firmar exención de cotizar por cumplimiento de edad legal al inicio de mi trámite</td>
-        <td><b>${autorizaciones.firmarExencionCotizarEdadLegal === "Sí" ? "Sí" : "No"}</b></td>
+        <td class="col-respuesta"><b>${autorizaciones.firmarExencionCotizarEdadLegal === "Sí" ? "Sí" : "No"}</b></td>
         </tr>
 
         <tr>
         <td>Realizar requerimientos y reclamos del trámite y todo lo relacionado con este</td>
-        <td><b>${autorizaciones.realizarReclamosTramite === "Sí" ? "Sí" : "No"}</b></td>
+        <td class="col-respuesta"><b>${autorizaciones.realizarReclamosTramite === "Sí" ? "Sí" : "No"}</b></td>
         </tr>
 
         <tr>
         <td>Certificado histórico de cotizaciones</td>
-        <td><b>${certificados.historicoCotizaciones === "Sí" ? "Sí" : "No"}</b></td>
+        <td class="col-respuesta"><b>${certificados.historicoCotizaciones === "Sí" ? "Sí" : "No"}</b></td>
         </tr>
 
         <tr>
         <td>Certificado de antecedente previsional</td>
-        <td><b>${certificados.antecedentePrevisional === "Sí" ? "Sí" : "No"}</b></td>
+        <td class="col-respuesta"><b>${certificados.antecedentePrevisional === "Sí" ? "Sí" : "No"}</b></td>
         </tr>
 
         <tr>
         <td>Certificado de trabajo pesado</td>
-        <td><b>${certificados.certificadoTrabajoPesado === "Sí" ? "Sí" : "No"}</b></td>
+        <td class="col-respuesta"><b>${certificados.certificadoTrabajoPesado === "Sí" ? "Sí" : "No"}</b></td>
         </tr>
 
         <tr>
         <td>Certificado de vacaciones progresivas</td>
-        <td><b>${certificados.certificadoVacacionesProgresivas === "Sí" ? "Sí" : "No"}</b></td>
+        <td class="col-respuesta"><b>${certificados.certificadoVacacionesProgresivas === "Sí" ? "Sí" : "No"}</b></td>
         </tr>
 
         <tr>
         <td>Certificado de estado de cuentas</td>
-        <td><b>${certificados.certificadoEstadoCuentas === "Sí" ? "Sí" : "No"}</b></td>
+        <td class="col-respuesta"><b>${certificados.certificadoEstadoCuentas === "Sí" ? "Sí" : "No"}</b></td>
         </tr>
 
         <tr>
         <td>Certificado de calidad de pensionado</td>
-        <td><b>${certificados.certificadoCalidadPensionado === "Sí" ? "Sí" : "No"}</b></td>
+        <td class="col-respuesta"><b>${certificados.certificadoCalidadPensionado === "Sí" ? "Sí" : "No"}</b></td>
         </tr>
 
         </table>
