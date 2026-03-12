@@ -98,6 +98,25 @@
         font-size: 12px;
       }
 
+      .section.collapsible > .section-title {
+        cursor: pointer;
+        user-select: none;
+      }
+      .section.collapsible > .section-title:hover {
+        opacity: 0.9;
+      }
+      .section.collapsible .toggle-icon {
+        display: inline-block;
+        transition: transform 0.2s ease;
+        font-size: 0.75em;
+      }
+      .section.collapsible.collapsed .toggle-icon {
+        transform: rotate(-90deg);
+      }
+      .section.collapsible.collapsed > .section-body {
+        display: none;
+      }
+
       .grid {
         display: grid;
         grid-template-columns: repeat(12, 1fr);
@@ -657,23 +676,28 @@
             </div>
           </div>
 
-          <div class="section" aria-labelledby="antecedentesTitle">
-            <div class="section-title">
+          <div class="section collapsible collapsed" aria-labelledby="antecedentesTitle">
+            <div class="section-title" role="button" tabindex="0" aria-expanded="false">
+              <span class="toggle-icon" aria-hidden="true">▼</span>
               <h2 id="antecedentesTitle">Antecedentes</h2>
               <span class="hint">Marca Sí o No en cada opción</span>
             </div>
-            <div id="antecedentesQuestions" class="grid"></div>
+            <div class="section-body">
+              <div id="antecedentesQuestions" class="grid"></div>
+            </div>
           </div>
 
-          <div class="section" aria-labelledby="autorizacionesTitle">
-            <div class="section-title">
+          <div class="section collapsible collapsed" aria-labelledby="autorizacionesTitle">
+            <div class="section-title" role="button" tabindex="0" aria-expanded="false">
+              <span class="toggle-icon" aria-hidden="true">▼</span>
               <h2 id="autorizacionesTitle">Autorizaciones</h2>
               <span class="hint">Marca Sí o No en cada autorización</span>
             </div>
-            <div class="grid">
-              <div id="autorizacionesQuestions" class="col-12"></div>
+            <div class="section-body">
+              <div class="grid">
+                <div id="autorizacionesQuestions" class="col-12"></div>
 
-              <div id="cuentaBancariaField" class="grid col-12" style="display:none">
+                <div id="cuentaBancariaField" class="grid col-12" style="display:none">
                 <div class="field col-4">
                   <label for="cuenta_banco">Banco</label>
                   <select id="cuenta_banco" name="autorizaciones.banco">
@@ -716,20 +740,25 @@
             </div>
           </div>
 
-          <div class="section" aria-labelledby="certificadosTitle">
-            <div class="section-title">
+          <div class="section collapsible collapsed" aria-labelledby="certificadosTitle">
+            <div class="section-title" role="button" tabindex="0" aria-expanded="false">
+              <span class="toggle-icon" aria-hidden="true">▼</span>
               <h2 id="certificadosTitle">Certificados</h2>
               <span class="hint">Marca Sí o No en cada certificado a retirar</span>
             </div>
-            <div id="certificadosQuestions" class="grid"></div>
+            <div class="section-body">
+              <div id="certificadosQuestions" class="grid"></div>
+            </div>
           </div>
 
-          <div class="section" aria-labelledby="empleadorTitle">
-            <div class="section-title">
+          <div class="section collapsible collapsed" aria-labelledby="empleadorTitle">
+            <div class="section-title" role="button" tabindex="0" aria-expanded="false">
+              <span class="toggle-icon" aria-hidden="true">▼</span>
               <h2 id="empleadorTitle">Empleador (Opcional)</h2>
               <span class="hint">Completar solo si corresponde</span>
             </div>
-            <div class="grid">
+            <div class="section-body">
+              <div class="grid">
               <div class="field col-4">
                 <label for="empleador_rut">RUT</label>
                 <input id="empleador_rut" name="empleador.rut" inputmode="text" placeholder="12.345.678-5" />
@@ -755,6 +784,7 @@
                 <textarea id="empleador_domicilio" name="empleador.domicilio" rows="2"></textarea>
                 <div class="error" data-error-for="empleador_domicilio"></div>
               </div>
+            </div>
             </div>
           </div>
 
@@ -2236,6 +2266,20 @@
             const mandanteAnio = document.getElementById("mandante_fechaNac_anio");
             const mandanteHidden = document.getElementById("mandante_fechaNac");
 
+            document.querySelectorAll(".section.collapsible > .section-title").forEach((header) => {
+              header.addEventListener("click", () => {
+                const section = header.closest(".section.collapsible");
+                if (!section) return;
+                section.classList.toggle("collapsed");
+                header.setAttribute("aria-expanded", String(!section.classList.contains("collapsed")));
+              });
+              header.addEventListener("keydown", (e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  header.click();
+                }
+              });
+            });
 
             btnMandatoSimple.addEventListener("click", ()=>{
 
