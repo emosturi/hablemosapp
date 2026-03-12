@@ -26,6 +26,8 @@ Pon tu URL y tu anon key reales.
 
 Con eso se crea la tabla `clientes` y las políticas de seguridad (RLS): cualquier persona puede insertar (formulario público) y solo usuarios autenticados pueden leer, actualizar o eliminar.
 
+**Si ya tenías la tabla `clientes` creada** (versión anterior), ejecuta además el archivo **`supabase-schema-migration-clientes-v2.sql`** en el SQL Editor para añadir las columnas de cónyuge, hijos, empleador y datos bancarios.
+
 ## 4. Crear un usuario para el login
 
 1. En Supabase ve a **Authentication > Users**.

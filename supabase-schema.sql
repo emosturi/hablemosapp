@@ -19,6 +19,27 @@ create table if not exists public.clientes (
   email text,
   afp text,
   institucion_salud text,
+  -- Cónyuge / Conviviente civil (si estado civil Casado/a o Conviviente civil)
+  conyuge_nombres text,
+  conyuge_apellido_paterno text,
+  conyuge_apellido_materno text,
+  conyuge_rut text,
+  conyuge_fecha_nacimiento date,
+  conyuge_fecha_matrimonio date,
+  conyuge_lugar_matrimonio text,
+  -- Hijos menores 24 años
+  tiene_hijos_menores_24 boolean,
+  hijos jsonb default '[]',
+  -- Empleador
+  empleador_razon_social text,
+  empleador_rut text,
+  empleador_direccion text,
+  empleador_telefono text,
+  empleador_email text,
+  -- Datos bancarios
+  banco text,
+  tipo_cuenta text,
+  numero_cuenta text,
   created_at timestamptz default now()
 );
 

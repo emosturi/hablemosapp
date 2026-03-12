@@ -130,6 +130,12 @@
 
       .error { font-size: 12px; color: var(--danger); margin-top: 2px; }
 
+      .section-hidden { display: none; }
+
+      .hijo-block { margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+      .hijo-block:last-child { border-bottom: none; margin-bottom: 0; }
+      .hijo-num { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+
       .actions { margin-top: 20px; }
       .btns { display: flex; flex-wrap: wrap; gap: 10px; }
       button {
@@ -165,145 +171,86 @@
 
       <div class="panel">
         <form id="clienteForm" novalidate>
+          <!-- Datos del cliente -->
           <div class="section" aria-labelledby="clienteTitle">
             <div class="section-title">
               <h2 id="clienteTitle">Datos del cliente</h2>
-              <span class="hint">Los mismos datos que el mandante en la solicitud de pensión</span>
             </div>
-
             <div class="grid">
-              <div class="field col-4">
-                <label for="cliente_rut">RUT <span class="req">*</span></label>
-                <input
-                  id="cliente_rut"
-                  name="cliente.rut"
-                  required
-                  inputmode="text"
-                  autocomplete="off"
-                  placeholder="12.345.678-5"
-                />
-                <div class="error" data-error-for="cliente_rut"></div>
-              </div>
-
-              <div class="field col-4">
-                <label for="cliente_nacionalidad">Nacionalidad <span class="req">*</span></label>
-                <input
-                  id="cliente_nacionalidad"
-                  name="cliente.nacionalidad"
-                  required
-                  autocomplete="country-name"
-                />
-                <div class="error" data-error-for="cliente_nacionalidad"></div>
-              </div>
-
-              <div class="field col-4">
-                <label>Sexo <span class="req">*</span></label>
-                <div class="radio-row" role="group" aria-label="Sexo">
-                  <label class="radio-pill">
-                    <input type="radio" name="cliente.sexo" value="Masculino" required />
-                    Masculino
-                  </label>
-                  <label class="radio-pill">
-                    <input type="radio" name="cliente.sexo" value="Femenino" required />
-                    Femenino
-                  </label>
-                </div>
-                <div class="error" data-error-for="cliente.sexo"></div>
-              </div>
-
               <div class="field col-4">
                 <label for="cliente_nombres">Nombres <span class="req">*</span></label>
                 <input id="cliente_nombres" name="cliente.nombres" required />
                 <div class="error" data-error-for="cliente_nombres"></div>
               </div>
-
               <div class="field col-4">
                 <label for="cliente_apPaterno">Apellido Paterno <span class="req">*</span></label>
                 <input id="cliente_apPaterno" name="cliente.apellidoPaterno" required />
                 <div class="error" data-error-for="cliente_apPaterno"></div>
               </div>
-
               <div class="field col-4">
                 <label for="cliente_apMaterno">Apellido Materno <span class="req">*</span></label>
                 <input id="cliente_apMaterno" name="cliente.apellidoMaterno" required />
                 <div class="error" data-error-for="cliente_apMaterno"></div>
               </div>
-
+              <div class="field col-4">
+                <label for="cliente_rut">RUT <span class="req">*</span></label>
+                <input id="cliente_rut" name="cliente.rut" required inputmode="text" autocomplete="off" placeholder="12.345.678-5" />
+                <div class="error" data-error-for="cliente_rut"></div>
+              </div>
+              <div class="field col-4">
+                <label for="cliente_fechaNac">Fecha de nacimiento <span class="req">*</span></label>
+                <div class="date-group">
+                  <select id="cliente_fechaNac_dia"><option value="" selected disabled>Día</option></select>
+                  <select id="cliente_fechaNac_mes"><option value="" selected disabled>Mes</option></select>
+                  <select id="cliente_fechaNac_anio"><option value="" selected disabled>Año</option></select>
+                  <input type="hidden" id="cliente_fechaNac" name="cliente.fechaNacimiento" required />
+                </div>
+                <div class="error" data-error-for="cliente_fechaNac"></div>
+              </div>
+              <div class="field col-4">
+                <label for="cliente_estadoCivil">Estado civil <span class="req">*</span></label>
+                <select id="cliente_estadoCivil" name="cliente.estadoCivil" required>
+                  <option value="" selected disabled>Selecciona…</option>
+                  <option value="Soltero/a">Soltero/a</option>
+                  <option value="Casado/a">Casado/a</option>
+                  <option value="Conviviente civil">Conviviente civil</option>
+                  <option value="Divorciado/a">Divorciado/a</option>
+                  <option value="Viudo/a">Viudo/a</option>
+                  <option value="Separado/a">Separado/a</option>
+                  <option value="Otro">Otro</option>
+                </select>
+                <div class="error" data-error-for="cliente_estadoCivil"></div>
+              </div>
               <div class="field col-6">
-                <label for="cliente_domicilio">Domicilio <span class="req">*</span></label>
+                <label for="cliente_domicilio">Dirección <span class="req">*</span></label>
                 <textarea id="cliente_domicilio" name="cliente.domicilio" required></textarea>
                 <div class="error" data-error-for="cliente_domicilio"></div>
               </div>
-
               <div class="field col-3">
                 <label for="cliente_comuna">Comuna <span class="req">*</span></label>
                 <input id="cliente_comuna" name="cliente.comuna" required />
                 <div class="error" data-error-for="cliente_comuna"></div>
               </div>
-
               <div class="field col-3">
                 <label for="cliente_ciudad">Ciudad <span class="req">*</span></label>
                 <input id="cliente_ciudad" name="cliente.ciudad" required />
                 <div class="error" data-error-for="cliente_ciudad"></div>
               </div>
-
               <div class="field col-4">
-                <label for="cliente_fechaNac">Fecha de nacimiento <span class="req">*</span></label>
-                <div class="date-group">
-                  <select id="cliente_fechaNac_dia">
-                    <option value="" selected disabled>Día</option>
-                  </select>
-                  <select id="cliente_fechaNac_mes">
-                    <option value="" selected disabled>Mes</option>
-                  </select>
-                  <select id="cliente_fechaNac_anio">
-                    <option value="" selected disabled>Año</option>
-                  </select>
-                  <input type="hidden" id="cliente_fechaNac" name="cliente.fechaNacimiento" required />
-                </div>
-                <div class="error" data-error-for="cliente_fechaNac"></div>
-              </div>
-
-              <div class="field col-4">
-                <label for="cliente_estadoCivil">Estado Civil <span class="req">*</span></label>
-                <select id="cliente_estadoCivil" name="cliente.estadoCivil" required>
-                  <option value="" selected disabled>Selecciona…</option>
-                  <option>Soltero/a</option>
-                  <option>Casado/a</option>
-                  <option>Conviviente Civil</option>
-                  <option>Divorciado/a</option>
-                  <option>Viudo/a</option>
-                  <option>Separado/a</option>
-                  <option>Otro</option>
-                </select>
-                <div class="error" data-error-for="cliente_estadoCivil"></div>
-              </div>
-
-              <div class="field col-4">
-                <label for="cliente_profesion">Profesión u Oficio <span class="req">*</span></label>
+                <label for="cliente_profesion">Profesión/ocupación <span class="req">*</span></label>
                 <input id="cliente_profesion" name="cliente.profesionUOficio" required />
                 <div class="error" data-error-for="cliente_profesion"></div>
               </div>
-
               <div class="field col-4">
                 <label for="cliente_telefono">Teléfono <span class="req">*</span></label>
-                <input
-                  id="cliente_telefono"
-                  name="cliente.telefono"
-                  required
-                  inputmode="tel"
-                  autocomplete="tel"
-                  placeholder="+56 9 1234 5678"
-                />
+                <input id="cliente_telefono" name="cliente.telefono" required inputmode="tel" autocomplete="tel" placeholder="+56 9 1234 5678" />
                 <div class="error" data-error-for="cliente_telefono"></div>
               </div>
-
               <div class="field col-4">
-                <label for="cliente_email">Email (Opcional)</label>
+                <label for="cliente_email">Email</label>
                 <input id="cliente_email" name="cliente.email" inputmode="email" autocomplete="email" />
                 <div class="error" data-error-for="cliente_email"></div>
               </div>
-
               <div class="field col-4">
                 <label for="cliente_afp">AFP <span class="req">*</span></label>
                 <select id="cliente_afp" name="cliente.afp" required>
@@ -318,9 +265,8 @@
                 </select>
                 <div class="error" data-error-for="cliente_afp"></div>
               </div>
-
-              <div class="field col-6">
-                <label for="cliente_salud">Institución de Salud <span class="req">*</span></label>
+              <div class="field col-4">
+                <label for="cliente_salud">Previsión de salud <span class="req">*</span></label>
                 <select id="cliente_salud" name="cliente.institucionSalud" required>
                   <option value="" selected disabled>Selecciona…</option>
                   <option>FONASA</option>
@@ -333,6 +279,144 @@
                   <option>Isapre Esencial</option>
                 </select>
                 <div class="error" data-error-for="cliente_salud"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cónyuge / Conviviente civil (visible si Casado/a o Conviviente civil) -->
+          <div class="section section-hidden" id="sectionConyuge" aria-labelledby="conyugeTitle">
+            <div class="section-title">
+              <h2 id="conyugeTitle">Datos del cónyuge / conviviente civil</h2>
+            </div>
+            <div class="grid">
+              <div class="field col-4">
+                <label for="conyuge_nombres">Nombres</label>
+                <input id="conyuge_nombres" name="conyuge.nombres" />
+              </div>
+              <div class="field col-4">
+                <label for="conyuge_apPaterno">Apellido Paterno</label>
+                <input id="conyuge_apPaterno" name="conyuge.apellidoPaterno" />
+              </div>
+              <div class="field col-4">
+                <label for="conyuge_apMaterno">Apellido Materno</label>
+                <input id="conyuge_apMaterno" name="conyuge.apellidoMaterno" />
+              </div>
+              <div class="field col-4">
+                <label for="conyuge_rut">RUT</label>
+                <input id="conyuge_rut" name="conyuge.rut" class="rut-input" placeholder="12.345.678-5" />
+              </div>
+              <div class="field col-4">
+                <label for="conyuge_fechaNac">Fecha de nacimiento</label>
+                <div class="date-group">
+                  <select id="conyuge_fechaNac_dia"><option value="" selected disabled>Día</option></select>
+                  <select id="conyuge_fechaNac_mes"><option value="" selected disabled>Mes</option></select>
+                  <select id="conyuge_fechaNac_anio"><option value="" selected disabled>Año</option></select>
+                  <input type="hidden" id="conyuge_fechaNac" name="conyuge.fechaNacimiento" />
+                </div>
+              </div>
+              <div class="field col-4">
+                <label for="conyuge_fechaMatrimonio">Fecha de matrimonio</label>
+                <div class="date-group">
+                  <select id="conyuge_fechaMatrimonio_dia"><option value="" selected disabled>Día</option></select>
+                  <select id="conyuge_fechaMatrimonio_mes"><option value="" selected disabled>Mes</option></select>
+                  <select id="conyuge_fechaMatrimonio_anio"><option value="" selected disabled>Año</option></select>
+                  <input type="hidden" id="conyuge_fechaMatrimonio" name="conyuge.fechaMatrimonio" />
+                </div>
+              </div>
+              <div class="field col-6">
+                <label for="conyuge_lugarMatrimonio">Lugar de matrimonio</label>
+                <input id="conyuge_lugarMatrimonio" name="conyuge.lugarMatrimonio" />
+              </div>
+            </div>
+          </div>
+
+          <!-- ¿Tiene hijos menores 24 años? -->
+          <div class="section" aria-labelledby="hijosTitle">
+            <div class="section-title">
+              <h2 id="hijosTitle">¿Tiene hijos menores de 24 años?</h2>
+            </div>
+            <div class="radio-row" role="group" aria-label="Hijos menores 24">
+              <label class="radio-pill">
+                <input type="radio" name="tieneHijosMenores24" value="Sí" />
+                Sí
+              </label>
+              <label class="radio-pill">
+                <input type="radio" name="tieneHijosMenores24" value="No" checked />
+                No
+              </label>
+            </div>
+            <div class="section-hidden" id="sectionHijosBloque">
+              <div class="field" style="margin-top: 12px;">
+                <label for="numHijos">Número de hijos menores de 24 años</label>
+                <select id="numHijos">
+                  <option value="0">0</option>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                  <option value="6">6</option>
+                  <option value="7">7</option>
+                  <option value="8">8</option>
+                  <option value="9">9</option>
+                  <option value="10">10</option>
+                </select>
+              </div>
+              <div id="hijosContainer"></div>
+            </div>
+          </div>
+
+          <!-- Datos empleador -->
+          <div class="section" aria-labelledby="empleadorTitle">
+            <div class="section-title">
+              <h2 id="empleadorTitle">Datos empleador</h2>
+            </div>
+            <div class="grid">
+              <div class="field col-6">
+                <label for="empleador_razonSocial">Razón Social</label>
+                <input id="empleador_razonSocial" name="empleador.razonSocial" />
+              </div>
+              <div class="field col-4">
+                <label for="empleador_rut">RUT</label>
+                <input id="empleador_rut" name="empleador.rut" class="rut-input" placeholder="12.345.678-5" />
+              </div>
+              <div class="field col-6">
+                <label for="empleador_direccion">Dirección</label>
+                <input id="empleador_direccion" name="empleador.direccion" />
+              </div>
+              <div class="field col-3">
+                <label for="empleador_telefono">Teléfono</label>
+                <input id="empleador_telefono" name="empleador.telefono" inputmode="tel" />
+              </div>
+              <div class="field col-3">
+                <label for="empleador_email">Email</label>
+                <input id="empleador_email" name="empleador.email" inputmode="email" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Datos bancarios -->
+          <div class="section" aria-labelledby="bancoTitle">
+            <div class="section-title">
+              <h2 id="bancoTitle">Datos bancarios</h2>
+            </div>
+            <div class="grid">
+              <div class="field col-4">
+                <label for="banco_nombre">Banco</label>
+                <input id="banco_nombre" name="banco.banco" />
+              </div>
+              <div class="field col-4">
+                <label for="banco_tipo">Tipo de cuenta</label>
+                <select id="banco_tipo" name="banco.tipoCuenta">
+                  <option value="">Selecciona…</option>
+                  <option value="Cuenta corriente">Cuenta corriente</option>
+                  <option value="Cuenta vista">Cuenta vista</option>
+                  <option value="Cuenta de ahorro">Cuenta de ahorro</option>
+                </select>
+              </div>
+              <div class="field col-4">
+                <label for="banco_numero">Número de cuenta</label>
+                <input id="banco_numero" name="banco.numeroCuenta" inputmode="numeric" />
               </div>
             </div>
           </div>
@@ -353,131 +437,220 @@
     <script>
       function normalizeRut(raw) {
         if (!raw) return "";
-        let s = String(raw).trim().toUpperCase();
-        s = s.replace(/[^0-9K]/g, "");
+        var s = String(raw).trim().toUpperCase().replace(/[^0-9K]/g, "");
         if (s.length < 2) return s;
-        const body = s.slice(0, -1);
-        const dv = s.slice(-1);
-        const bodyWithDots = body
-          .split("").reverse().join("")
-          .replace(/(\d{3})(?=\d)/g, "$1.")
-          .split("").reverse().join("");
-        return `${bodyWithDots}-${dv}`;
+        var body = s.slice(0, -1);
+        var dv = s.slice(-1);
+        var bodyWithDots = body.split("").reverse().join("").replace(/(\d{3})(?=\d)/g, "$1.").split("").reverse().join("");
+        return bodyWithDots + "-" + dv;
       }
-
       function rutIsValid(rut) {
-        const s = String(rut || "").toUpperCase().replace(/[^0-9K]/g, "");
+        var s = String(rut || "").toUpperCase().replace(/[^0-9K]/g, "");
         if (s.length < 2) return false;
-        const body = s.slice(0, -1);
-        const dv = s.slice(-1);
+        var body = s.slice(0, -1), dv = s.slice(-1);
         if (!/^\d+$/.test(body)) return false;
-        let sum = 0, mul = 2;
-        for (let i = body.length - 1; i >= 0; i--) {
+        var sum = 0, mul = 2;
+        for (var i = body.length - 1; i >= 0; i--) {
           sum += Number(body[i]) * mul;
           mul = mul === 7 ? 2 : mul + 1;
         }
-        const mod = 11 - (sum % 11);
-        const expected = mod === 11 ? "0" : mod === 10 ? "K" : String(mod);
+        var mod = 11 - (sum % 11);
+        var expected = mod === 11 ? "0" : mod === 10 ? "K" : String(mod);
         return expected === dv;
       }
-
-      function llenarSelectFecha(diaSel, mesSel, anioSel, minYear = 1900, maxYear = new Date().getFullYear()) {
+      function llenarSelectFecha(diaSel, mesSel, anioSel, minYear, maxYear) {
+        minYear = minYear || 1900;
+        maxYear = maxYear || new Date().getFullYear();
         if (diaSel) {
-          for (let d = 1; d <= 31; d++) {
-            const opt = document.createElement("option");
+          for (var d = 1; d <= 31; d++) {
+            var opt = document.createElement("option");
             opt.value = String(d).padStart(2, "0");
             opt.textContent = String(d);
             diaSel.appendChild(opt);
           }
         }
-        const meses = ["01","02","03","04","05","06","07","08","09","10","11","12"];
+        var meses = ["01","02","03","04","05","06","07","08","09","10","11","12"];
         if (mesSel) {
-          meses.forEach((m, idx) => {
-            const opt = document.createElement("option");
+          meses.forEach(function(m, idx) {
+            var opt = document.createElement("option");
             opt.value = m;
-            opt.textContent = `${idx + 1}`.padStart(2, "0");
+            opt.textContent = String(idx + 1).padStart(2, "0");
             mesSel.appendChild(opt);
           });
         }
         if (anioSel) {
-          for (let y = maxYear; y >= minYear; y--) {
-            const opt = document.createElement("option");
+          for (var y = maxYear; y >= minYear; y--) {
+            var opt = document.createElement("option");
             opt.value = String(y);
             opt.textContent = String(y);
             anioSel.appendChild(opt);
           }
         }
       }
-
       function formDataToObject(form) {
-        const fd = new FormData(form);
-        const out = {};
-        for (const [k, v] of fd.entries()) {
-          const value = typeof v === "string" ? v.trim() : v;
-          const parts = k.split(".");
-          let cur = out;
-          for (let i = 0; i < parts.length; i++) {
-            const p = parts[i];
-            const isLast = i === parts.length - 1;
-            if (isLast) {
-              cur[p] = value;
-            } else {
-              cur = cur[p] = cur[p] && typeof cur[p] === "object" ? cur[p] : {};
-            }
+        var fd = new FormData(form);
+        var out = {};
+        fd.forEach(function(value, key) {
+          var v = typeof value === "string" ? value.trim() : value;
+          var parts = key.split(".");
+          var cur = out;
+          for (var i = 0; i < parts.length; i++) {
+            var p = parts[i];
+            var isLast = i === parts.length - 1;
+            if (isLast) cur[p] = v;
+            else cur = cur[p] = (cur[p] && typeof cur[p] === "object") ? cur[p] : {};
           }
-        }
+        });
         return out;
       }
-
-      function setStatus(msg) {
-        document.getElementById("status").textContent = msg || "";
-      }
-
+      function setStatus(msg) { document.getElementById("status").textContent = msg || ""; }
       function clearErrors(form) {
-        for (const node of form.querySelectorAll("[data-error-for]")) node.textContent = "";
-        for (const el of form.querySelectorAll("[aria-invalid='true']")) el.removeAttribute("aria-invalid");
+        form.querySelectorAll("[data-error-for]").forEach(function(n) { n.textContent = ""; });
+        form.querySelectorAll("[aria-invalid='true']").forEach(function(el) { el.removeAttribute("aria-invalid"); });
       }
-
       function setError(form, keyOrId, message) {
-        const target = form.querySelector(`[data-error-for="${CSS.escape(keyOrId)}"]`);
-        if (target) target.textContent = message;
+        var el = form.querySelector("[data-error-for]");
+        if (!el) return;
+        var all = form.querySelectorAll("[data-error-for]");
+        for (var i = 0; i < all.length; i++) {
+          if (all[i].getAttribute("data-error-for") === keyOrId) {
+            all[i].textContent = message;
+            break;
+          }
+        }
       }
 
-      const form = document.getElementById("clienteForm");
-      const diaSel = document.getElementById("cliente_fechaNac_dia");
-      const mesSel = document.getElementById("cliente_fechaNac_mes");
-      const anioSel = document.getElementById("cliente_fechaNac_anio");
-      const hiddenFecha = document.getElementById("cliente_fechaNac");
-      const rutInput = document.getElementById("cliente_rut");
+      var form = document.getElementById("clienteForm");
+      var diaSel = document.getElementById("cliente_fechaNac_dia");
+      var mesSel = document.getElementById("cliente_fechaNac_mes");
+      var anioSel = document.getElementById("cliente_fechaNac_anio");
+      var hiddenFecha = document.getElementById("cliente_fechaNac");
+      var rutInput = document.getElementById("cliente_rut");
+      var estadoCivilSel = document.getElementById("cliente_estadoCivil");
+      var sectionConyuge = document.getElementById("sectionConyuge");
+      var radiosHijos = form.querySelectorAll("input[name='tieneHijosMenores24']");
+      var sectionHijosBloque = document.getElementById("sectionHijosBloque");
+      var numHijosSel = document.getElementById("numHijos");
+      var hijosContainer = document.getElementById("hijosContainer");
 
-      form.addEventListener("keydown", function (e) {
+      form.addEventListener("keydown", function(e) {
         if (e.key === "Enter" && e.target.tagName !== "TEXTAREA") e.preventDefault();
       });
 
       llenarSelectFecha(diaSel, mesSel, anioSel, 1900);
 
+      function toIsoDate(ddMmYyyy) {
+        if (!ddMmYyyy || !/^\d{2}-\d{2}-\d{4}$/.test(ddMmYyyy)) return null;
+        var p = ddMmYyyy.split("-");
+        return p[2] + "-" + p[1] + "-" + p[0];
+      }
+
       if (diaSel && mesSel && anioSel && hiddenFecha) {
-        const updateHidden = () => {
-          const d = diaSel.value, m = mesSel.value, y = anioSel.value;
-          hiddenFecha.value = (d && m && y) ? `${d}-${m}-${y}` : "";
-        };
+        function updateHidden() {
+          var d = diaSel.value, m = mesSel.value, y = anioSel.value;
+          hiddenFecha.value = (d && m && y) ? d + "-" + m + "-" + y : "";
+        }
         diaSel.addEventListener("change", updateHidden);
         mesSel.addEventListener("change", updateHidden);
         anioSel.addEventListener("change", updateHidden);
       }
 
-      if (rutInput) {
-        rutInput.addEventListener("blur", function () {
-          this.value = normalizeRut(this.value);
-          const err = form.querySelector("[data-error-for='cliente_rut']");
-          if (err) err.textContent = rutIsValid(this.value) ? "" : "RUT inválido";
-        });
-        rutInput.addEventListener("input", function () {
-          this.value = normalizeRut(this.value);
-        });
+      if (estadoCivilSel && sectionConyuge) {
+        function toggleConyuge() {
+          var v = (estadoCivilSel.value || "").toLowerCase();
+          sectionConyuge.classList.toggle("section-hidden", v.indexOf("casado") === -1 && v.indexOf("conviviente") === -1);
+        }
+        estadoCivilSel.addEventListener("change", toggleConyuge);
+        toggleConyuge();
       }
 
-      form.addEventListener("submit", function (e) {
+      if (radiosHijos.length && sectionHijosBloque) {
+        function toggleHijos() {
+          var si = form.querySelector("input[name='tieneHijosMenores24']:checked");
+          sectionHijosBloque.classList.toggle("section-hidden", !si || si.value !== "Sí");
+        }
+        radiosHijos.forEach(function(r) { r.addEventListener("change", toggleHijos); });
+        toggleHijos();
+      }
+
+      var conyugeDia = document.getElementById("conyuge_fechaNac_dia");
+      var conyugeMes = document.getElementById("conyuge_fechaNac_mes");
+      var conyugeAnio = document.getElementById("conyuge_fechaNac_anio");
+      var conyugeHidden = document.getElementById("conyuge_fechaNac");
+      if (conyugeDia && conyugeMes && conyugeAnio && conyugeHidden) {
+        llenarSelectFecha(conyugeDia, conyugeMes, conyugeAnio, 1900);
+        function updateConyugeFecha() {
+          var d = conyugeDia.value, m = conyugeMes.value, y = conyugeAnio.value;
+          conyugeHidden.value = (d && m && y) ? d + "-" + m + "-" + y : "";
+        }
+        conyugeDia.addEventListener("change", updateConyugeFecha);
+        conyugeMes.addEventListener("change", updateConyugeFecha);
+        conyugeAnio.addEventListener("change", updateConyugeFecha);
+      }
+      var matDia = document.getElementById("conyuge_fechaMatrimonio_dia");
+      var matMes = document.getElementById("conyuge_fechaMatrimonio_mes");
+      var matAnio = document.getElementById("conyuge_fechaMatrimonio_anio");
+      var matHidden = document.getElementById("conyuge_fechaMatrimonio");
+      if (matDia && matMes && matAnio && matHidden) {
+        llenarSelectFecha(matDia, matMes, matAnio, 1900);
+        function updateMat() {
+          var d = matDia.value, m = matMes.value, y = matAnio.value;
+          matHidden.value = (d && m && y) ? d + "-" + m + "-" + y : "";
+        }
+        matDia.addEventListener("change", updateMat);
+        matMes.addEventListener("change", updateMat);
+        matAnio.addEventListener("change", updateMat);
+      }
+
+      function crearHijoBlock(index) {
+        var div = document.createElement("div");
+        div.className = "hijo-block";
+        div.setAttribute("data-hijo-index", index);
+        div.innerHTML =
+          '<span class="hijo-num">Hijo/a ' + (index + 1) + '</span>' +
+          '<div class="grid">' +
+          '<div class="field col-4"><label>Nombres</label><input name="hijo_' + index + '_nombres" /></div>' +
+          '<div class="field col-4"><label>Apellido Paterno</label><input name="hijo_' + index + '_apellidoPaterno" /></div>' +
+          '<div class="field col-4"><label>Apellido Materno</label><input name="hijo_' + index + '_apellidoMaterno" /></div>' +
+          '<div class="field col-4"><label>RUT</label><input name="hijo_' + index + '_rut" class="rut-input" placeholder="12.345.678-5" /></div>' +
+          '<div class="field col-4"><label>Fecha nacimiento</label>' +
+          '<div class="date-group">' +
+          '<select name="hijo_' + index + '_dia"><option value="">Día</option></select>' +
+          '<select name="hijo_' + index + '_mes"><option value="">Mes</option></select>' +
+          '<select name="hijo_' + index + '_anio"><option value="">Año</option></select>' +
+          '</div></div>' +
+          '</div>';
+        var diaS = div.querySelector("select[name='hijo_" + index + "_dia']");
+        var mesS = div.querySelector("select[name='hijo_" + index + "_mes']");
+        var anioS = div.querySelector("select[name='hijo_" + index + "_anio']");
+        llenarSelectFecha(diaS, mesS, anioS, 1900);
+        return div;
+      }
+      function actualizarHijos() {
+        var n = parseInt(numHijosSel.value || 0, 10);
+        var actual = hijosContainer.children.length;
+        if (n > actual) {
+          for (var i = actual; i < n; i++) hijosContainer.appendChild(crearHijoBlock(i));
+        }
+        if (n < actual) {
+          while (hijosContainer.children.length > n) hijosContainer.removeChild(hijosContainer.lastChild);
+        }
+      }
+      if (numHijosSel && hijosContainer) {
+        numHijosSel.addEventListener("change", actualizarHijos);
+        actualizarHijos();
+      }
+
+      form.querySelectorAll(".rut-input").forEach(function(input) {
+        input.addEventListener("blur", function() { this.value = normalizeRut(this.value); });
+      });
+
+      document.addEventListener("focusout", function(e) {
+        if (!e.target.classList.contains("rut-input")) return;
+        e.target.value = normalizeRut(e.target.value);
+      });
+
+      form.addEventListener("submit", function(e) {
         e.preventDefault();
         clearErrors(form);
 
@@ -486,38 +659,83 @@
           rutInput.focus();
           return;
         }
-
-        const fechaVal = hiddenFecha.value;
+        var fechaVal = hiddenFecha.value;
         if (!fechaVal || !/^\d{2}-\d{2}-\d{4}$/.test(fechaVal)) {
           setError(form, "cliente_fechaNac", "Seleccione una fecha válida");
           return;
         }
 
-        const data = formDataToObject(form);
-        const c = data.cliente || {};
-
-        var fechaNac = fechaVal;
-        var m = fechaNac.match(/^(\d{2})-(\d{2})-(\d{4})$/);
-        if (m) fechaNac = m[3] + "-" + m[2] + "-" + m[1];
+        var data = formDataToObject(form);
+        var c = data.cliente || {};
+        var fechaNac = toIsoDate(fechaVal);
 
         var row = {
           rut: (c.rut || "").trim(),
-          nacionalidad: (c.nacionalidad || "").trim() || null,
-          sexo: (c.sexo || "").trim() || null,
           nombres: (c.nombres || "").trim() || null,
           apellido_paterno: (c.apellidoPaterno || "").trim() || null,
           apellido_materno: (c.apellidoMaterno || "").trim() || null,
+          fecha_nacimiento: fechaNac,
+          estado_civil: (c.estadoCivil || "").trim() || null,
           domicilio: (c.domicilio || "").trim() || null,
           comuna: (c.comuna || "").trim() || null,
           ciudad: (c.ciudad || "").trim() || null,
-          fecha_nacimiento: fechaNac.match(/^\d{4}-\d{2}-\d{2}$/) ? fechaNac : null,
-          estado_civil: (c.estadoCivil || "").trim() || null,
           profesion_oficio: (c.profesionUOficio || "").trim() || null,
           telefono: (c.telefono || "").trim() || null,
           email: (c.email || "").trim() || null,
           afp: (c.afp || "").trim() || null,
-          institucion_salud: (c.institucionSalud || "").trim() || null
+          institucion_salud: (c.institucionSalud || "").trim() || null,
+          nacionalidad: null,
+          sexo: null
         };
+
+        var co = data.conyuge || {};
+        var showConyuge = sectionConyuge && !sectionConyuge.classList.contains("section-hidden");
+        if (showConyuge) {
+          row.conyuge_nombres = (co.nombres || "").trim() || null;
+          row.conyuge_apellido_paterno = (co.apellidoPaterno || "").trim() || null;
+          row.conyuge_apellido_materno = (co.apellidoMaterno || "").trim() || null;
+          row.conyuge_rut = (co.rut || "").trim() || null;
+          row.conyuge_fecha_nacimiento = toIsoDate(co.fechaNacimiento);
+          row.conyuge_fecha_matrimonio = toIsoDate(co.fechaMatrimonio);
+          row.conyuge_lugar_matrimonio = (co.lugarMatrimonio || "").trim() || null;
+        }
+
+        var tieneHijos = form.querySelector("input[name='tieneHijosMenores24']:checked");
+        row.tiene_hijos_menores_24 = tieneHijos && tieneHijos.value === "Sí";
+        var hijosArr = [];
+        if (row.tiene_hijos_menores_24 && hijosContainer) {
+          var numH = parseInt(numHijosSel.value || 0, 10);
+          for (var i = 0; i < numH; i++) {
+            var nombres = (form.querySelector("input[name='hijo_" + i + "_nombres']") || {}).value;
+            var apP = (form.querySelector("input[name='hijo_" + i + "_apellidoPaterno']") || {}).value;
+            var apM = (form.querySelector("input[name='hijo_" + i + "_apellidoMaterno']") || {}).value;
+            var rut = (form.querySelector("input[name='hijo_" + i + "_rut']") || {}).value;
+            var dia = (form.querySelector("select[name='hijo_" + i + "_dia']") || {}).value;
+            var mes = (form.querySelector("select[name='hijo_" + i + "_mes']") || {}).value;
+            var anio = (form.querySelector("select[name='hijo_" + i + "_anio']") || {}).value;
+            var fNac = (dia && mes && anio) ? anio + "-" + mes + "-" + dia : null;
+            hijosArr.push({
+              nombres: (nombres || "").trim() || null,
+              apellido_paterno: (apP || "").trim() || null,
+              apellido_materno: (apM || "").trim() || null,
+              rut: (rut || "").trim() || null,
+              fecha_nacimiento: fNac
+            });
+          }
+        }
+        row.hijos = hijosArr;
+
+        var emp = data.empleador || {};
+        row.empleador_razon_social = (emp.razonSocial || "").trim() || null;
+        row.empleador_rut = (emp.rut || "").trim() || null;
+        row.empleador_direccion = (emp.direccion || "").trim() || null;
+        row.empleador_telefono = (emp.telefono || "").trim() || null;
+        row.empleador_email = (emp.email || "").trim() || null;
+
+        var bancoData = data.banco || {};
+        row.banco = (bancoData.banco || "").trim() || null;
+        row.tipo_cuenta = (bancoData.tipoCuenta || "").trim() || null;
+        row.numero_cuenta = (bancoData.numeroCuenta || "").trim() || null;
 
         var url = window.SUPABASE_URL;
         var key = window.SUPABASE_ANON_KEY;
@@ -525,11 +743,10 @@
           setStatus("Configura supabase-config.js con tu URL y anon key de Supabase.");
           return;
         }
-
         setStatus("Guardando…");
         var supabase = window.supabase.createClient(url, key);
         supabase.from("clientes").insert(row)
-          .then(function (result) {
+          .then(function(result) {
             if (result.error) {
               setStatus("");
               setError(form, "cliente_rut", result.error.message || "Error al guardar.");
@@ -538,26 +755,36 @@
             setStatus("Cliente guardado correctamente.");
             form.reset();
             if (hiddenFecha) hiddenFecha.value = "";
+            if (numHijosSel) numHijosSel.value = "0";
+            hijosContainer.innerHTML = "";
+            if (typeof actualizarHijos === "function") actualizarHijos();
+            if (sectionConyuge) sectionConyuge.classList.add("section-hidden");
+            if (sectionHijosBloque) sectionHijosBloque.classList.add("section-hidden");
 
             if (window.NOTIFY_FUNCTION_URL && window.NOTIFY_SECRET) {
               fetch(window.NOTIFY_FUNCTION_URL, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ secret: window.NOTIFY_SECRET, client: row })
-              }).catch(function () {});
+              }).catch(function() {});
             }
           })
-          .catch(function (err) {
+          .catch(function(err) {
             setStatus("");
             setError(form, "cliente_rut", err.message || "Error de conexión.");
           });
       });
 
-      document.getElementById("btnLimpiar").addEventListener("click", function () {
+      document.getElementById("btnLimpiar").addEventListener("click", function() {
         form.reset();
         clearErrors(form);
         setStatus("");
         if (hiddenFecha) hiddenFecha.value = "";
+        if (sectionConyuge) sectionConyuge.classList.add("section-hidden");
+        if (sectionHijosBloque) sectionHijosBloque.classList.add("section-hidden");
+        if (numHijosSel) numHijosSel.value = "0";
+        hijosContainer.innerHTML = "";
+        actualizarHijos();
       });
     </script>
   </body>
