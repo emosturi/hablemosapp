@@ -159,11 +159,22 @@
       }
       a.back:hover { color: var(--text); }
       .status { margin-top: 12px; font-size: 14px; color: var(--muted); }
-      .nav-bar { display: flex; align-items: center; padding: 12px 16px; background: rgba(0,0,0,0.25); border-bottom: 1px solid var(--border); max-width: 900px; margin: 0 auto; position: relative; }
+      .nav-bar { display: flex; align-items: center; justify-content: flex-end; padding: 12px 16px; background: rgba(0,0,0,0.25); border-bottom: 1px solid var(--border); max-width: 900px; margin: 0 auto; position: relative; }
+      .nav-bar.has-menu { justify-content: flex-start; }
+      .login-btn {
+        display: flex; align-items: center; justify-content: center;
+        width: 36px; height: 36px;
+        background: rgba(255,255,255,0.08); border: 1px solid var(--border); border-radius: 10px;
+        color: var(--muted); text-decoration: none;
+        transition: background 0.15s, color 0.15s;
+      }
+      .login-btn:hover { background: rgba(255,255,255,0.12); color: var(--text); }
+      .login-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
       .menu-trigger { display: flex; align-items: center; gap: 8px; padding: 8px 14px; background: rgba(255,255,255,0.08); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-size: 14px; font-weight: 500; cursor: pointer; outline: none; }
       .menu-trigger:hover { background: rgba(255,255,255,0.12); }
       .menu-trigger svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-      .menu-dropdown { display: none; position: absolute; top: 100%; left: 16px; margin-top: 4px; min-width: 200px; background: #0f1729; border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.4); padding: 6px; z-index: 100; }
+      .menu-wrap { position: relative; }
+      .menu-dropdown { display: none; position: absolute; top: 100%; left: 0; margin-top: 4px; min-width: 200px; background: #0f1729; border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.4); padding: 6px; z-index: 100; }
       .menu-dropdown.open { display: block; }
       .menu-dropdown a { display: flex; align-items: center; gap: 10px; padding: 10px 14px; color: var(--muted); text-decoration: none; font-size: 14px; border-radius: 8px; transition: background 0.15s, color 0.15s; }
       .menu-dropdown a:hover { background: rgba(255,255,255,0.08); color: var(--text); }
@@ -173,28 +184,9 @@
     </style>
   </head>
   <body>
-    <nav class="nav-bar" role="navigation">
-      <div class="menu-wrap">
-        <button type="button" class="menu-trigger" id="menuTrigger" aria-haspopup="true" aria-expanded="false">
-          <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-          Menú
-        </button>
-        <div class="menu-dropdown" id="menuDropdown">
-          <a href="clientes.html" class="active">Registro de Afiliados</a>
-          <a href="login.html" title="Inicio de sesión"><svg class="tab-icon" viewBox="0 0 24 24"><rect x="10" y="4" width="10" height="16" rx="1"/><path d="M14 12H4M11 9l-3 3 3 3"/></svg> Inicio de sesión</a>
-        </div>
-      </div>
+    <nav id="navBar" class="nav-bar" role="navigation">
+      <a href="login.html" class="login-btn" title="Inicio de sesión"><svg viewBox="0 0 24 24"><rect x="10" y="4" width="10" height="16" rx="1"/><path d="M14 12H4M11 9l-3 3 3 3"/></svg></a>
     </nav>
-    <script>
-      (function() {
-        var trigger = document.getElementById("menuTrigger");
-        var dropdown = document.getElementById("menuDropdown");
-        if (trigger && dropdown) {
-          trigger.addEventListener("click", function(e) { e.stopPropagation(); var open = dropdown.classList.toggle("open"); trigger.setAttribute("aria-expanded", open); });
-          document.addEventListener("click", function() { dropdown.classList.remove("open"); if (trigger) trigger.setAttribute("aria-expanded", "false"); });
-        }
-      })();
-    </script>
     <div class="page">
       <header>
         <h1>Registro de Afiliados</h1>
@@ -485,11 +477,18 @@
       (function () {
         var url = window.SUPABASE_URL, key = window.SUPABASE_ANON_KEY;
         if (url && key && url.indexOf("TU_PROYECTO") === -1) {
-          var dropdown = document.getElementById("menuDropdown");
-          if (dropdown) {
+          var nav = document.getElementById("navBar");
+          if (nav) {
             window.supabase.createClient(url, key).auth.getSession().then(function (r) {
               if (r.data.session) {
-                dropdown.innerHTML = '<a href="index.html">Formulario Pensión</a><a href="clientes.html" class="active">Registro de Afiliados</a><a href="revisar-clientes.html">Revisar Clientes</a><div class="menu-divider"></div><a href="#" id="btnCerrarSesion" title="Cerrar sesión"><svg class="tab-icon" viewBox="0 0 24 24"><rect x="4" y="4" width="10" height="16" rx="1"/><path d="M10 12h10M17 9l3 3-3 3"/></svg> Cerrar sesión</a>';
+                nav.classList.add("has-menu");
+                nav.innerHTML = '<div class="menu-wrap"><button type="button" class="menu-trigger" id="menuTrigger" aria-haspopup="true" aria-expanded="false"><svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg> Menú</button><div class="menu-dropdown" id="menuDropdown"><a href="index.html">Formulario Pensión</a><a href="clientes.html" class="active">Registro de Afiliados</a><a href="revisar-clientes.html">Revisar Clientes</a><div class="menu-divider"></div><a href="#" id="btnCerrarSesion" title="Cerrar sesión"><svg class="tab-icon" viewBox="0 0 24 24"><rect x="4" y="4" width="10" height="16" rx="1"/><path d="M10 12h10M17 9l3 3-3 3"/></svg> Cerrar sesión</a></div></div>';
+                var trigger = document.getElementById("menuTrigger");
+                var dropdown = document.getElementById("menuDropdown");
+                if (trigger && dropdown) {
+                  trigger.addEventListener("click", function(e) { e.stopPropagation(); dropdown.classList.toggle("open"); trigger.setAttribute("aria-expanded", dropdown.classList.contains("open")); });
+                  document.addEventListener("click", function() { dropdown.classList.remove("open"); trigger.setAttribute("aria-expanded", "false"); });
+                }
                 var btn = document.getElementById("btnCerrarSesion");
                 if (btn) btn.addEventListener("click", function (e) { e.preventDefault(); window.supabase.createClient(url, key).auth.signOut().then(function () { window.location.href = "login.html"; }); });
               }
