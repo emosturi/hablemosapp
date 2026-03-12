@@ -155,7 +155,12 @@
       .tabs-nav a { padding: 14px 18px; color: var(--muted); text-decoration: none; font-size: 14px; font-weight: 500; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color 0.2s, border-color 0.2s; }
       .tabs-nav a:hover { color: var(--text); }
       .tabs-nav a.active { color: var(--accent); border-bottom-color: var(--accent); }
-      .tabs-nav .tab-logout { margin-left: auto; color: var(--muted); }
+      .tabs-nav .tab-logout { margin-left: auto; color: var(--muted); flex-shrink: 0; }
+      .tabs-nav .tab-icon { width: 18px; height: 18px; display: inline-block; vertical-align: middle; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+      @media (max-width: 640px) {
+        .tabs-nav { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-left: 8px; padding-right: 8px; }
+        .tabs-nav a { padding: 12px 12px; font-size: 13px; flex-shrink: 0; }
+      }
     </style>
   </head>
   <body>
@@ -163,7 +168,7 @@
       <a href="index.html">Formulario Pensión</a>
       <a href="clientes.html">Alta Clientes</a>
       <a href="revisar-clientes.html" class="active">Revisar Clientes</a>
-      <a href="#" id="btnCerrarSesion" class="tab-logout">Cerrar sesión</a>
+      <a href="#" id="btnCerrarSesion" class="tab-logout" title="Cerrar sesión"><svg class="tab-icon" viewBox="0 0 24 24"><rect x="4" y="4" width="10" height="16" rx="1"/><path d="M10 12h10M17 9l3 3-3 3"/></svg></a>
     </nav>
     <div class="page">
       <header>
