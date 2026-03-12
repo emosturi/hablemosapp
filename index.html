@@ -1361,11 +1361,11 @@
               `${b.nombres || ""} ${b.apellidoPaterno || ""} ${b.apellidoMaterno || ""}`.trim();
             filasBeneficiarios += `
         <tr>
-        <td>${nombreBenef}</td>
-        <td>${b.parentesco || ""}</td>
-        <td>${b.fechaNacimiento || ""}</td>
-        <td class="col-rut">${b.rut || ""}</td>
-        <td>${b.esInvalido || ""}</td>
+        <td><b>${nombreBenef}</b></td>
+        <td><b>${b.parentesco || ""}</b></td>
+        <td><b>${b.fechaNacimiento || ""}</b></td>
+        <td class="col-rut"><b>${b.rut || ""}</b></td>
+        <td><b>${b.esInvalido || ""}</b></td>
         </tr>
         `;
           });
@@ -1439,23 +1439,23 @@
         <body>
 
         <h1>CONTRATO DE PRESTACIÓN DE SERVICIOS DE ASESORÍA PARA<br/>
-        PENSIONARSE O CAMBIAR MODALIDAD DE PENSIÓN Nº ${numeroContrato}</h1>
+        PENSIONARSE O CAMBIAR MODALIDAD DE PENSIÓN Nº <b>${numeroContrato}</b></h1>
 
         <h2>INDIVIDUALIZACIÓN DE LAS PARTES</h2>
 
         <p>
-        En la Ciudad de ${ciudad} a ${fechaActualTexto}, suscriben el presente contrato, por una parte,
-        don ${nombreCompletoMandante}, Rut ${mandante.rut || ""}, nacido el ${fechaAHablado(mandante.fechaNacimiento)},
-        estado civil ${mandante.estadoCivil || ""}, profesión u oficio ${mandante.profesionUOficio || ""},
-        domiciliado en ${mandante.domicilio || ""}, comuna de ${mandante.comuna || ""} ciudad de ${mandante.ciudad || ""},
-        celular ${mandante.telefono || ""}, correo electrónico ${mandante.email || ""},
-        afiliado a la ${mandante.afp || ""}, Sistema de Salud ${mandante.institucionSalud || ""};
-        por otra parte, ${nombreCompletoMandatario}, Rut ${mandatario.rut || ""},
-        Profesión ${mandatario.profesionUOficio || "" || ""}, inscrito en el Registro de Asesores Previsionales de la
-        Superintendencia de Pensiones con el N° ${mandatario.numeroRegistroAsesorPrevisional || ""},
-        domiciliado en ${mandatario.domicilio || ""}, comuna de ${mandatario.comuna || ""} ciudad de ${mandatario.ciudad || ""},
-        celular ${mandatario.telefono || ""} e-mail: ${mandatario.email || ""}, en adelante el “ASESOR PREVISIONAL”.
-        Las partes acuerdan el siguiente contrato de asesoría para realizar trámite de ${nombreTramite}.
+        En la Ciudad de <b>${ciudad}</b> a <b>${fechaActualTexto}</b>, suscriben el presente contrato, por una parte,
+        don <b>${nombreCompletoMandante}</b>, Rut <b>${mandante.rut || ""}</b>, nacido el <b>${fechaAHablado(mandante.fechaNacimiento)}</b>,
+        estado civil <b>${mandante.estadoCivil || ""}</b>, profesión u oficio <b>${mandante.profesionUOficio || ""}</b>,
+        domiciliado en <b>${mandante.domicilio || ""}</b>, comuna de <b>${mandante.comuna || ""}</b> ciudad de <b>${mandante.ciudad || ""}</b>,
+        celular <b>${mandante.telefono || ""}</b>, correo electrónico <b>${mandante.email || ""}</b>,
+        afiliado a la <b>${mandante.afp || ""}</b>, Sistema de Salud <b>${mandante.institucionSalud || ""}</b>;
+        por otra parte, <b>${nombreCompletoMandatario}</b>, Rut <b>${mandatario.rut || ""}</b>,
+        Profesión <b>${mandatario.profesionUOficio || ""}</b>, inscrito en el Registro de Asesores Previsionales de la
+        Superintendencia de Pensiones con el N° <b>${mandatario.numeroRegistroAsesorPrevisional || ""}</b>,
+        domiciliado en <b>${mandatario.domicilio || ""}</b>, comuna de <b>${mandatario.comuna || ""}</b> ciudad de <b>${mandatario.ciudad || ""}</b>,
+        celular <b>${mandatario.telefono || ""}</b> e-mail: <b>${mandatario.email || ""}</b>, en adelante el “ASESOR PREVISIONAL”.
+        Las partes acuerdan el siguiente contrato de asesoría para realizar trámite de <b>${nombreTramite}</b>.
         </p>
 
         <h2>ANTECEDENTES DEL GRUPO FAMILIAR CON DERECHO A PENSIÓN</h2>
@@ -1542,9 +1542,9 @@
         <p>
         Para responder del correcto y cabal cumplimiento de todas las obligaciones emanadas de la actividad, el
         Asesor Previsional está cubierto por la Póliza de Responsabilidad Civil Profesional para Asesores
-        Previsionales o Entidades de Asesoría Previsional bajo el registro de póliza ${poliza.registroPoliza} de la C.M.F.,
-        emitida por la ${poliza.compania}. Póliza N° ${poliza.numeroPoliza} contratada el ${poliza.fechaContrato},
-        con fecha de vigencia a partir del ${poliza.fechaInicio} y vencimiento el ${poliza.fechaVencimiento}.
+        Previsionales o Entidades de Asesoría Previsional bajo el registro de póliza <b>${poliza.registroPoliza}</b> de la C.M.F.,
+        emitida por la <b>${poliza.compania}</b>. Póliza N° <b>${poliza.numeroPoliza}</b> contratada el <b>${poliza.fechaContrato}</b>,
+        con fecha de vigencia a partir del <b>${poliza.fechaInicio}</b> y vencimiento el <b>${poliza.fechaVencimiento}</b>.
         </p>
 
         <h2>VIGENCIA DEL CONTRATO</h2>
@@ -1655,14 +1655,14 @@
           <div class="firma-izq">
             <p>______________________________</p>
             <p>Firma Cliente</p>
-            <p>${nombreCompletoMandante}</p>
-            <p>RUT: ${mandante.rut || ""}</p>
+            <p><b>${nombreCompletoMandante}</b></p>
+            <p>RUT: <b>${mandante.rut || ""}</b></p>
           </div>
           <div class="firma-der">
             <p>______________________________</p>
             <p>Firma Asesor Previsional</p>
-            <p>${nombreCompletoMandatario || "Rose Marie Albistur Barros"}</p>
-            <p>RUT: ${mandatario.rut || "9526153-1"}</p>
+            <p><b>${nombreCompletoMandatario || "Rose Marie Albistur Barros"}</b></p>
+            <p>RUT: <b>${mandatario.rut || "9526153-1"}</b></p>
           </div>
         </div>
 
