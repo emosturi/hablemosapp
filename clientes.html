@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Alta de clientes</title>
+    <title>Registro de Afiliados</title>
     <style>
       :root {
         --bg: #0b1220;
@@ -174,7 +174,7 @@
     </nav>
     <div class="page">
       <header>
-        <h1>Alta de clientes</h1>
+        <h1>Registro de Afiliados</h1>
         <p class="subtitle">Ingresa los datos del nuevo cliente. Campos con * son obligatorios.</p>
       </header>
 
@@ -466,7 +466,7 @@
           if (nav) {
             window.supabase.createClient(url, key).auth.getSession().then(function (r) {
               if (r.data.session) {
-                nav.innerHTML = '<a href="index.html">Formulario Pensión</a><a href="clientes.html" class="active">Alta Clientes</a><a href="revisar-clientes.html">Revisar Clientes</a><a href="#" id="btnCerrarSesion" class="tab-logout">Cerrar sesión</a>';
+                nav.innerHTML = '<a href="index.html">Formulario Pensión</a><a href="clientes.html" class="active">Registro de Afiliados</a><a href="revisar-clientes.html">Revisar Clientes</a><a href="#" id="btnCerrarSesion" class="tab-logout">Cerrar sesión</a>';
                 var btn = document.getElementById("btnCerrarSesion");
                 if (btn) btn.addEventListener("click", function (e) { e.preventDefault(); window.supabase.createClient(url, key).auth.signOut().then(function () { window.location.href = "login.html"; }); });
               }
