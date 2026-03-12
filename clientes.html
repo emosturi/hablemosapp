@@ -1,0 +1,503 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Alta de clientes</title>
+    <style>
+      :root {
+        --bg: #0b1220;
+        --panel: rgba(255, 255, 255, 0.06);
+        --text: rgba(255, 255, 255, 0.92);
+        --muted: rgba(255, 255, 255, 0.72);
+        --border: rgba(255, 255, 255, 0.14);
+        --accent: #8b5cf6;
+        --danger: #ef4444;
+        --shadow: 0 16px 50px rgba(0, 0, 0, 0.45);
+        --radius: 16px;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell,
+          Noto Sans, Helvetica Neue, Arial, sans-serif;
+        color: var(--text);
+        background: radial-gradient(1200px 700px at 20% 0%, rgba(139, 92, 246, 0.25), transparent 60%),
+          radial-gradient(900px 600px at 90% 20%, rgba(34, 197, 94, 0.18), transparent 55%),
+          var(--bg);
+        min-height: 100vh;
+      }
+
+      .page {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 28px 16px 60px;
+      }
+
+      header { margin: 10px 0 18px; }
+      h1 { font-size: clamp(22px, 2.6vw, 32px); letter-spacing: -0.02em; margin: 0; }
+      .subtitle { margin: 8px 0 0; color: var(--muted); line-height: 1.4; }
+
+      .panel {
+        background: linear-gradient(180deg, var(--panel), rgba(255, 255, 255, 0.03));
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+
+      form { padding: 18px; }
+
+      .section {
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: rgba(0, 0, 0, 0.12);
+        padding: 14px;
+        margin: 14px 0;
+      }
+
+      .section-title { margin: 0 0 10px; }
+      .section-title h2 { font-size: 16px; margin: 0; letter-spacing: 0.02em; }
+      .hint { color: var(--muted); font-size: 12px; }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        gap: 10px;
+      }
+
+      .field {
+        grid-column: span 12;
+        display: grid;
+        gap: 6px;
+      }
+
+      .col-6 { grid-column: span 12; }
+      .col-4 { grid-column: span 12; }
+      .col-3 { grid-column: span 12; }
+
+      @media (min-width: 760px) {
+        .col-6 { grid-column: span 6; }
+        .col-4 { grid-column: span 4; }
+        .col-3 { grid-column: span 3; }
+      }
+
+      label { font-size: 13px; color: rgba(255, 255, 255, 0.86); }
+      .req { color: rgba(255, 255, 255, 0.7); font-weight: 500; margin-left: 6px; font-size: 12px; }
+
+      input, select, textarea {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 12px;
+        color: var(--text);
+        padding: 10px 12px;
+        outline: none;
+        transition: border-color 120ms ease, box-shadow 120ms ease;
+      }
+
+      textarea { min-height: 84px; resize: vertical; }
+
+      input:focus, select:focus, textarea:focus {
+        border-color: rgba(139, 92, 246, 0.8);
+        box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.18);
+      }
+
+      select option { background: #0b1220; color: var(--text); }
+
+      .radio-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      .radio-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+      }
+
+      .date-group { display: flex; gap: 6px; }
+      .date-group select { flex: 1; }
+
+      .error { font-size: 12px; color: var(--danger); margin-top: 2px; }
+
+      .actions { margin-top: 20px; }
+      .btns { display: flex; flex-wrap: wrap; gap: 10px; }
+      button {
+        padding: 12px 20px;
+        border-radius: 12px;
+        border: none;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        background: var(--accent);
+        color: #fff;
+      }
+      button:hover { opacity: 0.95; }
+      button[type="submit"] { background: #22c55e; }
+      a.back {
+        display: inline-block;
+        margin-bottom: 16px;
+        color: var(--muted);
+        text-decoration: none;
+        font-size: 14px;
+      }
+      a.back:hover { color: var(--text); }
+      .status { margin-top: 12px; font-size: 14px; color: var(--muted); }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <a href="index.html" class="back">← Volver al formulario de pensión</a>
+      <header>
+        <h1>Alta de clientes</h1>
+        <p class="subtitle">Ingresa los datos del nuevo cliente. Campos con * son obligatorios.</p>
+      </header>
+
+      <div class="panel">
+        <form id="clienteForm" novalidate>
+          <div class="section" aria-labelledby="clienteTitle">
+            <div class="section-title">
+              <h2 id="clienteTitle">Datos del cliente</h2>
+              <span class="hint">Los mismos datos que el mandante en la solicitud de pensión</span>
+            </div>
+
+            <div class="grid">
+              <div class="field col-4">
+                <label for="cliente_rut">RUT <span class="req">*</span></label>
+                <input
+                  id="cliente_rut"
+                  name="cliente.rut"
+                  required
+                  inputmode="text"
+                  autocomplete="off"
+                  placeholder="12.345.678-5"
+                />
+                <div class="error" data-error-for="cliente_rut"></div>
+              </div>
+
+              <div class="field col-4">
+                <label for="cliente_nacionalidad">Nacionalidad <span class="req">*</span></label>
+                <input
+                  id="cliente_nacionalidad"
+                  name="cliente.nacionalidad"
+                  required
+                  autocomplete="country-name"
+                />
+                <div class="error" data-error-for="cliente_nacionalidad"></div>
+              </div>
+
+              <div class="field col-4">
+                <label>Sexo <span class="req">*</span></label>
+                <div class="radio-row" role="group" aria-label="Sexo">
+                  <label class="radio-pill">
+                    <input type="radio" name="cliente.sexo" value="Masculino" required />
+                    Masculino
+                  </label>
+                  <label class="radio-pill">
+                    <input type="radio" name="cliente.sexo" value="Femenino" required />
+                    Femenino
+                  </label>
+                </div>
+                <div class="error" data-error-for="cliente.sexo"></div>
+              </div>
+
+              <div class="field col-4">
+                <label for="cliente_nombres">Nombres <span class="req">*</span></label>
+                <input id="cliente_nombres" name="cliente.nombres" required />
+                <div class="error" data-error-for="cliente_nombres"></div>
+              </div>
+
+              <div class="field col-4">
+                <label for="cliente_apPaterno">Apellido Paterno <span class="req">*</span></label>
+                <input id="cliente_apPaterno" name="cliente.apellidoPaterno" required />
+                <div class="error" data-error-for="cliente_apPaterno"></div>
+              </div>
+
+              <div class="field col-4">
+                <label for="cliente_apMaterno">Apellido Materno <span class="req">*</span></label>
+                <input id="cliente_apMaterno" name="cliente.apellidoMaterno" required />
+                <div class="error" data-error-for="cliente_apMaterno"></div>
+              </div>
+
+              <div class="field col-6">
+                <label for="cliente_domicilio">Domicilio <span class="req">*</span></label>
+                <textarea id="cliente_domicilio" name="cliente.domicilio" required></textarea>
+                <div class="error" data-error-for="cliente_domicilio"></div>
+              </div>
+
+              <div class="field col-3">
+                <label for="cliente_comuna">Comuna <span class="req">*</span></label>
+                <input id="cliente_comuna" name="cliente.comuna" required />
+                <div class="error" data-error-for="cliente_comuna"></div>
+              </div>
+
+              <div class="field col-3">
+                <label for="cliente_ciudad">Ciudad <span class="req">*</span></label>
+                <input id="cliente_ciudad" name="cliente.ciudad" required />
+                <div class="error" data-error-for="cliente_ciudad"></div>
+              </div>
+
+              <div class="field col-4">
+                <label for="cliente_fechaNac">Fecha de nacimiento <span class="req">*</span></label>
+                <div class="date-group">
+                  <select id="cliente_fechaNac_dia">
+                    <option value="" selected disabled>Día</option>
+                  </select>
+                  <select id="cliente_fechaNac_mes">
+                    <option value="" selected disabled>Mes</option>
+                  </select>
+                  <select id="cliente_fechaNac_anio">
+                    <option value="" selected disabled>Año</option>
+                  </select>
+                  <input type="hidden" id="cliente_fechaNac" name="cliente.fechaNacimiento" required />
+                </div>
+                <div class="error" data-error-for="cliente_fechaNac"></div>
+              </div>
+
+              <div class="field col-4">
+                <label for="cliente_estadoCivil">Estado Civil <span class="req">*</span></label>
+                <select id="cliente_estadoCivil" name="cliente.estadoCivil" required>
+                  <option value="" selected disabled>Selecciona…</option>
+                  <option>Soltero/a</option>
+                  <option>Casado/a</option>
+                  <option>Conviviente Civil</option>
+                  <option>Divorciado/a</option>
+                  <option>Viudo/a</option>
+                  <option>Separado/a</option>
+                  <option>Otro</option>
+                </select>
+                <div class="error" data-error-for="cliente_estadoCivil"></div>
+              </div>
+
+              <div class="field col-4">
+                <label for="cliente_profesion">Profesión u Oficio <span class="req">*</span></label>
+                <input id="cliente_profesion" name="cliente.profesionUOficio" required />
+                <div class="error" data-error-for="cliente_profesion"></div>
+              </div>
+
+              <div class="field col-4">
+                <label for="cliente_telefono">Teléfono <span class="req">*</span></label>
+                <input
+                  id="cliente_telefono"
+                  name="cliente.telefono"
+                  required
+                  inputmode="tel"
+                  autocomplete="tel"
+                  placeholder="+56 9 1234 5678"
+                />
+                <div class="error" data-error-for="cliente_telefono"></div>
+              </div>
+
+              <div class="field col-4">
+                <label for="cliente_email">Email (Opcional)</label>
+                <input id="cliente_email" name="cliente.email" inputmode="email" autocomplete="email" />
+                <div class="error" data-error-for="cliente_email"></div>
+              </div>
+
+              <div class="field col-4">
+                <label for="cliente_afp">AFP <span class="req">*</span></label>
+                <select id="cliente_afp" name="cliente.afp" required>
+                  <option value="" selected disabled>Selecciona…</option>
+                  <option>AFP Capital</option>
+                  <option>AFP Cuprum</option>
+                  <option>AFP Habitat</option>
+                  <option>AFP Modelo</option>
+                  <option>AFP PlanVital</option>
+                  <option>AFP Provida</option>
+                  <option>AFP Uno</option>
+                </select>
+                <div class="error" data-error-for="cliente_afp"></div>
+              </div>
+
+              <div class="field col-6">
+                <label for="cliente_salud">Institución de Salud <span class="req">*</span></label>
+                <select id="cliente_salud" name="cliente.institucionSalud" required>
+                  <option value="" selected disabled>Selecciona…</option>
+                  <option>FONASA</option>
+                  <option>Isapre Banmédica</option>
+                  <option>Isapre Colmena</option>
+                  <option>Isapre Consalud</option>
+                  <option>Isapre Cruz Blanca</option>
+                  <option>Isapre Nueva Masvida</option>
+                  <option>Isapre Vida Tres</option>
+                  <option>Isapre Esencial</option>
+                </select>
+                <div class="error" data-error-for="cliente_salud"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="actions">
+            <div class="btns">
+              <button type="submit">Guardar cliente</button>
+              <button type="button" id="btnLimpiar">Limpiar</button>
+            </div>
+            <div id="status" class="status" aria-live="polite"></div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      function normalizeRut(raw) {
+        if (!raw) return "";
+        let s = String(raw).trim().toUpperCase();
+        s = s.replace(/[^0-9K]/g, "");
+        if (s.length < 2) return s;
+        const body = s.slice(0, -1);
+        const dv = s.slice(-1);
+        const bodyWithDots = body
+          .split("").reverse().join("")
+          .replace(/(\d{3})(?=\d)/g, "$1.")
+          .split("").reverse().join("");
+        return `${bodyWithDots}-${dv}`;
+      }
+
+      function rutIsValid(rut) {
+        const s = String(rut || "").toUpperCase().replace(/[^0-9K]/g, "");
+        if (s.length < 2) return false;
+        const body = s.slice(0, -1);
+        const dv = s.slice(-1);
+        if (!/^\d+$/.test(body)) return false;
+        let sum = 0, mul = 2;
+        for (let i = body.length - 1; i >= 0; i--) {
+          sum += Number(body[i]) * mul;
+          mul = mul === 7 ? 2 : mul + 1;
+        }
+        const mod = 11 - (sum % 11);
+        const expected = mod === 11 ? "0" : mod === 10 ? "K" : String(mod);
+        return expected === dv;
+      }
+
+      function llenarSelectFecha(diaSel, mesSel, anioSel, minYear = 1900, maxYear = new Date().getFullYear()) {
+        if (diaSel) {
+          for (let d = 1; d <= 31; d++) {
+            const opt = document.createElement("option");
+            opt.value = String(d).padStart(2, "0");
+            opt.textContent = String(d);
+            diaSel.appendChild(opt);
+          }
+        }
+        const meses = ["01","02","03","04","05","06","07","08","09","10","11","12"];
+        if (mesSel) {
+          meses.forEach((m, idx) => {
+            const opt = document.createElement("option");
+            opt.value = m;
+            opt.textContent = `${idx + 1}`.padStart(2, "0");
+            mesSel.appendChild(opt);
+          });
+        }
+        if (anioSel) {
+          for (let y = maxYear; y >= minYear; y--) {
+            const opt = document.createElement("option");
+            opt.value = String(y);
+            opt.textContent = String(y);
+            anioSel.appendChild(opt);
+          }
+        }
+      }
+
+      function formDataToObject(form) {
+        const fd = new FormData(form);
+        const out = {};
+        for (const [k, v] of fd.entries()) {
+          const value = typeof v === "string" ? v.trim() : v;
+          const parts = k.split(".");
+          let cur = out;
+          for (let i = 0; i < parts.length; i++) {
+            const p = parts[i];
+            const isLast = i === parts.length - 1;
+            if (isLast) {
+              cur[p] = value;
+            } else {
+              cur = cur[p] = cur[p] && typeof cur[p] === "object" ? cur[p] : {};
+            }
+          }
+        }
+        return out;
+      }
+
+      function setStatus(msg) {
+        document.getElementById("status").textContent = msg || "";
+      }
+
+      function clearErrors(form) {
+        for (const node of form.querySelectorAll("[data-error-for]")) node.textContent = "";
+        for (const el of form.querySelectorAll("[aria-invalid='true']")) el.removeAttribute("aria-invalid");
+      }
+
+      function setError(form, keyOrId, message) {
+        const target = form.querySelector(`[data-error-for="${CSS.escape(keyOrId)}"]`);
+        if (target) target.textContent = message;
+      }
+
+      const form = document.getElementById("clienteForm");
+      const diaSel = document.getElementById("cliente_fechaNac_dia");
+      const mesSel = document.getElementById("cliente_fechaNac_mes");
+      const anioSel = document.getElementById("cliente_fechaNac_anio");
+      const hiddenFecha = document.getElementById("cliente_fechaNac");
+      const rutInput = document.getElementById("cliente_rut");
+
+      llenarSelectFecha(diaSel, mesSel, anioSel, 1900);
+
+      if (diaSel && mesSel && anioSel && hiddenFecha) {
+        const updateHidden = () => {
+          const d = diaSel.value, m = mesSel.value, y = anioSel.value;
+          hiddenFecha.value = (d && m && y) ? `${d}-${m}-${y}` : "";
+        };
+        diaSel.addEventListener("change", updateHidden);
+        mesSel.addEventListener("change", updateHidden);
+        anioSel.addEventListener("change", updateHidden);
+      }
+
+      if (rutInput) {
+        rutInput.addEventListener("blur", function () {
+          this.value = normalizeRut(this.value);
+          const err = form.querySelector("[data-error-for='cliente_rut']");
+          if (err) err.textContent = rutIsValid(this.value) ? "" : "RUT inválido";
+        });
+        rutInput.addEventListener("input", function () {
+          this.value = normalizeRut(this.value);
+        });
+      }
+
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        clearErrors(form);
+
+        if (!rutIsValid(rutInput.value)) {
+          setError(form, "cliente_rut", "RUT inválido");
+          rutInput.focus();
+          return;
+        }
+
+        const fechaVal = hiddenFecha.value;
+        if (!fechaVal || !/^\d{2}-\d{2}-\d{4}$/.test(fechaVal)) {
+          setError(form, "cliente_fechaNac", "Seleccione una fecha válida");
+          return;
+        }
+
+        const data = formDataToObject(form);
+        setStatus("Cliente guardado correctamente. (En una implementación real se enviaría a un servidor.)");
+        console.log("Cliente:", data);
+      });
+
+      document.getElementById("btnLimpiar").addEventListener("click", function () {
+        form.reset();
+        clearErrors(form);
+        setStatus("");
+        if (hiddenFecha) hiddenFecha.value = "";
+      });
+    </script>
+  </body>
+</html>
