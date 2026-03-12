@@ -342,6 +342,8 @@
         <p style="margin: 12px 0 0;">
           <a href="clientes.html" style="color: var(--muted); font-size: 14px;">Alta de clientes →</a>
           &nbsp;·&nbsp;
+          <a href="revisar-clientes.html" style="color: var(--muted); font-size: 14px;">Revisar clientes</a>
+          &nbsp;·&nbsp;
           <a href="#" id="btnCerrarSesion" style="color: var(--muted); font-size: 14px;">Cerrar sesión</a>
         </p>
       </header>
@@ -2462,6 +2464,52 @@
                 setStatus("Formulario limpio.");
               });
 
+            var params = new URLSearchParams(window.location.search);
+            var clienteId = params.get("cliente");
+            if (clienteId && window.SUPABASE_URL && window.SUPABASE_ANON_KEY && window.SUPABASE_URL.indexOf("TU_PROYECTO") === -1) {
+              var supabaseClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+              supabaseClient.from("clientes").select("*").eq("id", clienteId).single().then(function (r) {
+                if (r.error || !r.data) return;
+                var c = r.data;
+                var fechaStr = c.fecha_nacimiento;
+                if (fechaStr && typeof fechaStr === "string") {
+                  var iso = fechaStr.split("T")[0];
+                  if (iso && iso.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                    var p = iso.split("-");
+                    fechaStr = p[2] + "-" + p[1] + "-" + p[0];
+                  } else { fechaStr = ""; }
+                } else { fechaStr = ""; }
+                var mandanteData = {
+                  rut: c.rut || "",
+                  nacionalidad: c.nacionalidad || "",
+                  sexo: c.sexo || "",
+                  nombres: c.nombres || "",
+                  apellidoPaterno: c.apellido_paterno || "",
+                  apellidoMaterno: c.apellido_materno || "",
+                  domicilio: c.domicilio || "",
+                  comuna: c.comuna || "",
+                  ciudad: c.ciudad || "",
+                  fechaNacimiento: fechaStr,
+                  estadoCivil: c.estado_civil || "",
+                  profesionUOficio: c.profesion_oficio || "",
+                  telefono: c.telefono || "",
+                  email: c.email || "",
+                  afp: c.afp || "",
+                  institucionSalud: c.institucion_salud || ""
+                };
+                setFormFromObject(form, { mandante: mandanteData });
+                if (mandanteHidden && mandanteHidden.value && mandanteDia && mandanteMes && mandanteAnio) {
+                  var match = mandanteHidden.value.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+                  if (match) {
+                    mandanteDia.value = match[1];
+                    mandanteMes.value = match[2];
+                    mandanteAnio.value = match[3];
+                  }
+                }
+                history.replaceState({}, "", "index.html");
+                setStatus("Datos del cliente cargados. Revisa y completa tipo de pensión, beneficiarios, etc.");
+              });
+            }
             }
 
                 init(); // Arranca la configuración del formulario al cargar el script.

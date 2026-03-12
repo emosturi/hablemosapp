@@ -538,6 +538,14 @@
             setStatus("Cliente guardado correctamente.");
             form.reset();
             if (hiddenFecha) hiddenFecha.value = "";
+
+            if (window.NOTIFY_FUNCTION_URL && window.NOTIFY_SECRET) {
+              fetch(window.NOTIFY_FUNCTION_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ secret: window.NOTIFY_SECRET, client: row })
+              }).catch(function () {});
+            }
           })
           .catch(function (err) {
             setStatus("");

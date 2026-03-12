@@ -1,0 +1,8 @@
+{
+  "name": "hablemosapp",
+  "private": true,
+  "description": "Formulario solicitud de pensión, alta de clientes, mandatos y contratos",
+  "dependencies": {
+    "twilio": "^5.3.0"
+  }
+}

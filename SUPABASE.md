@@ -50,3 +50,16 @@ Si desplegas en Netlify y no quieres dejar las claves en `supabase-config.js`:
 | **Login** | Usa Supabase Auth (email + contraseña). El usuario se crea en Authentication > Users. |
 | **Alta de clientes** | Inserta en la tabla `clientes` (acceso público por RLS). |
 | **Formulario de pensión** | Solo accesible si hay sesión de Supabase; “Cerrar sesión” hace sign out. |
+
+| **Revisar clientes** | Página `revisar-clientes.html` (solo autenticados): lista clientes y botón "Usar en formulario de pensión". |
+| **Notificación WhatsApp** | Opcional: función Netlify + Twilio. Variables: TWILIO_*, NOTIFY_WHATSAPP_TO, NOTIFY_SECRET. En config: NOTIFY_FUNCTION_URL y NOTIFY_SECRET. Ver **TWILIO.md** para pasos detallados. |
+
+## Notificación por WhatsApp (opcional)
+
+Cuando un cliente se registra en el formulario público puedes recibir un aviso por WhatsApp. Necesitas cuenta en Twilio (WhatsApp Sandbox o número aprobado) y desplegar en Netlify. **Guía paso a paso: [TWILIO.md](TWILIO.md).**
+
+**Netlify (env):** TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_WHATSAPP_FROM (ej. `whatsapp:+14155238886`), NOTIFY_WHATSAPP_TO (tu número), NOTIFY_SECRET.
+
+**En `supabase-config.js`:** descomenta NOTIFY_FUNCTION_URL (ej. `https://tu-sitio.netlify.app/.netlify/functions/notify-whatsapp`) y NOTIFY_SECRET.
+
+Flujo: cliente llena alta de clientes → se guarda → se llama a la función → recibes WhatsApp. Luego en Revisar clientes usas "Usar en formulario de pensión" para cargar esos datos en el formulario de mandatos/contratos.
