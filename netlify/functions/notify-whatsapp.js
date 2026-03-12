@@ -5,6 +5,8 @@
 const twilio = require("twilio");
 
 exports.handler = async function (event) {
+  console.log("[notify-whatsapp] Invocada, method:", event.httpMethod);
+
   if (event.httpMethod !== "POST") {
     return { statusCode: 405, body: "Method Not Allowed" };
   }
@@ -14,9 +16,12 @@ exports.handler = async function (event) {
     try {
       const body = JSON.parse(event.body);
       if (body.secret !== secret) {
+        console.log("[notify-whatsapp] Secret incorrecto o faltante en body");
         return { statusCode: 401, body: "Unauthorized" };
       }
+      console.log("[notify-whatsapp] Secret OK");
     } catch (_) {
+      console.log("[notify-whatsapp] Body JSON inválido");
       return { statusCode: 400, body: "Bad Request" };
     }
   }
@@ -27,6 +32,8 @@ exports.handler = async function (event) {
   const to = process.env.NOTIFY_WHATSAPP_TO;     // ej: 56912345678
 
   if (!accountSid || !authToken || !from || !to) {
+    const missing = []; if (!accountSid) missing.push("TWILIO_ACCOUNT_SID"); if (!authToken) missing.push("TWILIO_AUTH_TOKEN"); if (!from) missing.push("TWILIO_WHATSAPP_FROM"); if (!to) missing.push("NOTIFY_WHATSAPP_TO");
+    console.log("[notify-whatsapp] Faltan variables de entorno:", missing.join(", "));
     return {
       statusCode: 500,
       body: JSON.stringify({ error: "Configura TWILIO_* y NOTIFY_WHATSAPP_TO en Netlify" }),
@@ -61,9 +68,10 @@ exports.handler = async function (event) {
       from: from,
       to: toWhatsApp,
     });
+    console.log("[notify-whatsapp] WhatsApp enviado a", toWhatsApp);
     return { statusCode: 200, body: JSON.stringify({ ok: true }) };
   } catch (err) {
-    console.error("Twilio error:", err.message);
+    console.error("[notify-whatsapp] Twilio error:", err.message);
     return {
       statusCode: 500,
       body: JSON.stringify({ error: err.message || "Error al enviar WhatsApp" }),
