@@ -163,13 +163,13 @@
       .tabs-nav a { padding: 14px 18px; color: var(--muted); text-decoration: none; font-size: 14px; font-weight: 500; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color 0.2s, border-color 0.2s; }
       .tabs-nav a:hover { color: var(--text); }
       .tabs-nav a.active { color: var(--accent); border-bottom-color: var(--accent); }
+      .tabs-nav .tab-logout { margin-left: auto; }
     </style>
   </head>
   <body>
-    <nav class="tabs-nav" role="navigation">
-      <a href="index.html">Formulario Pensión</a>
+    <nav id="tabsNav" class="tabs-nav" role="navigation">
       <a href="clientes.html" class="active">Alta Clientes</a>
-      <a href="revisar-clientes.html">Revisar Clientes</a>
+      <a href="login.html">Inicio de sesión</a>
     </nav>
     <div class="page">
       <header>
@@ -458,6 +458,21 @@
     <script src="supabase-config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script>
+      (function () {
+        var url = window.SUPABASE_URL, key = window.SUPABASE_ANON_KEY;
+        if (url && key && url.indexOf("TU_PROYECTO") === -1) {
+          var nav = document.getElementById("tabsNav");
+          if (nav) {
+            window.supabase.createClient(url, key).auth.getSession().then(function (r) {
+              if (r.data.session) {
+                nav.innerHTML = '<a href="index.html">Formulario Pensión</a><a href="clientes.html" class="active">Alta Clientes</a><a href="revisar-clientes.html">Revisar Clientes</a><a href="#" id="btnCerrarSesion" class="tab-logout">Cerrar sesión</a>';
+                var btn = document.getElementById("btnCerrarSesion");
+                if (btn) btn.addEventListener("click", function (e) { e.preventDefault(); window.supabase.createClient(url, key).auth.signOut().then(function () { window.location.href = "login.html"; }); });
+              }
+            });
+          }
+        }
+      })();
       function normalizeRut(raw) {
         if (!raw) return "";
         var s = String(raw).trim().toUpperCase().replace(/[^0-9K]/g, "");
