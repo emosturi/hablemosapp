@@ -82,9 +82,10 @@
       .btn-borrar:hover { background: rgba(239, 68, 68, 0.35); }
       .btn-icon { display: none; }
       .btn-text { display: inline; }
+      .btn-icon-svg { width: 16px; height: 16px; display: inline-block; vertical-align: middle; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
       @media (max-width: 640px) {
         .th-tel, .th-registro, .th-rut, .td-tel, .td-registro, .td-rut { display: none !important; }
-        .btn-icon { display: inline; font-size: 1.1em; }
+        .btn-icon { display: inline; }
         .btn-text { display: none; }
         .btn-small { padding: 8px 10px; margin-right: 4px; min-width: 36px; text-align: center; }
         table { font-size: 14px; table-layout: auto; }
@@ -126,6 +127,30 @@
       }
       .modal-btn-cancel { background: rgba(255,255,255,0.1); color: var(--text); }
       .modal-btn-delete { background: var(--danger); color: #fff; }
+      .search-wrap { margin-bottom: 14px; }
+      .search-wrap input {
+        width: 100%;
+        padding: 10px 14px 10px 36px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: rgba(255,255,255,0.06);
+        color: var(--text);
+        font-size: 14px;
+        outline: none;
+      }
+      .search-wrap input:focus { border-color: rgba(139, 92, 246, 0.6); }
+      .search-wrap input::placeholder { color: var(--muted); }
+      .search-wrap { position: relative; }
+      .search-wrap::before {
+        content: "🔍";
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 14px;
+        opacity: 0.7;
+      }
+      .no-results { color: var(--muted); padding: 20px; display: none; }
     </style>
   </head>
   <body>
@@ -143,6 +168,10 @@
         <div id="loading" class="loading">Cargando clientes…</div>
         <div id="error" class="error-msg" style="display:none;"></div>
         <div id="empty" class="empty" style="display:none;">No hay clientes registrados.</div>
+        <div id="searchWrap" class="search-wrap" style="display:none;">
+          <input type="search" id="searchClientes" placeholder="Buscar por nombre, RUT o teléfono…" autocomplete="off" />
+        </div>
+        <div id="noResults" class="no-results">No hay resultados para la búsqueda.</div>
         <table id="tabla" style="display:none;">
           <thead>
             <tr>
@@ -202,7 +231,23 @@
                 return;
               }
               document.getElementById("tabla").style.display = "table";
+              document.getElementById("searchWrap").style.display = "block";
               var tbody = document.getElementById("tbody");
+              var searchInput = document.getElementById("searchClientes");
+              var noResults = document.getElementById("noResults");
+
+              function filtrar() {
+                var q = (searchInput.value || "").trim().toLowerCase();
+                var visibles = 0;
+                for (var i = 0; i < tbody.rows.length; i++) {
+                  var tr = tbody.rows[i];
+                  var match = !q || (tr.getAttribute("data-search") || "").indexOf(q) !== -1;
+                  tr.style.display = match ? "" : "none";
+                  if (match) visibles++;
+                }
+                noResults.style.display = (q && visibles === 0) ? "block" : "none";
+              }
+              searchInput.addEventListener("input", filtrar);
               var deleteId = null;
               var modalOverlay = document.getElementById("modalOverlay");
               var modalCancel = document.getElementById("modalCancel");
@@ -241,20 +286,22 @@
               });
 
               list.forEach(function (c) {
-                var nombre = [c.nombres, c.apellido_paterno, c.apellido_materno].filter(Boolean).join(" ");
                 var fecha = c.created_at ? new Date(c.created_at).toLocaleDateString("es-CL") : "";
+                var nombre = [c.nombres, c.apellido_paterno, c.apellido_materno].filter(Boolean).join(" ");
+                var searchText = [nombre || "", (c.rut || "").replace(/\./g, "").replace(/-/g, ""), (c.telefono || "").replace(/\s/g, "")].join(" ").toLowerCase();
                 var tr = document.createElement("tr");
                 tr.setAttribute("data-id", c.id);
+                tr.setAttribute("data-search", searchText);
                 tr.innerHTML =
                   "<td class=\"client-name\">" + (nombre || "-") + "</td>" +
                   "<td class=\"td-rut\">" + (c.rut || "") + "</td>" +
                   "<td class=\"td-tel\">" + (c.telefono || "-") + "</td>" +
                   "<td class=\"td-registro\">" + fecha + "</td>" +
                   '<td class="acciones">' +
-                  '<a href="ver-cliente.html?id=' + encodeURIComponent(c.id) + '" class="btn-small btn-ver" title="Ver"><span class="btn-icon" aria-hidden="true">👁</span><span class="btn-text">Ver</span></a>' +
-                  '<a href="editar-cliente.html?id=' + encodeURIComponent(c.id) + '" class="btn-small btn-editar" title="Editar"><span class="btn-icon" aria-hidden="true">✏</span><span class="btn-text">Editar</span></a>' +
-                  '<a href="index.html?cliente=' + encodeURIComponent(c.id) + '" class="btn-small btn-use" title="Usar en pensión"><span class="btn-icon" aria-hidden="true">➜</span><span class="btn-text">Usar</span></a>' +
-                  '<button type="button" class="btn-small btn-borrar" title="Borrar" data-id="' + c.id + '"><span class="btn-icon" aria-hidden="true">🗑</span><span class="btn-text">Borrar</span></button>' +
+                  '<a href="ver-cliente.html?id=' + encodeURIComponent(c.id) + '" class="btn-small btn-ver" title="Ver"><span class="btn-icon" aria-hidden="true"><svg class="btn-icon-svg" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span><span class="btn-text">Ver</span></a>' +
+                  '<a href="editar-cliente.html?id=' + encodeURIComponent(c.id) + '" class="btn-small btn-editar" title="Editar"><span class="btn-icon" aria-hidden="true"><svg class="btn-icon-svg" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span><span class="btn-text">Editar</span></a>' +
+                  '<a href="index.html?cliente=' + encodeURIComponent(c.id) + '" class="btn-small btn-use" title="Usar en formulario de pensiones"><span class="btn-icon" aria-hidden="true"><svg class="btn-icon-svg" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg></span><span class="btn-text">Usar</span></a>' +
+                  '<button type="button" class="btn-small btn-borrar" title="Borrar" data-id="' + c.id + '"><span class="btn-icon" aria-hidden="true"><svg class="btn-icon-svg" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z"/><path d="M10 11v6M14 11v6"/></svg></span><span class="btn-text">Borrar</span></button>' +
                   "</td>";
                 tbody.appendChild(tr);
                 tr.querySelector(".btn-borrar").addEventListener("click", function () { openModal(c.id); });
