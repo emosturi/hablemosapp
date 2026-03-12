@@ -317,6 +317,14 @@
     <script src="https://unpkg.com/file-saver@2.0.5/dist/FileSaver.min.js"></script>
   </head>
   <body>
+    <script>
+      (function () {
+        if (!sessionStorage.getItem("hablemosapp_auth")) {
+          window.location.replace("login.html");
+          return;
+        }
+      })();
+    </script>
     <div class="page">
       <header>
         <h1>Formulario de Solicitud de Pensión</h1>
@@ -325,6 +333,8 @@
         </p>
         <p style="margin: 12px 0 0;">
           <a href="clientes.html" style="color: var(--muted); font-size: 14px;">Alta de clientes →</a>
+          &nbsp;·&nbsp;
+          <a href="#" id="btnCerrarSesion" style="color: var(--muted); font-size: 14px;">Cerrar sesión</a>
         </p>
       </header>
 
@@ -2295,6 +2305,15 @@
                 }
               });
             });
+
+            const btnCerrarSesion = document.getElementById("btnCerrarSesion");
+            if (btnCerrarSesion) {
+              btnCerrarSesion.addEventListener("click", (e) => {
+                e.preventDefault();
+                sessionStorage.removeItem("hablemosapp_auth");
+                window.location.href = "login.html";
+              });
+            }
 
             btnMandatoSimple.addEventListener("click", ()=>{
 
