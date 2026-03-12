@@ -63,9 +63,57 @@
         display: inline-block;
       }
       .btn-use:hover { opacity: 0.95; }
+      .btn-small {
+        padding: 6px 10px;
+        border-radius: 8px;
+        border: none;
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        margin-right: 6px;
+      }
+      .btn-ver { background: rgba(139, 92, 246, 0.3); color: #c4b5fd; }
+      .btn-ver:hover { background: rgba(139, 92, 246, 0.5); }
+      .btn-editar { background: rgba(34, 197, 94, 0.2); color: #86efac; }
+      .btn-editar:hover { background: rgba(34, 197, 94, 0.35); }
+      .btn-borrar { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
+      .btn-borrar:hover { background: rgba(239, 68, 68, 0.35); }
       .loading { color: var(--muted); padding: 20px; }
       .error-msg { color: var(--danger); padding: 20px; }
       .empty { color: var(--muted); padding: 20px; }
+      .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+      }
+      .modal-overlay.hidden { display: none; }
+      .modal {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 24px;
+        max-width: 400px;
+        width: 90%;
+      }
+      .modal h3 { margin: 0 0 12px; font-size: 18px; }
+      .modal p { color: var(--muted); margin: 0 0 20px; }
+      .modal-btns { display: flex; gap: 10px; justify-content: flex-end; }
+      .modal-btns button {
+        padding: 10px 18px;
+        border-radius: 10px;
+        border: none;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .modal-btn-cancel { background: rgba(255,255,255,0.1); color: var(--text); }
+      .modal-btn-delete { background: var(--danger); color: #fff; }
     </style>
   </head>
   <body>
@@ -90,11 +138,22 @@
               <th>Nombre</th>
               <th>Teléfono</th>
               <th>Registro</th>
-              <th></th>
+              <th>Acciones</th>
             </tr>
           </thead>
           <tbody id="tbody"></tbody>
         </table>
+      </div>
+
+      <div id="modalOverlay" class="modal-overlay hidden" aria-hidden="true">
+        <div class="modal" role="dialog" aria-labelledby="modalTitle" aria-modal="true">
+          <h3 id="modalTitle">¿Eliminar cliente?</h3>
+          <p>Esta acción no se puede deshacer. El cliente se eliminará permanentemente.</p>
+          <div class="modal-btns">
+            <button type="button" class="modal-btn-cancel" id="modalCancel">Cancelar</button>
+            <button type="button" class="modal-btn-delete" id="modalDelete">Sí, eliminar</button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -132,17 +191,61 @@
               }
               document.getElementById("tabla").style.display = "table";
               var tbody = document.getElementById("tbody");
+              var deleteId = null;
+              var modalOverlay = document.getElementById("modalOverlay");
+              var modalCancel = document.getElementById("modalCancel");
+              var modalDelete = document.getElementById("modalDelete");
+
+              function closeModal() {
+                deleteId = null;
+                modalOverlay.classList.add("hidden");
+                modalOverlay.setAttribute("aria-hidden", "true");
+              }
+              function openModal(id) {
+                deleteId = id;
+                modalOverlay.classList.remove("hidden");
+                modalOverlay.setAttribute("aria-hidden", "false");
+              }
+
+              modalCancel.addEventListener("click", closeModal);
+              modalDelete.addEventListener("click", function () {
+                if (!deleteId) return;
+                supabase.from("clientes").delete().eq("id", deleteId).then(function (res) {
+                  if (res.error) {
+                    alert(res.error.message || "Error al eliminar.");
+                    return;
+                  }
+                  closeModal();
+                  var row = document.querySelector("tr[data-id='" + deleteId + "']");
+                  if (row) row.remove();
+                  if (tbody.querySelectorAll("tr").length === 0) {
+                    document.getElementById("tabla").style.display = "none";
+                    document.getElementById("empty").style.display = "block";
+                  }
+                });
+              });
+              modalOverlay.addEventListener("click", function (e) {
+                if (e.target === modalOverlay) closeModal();
+              });
+
               list.forEach(function (c) {
                 var nombre = [c.nombres, c.apellido_paterno, c.apellido_materno].filter(Boolean).join(" ");
                 var fecha = c.created_at ? new Date(c.created_at).toLocaleDateString("es-CL") : "";
                 var tr = document.createElement("tr");
+                tr.setAttribute("data-id", c.id);
                 tr.innerHTML =
                   "<td>" + (c.rut || "") + "</td>" +
                   "<td>" + (nombre || "-") + "</td>" +
                   "<td>" + (c.telefono || "-") + "</td>" +
                   "<td>" + fecha + "</td>" +
-                  '<td><a href="index.html?cliente=' + encodeURIComponent(c.id) + '" class="btn-use">Usar en formulario de pensión</a></td>';
+                  '<td>' +
+                  '<a href="ver-cliente.html?id=' + encodeURIComponent(c.id) + '" class="btn-small btn-ver">Ver</a>' +
+                  '<a href="editar-cliente.html?id=' + encodeURIComponent(c.id) + '" class="btn-small btn-editar">Editar</a>' +
+                  '<a href="index.html?cliente=' + encodeURIComponent(c.id) + '" class="btn-small btn-use">Usar en pensión</a>' +
+                  '<button type="button" class="btn-small btn-borrar" data-id="' + c.id + '">Borrar</button>' +
+                  "</td>";
                 tbody.appendChild(tr);
+                tr.querySelector(".btn-borrar").addEventListener("click", function () { openModal(c.id); });
               });
             });
         });
