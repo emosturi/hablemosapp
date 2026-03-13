@@ -21,3 +21,8 @@ create policy "Solo autenticados pueden insertar clientes potenciales"
 create policy "Solo autenticados pueden leer clientes potenciales"
   on public.clientes_potenciales for select
   using (auth.role() = 'authenticated');
+
+-- Solo usuarios autenticados pueden eliminar
+create policy "Solo autenticados pueden eliminar clientes potenciales"
+  on public.clientes_potenciales for delete
+  using (auth.role() = 'authenticated');
