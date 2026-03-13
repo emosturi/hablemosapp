@@ -135,4 +135,11 @@ window.REMINDER_FUNCTION_URL = "https://TU-SITIO.netlify.app/.netlify/functions/
 
 **Migración en Supabase:** ejecuta el contenido de `supabase-migration-recordatorios.sql` en SQL Editor.
 
-**Funcionamiento:** `process-reminders` se ejecuta diariamente (~9:00 Chile) y envía los recordatorios programados para ese día a tu número (NOTIFY_WHATSAPP_TO).
+**Funcionamiento:** `process-reminders` se ejecuta cada 15 minutos y envía los recordatorios cuya fecha es hoy (hora Chile) y cuya hora ya pasó a tu número (NOTIFY_WHATSAPP_TO).
+
+**Si no te llega el WhatsApp:**
+
+1. **Revisar logs en Netlify:** Site → Functions → `process-reminders` → Logs. Verás "Hoy (Chile):", "Hora (Chile):" y si encuentra recordatorios o errores de Twilio.
+2. **Probar envío manual:** En Netlify → Functions → `process-reminders` → "Run function". Así ves en los logs si hay recordatorios para hoy y si Twilio responde.
+3. **Comprobar fecha/hora:** La función usa la fecha y hora de Chile (America/Santiago). Crea un recordatorio para hoy con una hora que ya haya pasado; en la siguiente ejecución (en 15 min) debería enviarse.
+4. **Variables de entorno:** En Netlify deben estar `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` y las de Twilio (`TWILIO_*`, `NOTIFY_WHATSAPP_TO`).

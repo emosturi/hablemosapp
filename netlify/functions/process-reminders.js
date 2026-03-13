@@ -10,6 +10,18 @@ exports.config = {
   schedule: "*/15 * * * *", // Cada 15 minutos
 };
 
+function hoyChile() {
+  return new Date().toLocaleDateString("en-CA", { timeZone: "America/Santiago" }); // YYYY-MM-DD
+}
+
+function ahoraChileHHmm() {
+  const s = new Date().toLocaleTimeString("es-CL", { timeZone: "America/Santiago", hour12: false, hour: "2-digit", minute: "2-digit" });
+  const parts = s.split(":");
+  const h = (parts[0] || "0").padStart(2, "0");
+  const m = (parts[1] || "0").padStart(2, "0");
+  return h + ":" + m;
+}
+
 exports.handler = async function (event, context) {
   console.log("[process-reminders] Ejecutando…");
 
@@ -25,8 +37,10 @@ exports.handler = async function (event, context) {
     return { statusCode: 500, body: "Configuración incompleta" };
   }
 
-  const hoy = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-  const ahoraChile = new Date().toLocaleTimeString("es-CL", { timeZone: "America/Santiago", hour: "2-digit", minute: "2-digit", hour12: false });
+  const hoy = hoyChile();
+  const ahoraChile = ahoraChileHHmm();
+  console.log("[process-reminders] Hoy (Chile):", hoy, "Hora (Chile):", ahoraChile);
+
   const supabase = createClient(supabaseUrl, supabaseKey);
 
   const { data: pendientes, error } = await supabase
@@ -42,15 +56,25 @@ exports.handler = async function (event, context) {
 
   if (!pendientes || pendientes.length === 0) {
     console.log("[process-reminders] Sin recordatorios para hoy");
-    return { statusCode: 200, body: JSON.stringify({ enviados: 0 }) };
+    return { statusCode: 200, body: JSON.stringify({ ok: true, hoy, ahoraChile, enviados: 0 }) };
   }
+
+  console.log("[process-reminders] Pendientes:", pendientes.length, pendientes.map(function (p) { return { id: p.id, fecha: p.fecha, hora: p.hora }; }));
 
   const toNum = to.replace(/\D/g, "").replace(/^0/, "");
   const toWhatsApp = toNum.startsWith("56") ? `whatsapp:+${toNum}` : `whatsapp:+56${toNum}`;
   const client = twilio(accountSid, authToken);
 
   for (const r of pendientes) {
-    if (r.hora && r.hora.trim() && r.hora > ahoraChile) continue;
+    const horaRecordatorio = (r.hora || "").trim();
+    if (horaRecordatorio) {
+      const rh = horaRecordatorio.split(":");
+      const rNorm = (rh[0] || "0").padStart(2, "0") + ":" + (rh[1] || "0").padStart(2, "0");
+      if (rNorm > ahoraChile) {
+        console.log("[process-reminders] Aún no es hora:", r.id, "hora", rNorm, "ahora", ahoraChile);
+        continue;
+      }
+    }
 
     const cabecera = [];
     if (r.cliente_nombre) cabecera.push(r.cliente_nombre);
@@ -71,5 +95,5 @@ exports.handler = async function (event, context) {
     }
   }
 
-  return { statusCode: 200, body: JSON.stringify({ procesados: pendientes.length }) };
+  return { statusCode: 200, body: JSON.stringify({ ok: true, hoy, ahoraChile, procesados: pendientes.length }) };
 };
