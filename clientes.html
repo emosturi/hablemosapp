@@ -345,8 +345,25 @@
                 <input id="conyuge_apMaterno" name="conyuge.apellidoMaterno" />
               </div>
               <div class="field col-4">
+                <label for="conyuge_nacionalidad">Nacionalidad</label>
+                <input id="conyuge_nacionalidad" name="conyuge.nacionalidad" placeholder="Ej. Chilena" />
+              </div>
+              <div class="field col-4">
                 <label for="conyuge_rut">RUT</label>
                 <input id="conyuge_rut" name="conyuge.rut" class="rut-input" placeholder="12.345.678-5" />
+              </div>
+              <div class="field col-4">
+                <label>Sexo</label>
+                <div class="radio-row" role="group" aria-label="Sexo cónyuge/conviviente">
+                  <label class="radio-pill">
+                    <input type="radio" name="conyuge.sexo" value="Masculino" />
+                    Masculino
+                  </label>
+                  <label class="radio-pill">
+                    <input type="radio" name="conyuge.sexo" value="Femenino" />
+                    Femenino
+                  </label>
+                </div>
               </div>
               <div class="field col-4">
                 <label for="conyuge_fechaNac">Fecha de nacimiento</label>
@@ -692,7 +709,9 @@
           '<div class="field col-4"><label>Nombres</label><input name="hijo_' + index + '_nombres" /></div>' +
           '<div class="field col-4"><label>Apellido Paterno</label><input name="hijo_' + index + '_apellidoPaterno" /></div>' +
           '<div class="field col-4"><label>Apellido Materno</label><input name="hijo_' + index + '_apellidoMaterno" /></div>' +
+          '<div class="field col-4"><label>Nacionalidad</label><input name="hijo_' + index + '_nacionalidad" placeholder="Ej. Chilena" /></div>' +
           '<div class="field col-4"><label>RUT</label><input name="hijo_' + index + '_rut" class="rut-input" placeholder="12.345.678-5" /></div>' +
+          '<div class="field col-4"><label>Sexo</label><select name="hijo_' + index + '_sexo"><option value="">Selecciona…</option><option>Masculino</option><option>Femenino</option></select></div>' +
           '<div class="field col-4"><label>Fecha nacimiento</label>' +
           '<div class="date-group">' +
           '<select name="hijo_' + index + '_dia"><option value="">Día</option></select>' +
@@ -777,7 +796,9 @@
           row.conyuge_rut = (co.rut || "").trim() || null;
           row.conyuge_fecha_nacimiento = toIsoDate(co.fechaNacimiento);
           row.conyuge_fecha_matrimonio = toIsoDate(co.fechaMatrimonio);
-          row.conyuge_lugar_matrimonio = (co.lugarMatrimonio || "").trim() || null;
+        row.conyuge_lugar_matrimonio = (co.lugarMatrimonio || "").trim() || null;
+        row.conyuge_nacionalidad = (co.nacionalidad || "").trim() || null;
+        row.conyuge_sexo = (co.sexo || "").trim() || null;
         }
 
         var tieneHijos = form.querySelector("input[name='tieneHijosMenores24']:checked");
@@ -789,7 +810,9 @@
             var nombres = (form.querySelector("input[name='hijo_" + i + "_nombres']") || {}).value;
             var apP = (form.querySelector("input[name='hijo_" + i + "_apellidoPaterno']") || {}).value;
             var apM = (form.querySelector("input[name='hijo_" + i + "_apellidoMaterno']") || {}).value;
+            var nac = (form.querySelector("input[name='hijo_" + i + "_nacionalidad']") || {}).value;
             var rut = (form.querySelector("input[name='hijo_" + i + "_rut']") || {}).value;
+            var sexo = (form.querySelector("select[name='hijo_" + i + "_sexo']") || {}).value;
             var dia = (form.querySelector("select[name='hijo_" + i + "_dia']") || {}).value;
             var mes = (form.querySelector("select[name='hijo_" + i + "_mes']") || {}).value;
             var anio = (form.querySelector("select[name='hijo_" + i + "_anio']") || {}).value;
@@ -799,7 +822,9 @@
               apellido_paterno: (apP || "").trim() || null,
               apellido_materno: (apM || "").trim() || null,
               rut: (rut || "").trim() || null,
-              fecha_nacimiento: fNac
+              fecha_nacimiento: fNac,
+              nacionalidad: (nac || "").trim() || null,
+              sexo: (sexo || "").trim() || null
             });
           }
         }
