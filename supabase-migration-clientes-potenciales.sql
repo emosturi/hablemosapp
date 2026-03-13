@@ -12,10 +12,10 @@ create index if not exists idx_clientes_potenciales_created_at on public.cliente
 
 alter table public.clientes_potenciales enable row level security;
 
--- Cualquiera puede insertar (formulario público)
-create policy "Permitir insert clientes potenciales público"
+-- Solo usuarios autenticados pueden insertar
+create policy "Solo autenticados pueden insertar clientes potenciales"
   on public.clientes_potenciales for insert
-  with check (true);
+  with check (auth.role() = 'authenticated');
 
 -- Solo usuarios autenticados pueden ver el listado
 create policy "Solo autenticados pueden leer clientes potenciales"
