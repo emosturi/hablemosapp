@@ -113,3 +113,26 @@ Para usar un número de WhatsApp que no sea el Sandbox (ej: número de negocio):
 3. Cuando tengas el número aprobado, usa ese número en formato `whatsapp:+56XXXXXXXXX` como `TWILIO_WHATSAPP_FROM` en Netlify.
 
 Mientras tanto, el Sandbox es suficiente para recibir las notificaciones de nuevos clientes en tu propio número.
+
+---
+
+## 9. Recordatorios programados (opcional)
+
+La app permite crear recordatorios desde **Ver cliente** que se envían por WhatsApp a **NOTIFY_WHATSAPP_TO** en la fecha indicada.
+
+**Variables adicionales en Netlify:**
+
+| Variable | Descripción |
+|----------|-------------|
+| `SUPABASE_URL` | URL de tu proyecto Supabase |
+| `SUPABASE_SERVICE_ROLE_KEY` | Service role key (Dashboard → Settings → API) |
+
+**En supabase-config.js** añade:
+
+```js
+window.REMINDER_FUNCTION_URL = "https://TU-SITIO.netlify.app/.netlify/functions/send-reminder";
+```
+
+**Migración en Supabase:** ejecuta el contenido de `supabase-migration-recordatorios.sql` en SQL Editor.
+
+**Funcionamiento:** `process-reminders` se ejecuta diariamente (~9:00 Chile) y envía los recordatorios programados para ese día a tu número (NOTIFY_WHATSAPP_TO).
