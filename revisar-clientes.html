@@ -258,167 +258,189 @@
             return;
           }
 
-          document.getElementById("loading").style.display = "block";
-          Promise.all([
-            supabase.from("clientes").select("id, rut, nombres, apellido_paterno, apellido_materno, telefono, created_at").order("created_at", { ascending: false }),
-            supabase.from("clientes_potenciales").select("id, nombre, telefono, created_at").order("created_at", { ascending: false })
-          ]).then(function (results) {
-            document.getElementById("loading").style.display = "none";
-            var errClientes = results[0].error;
-            var errPotenciales = results[1].error;
-            if (errClientes || errPotenciales) {
-              document.getElementById("error").style.display = "block";
-              document.getElementById("error").textContent = (errClientes && errClientes.message) || (errPotenciales && errPotenciales.message) || "Error al cargar.";
-              return;
-            }
-            var clientes = results[0].data || [];
-            var potenciales = results[1].data || [];
-            var list = [];
-            clientes.forEach(function (c) {
-              list.push({
-                id: c.id,
-                tipo: "cliente",
-                nombre: [c.nombres, c.apellido_paterno, c.apellido_materno].filter(Boolean).join(" "),
-                rut: c.rut || "",
-                telefono: c.telefono || "",
-                created_at: c.created_at
-              });
-            });
-            potenciales.forEach(function (p) {
-              list.push({
-                id: p.id,
-                tipo: "potencial",
-                nombre: p.nombre || "",
-                rut: "",
-                telefono: p.telefono || "",
-                created_at: p.created_at
-              });
-            });
-            list.sort(function (a, b) {
-              var ta = a.created_at ? new Date(a.created_at).getTime() : 0;
-              var tb = b.created_at ? new Date(b.created_at).getTime() : 0;
-              return tb - ta;
-            });
-            if (list.length === 0) {
-              document.getElementById("empty").style.display = "block";
-              return;
-            }
-            document.getElementById("tabla").style.display = "table";
-            document.getElementById("searchWrap").style.display = "block";
-            var tbody = document.getElementById("tbody");
-            var searchInput = document.getElementById("searchClientes");
-            var noResults = document.getElementById("noResults");
+          var loadingEl = document.getElementById("loading");
+          var errorEl = document.getElementById("error");
+          var emptyEl = document.getElementById("empty");
+          var tablaEl = document.getElementById("tabla");
+          var searchWrapEl = document.getElementById("searchWrap");
+          var tbody = document.getElementById("tbody");
+          var searchInput = document.getElementById("searchClientes");
+          var noResults = document.getElementById("noResults");
+          var modalOverlay = document.getElementById("modalOverlay");
+          var modalTitle = document.getElementById("modalTitle");
+          var modalMessage = document.getElementById("modalMessage");
+          var modalCancel = document.getElementById("modalCancel");
+          var modalDelete = document.getElementById("modalDelete");
 
-            function filtrar() {
-              var q = (searchInput.value || "").trim().toLowerCase();
-              var visibles = 0;
-              for (var i = 0; i < tbody.rows.length; i++) {
-                var tr = tbody.rows[i];
-                var match = !q || (tr.getAttribute("data-search") || "").indexOf(q) !== -1;
-                tr.style.display = match ? "" : "none";
-                if (match) visibles++;
+          var deleteId = null;
+          var deleteTipo = null;
+
+          function filtrar() {
+            var q = (searchInput.value || "").trim().toLowerCase();
+            var visibles = 0;
+            for (var i = 0; i < tbody.rows.length; i++) {
+              var tr = tbody.rows[i];
+              var match = !q || (tr.getAttribute("data-search") || "").indexOf(q) !== -1;
+              tr.style.display = match ? "" : "none";
+              if (match) visibles++;
+            }
+            noResults.style.display = (q && visibles === 0) ? "block" : "none";
+          }
+
+          function closeModal() {
+            deleteId = null;
+            deleteTipo = null;
+            modalOverlay.classList.add("hidden");
+            modalOverlay.setAttribute("aria-hidden", "true");
+          }
+          function openModal(id, tipo) {
+            deleteId = id;
+            deleteTipo = tipo || "cliente";
+            modalTitle.textContent = deleteTipo === "potencial" ? "¿Eliminar cliente potencial?" : "¿Eliminar cliente?";
+            modalMessage.textContent = deleteTipo === "potencial"
+              ? "El cliente potencial se eliminará del listado."
+              : "Esta acción no se puede deshacer. El cliente se eliminará permanentemente.";
+            modalOverlay.classList.remove("hidden");
+            modalOverlay.setAttribute("aria-hidden", "false");
+          }
+
+          modalCancel.addEventListener("click", closeModal);
+          modalDelete.addEventListener("click", function () {
+            if (!deleteId || !deleteTipo) return;
+            var tableName = deleteTipo === "potencial" ? "clientes_potenciales" : "clientes";
+            supabase.from(tableName).delete().eq("id", deleteId).then(function (res) {
+              if (res.error) {
+                alert(res.error.message || "Error al eliminar.");
+                return;
               }
-              noResults.style.display = (q && visibles === 0) ? "block" : "none";
-            }
-            searchInput.addEventListener("input", filtrar);
-            var deleteId = null;
-            var deleteTipo = null;
-            var modalOverlay = document.getElementById("modalOverlay");
-            var modalTitle = document.getElementById("modalTitle");
-            var modalMessage = document.getElementById("modalMessage");
-            var modalCancel = document.getElementById("modalCancel");
-            var modalDelete = document.getElementById("modalDelete");
-
-            function closeModal() {
-              deleteId = null;
-              deleteTipo = null;
-              modalOverlay.classList.add("hidden");
-              modalOverlay.setAttribute("aria-hidden", "true");
-            }
-            function openModal(id, tipo) {
-              deleteId = id;
-              deleteTipo = tipo || "cliente";
-              modalTitle.textContent = deleteTipo === "potencial" ? "¿Eliminar cliente potencial?" : "¿Eliminar cliente?";
-              modalMessage.textContent = deleteTipo === "potencial"
-                ? "El cliente potencial se eliminará del listado."
-                : "Esta acción no se puede deshacer. El cliente se eliminará permanentemente.";
-              modalOverlay.classList.remove("hidden");
-              modalOverlay.setAttribute("aria-hidden", "false");
-            }
-
-            modalCancel.addEventListener("click", closeModal);
-            modalDelete.addEventListener("click", function () {
-              if (!deleteId || !deleteTipo) return;
-              var tableName = deleteTipo === "potencial" ? "clientes_potenciales" : "clientes";
-              supabase.from(tableName).delete().eq("id", deleteId).then(function (res) {
-                if (res.error) {
-                  alert(res.error.message || "Error al eliminar.");
-                  return;
-                }
-                closeModal();
-                var row = document.querySelector("tr[data-id='" + deleteId + "'][data-tipo='" + deleteTipo + "']");
-                if (row) row.remove();
-                if (tbody.querySelectorAll("tr").length === 0) {
-                  document.getElementById("tabla").style.display = "none";
-                  document.getElementById("empty").style.display = "block";
-                }
-              });
+              closeModal();
+              cargarLista();
             });
-            modalOverlay.addEventListener("click", function (e) {
-              if (e.target === modalOverlay) closeModal();
+          });
+          modalOverlay.addEventListener("click", function (e) {
+            if (e.target === modalOverlay) closeModal();
+          });
+
+          var btnCerrar = document.getElementById("btnCerrarSesion");
+          if (btnCerrar) {
+            btnCerrar.addEventListener("click", function (e) {
+              e.preventDefault();
+              supabase.auth.signOut().then(function () { window.location.href = "login.html"; });
             });
+          }
 
-            var btnCerrar = document.getElementById("btnCerrarSesion");
-            if (btnCerrar) {
-              btnCerrar.addEventListener("click", function (e) {
-                e.preventDefault();
-                supabase.auth.signOut().then(function () { window.location.href = "login.html"; });
-              });
-            }
+          searchInput.addEventListener("input", filtrar);
 
-            list.forEach(function (item) {
-              var fecha = item.created_at ? new Date(item.created_at).toLocaleDateString("es-CL") : "";
-              var searchText = [item.nombre || "", (item.rut || "").replace(/\./g, "").replace(/-/g, ""), (item.telefono || "").replace(/\s/g, "")].join(" ").toLowerCase();
-              var tr = document.createElement("tr");
-              tr.className = "client-row";
-              tr.setAttribute("data-id", item.id);
-              tr.setAttribute("data-tipo", item.tipo);
-              tr.setAttribute("data-search", searchText);
-              var tipoLabel = item.tipo === "potencial" ? "Potencial" : "Cliente";
-              var tipoClass = item.tipo === "potencial" ? "td-tipo potencial" : "td-tipo";
-              var accionesHtml;
-              if (item.tipo === "cliente") {
-                accionesHtml =
-                  '<a href="editar-cliente.html?id=' + encodeURIComponent(item.id) + '" class="btn-small btn-editar" title="Editar"><span class="btn-icon" aria-hidden="true"><svg class="btn-icon-svg" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span><span class="btn-text">Editar</span></a>' +
-                  '<a href="index.html?cliente=' + encodeURIComponent(item.id) + '" class="btn-small btn-use" title="Usar en formulario de pensiones"><span class="btn-icon" aria-hidden="true"><svg class="btn-icon-svg" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg></span><span class="btn-text">Usar</span></a>' +
-                  '<button type="button" class="btn-small btn-borrar" title="Borrar" data-id="' + item.id + '"><span class="btn-icon" aria-hidden="true"><svg class="btn-icon-svg" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z"/><path d="M10 11v6M14 11v6"/></svg></span><span class="btn-text">Borrar</span></button>';
-              } else {
-                accionesHtml = '<button type="button" class="btn-small btn-borrar" title="Borrar" data-id="' + item.id + '"><span class="btn-icon" aria-hidden="true"><svg class="btn-icon-svg" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z"/><path d="M10 11v6M14 11v6"/></svg></span><span class="btn-text">Borrar</span></button>';
+          function cargarLista() {
+            loadingEl.style.display = "block";
+            errorEl.style.display = "none";
+            emptyEl.style.display = "none";
+            tablaEl.style.display = "none";
+            searchWrapEl.style.display = "none";
+            noResults.style.display = "none";
+
+            Promise.all([
+              supabase.from("clientes").select("id, rut, nombres, apellido_paterno, apellido_materno, telefono, created_at").order("created_at", { ascending: false }),
+              supabase.from("clientes_potenciales").select("id, nombre, telefono, created_at").order("created_at", { ascending: false })
+            ]).then(function (results) {
+              loadingEl.style.display = "none";
+              var errClientes = results[0].error;
+              var errPotenciales = results[1].error;
+              if (errClientes || errPotenciales) {
+                errorEl.style.display = "block";
+                errorEl.textContent = (errClientes && errClientes.message) || (errPotenciales && errPotenciales.message) || "Error al cargar.";
+                return;
               }
-              tr.innerHTML =
-                "<td class=\"client-name\">" + (item.nombre || "-") + "</td>" +
-                "<td class=\"td-rut\">" + (item.rut || "-") + "</td>" +
-                "<td class=\"td-tel\">" + (item.telefono || "-") + "</td>" +
-                "<td class=\"td-registro\">" + fecha + "</td>" +
-                "<td class=\"" + tipoClass + "\">" + tipoLabel + "</td>" +
-                '<td class="acciones">' + accionesHtml + "</td>";
-              tbody.appendChild(tr);
-              var btnBorrar = tr.querySelector(".btn-borrar");
-              if (btnBorrar) btnBorrar.addEventListener("click", function (e) { e.stopPropagation(); openModal(item.id, item.tipo); });
-              if (item.tipo === "cliente") {
-                tr.querySelector(".btn-editar").addEventListener("click", function (e) { e.stopPropagation(); });
-                tr.querySelector(".btn-use").addEventListener("click", function (e) { e.stopPropagation(); });
-                tr.addEventListener("click", function (e) {
-                  if (e.target.closest("td.acciones")) return;
-                  window.location.href = "ver-cliente.html?id=" + encodeURIComponent(item.id);
+              var clientes = results[0].data || [];
+              var potenciales = results[1].data || [];
+              var list = [];
+              clientes.forEach(function (c) {
+                list.push({
+                  id: c.id,
+                  tipo: "cliente",
+                  nombre: [c.nombres, c.apellido_paterno, c.apellido_materno].filter(Boolean).join(" "),
+                  rut: c.rut || "",
+                  telefono: c.telefono || "",
+                  created_at: c.created_at
                 });
-              } else {
-                tr.addEventListener("click", function (e) {
-                  if (e.target.closest("td.acciones")) return;
-                  window.location.href = "ver-potencial.html?id=" + encodeURIComponent(item.id);
+              });
+              potenciales.forEach(function (p) {
+                list.push({
+                  id: p.id,
+                  tipo: "potencial",
+                  nombre: p.nombre || "",
+                  rut: "",
+                  telefono: p.telefono || "",
+                  created_at: p.created_at
                 });
+              });
+              list.sort(function (a, b) {
+                var ta = a.created_at ? new Date(a.created_at).getTime() : 0;
+                var tb = b.created_at ? new Date(b.created_at).getTime() : 0;
+                return tb - ta;
+              });
+              if (list.length === 0) {
+                emptyEl.style.display = "block";
+                return;
               }
+              tablaEl.style.display = "table";
+              searchWrapEl.style.display = "block";
+              tbody.innerHTML = "";
+
+              list.forEach(function (item) {
+                var fecha = item.created_at ? new Date(item.created_at).toLocaleDateString("es-CL") : "";
+                var searchText = [item.nombre || "", (item.rut || "").replace(/\./g, "").replace(/-/g, ""), (item.telefono || "").replace(/\s/g, "")].join(" ").toLowerCase();
+                var tr = document.createElement("tr");
+                tr.className = "client-row";
+                tr.setAttribute("data-id", item.id);
+                tr.setAttribute("data-tipo", item.tipo);
+                tr.setAttribute("data-search", searchText);
+                var tipoLabel = item.tipo === "potencial" ? "Potencial" : "Cliente";
+                var tipoClass = item.tipo === "potencial" ? "td-tipo potencial" : "td-tipo";
+                var accionesHtml;
+                if (item.tipo === "cliente") {
+                  accionesHtml =
+                    '<a href="editar-cliente.html?id=' + encodeURIComponent(item.id) + '" class="btn-small btn-editar" title="Editar"><span class="btn-icon" aria-hidden="true"><svg class="btn-icon-svg" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span><span class="btn-text">Editar</span></a>' +
+                    '<a href="index.html?cliente=' + encodeURIComponent(item.id) + '" class="btn-small btn-use" title="Usar en formulario de pensiones"><span class="btn-icon" aria-hidden="true"><svg class="btn-icon-svg" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg></span><span class="btn-text">Usar</span></a>' +
+                    '<button type="button" class="btn-small btn-borrar" title="Borrar" data-id="' + item.id + '"><span class="btn-icon" aria-hidden="true"><svg class="btn-icon-svg" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z"/><path d="M10 11v6M14 11v6"/></svg></span><span class="btn-text">Borrar</span></button>';
+                } else {
+                  accionesHtml = '<button type="button" class="btn-small btn-borrar" title="Borrar" data-id="' + item.id + '"><span class="btn-icon" aria-hidden="true"><svg class="btn-icon-svg" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z"/><path d="M10 11v6M14 11v6"/></svg></span><span class="btn-text">Borrar</span></button>';
+                }
+                tr.innerHTML =
+                  "<td class=\"client-name\">" + (item.nombre || "-") + "</td>" +
+                  "<td class=\"td-rut\">" + (item.rut || "-") + "</td>" +
+                  "<td class=\"td-tel\">" + (item.telefono || "-") + "</td>" +
+                  "<td class=\"td-registro\">" + fecha + "</td>" +
+                  "<td class=\"" + tipoClass + "\">" + tipoLabel + "</td>" +
+                  '<td class="acciones">' + accionesHtml + "</td>";
+                tbody.appendChild(tr);
+                var btnBorrar = tr.querySelector(".btn-borrar");
+                if (btnBorrar) btnBorrar.addEventListener("click", function (e) { e.stopPropagation(); openModal(item.id, item.tipo); });
+                if (item.tipo === "cliente") {
+                  tr.querySelector(".btn-editar").addEventListener("click", function (e) { e.stopPropagation(); });
+                  tr.querySelector(".btn-use").addEventListener("click", function (e) { e.stopPropagation(); });
+                  tr.addEventListener("click", function (e) {
+                    if (e.target.closest("td.acciones")) return;
+                    window.location.href = "ver-cliente.html?id=" + encodeURIComponent(item.id);
+                  });
+                } else {
+                  tr.addEventListener("click", function (e) {
+                    if (e.target.closest("td.acciones")) return;
+                    window.location.href = "ver-potencial.html?id=" + encodeURIComponent(item.id);
+                  });
+                }
+              });
+              filtrar();
             });
+          }
+
+          cargarLista();
+
+          document.addEventListener("visibilitychange", function () {
+            if (document.visibilityState === "visible") cargarLista();
+          });
+          window.addEventListener("pageshow", function (e) {
+            if (e.persisted) cargarLista();
           });
         });
       })();
