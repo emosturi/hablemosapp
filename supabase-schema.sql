@@ -1,4 +1,4 @@
--- Tabla de clientes (alta de clientes - formulario público)
+-- Tabla de clientes (Registro de Afiliados - formulario público)
 -- Ejecutar en Supabase: SQL Editor > New query > Pegar y Run
 
 create table if not exists public.clientes (

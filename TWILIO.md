@@ -89,7 +89,7 @@ window.NOTIFY_SECRET = "miClaveSecreta123";   // la misma que NOTIFY_SECRET en N
 ## 7. Probar que funciona
 
 1. Despliega el sitio en Netlify con las variables de entorno configuradas.
-2. Abre la página de **Alta de clientes** (clientes.html).
+2. Abre la página de **Registro de Afiliados** (clientes.html).
 3. Completa el formulario con datos de prueba y envíalo.
 4. Si todo está bien:
    - El cliente se guarda en Supabase.
