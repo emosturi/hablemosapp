@@ -7,7 +7,7 @@ const twilio = require("twilio");
 const { createClient } = require("@supabase/supabase-js");
 
 exports.config = {
-  schedule: "0 * * * *", // Cada hora (para respetar la hora indicada)
+  schedule: "*/15 * * * *", // Cada 15 minutos
 };
 
 exports.handler = async function (event, context) {
