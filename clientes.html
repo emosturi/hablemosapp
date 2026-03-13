@@ -222,6 +222,25 @@
                 <div class="error" data-error-for="cliente_rut"></div>
               </div>
               <div class="field col-4">
+                <label for="cliente_nacionalidad">Nacionalidad <span class="req">*</span></label>
+                <input id="cliente_nacionalidad" name="cliente.nacionalidad" required autocomplete="country-name" placeholder="Ej. Chilena" />
+                <div class="error" data-error-for="cliente_nacionalidad"></div>
+              </div>
+              <div class="field col-4">
+                <label>Sexo <span class="req">*</span></label>
+                <div class="radio-row" role="group" aria-label="Sexo">
+                  <label class="radio-pill">
+                    <input type="radio" name="cliente.sexo" value="Masculino" required />
+                    Masculino
+                  </label>
+                  <label class="radio-pill">
+                    <input type="radio" name="cliente.sexo" value="Femenino" required />
+                    Femenino
+                  </label>
+                </div>
+                <div class="error" data-error-for="cliente_sexo"></div>
+              </div>
+              <div class="field col-4">
                 <label for="cliente_fechaNac">Fecha de nacimiento <span class="req">*</span></label>
                 <div class="date-group">
                   <select id="cliente_fechaNac_dia"><option value="" selected disabled>Día</option></select>
@@ -745,8 +764,8 @@
           email: (c.email || "").trim() || null,
           afp: (c.afp || "").trim() || null,
           institucion_salud: (c.institucionSalud || "").trim() || null,
-          nacionalidad: null,
-          sexo: null
+          nacionalidad: (c.nacionalidad || "").trim() || null,
+          sexo: (c.sexo || "").trim() || null
         };
 
         var co = data.conyuge || {};
