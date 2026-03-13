@@ -2607,17 +2607,18 @@
                         fechaMat = pm[2] + "-" + pm[1] + "-" + pm[0];
                       }
                     }
+                    var parentescoConyuge = (c.estado_civil || "").toLowerCase().indexOf("conviviente") !== -1
+                      ? "Conviviente civil"
+                      : "Cónyuge";
                     var observConyuge = "";
                     if (fechaMat || c.conyuge_lugar_matrimonio) {
-                      observConyuge = "Matrimonio/Unión civil";
+                      var tipoVinculo = parentescoConyuge === "Conviviente civil" ? "Unión civil" : "Matrimonio";
+                      observConyuge = tipoVinculo;
                       if (fechaMat) observConyuge += " en fecha " + fechaMat;
                       if (c.conyuge_lugar_matrimonio) {
                         observConyuge += (fechaMat ? ", " : " en ") + "lugar " + c.conyuge_lugar_matrimonio;
                       }
                     }
-                    var parentescoConyuge = (c.estado_civil || "").toLowerCase().indexOf("conviviente") !== -1
-                      ? "Conviviente civil"
-                      : "Cónyuge";
                     beneficiarios.push({
                       nombres: c.conyuge_nombres || "",
                       apellidoPaterno: c.conyuge_apellido_paterno || "",
