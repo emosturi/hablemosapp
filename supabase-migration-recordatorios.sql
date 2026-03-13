@@ -5,7 +5,9 @@ create table if not exists public.recordatorios (
   id uuid primary key default gen_random_uuid(),
   cliente_id uuid references public.clientes(id) on delete set null,
   cliente_nombre text,
+  cliente_telefono text,
   fecha date not null,
+  hora text,
   mensaje text not null,
   enviado boolean default false,
   created_at timestamptz default now()

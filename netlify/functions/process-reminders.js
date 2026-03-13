@@ -1,13 +1,13 @@
 /**
  * Netlify Scheduled Function: envía los recordatorios programados para hoy
  * a NOTIFY_WHATSAPP_TO por WhatsApp (Twilio).
- * Se ejecuta diariamente (config.schedule).
+ * Se ejecuta cada hora; solo envía cuando la hora actual (Chile) >= hora del recordatorio.
  */
 const twilio = require("twilio");
 const { createClient } = require("@supabase/supabase-js");
 
 exports.config = {
-  schedule: "0 12 * * *", // Diario a las 12:00 UTC (~9:00 Chile)
+  schedule: "0 * * * *", // Cada hora (para respetar la hora indicada)
 };
 
 exports.handler = async function (event, context) {
@@ -26,11 +26,12 @@ exports.handler = async function (event, context) {
   }
 
   const hoy = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  const ahoraChile = new Date().toLocaleTimeString("es-CL", { timeZone: "America/Santiago", hour: "2-digit", minute: "2-digit", hour12: false });
   const supabase = createClient(supabaseUrl, supabaseKey);
 
   const { data: pendientes, error } = await supabase
     .from("recordatorios")
-    .select("id, fecha, mensaje, cliente_nombre")
+    .select("id, fecha, hora, mensaje, cliente_nombre, cliente_telefono")
     .eq("fecha", hoy)
     .eq("enviado", false);
 
@@ -49,9 +50,13 @@ exports.handler = async function (event, context) {
   const client = twilio(accountSid, authToken);
 
   for (const r of pendientes) {
-    const texto = r.cliente_nombre
-      ? `Recordatorio (${r.cliente_nombre}) para el ${r.fecha}:\n\n${r.mensaje}`
-      : `Recordatorio para el ${r.fecha}:\n\n${r.mensaje}`;
+    if (r.hora && r.hora.trim() && r.hora > ahoraChile) continue;
+
+    const cabecera = [];
+    if (r.cliente_nombre) cabecera.push(r.cliente_nombre);
+    if (r.cliente_telefono) cabecera.push("Tel: " + r.cliente_telefono);
+    const cabeceraStr = cabecera.length > 0 ? " (" + cabecera.join(", ") + ")" : "";
+    const texto = `Recordatorio${cabeceraStr} para el ${r.fecha}${r.hora ? " a las " + r.hora : ""}:\n\n${r.mensaje}`;
 
     try {
       await client.messages.create({

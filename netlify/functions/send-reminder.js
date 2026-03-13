@@ -1,7 +1,7 @@
 /**
  * Netlify Function: guarda un recordatorio en Supabase para enviarlo en la fecha indicada.
  * El envío lo hace process-reminders (función programada) a NOTIFY_WHATSAPP_TO.
- * Body: { secret, fecha, mensaje, cliente_id?, cliente_nombre? }
+ * Body: { secret, fecha, hora?, mensaje, cliente_id?, cliente_nombre?, cliente_telefono? }
  */
 const { createClient } = require("@supabase/supabase-js");
 
@@ -47,7 +47,9 @@ exports.handler = async function (event) {
     const { error } = await supabase.from("recordatorios").insert({
       cliente_id: body.cliente_id || null,
       cliente_nombre: (body.cliente_nombre || "").toString().trim() || null,
+      cliente_telefono: (body.cliente_telefono || "").toString().trim() || null,
       fecha: fecha,
+      hora: (body.hora || "").toString().trim() || null,
       mensaje: mensaje,
     });
 
