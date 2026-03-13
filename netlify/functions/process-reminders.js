@@ -1,13 +1,13 @@
 /**
- * Netlify Scheduled Function: envía los recordatorios programados para hoy
- * a NOTIFY_WHATSAPP_TO por WhatsApp (Twilio).
- * Se ejecuta cada hora; solo envía cuando la hora actual (Chile) >= hora del recordatorio.
+ * Netlify Scheduled Function: envía los recordatorios a NOTIFY_WHATSAPP_TO por WhatsApp (Twilio).
+ * Se ejecuta cada 15 minutos (ver netlify.toml). Solo envía cuando la hora Chile >= hora del recordatorio,
+ * así cada recordatorio se envía en la ejecución correspondiente a su hora (p. ej. recordatorio 09:30 → envío en la pasada de las 09:30).
  */
 const twilio = require("twilio");
 const { createClient } = require("@supabase/supabase-js");
 
 exports.config = {
-  schedule: "*/15 * * * *", // Cada 15 minutos
+  schedule: "*/15 * * * *", // Cada 15 min (:00, :15, :30, :45 UTC); también definido en netlify.toml
 };
 
 function hoyChile() {
@@ -23,7 +23,15 @@ function ahoraChileHHmm() {
 }
 
 exports.handler = async function (event, context) {
-  console.log("[process-reminders] Ejecutando…");
+  // Invocación manual: GET con ?secret=NOTIFY_SECRET para ver logs y respuesta
+  const q = event.queryStringParameters || {};
+  const secret = process.env.NOTIFY_SECRET;
+  const isGet = event.httpMethod === "GET";
+  if (isGet && secret && q.secret !== secret) {
+    return { statusCode: 401, body: JSON.stringify({ error: "Falta ?secret= correcto para ejecutar manualmente" }) };
+  }
+
+  console.log("[process-reminders] Ejecutando…", isGet ? "(invocación manual)" : "(programada)");
 
   const supabaseUrl = process.env.SUPABASE_URL;
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;

@@ -137,9 +137,14 @@ window.REMINDER_FUNCTION_URL = "https://TU-SITIO.netlify.app/.netlify/functions/
 
 **Funcionamiento:** `process-reminders` se ejecuta cada 15 minutos y envía los recordatorios cuya fecha es hoy (hora Chile) y cuya hora ya pasó a tu número (NOTIFY_WHATSAPP_TO).
 
-**Si no te llega el WhatsApp:**
+**Si no ves logs o no te llega el WhatsApp:**
 
-1. **Revisar logs en Netlify:** Site → Functions → `process-reminders` → Logs. Verás "Hoy (Chile):", "Hora (Chile):" y si encuentra recordatorios o errores de Twilio.
-2. **Probar envío manual:** En Netlify → Functions → `process-reminders` → "Run function". Así ves en los logs si hay recordatorios para hoy y si Twilio responde.
+1. **Ejecutar la función a mano (para ver logs):** Abre en el navegador (sustituye TU_SITIO y tu NOTIFY_SECRET):
+   ```
+   https://TU_SITIO.netlify.app/.netlify/functions/process-reminders?secret=TU_NOTIFY_SECRET
+   ```
+   Verás un JSON con `ok`, `hoy`, `ahoraChile` y `enviados` o `procesados`. En Netlify → **Logs & Metrics** → **Functions** → `process-reminders` aparecerán los `console.log` de esa ejecución.
+2. **Revisar logs en Netlify:** **Logs & Metrics** → **Functions** → elige `process-reminders` y filtra por fecha/hora. Ahí salen "Hoy (Chile):", "Hora (Chile):" y errores de Twilio si los hay.
+3. **Comprobar la función programada:** Si al llamar a la URL manual sí ves logs pero nunca se ejecuta sola, en Netlify revisa que las **scheduled functions** estén activas (cuenta/plan) y que el último deploy haya subido `netlify/functions/process-reminders.js` con `exports.config = { schedule: "*/15 * * * *" }`.
 3. **Comprobar fecha/hora:** La función usa la fecha y hora de Chile (America/Santiago). Crea un recordatorio para hoy con una hora que ya haya pasado; en la siguiente ejecución (en 15 min) debería enviarse.
 4. **Variables de entorno:** En Netlify deben estar `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` y las de Twilio (`TWILIO_*`, `NOTIFY_WHATSAPP_TO`).
