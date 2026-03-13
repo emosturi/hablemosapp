@@ -2586,6 +2586,114 @@
                     mandanteAnio.value = match[3];
                   }
                 }
+                // Autorrellenar beneficiarios en base a cónyuge/conviviente e hijos menores de 24 años
+                try {
+                  var beneficiarios = [];
+                  // Cónyuge / conviviente civil
+                  if (c.conyuge_nombres || c.conyuge_rut || c.conyuge_apellido_paterno || c.conyuge_apellido_materno) {
+                    var fechaConyuge = "";
+                    if (c.conyuge_fecha_nacimiento && typeof c.conyuge_fecha_nacimiento === "string") {
+                      var isoCon = c.conyuge_fecha_nacimiento.split("T")[0];
+                      if (isoCon && isoCon.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                        var pc = isoCon.split("-");
+                        fechaConyuge = pc[2] + "-" + pc[1] + "-" + pc[0];
+                      }
+                    }
+                    var fechaMat = "";
+                    if (c.conyuge_fecha_matrimonio && typeof c.conyuge_fecha_matrimonio === "string") {
+                      var isoMat = c.conyuge_fecha_matrimonio.split("T")[0];
+                      if (isoMat && isoMat.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                        var pm = isoMat.split("-");
+                        fechaMat = pm[2] + "-" + pm[1] + "-" + pm[0];
+                      }
+                    }
+                    var parentescoConyuge = (c.estado_civil || "").toLowerCase().indexOf("conviviente") !== -1
+                      ? "Conviviente civil"
+                      : "Cónyuge";
+                    beneficiarios.push({
+                      nombres: c.conyuge_nombres || "",
+                      apellidoPaterno: c.conyuge_apellido_paterno || "",
+                      apellidoMaterno: c.conyuge_apellido_materno || "",
+                      rut: c.conyuge_rut || "",
+                      sexo: "",
+                      parentesco: parentescoConyuge,
+                      fechaNacimiento: fechaConyuge,
+                      fechaMatrimonioUnionCivil: fechaMat,
+                      ciudadMatrimonioUnionCivil: c.conyuge_lugar_matrimonio || "",
+                      esInvalido: "No",
+                      observaciones: ""
+                    });
+                  }
+                  // Hijos menores de 24 años
+                  if (c.tiene_hijos_menores_24 && c.hijos && Array.isArray(c.hijos) && c.hijos.length > 0) {
+                    c.hijos.forEach(function (h) {
+                      if (!h) return;
+                      var fechaHijo = "";
+                      if (h.fecha_nacimiento && typeof h.fecha_nacimiento === "string") {
+                        var isoH = h.fecha_nacimiento.split("T")[0];
+                        if (isoH && isoH.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                          var ph = isoH.split("-");
+                          fechaHijo = ph[2] + "-" + ph[1] + "-" + ph[0];
+                        }
+                      }
+                      beneficiarios.push({
+                        nombres: h.nombres || "",
+                        apellidoPaterno: h.apellido_paterno || "",
+                        apellidoMaterno: h.apellido_materno || "",
+                        rut: h.rut || "",
+                        sexo: "",
+                        parentesco: "Hijo/a",
+                        fechaNacimiento: fechaHijo,
+                        fechaMatrimonioUnionCivil: "",
+                        ciudadMatrimonioUnionCivil: "",
+                        esInvalido: "No",
+                        observaciones: ""
+                      });
+                    });
+                  }
+                  if (beneficiarios.length > 0 && benefInput && typeof actualizarBeneficiarios === "function") {
+                    benefInput.value = String(beneficiarios.length);
+                    actualizarBeneficiarios();
+                    var benefObj = {};
+                    beneficiarios.forEach(function (b, idx) {
+                      benefObj[idx] = b;
+                      // También intentar reflejar la fecha en los selects visibles si existen
+                      if (b.fechaNacimiento) {
+                        var mFecha = b.fechaNacimiento.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+                        if (mFecha) {
+                          var dSel = document.getElementById("benef_" + idx + "_dia");
+                          var mSel = document.getElementById("benef_" + idx + "_mes");
+                          var ySel = document.getElementById("benef_" + idx + "_anio");
+                          var hInput = document.getElementById("benef_" + idx + "_fecha");
+                          if (dSel && mSel && ySel) {
+                            dSel.value = mFecha[1];
+                            mSel.value = mFecha[2];
+                            ySel.value = mFecha[3];
+                            if (hInput) hInput.value = b.fechaNacimiento;
+                          }
+                        }
+                      }
+                      if (b.fechaMatrimonioUnionCivil) {
+                        var mMat = b.fechaMatrimonioUnionCivil.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+                        if (mMat) {
+                          var mdSel = document.getElementById("benef_" + idx + "_mat_dia");
+                          var mmSel = document.getElementById("benef_" + idx + "_mat_mes");
+                          var mySel = document.getElementById("benef_" + idx + "_mat_anio");
+                          var mhInput = document.getElementById("benef_" + idx + "_mat_fecha");
+                          if (mdSel && mmSel && mySel) {
+                            mdSel.value = mMat[1];
+                            mmSel.value = mMat[2];
+                            mySel.value = mMat[3];
+                            if (mhInput) mhInput.value = b.fechaMatrimonioUnionCivil;
+                          }
+                        }
+                      }
+                    });
+                    setFormFromObject(form, { beneficiarios: benefObj, mandante: { numeroBeneficiarios: String(beneficiarios.length) } });
+                  }
+                } catch (_e) {
+                  // Si algo falla en el prellenado de beneficiarios, no bloquear el formulario
+                }
                 history.replaceState({}, "", "index.html");
                 setStatus("Datos del cliente cargados. Revisa y completa tipo de pensión, beneficiarios, etc.");
               });
