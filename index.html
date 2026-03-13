@@ -2607,6 +2607,14 @@
                         fechaMat = pm[2] + "-" + pm[1] + "-" + pm[0];
                       }
                     }
+                    var observConyuge = "";
+                    if (fechaMat || c.conyuge_lugar_matrimonio) {
+                      observConyuge = "Matrimonio/Unión civil";
+                      if (fechaMat) observConyuge += " en fecha " + fechaMat;
+                      if (c.conyuge_lugar_matrimonio) {
+                        observConyuge += (fechaMat ? ", " : " en ") + "lugar " + c.conyuge_lugar_matrimonio;
+                      }
+                    }
                     var parentescoConyuge = (c.estado_civil || "").toLowerCase().indexOf("conviviente") !== -1
                       ? "Conviviente civil"
                       : "Cónyuge";
@@ -2621,7 +2629,7 @@
                       fechaMatrimonioUnionCivil: fechaMat,
                       ciudadMatrimonioUnionCivil: c.conyuge_lugar_matrimonio || "",
                       esInvalido: "No",
-                      observaciones: ""
+                      observaciones: observConyuge
                     });
                   }
                   // Hijos menores de 24 años
