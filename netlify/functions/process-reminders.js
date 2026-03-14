@@ -69,11 +69,10 @@ exports.handler = async function (event, context) {
 
   console.log("[process-reminders] Pendientes:", pendientes.length, pendientes.map(function (p) { return { id: p.id, fecha: p.fecha, hora: p.hora }; }));
 
-  // NOTIFY_WHATSAPP_TO = solo dígitos del número que RECIBE (ej. 56912345678). Nunca usar formato whatsapp:+... (ese es para TWILIO_WHATSAPP_FROM).
   const toNum = String(to || "").replace(/^whatsapp:\s*\+?/i, "").replace(/\D/g, "").replace(/^0/, "");
   const toWhatsApp = toNum.startsWith("56") ? `whatsapp:+${toNum}` : `whatsapp:+56${toNum}`;
   const toMasked = toNum.length >= 4 ? "****" + toNum.slice(-4) : "****";
-  console.log("[process-reminders] Destino NOTIFY_WHATSAPP_TO (últimos 4 dígitos):", toMasked);
+  console.log("[process-reminders] Destino (últimos 4 dígitos):", toMasked);
   const client = twilio(accountSid, authToken);
 
   for (const r of pendientes) {
@@ -100,7 +99,7 @@ exports.handler = async function (event, context) {
         to: toWhatsApp,
       });
       await supabase.from("recordatorios").update({ enviado: true }).eq("id", r.id);
-      console.log("[process-reminders] Enviado:", r.id, "Twilio SID:", twilioMessage.sid, "| Busca este SID en Twilio Console → Monitor → Logs para ver estado de entrega");
+      console.log("[process-reminders] Enviado:", r.id, "Twilio SID:", twilioMessage.sid);
     } catch (err) {
       console.error("[process-reminders] Twilio error para", r.id, err.message);
     }

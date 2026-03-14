@@ -137,6 +137,14 @@ window.REMINDER_FUNCTION_URL = "https://TU-SITIO.netlify.app/.netlify/functions/
 
 **Funcionamiento:** `process-reminders` se ejecuta cada 15 minutos y envía los recordatorios cuya fecha es hoy (hora Chile) y cuya hora ya pasó a tu número (NOTIFY_WHATSAPP_TO).
 
+**Ventanas largas sin recordatorios (días sin enviar):**
+
+- **Si usas tu número de la cuenta (Dashboard) como TWILIO_WHATSAPP_FROM:** No necesitas nada más. La sesión no se “desactiva” por inactividad; puedes tener días o semanas sin recordatorios y seguir enviando cuando toque.
+- **Si usas el Sandbox:** La unión “join” puede caducar tras muchas horas o días sin mensajes. Para evitar tener que volver a hacer “join”, puedes activar un **latido (heartbeat)** que envía un único mensaje al día para mantener la sesión activa:
+  - En Netlify → **Environment variables** añade: `ENABLE_WHATSAPP_HEARTBEAT` = `true`.
+  - La función enviará **un solo mensaje** al día, entre las **08:00 y 08:14** (hora Chile), solo cuando **no haya recordatorios pendientes** ese día. El texto es: *"Sistema de recordatorios activo. No es necesario responder."*
+  - Así mantienes el Sandbox activo aunque pasen días sin recordatorios. Si usas número de la cuenta, **no** actives esta variable (no hace falta y evitarás mensajes innecesarios).
+
 **Si el recordatorio aparece como «Enviado» en la app pero el mensaje nunca llegó a tu WhatsApp:**
 
 - **Mismo destino para todos:** Tanto los recordatorios creados desde **Ver cliente** como desde **Ver cliente potencial** se envían al mismo número (**NOTIFY_WHATSAPP_TO**). No hay diferencia de destino; si otros recordatorios sí llegan, la configuración actual es correcta.
