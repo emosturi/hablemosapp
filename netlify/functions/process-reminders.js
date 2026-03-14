@@ -71,6 +71,8 @@ exports.handler = async function (event, context) {
 
   const toNum = to.replace(/\D/g, "").replace(/^0/, "");
   const toWhatsApp = toNum.startsWith("56") ? `whatsapp:+${toNum}` : `whatsapp:+56${toNum}`;
+  const toMasked = toNum.length >= 4 ? "****" + toNum.slice(-4) : "****";
+  console.log("[process-reminders] Destino NOTIFY_WHATSAPP_TO (últimos 4 dígitos):", toMasked);
   const client = twilio(accountSid, authToken);
 
   for (const r of pendientes) {
@@ -91,13 +93,13 @@ exports.handler = async function (event, context) {
     const texto = `Recordatorio${cabeceraStr} para el ${r.fecha}${r.hora ? " a las " + r.hora : ""}:\n\n${r.mensaje}`;
 
     try {
-      await client.messages.create({
+      const twilioMessage = await client.messages.create({
         body: texto,
         from: from,
         to: toWhatsApp,
       });
       await supabase.from("recordatorios").update({ enviado: true }).eq("id", r.id);
-      console.log("[process-reminders] Enviado:", r.id);
+      console.log("[process-reminders] Enviado:", r.id, "Twilio SID:", twilioMessage.sid, "| Busca este SID en Twilio Console → Monitor → Logs para ver estado de entrega");
     } catch (err) {
       console.error("[process-reminders] Twilio error para", r.id, err.message);
     }

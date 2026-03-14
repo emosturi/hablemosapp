@@ -137,6 +137,20 @@ window.REMINDER_FUNCTION_URL = "https://TU-SITIO.netlify.app/.netlify/functions/
 
 **Funcionamiento:** `process-reminders` se ejecuta cada 15 minutos y envía los recordatorios cuya fecha es hoy (hora Chile) y cuya hora ya pasó a tu número (NOTIFY_WHATSAPP_TO).
 
+**Si el recordatorio aparece como «Enviado» en la app pero el mensaje nunca llegó a tu WhatsApp:**
+
+- **Mismo destino para todos:** Tanto los recordatorios creados desde **Ver cliente** como desde **Ver cliente potencial** se envían al mismo número (**NOTIFY_WHATSAPP_TO**). No hay diferencia de destino; si otros recordatorios sí llegan, la configuración actual es correcta.
+- **Enviado = aceptado por Twilio:** La app marca «Enviado» cuando la API de Twilio acepta el mensaje; la entrega al teléfono puede fallar después (número no unido al Sandbox en ese momento, error puntual de Twilio, etc.). Un recordatorio antiguo (p. ej. de un cliente potencial) puede tener «Enviado: Sí» y no haber llegado por un fallo de entrega puntual.
+- **Sandbox:** El número que recibe (**NOTIFY_WHATSAPP_TO**) debe ser **el mismo** que envió `join <código>` al número del Sandbox. Si en la fecha del recordatorio ese número aún no había unido el Sandbox, Twilio pudo aceptar el envío y no entregarlo.
+- **Formato de NOTIFY_WHATSAPP_TO:** Solo dígitos, con código de país (Chile: `56` + 9 dígitos, ej. `56912345678`). Sin espacios ni `+`.
+- **Twilio Console:** En **Monitor → Logs** busca el mensaje por fecha/hora; el estado de entrega te dirá si fue «delivered» o si falló.
+
+**Si la función dice "Enviado" pero el WhatsApp no llega:**
+
+- En la **próxima ejecución**, en los logs de Netlify aparecerá el **Twilio SID** (ej. `SMxxxx`) de cada mensaje. Entra en **Twilio Console → Monitor → Logs** (o **Messaging → Logs**), busca ese SID o filtra por la fecha/hora del envío. Ahí verás el **estado de entrega** (delivered, failed, undelivered) y el motivo si falló (ej. "number not in WhatsApp Sandbox").
+- Comprueba que **NOTIFY_WHATSAPP_TO** sea exactamente el número que envió `join <código>` al número del Sandbox desde WhatsApp. Si es otro número o no has unido ese número al Sandbox, Twilio acepta el envío pero no entrega.
+- En los logs de Netlify también se muestra el destino como `****XXXX` (últimos 4 dígitos) para verificar que se está usando el número correcto.
+
 **Si no ves logs o no te llega el WhatsApp:**
 
 1. **Ejecutar la función a mano (para ver logs):** Abre en el navegador (sustituye TU_SITIO y tu NOTIFY_SECRET):

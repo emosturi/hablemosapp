@@ -64,6 +64,8 @@
       .loading { color: var(--muted); padding: 20px; }
       .error-msg { color: #ef4444; padding: 20px; }
       .empty { color: var(--muted); padding: 20px; }
+      .hint-enviado { font-size: 12px; color: var(--muted); margin: 8px 0 12px; max-width: 560px; line-height: 1.45; }
+      .hint-enviado a { color: var(--accent); }
       @media (max-width: 640px) {
         .th-tel, .th-created { display: none !important; }
         .td-tel, .td-created { display: none !important; }
@@ -105,6 +107,7 @@
       <header>
         <h1>Recordatorios</h1>
         <p class="subtitle">Recordatorios programados que se envían por WhatsApp en la fecha y hora indicadas.</p>
+        <p class="hint-enviado">«Enviado» = Twilio aceptó el envío (no garantiza entrega). Los recordatorios de <strong>clientes potenciales</strong> se envían al mismo número que los de clientes (<strong>NOTIFY_WHATSAPP_TO</strong>). Si uno antiguo figura como enviado pero no llegó, suele ser un fallo de entrega puntual tras la aceptación por Twilio. Revisa <a href="TWILIO.md" target="_blank" rel="noopener">TWILIO.md</a>.</p>
         <a href="revisar-clientes.html" class="back">← Volver al listado de clientes</a>
       </header>
 
@@ -205,8 +208,9 @@
                   } else if (r.cliente_nombre) {
                     clienteCell = (r.cliente_nombre || "-");
                   }
-                  var enviadoClass = r.enviado ? "enviado-si" : "enviado-no";
-                  var enviadoText = r.enviado ? "Sí" : "No";
+                  var enviado = r.enviado === true || r.enviado === "true" || r.enviado === 1;
+                  var enviadoClass = enviado ? "enviado-si" : "enviado-no";
+                  var enviadoText = enviado ? "Sí" : "No";
                   var msg = (r.mensaje || "").trim();
                   tr.innerHTML =
                     "<td>" + fmtDate(r.fecha) + "</td>" +
