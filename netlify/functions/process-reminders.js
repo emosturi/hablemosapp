@@ -7,7 +7,7 @@ const twilio = require("twilio");
 const { createClient } = require("@supabase/supabase-js");
 
 exports.config = {
-  schedule: "*/15 * * * *", // Cada 15 min (:00, :15, :30, :45 UTC); también definido en netlify.toml
+  schedule: "*/5 * * * *", // Cada 5 min (pruebas); en producción usar "*/15 * * * *"
 };
 
 function hoyChile() {

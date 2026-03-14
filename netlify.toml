@@ -1,4 +1,3 @@
-# Programar process-reminders cada 15 minutos (UTC: :00, :15, :30, :45)
-# Así los recordatorios se envían en la ventana de su hora exacta (Chile = UTC-3/UTC-4)
+# process-reminders: cada 5 min (pruebas); en producción cambiar a "*/15 * * * *"
 [functions."process-reminders"]
-  schedule = "*/15 * * * *"
+  schedule = "*/5 * * * *"
