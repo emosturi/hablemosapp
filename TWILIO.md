@@ -65,7 +65,7 @@ En tu sitio en Netlify: **Site configuration** → **Environment variables** →
 | `TWILIO_ACCOUNT_SID` | Console de Twilio (paso 2) | `ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx` |
 | `TWILIO_AUTH_TOKEN` | Console de Twilio (paso 2) | `tu-auth-token-secreto` |
 | `TWILIO_WHATSAPP_FROM` | Número del Sandbox (paso 3), con prefijo `whatsapp:+` | `whatsapp:+14155238886` |
-| `NOTIFY_WHATSAPP_TO` | Tu número (el que recibe el aviso), solo dígitos | `56912345678` |
+| `NOTIFY_WHATSAPP_TO` | Tu número (el que recibe el aviso), **solo dígitos**, nunca `whatsapp:+...` | `56912345678` |
 | `NOTIFY_SECRET` | Una contraseña que inventes (la misma en front y Netlify) | `miClaveSecreta123` |
 
 Guarda los cambios y, si el sitio ya está desplegado, vuelve a desplegar para que las variables se apliquen.
@@ -142,7 +142,7 @@ window.REMINDER_FUNCTION_URL = "https://TU-SITIO.netlify.app/.netlify/functions/
 - **Mismo destino para todos:** Tanto los recordatorios creados desde **Ver cliente** como desde **Ver cliente potencial** se envían al mismo número (**NOTIFY_WHATSAPP_TO**). No hay diferencia de destino; si otros recordatorios sí llegan, la configuración actual es correcta.
 - **Enviado = aceptado por Twilio:** La app marca «Enviado» cuando la API de Twilio acepta el mensaje; la entrega al teléfono puede fallar después (número no unido al Sandbox en ese momento, error puntual de Twilio, etc.). Un recordatorio antiguo (p. ej. de un cliente potencial) puede tener «Enviado: Sí» y no haber llegado por un fallo de entrega puntual.
 - **Sandbox:** El número que recibe (**NOTIFY_WHATSAPP_TO**) debe ser **el mismo** que envió `join <código>` al número del Sandbox. Si en la fecha del recordatorio ese número aún no había unido el Sandbox, Twilio pudo aceptar el envío y no entregarlo.
-- **Formato de NOTIFY_WHATSAPP_TO:** Solo dígitos, con código de país (Chile: `56` + 9 dígitos, ej. `56912345678`). Sin espacios ni `+`.
+- **Formato de NOTIFY_WHATSAPP_TO:** Solo dígitos, con código de país (Chile: `56` + 9 dígitos, ej. `56912345678`). **No** uses el formato `whatsapp:+...` — ese formato es para **TWILIO_WHATSAPP_FROM** (el número del Sandbox que envía). NOTIFY_WHATSAPP_TO es el número que **recibe** los mensajes.
 - **Twilio Console:** En **Monitor → Logs** busca el mensaje por fecha/hora; el estado de entrega te dirá si fue «delivered» o si falló.
 
 **Si la función dice "Enviado" pero el WhatsApp no llega:**

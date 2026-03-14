@@ -69,7 +69,8 @@ exports.handler = async function (event, context) {
 
   console.log("[process-reminders] Pendientes:", pendientes.length, pendientes.map(function (p) { return { id: p.id, fecha: p.fecha, hora: p.hora }; }));
 
-  const toNum = to.replace(/\D/g, "").replace(/^0/, "");
+  // NOTIFY_WHATSAPP_TO = solo dígitos del número que RECIBE (ej. 56912345678). Nunca usar formato whatsapp:+... (ese es para TWILIO_WHATSAPP_FROM).
+  const toNum = String(to || "").replace(/^whatsapp:\s*\+?/i, "").replace(/\D/g, "").replace(/^0/, "");
   const toWhatsApp = toNum.startsWith("56") ? `whatsapp:+${toNum}` : `whatsapp:+56${toNum}`;
   const toMasked = toNum.length >= 4 ? "****" + toNum.slice(-4) : "****";
   console.log("[process-reminders] Destino NOTIFY_WHATSAPP_TO (últimos 4 dígitos):", toMasked);

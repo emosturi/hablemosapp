@@ -58,7 +58,8 @@ exports.handler = async function (event) {
     "Teléfono: " + (clientData.telefono || "-") + "\n" +
     "Revisar en la app y usar para mandato/contrato cuando esté correcto.";
 
-  const toNumber = to.replace(/\D/g, "").replace(/^0/, "");
+  // NOTIFY_WHATSAPP_TO = solo dígitos (ej. 56912345678). No usar formato whatsapp:+...
+  const toNumber = String(to || "").replace(/^whatsapp:\s*\+?/i, "").replace(/\D/g, "").replace(/^0/, "");
   const toWhatsApp = toNumber.startsWith("56") ? `whatsapp:+${toNumber}` : `whatsapp:+56${toNumber}`;
 
   try {
