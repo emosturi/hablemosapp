@@ -25,6 +25,9 @@ exports.handler = async function (event) {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   const chatId = process.env.TELEGRAM_CHAT_ID;
 
+  // Diagnóstico: ver si Netlify está pasando las variables (sin revelar valores)
+  console.log("[notify-telegram] TELEGRAM_BOT_TOKEN presente:", !!token, "| TELEGRAM_CHAT_ID presente:", !!chatId);
+
   if (!token || !chatId) {
     console.log("[notify-telegram] Faltan TELEGRAM_BOT_TOKEN o TELEGRAM_CHAT_ID");
     return {
