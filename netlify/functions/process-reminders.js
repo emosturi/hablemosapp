@@ -1,9 +1,7 @@
 /**
- * Netlify Scheduled Function: envía los recordatorios a NOTIFY_WHATSAPP_TO por WhatsApp (Twilio).
- * Se ejecuta cada 15 minutos (ver netlify.toml). Solo envía cuando la hora Chile >= hora del recordatorio,
- * así cada recordatorio se envía en la ejecución correspondiente a su hora (p. ej. recordatorio 09:30 → envío en la pasada de las 09:30).
+ * Netlify Scheduled Function: envía los recordatorios por Telegram.
+ * Se ejecuta cada 5 min (pruebas) o 15 min (producción). Solo envía cuando la hora Chile >= hora del recordatorio.
  */
-const twilio = require("twilio");
 const { createClient } = require("@supabase/supabase-js");
 
 exports.config = {
@@ -22,8 +20,18 @@ function ahoraChileHHmm() {
   return h + ":" + m;
 }
 
+async function enviarTelegram(token, chatId, texto) {
+  const url = `https://api.telegram.org/bot${token}/sendMessage`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ chat_id: chatId, text: texto }),
+  });
+  const data = await res.json().catch(() => ({}));
+  return data.ok;
+}
+
 exports.handler = async function (event, context) {
-  // Invocación manual: GET con ?secret=NOTIFY_SECRET para ver logs y respuesta
   const q = event.queryStringParameters || {};
   const secret = process.env.NOTIFY_SECRET;
   const isGet = event.httpMethod === "GET";
@@ -35,13 +43,11 @@ exports.handler = async function (event, context) {
 
   const supabaseUrl = process.env.SUPABASE_URL;
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const accountSid = process.env.TWILIO_ACCOUNT_SID;
-  const authToken = process.env.TWILIO_AUTH_TOKEN;
-  const from = process.env.TWILIO_WHATSAPP_FROM;
-  const to = process.env.NOTIFY_WHATSAPP_TO;
+  const telegramToken = process.env.TELEGRAM_BOT_TOKEN;
+  const telegramChatId = process.env.TELEGRAM_CHAT_ID;
 
-  if (!supabaseUrl || !supabaseKey || !accountSid || !authToken || !from || !to) {
-    console.error("[process-reminders] Faltan variables de entorno");
+  if (!supabaseUrl || !supabaseKey || !telegramToken || !telegramChatId) {
+    console.error("[process-reminders] Faltan variables (SUPABASE_*, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID)");
     return { statusCode: 500, body: "Configuración incompleta" };
   }
 
@@ -69,12 +75,6 @@ exports.handler = async function (event, context) {
 
   console.log("[process-reminders] Pendientes:", pendientes.length, pendientes.map(function (p) { return { id: p.id, fecha: p.fecha, hora: p.hora }; }));
 
-  const toNum = String(to || "").replace(/^whatsapp:\s*\+?/i, "").replace(/\D/g, "").replace(/^0/, "");
-  const toWhatsApp = toNum.startsWith("56") ? `whatsapp:+${toNum}` : `whatsapp:+56${toNum}`;
-  const toMasked = toNum.length >= 4 ? "****" + toNum.slice(-4) : "****";
-  console.log("[process-reminders] Destino (últimos 4 dígitos):", toMasked);
-  const client = twilio(accountSid, authToken);
-
   for (const r of pendientes) {
     const horaRecordatorio = (r.hora || "").trim();
     if (horaRecordatorio) {
@@ -93,15 +93,15 @@ exports.handler = async function (event, context) {
     const texto = `Recordatorio${cabeceraStr} para el ${r.fecha}${r.hora ? " a las " + r.hora : ""}:\n\n${r.mensaje}`;
 
     try {
-      const twilioMessage = await client.messages.create({
-        body: texto,
-        from: from,
-        to: toWhatsApp,
-      });
-      await supabase.from("recordatorios").update({ enviado: true }).eq("id", r.id);
-      console.log("[process-reminders] Enviado:", r.id, "Twilio SID:", twilioMessage.sid);
+      const ok = await enviarTelegram(telegramToken, telegramChatId, texto);
+      if (ok) {
+        await supabase.from("recordatorios").update({ enviado: true }).eq("id", r.id);
+        console.log("[process-reminders] Enviado:", r.id);
+      } else {
+        console.error("[process-reminders] Telegram no envió:", r.id);
+      }
     } catch (err) {
-      console.error("[process-reminders] Twilio error para", r.id, err.message);
+      console.error("[process-reminders] Error para", r.id, err.message);
     }
   }
 

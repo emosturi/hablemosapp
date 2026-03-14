@@ -54,14 +54,14 @@ Si desplegas en Netlify y no quieres dejar las claves en `supabase-config.js`:
 | **Formulario de pensión** | Solo accesible si hay sesión de Supabase; “Cerrar sesión” hace sign out. |
 
 | **Listado de Clientes** | Página `revisar-clientes.html` (solo autenticados): lista clientes y botón "Usar en formulario de pensión". |
-| **Notificación WhatsApp** | Opcional: función Netlify + Twilio. Variables: TWILIO_*, NOTIFY_WHATSAPP_TO, NOTIFY_SECRET. En config: NOTIFY_FUNCTION_URL y NOTIFY_SECRET. Ver **TWILIO.md** para pasos detallados. |
+| **Notificación Telegram** | Opcional: función Netlify + Telegram. Variables: TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, NOTIFY_SECRET. En config: NOTIFY_FUNCTION_URL y NOTIFY_SECRET. Ver **TELEGRAM.md** para pasos detallados. |
 
-## Notificación por WhatsApp (opcional)
+## Notificación por Telegram (opcional)
 
-Cuando un cliente se registra en el formulario público puedes recibir un aviso por WhatsApp. Necesitas cuenta en Twilio (WhatsApp Sandbox o número aprobado) y desplegar en Netlify. **Guía paso a paso: [TWILIO.md](TWILIO.md).**
+Cuando un cliente se registra en el formulario público puedes recibir un aviso por Telegram. Creas un bot con BotFather, obtienes el token y tu chat_id, y desplegas en Netlify. **Guía: [TELEGRAM.md](TELEGRAM.md).**
 
-**Netlify (env):** TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_WHATSAPP_FROM (ej. `whatsapp:+14155238886`), NOTIFY_WHATSAPP_TO (tu número), NOTIFY_SECRET.
+**Netlify (env):** TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, NOTIFY_SECRET. Para recordatorios: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY.
 
-**En `supabase-config.js`:** descomenta NOTIFY_FUNCTION_URL (ej. `https://tu-sitio.netlify.app/.netlify/functions/notify-whatsapp`) y NOTIFY_SECRET.
+**En `supabase-config.js`:** NOTIFY_FUNCTION_URL (ej. `https://tu-sitio.netlify.app/.netlify/functions/notify-telegram`) y NOTIFY_SECRET.
 
-Flujo: cliente llena el Registro de Afiliados → se guarda → se llama a la función → recibes WhatsApp. Luego en Listado de Clientes usas "Usar en formulario de pensión" para cargar esos datos en el formulario de mandatos/contratos.
+Flujo: cliente llena el Registro de Afiliados → se guarda → se llama a la función → recibes Telegram. Los recordatorios también se envían por Telegram.
