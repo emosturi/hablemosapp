@@ -3,7 +3,6 @@
   "private": true,
   "description": "Formulario solicitud de pensión, registro de afiliados, mandatos y contratos",
   "dependencies": {
-    "twilio": "^5.3.0",
     "@supabase/supabase-js": "^2.45.0"
   }
 }
