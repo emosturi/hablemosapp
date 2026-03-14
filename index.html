@@ -937,6 +937,7 @@
       ];
 
       const autorizacionesItems = [
+        { key: "terminarTramite", label: "Terminar trámite?" },
         { key: "suscribirBonoReconocimiento", label: "Suscribir solicitud de Bono de Reconocimiento" },
         { key: "solicitarInfoEstadoTramite", label: "Solicitar información respecto del estado del trámite de pensión" },
         { key: "retirarCertificadoSaldo", label: "Retirar en la AFP el Certificado de Saldo" },
@@ -1322,6 +1323,11 @@
         <h3>Autorizaciones</h3>
 
         <table border="1" style="border-collapse:collapse;width:100%;">
+
+        <tr>
+        <td>Terminar trámite</td>
+        <td class="col-respuesta"><b>${(autorizaciones.terminarTramite === "Sí" ? "Sí" : "No")}</b></td>
+        </tr>
 
         <tr>
         <td>Suscribir solicitud de Bono de Reconocimiento</td>
