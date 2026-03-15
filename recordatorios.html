@@ -66,6 +66,18 @@
       .empty { color: var(--muted); padding: 20px; }
       .hint-enviado { font-size: 12px; color: var(--muted); margin: 8px 0 12px; max-width: 560px; line-height: 1.45; }
       .hint-enviado a { color: var(--accent); }
+      .btn-borrar {
+        padding: 6px 10px;
+        font-size: 12px;
+        background: rgba(239, 68, 68, 0.2);
+        border: 1px solid rgba(239, 68, 68, 0.5);
+        border-radius: 8px;
+        color: #fca5a5;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+      .btn-borrar:hover { background: rgba(239, 68, 68, 0.35); color: #fecaca; }
+      .btn-borrar:disabled { opacity: 0.5; cursor: not-allowed; }
       @media (max-width: 640px) {
         .th-tel, .th-created { display: none !important; }
         .td-tel, .td-created { display: none !important; }
@@ -125,6 +137,7 @@
               <th>Mensaje</th>
               <th>Enviado</th>
               <th class="th-created">Creado</th>
+              <th>Acciones</th>
             </tr>
           </thead>
           <tbody id="tbody"></tbody>
@@ -212,6 +225,7 @@
                   var enviadoClass = enviado ? "enviado-si" : "enviado-no";
                   var enviadoText = enviado ? "Sí" : "No";
                   var msg = (r.mensaje || "").trim();
+                  var id = r.id;
                   tr.innerHTML =
                     "<td>" + fmtDate(r.fecha) + "</td>" +
                     "<td>" + (r.hora || "-") + "</td>" +
@@ -219,11 +233,35 @@
                     '<td class="td-tel">' + (r.cliente_telefono || "-") + "</td>" +
                     '<td class="msg-cell" title="' + (msg.replace(/"/g, "&quot;") || "") + '">' + (msg || "-") + "</td>" +
                     '<td class="' + enviadoClass + '">' + enviadoText + "</td>" +
-                    '<td class="td-created">' + fmtDateTime(r.created_at) + "</td>";
+                    '<td class="td-created">' + fmtDateTime(r.created_at) + "</td>" +
+                    '<td><button type="button" class="btn-borrar" data-id="' + id + '" title="Eliminar recordatorio">Borrar</button></td>';
                   tbody.appendChild(tr);
                 });
               });
           }
+
+          tbody.addEventListener("click", function (e) {
+            var btn = e.target.closest(".btn-borrar");
+            if (!btn || btn.disabled) return;
+            var id = btn.getAttribute("data-id");
+            if (!id) return;
+            if (!confirm("¿Eliminar este recordatorio?")) return;
+            btn.disabled = true;
+            supabase.from("recordatorios").delete().eq("id", id).then(function (delRes) {
+              if (delRes.error) {
+                btn.disabled = false;
+                alert("Error al eliminar: " + (delRes.error.message || "Intenta de nuevo."));
+                return;
+              }
+              var row = btn.closest("tr");
+              if (row) row.remove();
+              var rest = tbody.querySelectorAll("tr");
+              if (rest.length === 0) {
+                tablaEl.style.display = "none";
+                emptyEl.style.display = "block";
+              }
+            });
+          });
 
           cargarLista();
 
