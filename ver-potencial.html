@@ -213,7 +213,7 @@
               return '<div class="item' + (empty ? " empty" : "") + '"><label>' + label + '</label><span>' + (val || "-") + '</span></div>';
             }
             var html = '<div class="section"><h2>Datos</h2><div class="grid">';
-            html += item("Nombre", p.nombre) + item("Teléfono", p.telefono) + item("Fecha de registro", fechaReg);
+            html += item("Nombre", p.nombre) + item("Teléfono", p.telefono) + item("Ciudad", p.ciudad) + item("Fecha de registro", fechaReg);
             html += "</div></div>";
             document.getElementById("contenido").innerHTML = html;
             document.getElementById("contenido").style.display = "block";

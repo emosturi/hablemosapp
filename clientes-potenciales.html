@@ -190,6 +190,10 @@
             <input type="tel" id="telefono" name="telefono" required placeholder="Ej. 9 1234 5678" autocomplete="tel" />
             <div class="error" id="errorTelefono"></div>
           </div>
+          <div class="field">
+            <label for="ciudad">Ciudad <span style="color:var(--muted);font-size:12px;">(opcional)</span></label>
+            <input type="text" id="ciudad" name="ciudad" placeholder="Ej. Santiago" autocomplete="address-level2" />
+          </div>
           <button type="submit" id="btnEnviar">Enviar</button>
           <div class="status" id="status"></div>
         </form>
@@ -233,6 +237,7 @@
           e.preventDefault();
           var nombre = (document.getElementById("nombre").value || "").trim();
           var telefono = (document.getElementById("telefono").value || "").trim();
+          var ciudad = (document.getElementById("ciudad").value || "").trim() || null;
           clearErrors();
           setStatus("");
 
@@ -248,7 +253,7 @@
           btnEnviar.disabled = true;
           setStatus("Guardando…");
 
-          supabase.from("clientes_potenciales").insert({ nombre: nombre, telefono: telefono })
+          supabase.from("clientes_potenciales").insert({ nombre: nombre, telefono: telefono, ciudad: ciudad })
             .then(function (result) {
               btnEnviar.disabled = false;
               if (result.error) {
