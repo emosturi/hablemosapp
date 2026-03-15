@@ -828,7 +828,7 @@
                     <option value="" selected disabled>Selecciona…</option>
                     <option>Cuenta Corriente</option>
                     <option>Cuenta de Ahorro</option>
-                    <option>Cuenta Vista</option>
+                    <option>Cuenta Vista/Cuenta RUT</option>
                   </select>
                   <div class="error" data-error-for="cuenta_tipo"></div>
                 </div>
@@ -2662,6 +2662,7 @@
                   }
                   if (cuentaTipo && c.tipo_cuenta) {
                     var tipoVal = String(c.tipo_cuenta).trim();
+                    if (tipoVal === "Cuenta Vista" || tipoVal === "Cuenta vista") tipoVal = "Cuenta Vista/Cuenta RUT";
                     var opcionTipo = Array.from(cuentaTipo.options).find(function (o) { return o.value === tipoVal || o.text.trim() === tipoVal; });
                     if (opcionTipo) cuentaTipo.value = opcionTipo.value; else cuentaTipo.value = tipoVal;
                   }
