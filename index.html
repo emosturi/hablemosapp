@@ -2631,6 +2631,30 @@
                     mandanteAnio.value = match[3];
                   }
                 }
+                // Empleador
+                if (c.empleador_rut || c.empleador_razon_social || c.empleador_direccion || c.empleador_telefono || c.empleador_email) {
+                  setFormFromObject(form, {
+                    empleador: {
+                      rut: c.empleador_rut || "",
+                      telefono: c.empleador_telefono || "",
+                      email: c.empleador_email || "",
+                      nombreORazonSocial: c.empleador_razon_social || "",
+                      domicilio: c.empleador_direccion || ""
+                    }
+                  });
+                }
+                // Cuenta bancaria: marcar Sí y rellenar si hay datos
+                if (c.banco || c.tipo_cuenta || c.numero_cuenta) {
+                  setFormFromObject(form, {
+                    autorizaciones: {
+                      ingresarDatosCuentaBancaria: "Sí",
+                      banco: c.banco || "",
+                      tipoCuenta: c.tipo_cuenta || "",
+                      numeroCuenta: c.numero_cuenta || ""
+                    }
+                  });
+                  if (typeof updateCuentaBancariaVisibility === "function") updateCuentaBancariaVisibility();
+                }
                 // Autorrellenar beneficiarios en base a cónyuge/conviviente e hijos menores de 24 años
                 try {
                   var beneficiarios = [];
@@ -2669,7 +2693,7 @@
                       apellidoPaterno: c.conyuge_apellido_paterno || "",
                       apellidoMaterno: c.conyuge_apellido_materno || "",
                       rut: c.conyuge_rut || "",
-                      sexo: "",
+                      sexo: c.conyuge_sexo || "",
                       parentesco: parentescoConyuge,
                       fechaNacimiento: fechaConyuge,
                       fechaMatrimonioUnionCivil: fechaMat,
@@ -2695,7 +2719,7 @@
                         apellidoPaterno: h.apellido_paterno || "",
                         apellidoMaterno: h.apellido_materno || "",
                         rut: h.rut || "",
-                        sexo: "",
+                        sexo: h.sexo || "",
                         parentesco: "Hijo/a",
                         fechaNacimiento: fechaHijo,
                         fechaMatrimonioUnionCivil: "",
