@@ -1514,7 +1514,7 @@
         const ciudad = mandante.ciudad || "";
         const nombreTramite = mandante.tipoPension || "";
 
-        // Número de contrato: registro asesor + número secuencial (en el futuro vendrá de BD)
+        // Número de contrato: registro asesor + número secuencial (asignado por RUT del mandante al pulsar Generar Contrato)
         const numeroSecuencial = data.numeroContratoSecuencial ?? 327;
         const numeroContrato = data.numeroContrato || `${mandatario.numeroRegistroAsesorPrevisional || ""}-${numeroSecuencial}`;
 
@@ -1926,6 +1926,30 @@
           .reverse()
           .join("");
         return `${bodyWithDots}-${dv}`;
+      }
+
+      // Obtiene o asigna número secuencial de contrato por RUT del mandante (Supabase).
+      // Si el mandante ya tiene número asignado, se reutiliza (no se incrementa al regenerar).
+      // Si no tiene, se toma el siguiente disponible y se guarda en la BD.
+      async function getOrAssignNumeroContrato(supabaseClient, data) {
+        const mandante = data && data.mandante;
+        const rutRaw = mandante && mandante.rut;
+        const rutKey = String(rutRaw || "").toUpperCase().replace(/[^0-9K]/g, "");
+        if (!rutKey || rutKey.length < 2) return 327;
+
+        var res = await supabaseClient.from("numeros_contrato").select("numero_secuencial").eq("rut_mandante", rutKey).maybeSingle();
+        if (res.data && res.data.numero_secuencial != null) return res.data.numero_secuencial;
+
+        var maxRes = await supabaseClient.from("numeros_contrato").select("numero_secuencial").order("numero_secuencial", { ascending: false }).limit(1).maybeSingle();
+        var siguiente = (maxRes.data && maxRes.data.numero_secuencial != null) ? maxRes.data.numero_secuencial + 1 : 327;
+
+        var insertRes = await supabaseClient.from("numeros_contrato").insert({ rut_mandante: rutKey, numero_secuencial: siguiente }).select("numero_secuencial").maybeSingle();
+        if (insertRes.error) {
+          var again = await supabaseClient.from("numeros_contrato").select("numero_secuencial").eq("rut_mandante", rutKey).maybeSingle();
+          if (again.data && again.data.numero_secuencial != null) return again.data.numero_secuencial;
+          return siguiente;
+        }
+        return siguiente;
       }
 
       // Valida el dígito verificador de un RUT chileno.
@@ -2376,6 +2400,9 @@
             const btnMandatoSimple = document.getElementById("btnMandatoSimple");
             const btnMandatoCorto = document.getElementById("btnMandatoCorto");
             const btnContrato = document.getElementById("btnContrato");
+            const supabaseClient = window.SUPABASE_URL && window.SUPABASE_ANON_KEY && window.SUPABASE_URL.indexOf("TU_PROYECTO") === -1
+              ? window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY)
+              : null;
             const cuentaField = document.getElementById("cuentaBancariaField");
             const cuentaBanco = document.getElementById("cuenta_banco");
             const cuentaTipo = document.getElementById("cuenta_tipo");
@@ -2439,7 +2466,7 @@
             }); 
 
         if (btnContrato) {
-          btnContrato.addEventListener("click", () => {
+          btnContrato.addEventListener("click", async () => {
             const result = validate(form, { soloParaContrato: true });
 
             if (!result.ok) {
@@ -2448,6 +2475,14 @@
             }
 
             const data = formDataToObject(form);
+            try {
+              data.numeroContratoSecuencial = supabaseClient
+                ? await getOrAssignNumeroContrato(supabaseClient, data)
+                : 327;
+            } catch (e) {
+              console.error("Error al obtener número de contrato:", e);
+              data.numeroContratoSecuencial = 327;
+            }
             generarContrato(data);
           });
         }
