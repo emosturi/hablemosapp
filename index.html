@@ -2654,6 +2654,17 @@
                     }
                   });
                   if (typeof updateCuentaBancariaVisibility === "function") updateCuentaBancariaVisibility();
+                  // Asignar explícitamente los selects (dropdown) para que queden seleccionados
+                  if (cuentaBanco && c.banco) {
+                    var bancoVal = String(c.banco).trim();
+                    var opcionBanco = Array.from(cuentaBanco.options).find(function (o) { return o.value === bancoVal || o.text.trim() === bancoVal; });
+                    if (opcionBanco) cuentaBanco.value = opcionBanco.value; else cuentaBanco.value = bancoVal;
+                  }
+                  if (cuentaTipo && c.tipo_cuenta) {
+                    var tipoVal = String(c.tipo_cuenta).trim();
+                    var opcionTipo = Array.from(cuentaTipo.options).find(function (o) { return o.value === tipoVal || o.text.trim() === tipoVal; });
+                    if (opcionTipo) cuentaTipo.value = opcionTipo.value; else cuentaTipo.value = tipoVal;
+                  }
                 }
                 // Autorrellenar beneficiarios en base a cónyuge/conviviente e hijos menores de 24 años
                 try {
