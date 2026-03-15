@@ -2654,18 +2654,19 @@
                     }
                   });
                   if (typeof updateCuentaBancariaVisibility === "function") updateCuentaBancariaVisibility();
-                  // Asignar explícitamente los selects (dropdown) para que queden seleccionados
-                  if (cuentaBanco && c.banco) {
-                    var bancoVal = String(c.banco).trim();
-                    var opcionBanco = Array.from(cuentaBanco.options).find(function (o) { return o.value === bancoVal || o.text.trim() === bancoVal; });
-                    if (opcionBanco) cuentaBanco.value = opcionBanco.value; else cuentaBanco.value = bancoVal;
+                  // Asignar explícitamente los selects: coincidencia insensible a mayúsculas y alias entre formularios
+                  var aliasBanco = { "Banco Estado": "BancoEstado", "Banco Santander": "Banco Santander Chile", "Scotiabank": "Scotiabank Chile", "Banco Itaú": "Banco Itaú Chile", "Banco Bice": "Banco BICE" };
+                  var aliasTipo = { "Cuenta vista": "Cuenta Vista/Cuenta RUT", "Cuenta Vista": "Cuenta Vista/Cuenta RUT", "Cuenta corriente": "Cuenta Corriente", "Cuenta de ahorro": "Cuenta de Ahorro" };
+                  function elegirOpcion(selectEl, valorGuardado, aliasMap) {
+                    if (!selectEl || !valorGuardado) return;
+                    var val = String(valorGuardado).trim();
+                    if (aliasMap && aliasMap[val] !== undefined) val = aliasMap[val];
+                    var opts = Array.from(selectEl.options);
+                    var op = opts.find(function (o) { var v = (o.value || "").trim(); var t = (o.text || "").trim(); return v === val || t === val || v.toLowerCase() === val.toLowerCase() || t.toLowerCase() === val.toLowerCase(); });
+                    if (op) selectEl.value = op.value;
                   }
-                  if (cuentaTipo && c.tipo_cuenta) {
-                    var tipoVal = String(c.tipo_cuenta).trim();
-                    if (tipoVal === "Cuenta Vista" || tipoVal === "Cuenta vista") tipoVal = "Cuenta Vista/Cuenta RUT";
-                    var opcionTipo = Array.from(cuentaTipo.options).find(function (o) { return o.value === tipoVal || o.text.trim() === tipoVal; });
-                    if (opcionTipo) cuentaTipo.value = opcionTipo.value; else cuentaTipo.value = tipoVal;
-                  }
+                  elegirOpcion(cuentaBanco, c.banco, aliasBanco);
+                  elegirOpcion(cuentaTipo, c.tipo_cuenta, aliasTipo);
                 }
                 // Autorrellenar beneficiarios en base a cónyuge/conviviente e hijos menores de 24 años
                 try {
