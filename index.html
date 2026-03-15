@@ -2588,10 +2588,13 @@
 
             var params = new URLSearchParams(window.location.search);
             var clienteId = params.get("cliente");
-            if (clienteId && window.SUPABASE_URL && window.SUPABASE_ANON_KEY && window.SUPABASE_URL.indexOf("TU_PROYECTO") === -1) {
-              var supabaseClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+            if (clienteId && supabaseClient) {
               supabaseClient.from("clientes").select("*").eq("id", clienteId).single().then(function (r) {
-                if (r.error || !r.data) return;
+                if (r.error || !r.data) {
+                  setStatus("No se pudieron cargar los datos del cliente. " + (r.error ? r.error.message : "Cliente no encontrado."));
+                  if (r.error) console.error("Prefill cliente:", r.error);
+                  return;
+                }
                 var c = r.data;
                 var fechaStr = c.fecha_nacimiento;
                 if (fechaStr && typeof fechaStr === "string") {
