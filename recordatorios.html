@@ -179,6 +179,15 @@
 
           function fmtDate(s) {
             if (!s) return "-";
+            // Para columnas tipo `date` (YYYY-MM-DD) evitamos el corrimiento por timezone.
+            var m = String(s).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+            if (m) {
+              var y = parseInt(m[1], 10);
+              var mo = parseInt(m[2], 10) - 1;
+              var da = parseInt(m[3], 10);
+              var local = new Date(y, mo, da);
+              return isNaN(local.getTime()) ? s : local.toLocaleDateString("es-CL");
+            }
             var d = new Date(s);
             return isNaN(d.getTime()) ? s : d.toLocaleDateString("es-CL");
           }
