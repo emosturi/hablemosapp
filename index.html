@@ -1515,7 +1515,7 @@
         const nombreTramite = mandante.tipoPension || "";
 
         // Número de contrato: registro asesor + número secuencial (asignado por RUT del mandante al pulsar Generar Contrato)
-        const numeroSecuencial = data.numeroContratoSecuencial ?? 327;
+        const numeroSecuencial = data.numeroContratoSecuencial ?? "NNN";
         const numeroContrato = data.numeroContrato || `${mandatario.numeroRegistroAsesorPrevisional || ""}-${numeroSecuencial}`;
 
         let filasBeneficiarios = "";
@@ -1935,14 +1935,14 @@
         const mandante = data && data.mandante;
         const rutRaw = mandante && mandante.rut;
         const rutKey = String(rutRaw || "").toUpperCase().replace(/[^0-9K]/g, "");
-        if (!rutKey || rutKey.length < 2) return 327;
+        if (!rutKey || rutKey.length < 2) return "NNN";
 
         var res = await supabaseClient.from("numeros_contrato").select("numero_secuencial").eq("rut_mandante", rutKey).maybeSingle();
         if (res.data && res.data.numero_secuencial != null) return res.data.numero_secuencial;
 
         var maxRes = await supabaseClient.from("numeros_contrato").select("numero_secuencial").order("numero_secuencial", { ascending: false }).limit(1).maybeSingle();
-        var siguiente = (maxRes.data && maxRes.data.numero_secuencial != null) ? maxRes.data.numero_secuencial + 1 : 327;
-
+        var maxActual = (maxRes.data && maxRes.data.numero_secuencial != null) ? maxRes.data.numero_secuencial : 339;
+        var siguiente = maxActual + 1;
         var insertRes = await supabaseClient.from("numeros_contrato").insert({ rut_mandante: rutKey, numero_secuencial: siguiente }).select("numero_secuencial").maybeSingle();
         if (insertRes.error) {
           var again = await supabaseClient.from("numeros_contrato").select("numero_secuencial").eq("rut_mandante", rutKey).maybeSingle();
@@ -2478,10 +2478,10 @@
             try {
               data.numeroContratoSecuencial = supabaseClient
                 ? await getOrAssignNumeroContrato(supabaseClient, data)
-                : 327;
+                : "NNN";
             } catch (e) {
               console.error("Error al obtener número de contrato:", e);
-              data.numeroContratoSecuencial = 327;
+              data.numeroContratoSecuencial = "NNN";
             }
             generarContrato(data);
           });
