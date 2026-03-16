@@ -1,6 +1,0 @@
-R_DEF: Internal format may change without notice
-local
-string app_name
-string channel_description
-string channel_name
-style Theme.RecordatoriosHablemos
