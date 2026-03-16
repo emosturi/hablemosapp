@@ -59,3 +59,9 @@ window.NOTIFY_SECRET = "tu-clave-secreta";
 - **Recordatorios:** La función `process-reminders` se ejecuta cada 5 min (pruebas) o 15 min (producción) y envía los recordatorios pendientes a tu Chat ID.
 
 No hay "join" ni sesiones que caduquen: siempre que el bot tenga el token y el chat_id correctos, los mensajes llegan.
+
+---
+
+## 6. App Android para notificaciones nativas (opcional)
+
+En la carpeta **recordatorios-android** hay una aplicación Android que usa la misma base de datos y muestra **notificaciones nativas** en el teléfono por cada recordatorio (cada 15 min, zona Chile). No usa Telegram ni WhatsApp: es una redundancia para recibir el aviso también en el propio dispositivo. Ver [recordatorios-android/README.md](recordatorios-android/README.md). Necesitas ejecutar la migración `supabase-migration-recordatorios-update.sql` en Supabase para que la app pueda marcar los recordatorios como enviados tras mostrar la notificación.
