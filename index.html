@@ -1037,7 +1037,7 @@
         items.forEach(function (item) {
           if (dataObj[item.key] === "Sí") {
             const label = (labelsMap && labelsMap[item.key]) || item.label;
-            html += `<tr><td>${label}</td><td class="col-respuesta"><span style="white-space:nowrap"><b>Sí</b></span></td></tr>\n`;
+            html += `<tr><td>${label}</td><td class="col-respuesta"><span style="white-space:nowrap">Sí</span></td></tr>\n`;
           }
         });
         return html;
@@ -1109,14 +1109,14 @@
         const nombreCompleto = [b.nombres, b.apellidoPaterno, b.apellidoMaterno].filter(Boolean).join(" ");
         beneficiarios += `
         <tr>
-        <td><b>${aMayus(nombreCompleto)}</b></td>
-        <td><b>${aMayus(b.sexo)}</b></td>
-        <td class="col-rut"><b>${aMayus(b.rut)}</b></td>
-        <td><b>${aMayus(b.fechaNacimiento)}</b></td>
-        <td><b>${aMayus(b.parentesco)}</b></td>
-        <td><b>${aMayus(b.fechaMatrimonioUnionCivil)}</b></td>
-        <td><b>${aMayus(b.ciudadMatrimonioUnionCivil)}</b></td>
-        <td><b>${aMayus(b.observaciones)}</b></td>
+        <td>${aMayus(nombreCompleto)}</td>
+        <td>${aMayus(b.sexo)}</td>
+        <td class="col-rut">${aMayus(b.rut)}</td>
+        <td>${aMayus(b.fechaNacimiento)}</td>
+        <td>${aMayus(b.parentesco)}</td>
+        <td>${aMayus(b.fechaMatrimonioUnionCivil)}</td>
+        <td>${aMayus(b.ciudadMatrimonioUnionCivil)}</td>
+        <td>${aMayus(b.observaciones)}</td>
         </tr>
         `;
 
@@ -1210,6 +1210,7 @@
         <body>
 
         <h2>MANDATO PARA TRÁMITE DE ${aMayus(mandante.tipoPension)}</h2>
+        <h3>${aMayus(mandante.tipoPension)}</h3>
 
         <p>
         Con fecha ${fechaHoy} y por medio del siguiente instrumento, yo 
@@ -1243,11 +1244,11 @@
         <br/>
         Asimismo, expongo que a la fecha, los datos de mi empleador son los siguientes:   
         <br/>
-        <br/><b>Razón social:</b> <b>${aMayus(empleador.nombreORazonSocial)}</b>
-        <br/><b>Rut:</b> <b>${aMayus(empleador.rut)}</b>
-        <br/><b>Dirección:</b> <b>${aMayus(empleador.domicilio)}</b>
-        <br/><b>Correo electrónico:</b> <b>${aMayus(empleador.email)}</b>
-        <br/><b>Telefono:</b> <b>${aMayus(empleador.telefono)}</b>
+        <br/>Razón social: ${aMayus(empleador.nombreORazonSocial)}
+        <br/>Rut: ${aMayus(empleador.rut)}
+        <br/>Dirección: ${aMayus(empleador.domicilio)}
+        <br/>Correo electrónico: ${aMayus(empleador.email)}
+        <br/>Telefono: ${aMayus(empleador.telefono)}
         </p>
         ` : ''}
 
@@ -1285,7 +1286,7 @@
         Por otra parte, señalo los siguientes antecedentes 
         que el mandatario deberá considerar para suscribir 
         en mi nombre en la solicitud 
-        de <b>${aMayus(mandante.tipoPension)}</b>
+        de ${aMayus(mandante.tipoPension)}
         <p/>
 
         <h3>Antecedentes</h3>
@@ -1294,87 +1295,87 @@
 
         <tr>
         <td>Deseo pensión preliminar</td>
-        <td class="col-respuesta"><span style="white-space:nowrap"><b>${antecedentes.deseoPensionPreliminar === "Sí" ? "Sí" : "No"}</b></span></td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${antecedentes.deseoPensionPreliminar === "Sí" ? "Sí" : "No"}</span></td>
         </tr>
 
         <tr>
         <td>Solicitar Pensión Garantizada Universal</td>
-        <td class="col-respuesta"><span style="white-space:nowrap"><b>${antecedentes.solicitarPgu === "Sí" ? "Sí" : "No"}</b></span></td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${antecedentes.solicitarPgu === "Sí" ? "Sí" : "No"}</span></td>
         </tr>
 
         <tr>
         <td>Solicitar aporte solidario de invalidez (si corresponde)</td>
-        <td class="col-respuesta"><span style="white-space:nowrap"><b>${antecedentes.solicitarAporteSolidarioInvalidez === "Sí" ? "Sí" : "No"}</b></span></td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${antecedentes.solicitarAporteSolidarioInvalidez === "Sí" ? "Sí" : "No"}</span></td>
         </tr>
 
         <tr>
         <td>Recibo pensión antiguo sistema</td>
-        <td class="col-respuesta"><span style="white-space:nowrap"><b>${antecedentes.reciboPensionAntiguoSistema === "Sí" ? "Sí" : "No"}</b></span></td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${antecedentes.reciboPensionAntiguoSistema === "Sí" ? "Sí" : "No"}</span></td>
         </tr>
 
         <tr>
         <td>Recibo pensión invalidez de este sistema</td>
-        <td class="col-respuesta"><span style="white-space:nowrap"><b>${antecedentes.reciboPensionInvalidezEsteSistema === "Sí" ? "Sí" : "No"}</b></span></td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${antecedentes.reciboPensionInvalidezEsteSistema === "Sí" ? "Sí" : "No"}</span></td>
         </tr>
 
         <tr>
         <td>Deseo que mi pensión se ajuste a la pensión mínima</td>
-        <td class="col-respuesta"><span style="white-space:nowrap"><b>${antecedentes.ajustePensionMinima === "Sí" ? "Sí" : "No"}</b></span></td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${antecedentes.ajustePensionMinima === "Sí" ? "Sí" : "No"}</span></td>
         </tr>
 
         <tr>
         <td>Deseo que mi pensión se ajuste a la pensión básica solidaria</td>
-        <td class="col-respuesta"><span style="white-space:nowrap"><b>${antecedentes.ajustePensionBasicaSolidaria === "Sí" ? "Sí" : "No"}</b></span></td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${antecedentes.ajustePensionBasicaSolidaria === "Sí" ? "Sí" : "No"}</span></td>
         </tr>
 
         <tr>
         <td>Estoy afecto al Estatuto Administrativo</td>
-        <td class="col-respuesta"><span style="white-space:nowrap"><b>${antecedentes.afectoEstatutoAdministrativo === "Sí" ? "Sí" : "No"}</b></span></td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${antecedentes.afectoEstatutoAdministrativo === "Sí" ? "Sí" : "No"}</span></td>
         </tr>
 
         <tr>
         <td>Destinaré Ahorro Previsional Voluntario al financiamiento de mi pensión</td>
-        <td class="col-respuesta"><span style="white-space:nowrap"><b>${antecedentes.destinareApv === "Sí" ? "Sí" : "No"}</b></span></td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${antecedentes.destinareApv === "Sí" ? "Sí" : "No"}</span></td>
         </tr>
 
         <tr>
         <td>Destinaré Ahorro Previsional Voluntario Colectivo al financiamiento de mi pensión</td>
-        <td class="col-respuesta"><span style="white-space:nowrap"><b>${antecedentes.destinareApvc === "Sí" ? "Sí" : "No"}</b></span></td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${antecedentes.destinareApvc === "Sí" ? "Sí" : "No"}</span></td>
         </tr>
 
         <tr>
         <td>Traspasaré fondos desde mi Cuenta de Ahorro Voluntario para financiar mi pensión</td>
-        <td class="col-respuesta"><span style="white-space:nowrap"><b>${antecedentes.traspasareCtaAhorroVoluntario === "Sí" ? "Sí" : "No"}</b></span></td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${antecedentes.traspasareCtaAhorroVoluntario === "Sí" ? "Sí" : "No"}</span></td>
         </tr>
 
         <tr>
         <td>Poseo depósitos convenidos</td>
-        <td class="col-respuesta"><span style="white-space:nowrap"><b>${antecedentes.poseoDepositosConvenidos === "Sí" ? "Sí" : "No"}</b></span></td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${antecedentes.poseoDepositosConvenidos === "Sí" ? "Sí" : "No"}</span></td>
         </tr>
 
         <tr>
         <td>Traspasaré fondos desde mi Cuenta Individual de Cesantía</td>
-        <td class="col-respuesta"><span style="white-space:nowrap"><b>${antecedentes.traspasareCesantia === "Sí" ? "Sí" : "No"}</b></span></td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${antecedentes.traspasareCesantia === "Sí" ? "Sí" : "No"}</span></td>
         </tr>
 
         <tr>
         <td>Tengo cotizaciones en otro país</td>
-        <td class="col-respuesta"><span style="white-space:nowrap"><b>${antecedentes.cotizacionesOtroPais === "Sí" ? "Sí" : "No"}</b></span></td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${antecedentes.cotizacionesOtroPais === "Sí" ? "Sí" : "No"}</span></td>
         </tr>
 
         <tr>
         <td>Tengo períodos de residencia en otro país</td>
-        <td class="col-respuesta"><span style="white-space:nowrap"><b>${antecedentes.residenciaOtroPais === "Sí" ? "Sí" : "No"}</b></span></td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${antecedentes.residenciaOtroPais === "Sí" ? "Sí" : "No"}</span></td>
         </tr>
 
         <tr>
         <td>Deseo cambiar de Tipo de Fondo</td>
-        <td class="col-respuesta"><span style="white-space:nowrap"><b>${antecedentes.cambioTipoFondo === "Sí" ? "Sí" : "No"}</b></span></td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${antecedentes.cambioTipoFondo === "Sí" ? "Sí" : "No"}</span></td>
         </tr>
 
         <tr>
         <td>Deseo que mis datos personales aparezcan en un listado público de información</td>
-        <td class="col-respuesta"><span style="white-space:nowrap"><b>${antecedentes.listadoPublico === "Sí" ? "Sí" : "No"}</b></span></td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${antecedentes.listadoPublico === "Sí" ? "Sí" : "No"}</span></td>
         </tr>
 
         </table>
@@ -1390,107 +1391,107 @@
 
         <tr>
         <td>Poner fín al trámite de Pensión</td>
-        <td class="col-respuesta"><span style="white-space:nowrap"><b>${(autorizaciones.terminarTramite === "Sí" ? "Sí" : "No")}</b></span></td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${(autorizaciones.terminarTramite === "Sí" ? "Sí" : "No")}</span></td>
         </tr>
 
         <tr>
         <td>Suscribir solicitud de Bono de Reconocimiento</td>
-        <td class="col-respuesta"><span style="white-space:nowrap"><b>${autorizaciones.suscribirBonoReconocimiento === "Sí" ? "Sí" : "No"}</b></span></td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${autorizaciones.suscribirBonoReconocimiento === "Sí" ? "Sí" : "No"}</span></td>
         </tr>
 
         <tr>
         <td>Solicitar información respecto del estado del trámite de pensión</td>
-        <td class="col-respuesta"><span style="white-space:nowrap"><b>${autorizaciones.solicitarInfoEstadoTramite === "Sí" ? "Sí" : "No"}</b></span></td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${autorizaciones.solicitarInfoEstadoTramite === "Sí" ? "Sí" : "No"}</span></td>
         </tr>
 
         <tr>
         <td>Retirar en la AFP el Certificado de Saldo</td>
-        <td class="col-respuesta"><span style="white-space:nowrap"><b>${autorizaciones.retirarCertificadoSaldo === "Sí" ? "Sí" : "No"}</b></span></td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${autorizaciones.retirarCertificadoSaldo === "Sí" ? "Sí" : "No"}</span></td>
         </tr>
 
         <tr>
         <td>Suscribir formulario "Destino de Cotizaciones Voluntarias"</td>
-        <td class="col-respuesta"><span style="white-space:nowrap"><b>${autorizaciones.suscribirDestinoCotizacionesVoluntarias === "Sí" ? "Sí" : "No"}</b></span></td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${autorizaciones.suscribirDestinoCotizacionesVoluntarias === "Sí" ? "Sí" : "No"}</span></td>
         </tr>
 
         <tr>
         <td>Suscribir formulario "Transferencia de Fondos desde la Cuenta de Ahorro Voluntario"</td>
-        <td class="col-respuesta"><span style="white-space:nowrap"><b>${autorizaciones.suscribirTransferenciaAhorroVoluntario === "Sí" ? "Sí" : "No"}</b></span></td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${autorizaciones.suscribirTransferenciaAhorroVoluntario === "Sí" ? "Sí" : "No"}</span></td>
         </tr>
 
         <tr>
         <td>Suscribir formulario "Selección de Alternativas de Ahorro Previsional Voluntario"</td>
-        <td class="col-respuesta"><span style="white-space:nowrap"><b>${autorizaciones.suscribirSeleccionAlternativasApv === "Sí" ? "Sí" : "No"}</b></span></td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${autorizaciones.suscribirSeleccionAlternativasApv === "Sí" ? "Sí" : "No"}</span></td>
         </tr>
 
         <tr>
         <td>Suscribir solicitud de cambio de modalidad de pensión</td>
-        <td class="col-respuesta"><span style="white-space:nowrap"><b>${autorizaciones.suscribirCambioModalidadPension === "Sí" ? "Sí" : "No"}</b></span></td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${autorizaciones.suscribirCambioModalidadPension === "Sí" ? "Sí" : "No"}</span></td>
         </tr>
 
         <tr>
         <td>Suscribir solicitud de cálculo de excedente de libre disposición</td>
-        <td class="col-respuesta"><span style="white-space:nowrap"><b>${autorizaciones.suscribirCalculoExcedente === "Sí" ? "Sí" : "No"}</b></span></td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${autorizaciones.suscribirCalculoExcedente === "Sí" ? "Sí" : "No"}</span></td>
         </tr>
 
         <tr>
         <td>Suscribir opción por mantener el valor nominal del saldo destinado a pensión</td>
-        <td class="col-respuesta"><span style="white-space:nowrap"><b>${autorizaciones.suscribirMantenerValorNominal === "Sí" ? "Sí" : "No"}</b></span></td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${autorizaciones.suscribirMantenerValorNominal === "Sí" ? "Sí" : "No"}</span></td>
         </tr>
 
         <tr>
         <td>Retirar duplicado de SCOMP original</td>
-        <td class="col-respuesta"><span style="white-space:nowrap"><b>${autorizaciones.retirarDuplicadoScompOriginal === "Sí" ? "Sí" : "No"}</b></span></td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${autorizaciones.retirarDuplicadoScompOriginal === "Sí" ? "Sí" : "No"}</span></td>
         </tr>
 
         <tr>
         <td>Ingresar datos de mi cuenta bancaria</td>
-        <td class="col-respuesta"><span style="white-space:nowrap"><b>${autorizaciones.ingresarDatosCuentaBancaria === "Sí" ? "Sí" : "No"}</b></span></td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${autorizaciones.ingresarDatosCuentaBancaria === "Sí" ? "Sí" : "No"}</span></td>
         </tr>
 
         <tr>
         <td>Obtener información verbal o escrita del pago de mi pensión y traspaso de fondos</td>
-        <td class="col-respuesta"><span style="white-space:nowrap"><b>${autorizaciones.obtenerInfoPagoPensionYTraspaso === "Sí" ? "Sí" : "No"}</b></span></td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${autorizaciones.obtenerInfoPagoPensionYTraspaso === "Sí" ? "Sí" : "No"}</span></td>
         </tr>
 
         <tr>
         <td>Firmar exención de cotizar por cumplimiento de edad legal al inicio de mi trámite</td>
-        <td class="col-respuesta"><span style="white-space:nowrap"><b>${autorizaciones.firmarExencionCotizarEdadLegal === "Sí" ? "Sí" : "No"}</b></span></td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${autorizaciones.firmarExencionCotizarEdadLegal === "Sí" ? "Sí" : "No"}</span></td>
         </tr>
 
         <tr>
         <td>Realizar requerimientos y reclamos del trámite y todo lo relacionado con este</td>
-        <td class="col-respuesta"><span style="white-space:nowrap"><b>${autorizaciones.realizarReclamosTramite === "Sí" ? "Sí" : "No"}</b></span></td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${autorizaciones.realizarReclamosTramite === "Sí" ? "Sí" : "No"}</span></td>
         </tr>
 
         <tr>
         <td>Certificado histórico de cotizaciones</td>
-        <td class="col-respuesta"><span style="white-space:nowrap"><b>${certificados.historicoCotizaciones === "Sí" ? "Sí" : "No"}</b></span></td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${certificados.historicoCotizaciones === "Sí" ? "Sí" : "No"}</span></td>
         </tr>
 
         <tr>
         <td>Certificado de antecedente previsional</td>
-        <td class="col-respuesta"><span style="white-space:nowrap"><b>${certificados.antecedentePrevisional === "Sí" ? "Sí" : "No"}</b></span></td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${certificados.antecedentePrevisional === "Sí" ? "Sí" : "No"}</span></td>
         </tr>
 
         <tr>
         <td>Certificado de trabajo pesado</td>
-        <td class="col-respuesta"><span style="white-space:nowrap"><b>${certificados.certificadoTrabajoPesado === "Sí" ? "Sí" : "No"}</b></span></td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${certificados.certificadoTrabajoPesado === "Sí" ? "Sí" : "No"}</span></td>
         </tr>
 
         <tr>
         <td>Certificado de vacaciones progresivas</td>
-        <td class="col-respuesta"><span style="white-space:nowrap"><b>${certificados.certificadoVacacionesProgresivas === "Sí" ? "Sí" : "No"}</b></span></td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${certificados.certificadoVacacionesProgresivas === "Sí" ? "Sí" : "No"}</span></td>
         </tr>
 
         <tr>
         <td>Certificado de estado de cuentas</td>
-        <td class="col-respuesta"><span style="white-space:nowrap"><b>${certificados.certificadoEstadoCuentas === "Sí" ? "Sí" : "No"}</b></span></td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${certificados.certificadoEstadoCuentas === "Sí" ? "Sí" : "No"}</span></td>
         </tr>
 
         <tr>
         <td>Certificado de calidad de pensionado</td>
-        <td class="col-respuesta"><span style="white-space:nowrap"><b>${certificados.certificadoCalidadPensionado === "Sí" ? "Sí" : "No"}</b></span></td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${certificados.certificadoCalidadPensionado === "Sí" ? "Sí" : "No"}</span></td>
         </tr>
 
         </table>
@@ -1501,15 +1502,15 @@
         <table border="1" style="border-collapse:collapse;width:100%;">
         <tr>
         <td>Banco</td>
-        <td><b>${aMayus(autorizaciones.banco || "")}</b></td>
+        <td>${aMayus(autorizaciones.banco || "")}</td>
         </tr>
         <tr>
         <td>Tipo de cuenta</td>
-        <td><b>${aMayus(autorizaciones.tipoCuenta || "")}</b></td>
+        <td>${aMayus(autorizaciones.tipoCuenta || "")}</td>
         </tr>
         <tr>
         <td>Número de cuenta</td>
-        <td><b>${aMayus(autorizaciones.numeroCuenta || "")}</b></td>
+        <td>${aMayus(autorizaciones.numeroCuenta || "")}</td>
         </tr>
         </table>
         <br>
@@ -1637,7 +1638,7 @@
         Por otra parte, señalo los siguientes antecedentes 
         que el mandatario deberá considerar para suscribir 
         en mi nombre en la solicitud 
-        de <b>${aMayus(mandante.tipoPension)}</b>
+        de ${aMayus(mandante.tipoPension)}
         </p>
         <h3>Antecedentes</h3>
         <table border="1" style="border-collapse:collapse;width:100%;">
@@ -1711,13 +1712,13 @@
               `${b.nombres || ""} ${b.apellidoPaterno || ""} ${b.apellidoMaterno || ""}`.trim();
             filasBeneficiarios += `
         <tr>
-        <td><b>${aMayus(nombreBenef)}</b></td>
-        <td><b>${aMayus(b.parentesco)}</b></td>
-        <td><b>${aMayus(b.fechaNacimiento)}</b></td>
-        <td><b>${aMayus(b.fechaMatrimonioUnionCivil)}</b></td>
-        <td><b>${aMayus(b.ciudadMatrimonioUnionCivil)}</b></td>
-        <td class="col-rut"><b>${aMayus(b.rut)}</b></td>
-        <td><b>${aMayus(b.esInvalido)}</b></td>
+        <td>${aMayus(nombreBenef)}</td>
+        <td>${aMayus(b.parentesco)}</td>
+        <td>${aMayus(b.fechaNacimiento)}</td>
+        <td>${aMayus(b.fechaMatrimonioUnionCivil)}</td>
+        <td>${aMayus(b.ciudadMatrimonioUnionCivil)}</td>
+        <td class="col-rut">${aMayus(b.rut)}</td>
+        <td>${aMayus(b.esInvalido)}</td>
         </tr>
         `;
           });
