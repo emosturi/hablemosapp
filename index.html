@@ -984,6 +984,65 @@
         { key: "certificadoCalidadPensionado", label: "Certificado de calidad de pensionado" },
       ];
 
+      // Etiquetas exactas del mandato (mismo texto que en el .doc completo)
+      const antecedentesMandateLabels = {
+        deseoPensionPreliminar: "Deseo pensión preliminar",
+        solicitarPgu: "Solicitar Pensión Garantizada Universal",
+        solicitarAporteSolidarioInvalidez: "Solicitar aporte solidario de invalidez (si corresponde)",
+        reciboPensionAntiguoSistema: "Recibo pensión antiguo sistema",
+        reciboPensionInvalidezEsteSistema: "Recibo pensión invalidez de este sistema",
+        ajustePensionMinima: "Deseo que mi pensión se ajuste a la pensión mínima",
+        ajustePensionBasicaSolidaria: "Deseo que mi pensión se ajuste a la pensión básica solidaria",
+        afectoEstatutoAdministrativo: "Estoy afecto al Estatuto Administrativo",
+        destinareApv: "Destinaré Ahorro Previsional Voluntario al financiamiento de mi pensión",
+        destinareApvc: "Destinaré Ahorro Previsional Voluntario Colectivo al financiamiento de mi pensión",
+        traspasareCtaAhorroVoluntario: "Traspasaré fondos desde mi Cuenta de Ahorro Voluntario para financiar mi pensión",
+        poseoDepositosConvenidos: "Poseo depósitos convenidos",
+        traspasareCesantia: "Traspasaré fondos desde mi Cuenta Individual de Cesantía",
+        cotizacionesOtroPais: "Tengo cotizaciones en otro país",
+        residenciaOtroPais: "Tengo períodos de residencia en otro país",
+        cambioTipoFondo: "Deseo cambiar de Tipo de Fondo",
+        listadoPublico: "Deseo que mis datos personales aparezcan en un listado público de información",
+      };
+      const autorizacionesMandateLabels = {
+        terminarTramite: "Poner fín al trámite de Pensión",
+        suscribirBonoReconocimiento: "Suscribir solicitud de Bono de Reconocimiento",
+        solicitarInfoEstadoTramite: "Solicitar información respecto del estado del trámite de pensión",
+        retirarCertificadoSaldo: "Retirar en la AFP el Certificado de Saldo",
+        suscribirDestinoCotizacionesVoluntarias: 'Suscribir formulario "Destino de Cotizaciones Voluntarias"',
+        suscribirTransferenciaAhorroVoluntario: 'Suscribir formulario "Transferencia de Fondos desde la Cuenta de Ahorro Voluntario"',
+        suscribirSeleccionAlternativasApv: 'Suscribir formulario "Selección de Alternativas de Ahorro Previsional Voluntario"',
+        suscribirCambioModalidadPension: "Suscribir solicitud de cambio de modalidad de pensión",
+        suscribirCalculoExcedente: "Suscribir solicitud de cálculo de excedente de libre disposición",
+        suscribirMantenerValorNominal: "Suscribir opción por mantener el valor nominal del saldo destinado a pensión",
+        retirarDuplicadoScompOriginal: "Retirar duplicado de SCOMP original",
+        ingresarDatosCuentaBancaria: "Ingresar datos de mi cuenta bancaria",
+        obtenerInfoPagoPensionYTraspaso: "Obtener información verbal o escrita del pago de mi pensión y traspaso de fondos",
+        firmarExencionCotizarEdadLegal: "Firmar exención de cotizar por cumplimiento de edad legal al inicio de mi trámite",
+        realizarReclamosTramite: "Realizar requerimientos y reclamos del trámite y todo lo relacionado con este",
+      };
+      const certificadosMandateLabels = {
+        historicoCotizaciones: "Certificado histórico de cotizaciones",
+        antecedentePrevisional: "Certificado de antecedente previsional",
+        certificadoTrabajoPesado: "Certificado de trabajo pesado",
+        certificadoVacacionesProgresivas: "Certificado de vacaciones progresivas",
+        certificadoEstadoCuentas: "Certificado de estado de cuentas",
+        certificadoCalidadPensionado: "Certificado de calidad de pensionado",
+      };
+
+      // Genera filas de tabla solo para ítems con valor "Sí" (para mandato corto).
+      function buildTablaSoloSi(items, dataObj, labelsMap) {
+        if (!dataObj || typeof dataObj !== "object") return "";
+        let html = "";
+        items.forEach(function (item) {
+          if (dataObj[item.key] === "Sí") {
+            const label = (labelsMap && labelsMap[item.key]) || item.label;
+            html += `<tr><td>${label}</td><td class="col-respuesta"><b>Sí</b></td></tr>\n`;
+          }
+        });
+        return html;
+      }
+
       const MESES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
       // Convierte una fecha en formato DD-MM-YYYY a un texto hablado en español.
@@ -1498,6 +1557,206 @@
 
         URL.revokeObjectURL(url);
 
+      }
+
+      // Genera el mandato corto: mismo contenido que el mandato completo pero en Antecedentes,
+      // Autorizaciones y Certificados solo se listan las opciones marcadas con "Sí" en el formulario.
+      function generarMandatoCorto(data) {
+        const empleador = data.empleador || {};
+        const mandante = data.mandante || {};
+        const mandatario = data.mandatario || {};
+        const antecedentes = data.antecedentes || {};
+        const autorizaciones = data.autorizaciones || {};
+        const certificados = data.certificados || {};
+
+        let beneficiarios = "";
+        if (data.beneficiarios) {
+          const lista = Object.values(data.beneficiarios);
+          lista.forEach(function (b) {
+            const nombreCompleto = [b.nombres, b.apellidoPaterno, b.apellidoMaterno].filter(Boolean).join(" ");
+            beneficiarios += `
+        <tr>
+        <td><b>${aMayus(nombreCompleto)}</b></td>
+        <td><b>${aMayus(b.sexo)}</b></td>
+        <td class="col-rut"><b>${aMayus(b.rut)}</b></td>
+        <td><b>${aMayus(b.fechaNacimiento)}</b></td>
+        <td><b>${aMayus(b.parentesco)}</b></td>
+        <td><b>${aMayus(b.fechaMatrimonioUnionCivil)}</b></td>
+        <td><b>${aMayus(b.ciudadMatrimonioUnionCivil)}</b></td>
+        <td><b>${aMayus(b.observaciones)}</b></td>
+        </tr>
+        `;
+          });
+        }
+
+        const nombreMandante =
+          `${mandante.nombres || ""} ${mandante.apellidoPaterno || ""} ${mandante.apellidoMaterno || ""}`;
+        const nombreMandatario =
+          `${mandatario.nombres || ""} ${mandatario.apellidoPaterno || ""} ${mandatario.apellidoMaterno || ""}`;
+        const fechaHoy = fechaHoyHablado();
+
+        const tablaAntecedentesCorto = buildTablaSoloSi(antecedentesItems, antecedentes, antecedentesMandateLabels);
+        const tablaAutorizacionesCorto = buildTablaSoloSi(autorizacionesItems, autorizaciones, autorizacionesMandateLabels);
+        const tablaCertificadosCorto = buildTablaSoloSi(certificadosItems, certificados, certificadosMandateLabels);
+
+        const html = `
+        <html>
+        <head>
+        <meta charset="utf-8">
+        <style>
+        body{ font-family:Arial; font-size:12pt; line-height:1.5; margin:15px 12px; }
+        p{ text-align:justify; }
+        table{ border-collapse:collapse; width:100%; margin-top:10px; }
+        td,th{ border:1px solid black; padding:4px; }
+        .col-rut{ white-space:nowrap; width:1%; min-width:7em; }
+        .col-respuesta{ min-width:4em; white-space:nowrap; }
+        h2,h3{ margin-top:20px; page-break-after:avoid; }
+        h2{ text-transform:uppercase; text-align:center; }
+        .empleador-datos{ text-align:left; }
+        .firmas{ margin-top:40px; overflow:hidden; width:100%; }
+        .firma-izq{ float:left; width:45%; text-align:center; }
+        .firma-der{ float:right; width:45%; text-align:center; }
+        </style>
+        </head>
+        <body>
+
+        <h2>MANDATO PARA ${aMayus(mandante.tipoPension)}</h2>
+
+        <p>
+        Con fecha ${fechaHoy} y por medio del siguiente instrumento, yo 
+        <b>${aMayus(nombreMandante)}</b>,
+        RUT <b>${aMayus(mandante.rut)}</b>,
+        de nacionalidad <b>${aMayus(mandante.nacionalidad)}</b>,
+        de sexo <b>${aMayus(mandante.sexo)}</b>,
+        nacido el <b>${fechaAHablado(mandante.fechaNacimiento)}</b>,
+        estado civil <b>${aMayus(mandante.estadoCivil)}</b>,
+        de profesión u oficio <b>${aMayus(mandante.profesionUOficio)}</b>,
+        domiciliado en <b>${aMayus(mandante.domicilio)}</b>,
+        comuna de <b>${aMayus(mandante.comuna)}</b>,
+        ciudad de <b>${aMayus(mandante.ciudad)}</b>,
+        teléfono <b>${aMayus(mandante.telefono)}</b>,
+        correo electrónico <b>${aMayus(mandante.email)}</b>,
+        he incorporado a la institución de salud
+        <b>${aMayus(mandante.institucionSalud)}</b>
+        confiero poder a 
+        <b>${aMayus(nombreMandatario)}</b>,
+        RUT <b>${aMayus(mandatario.rut)}</b>,
+        domiciliado en <b>${aMayus(mandatario.domicilio)}</b>,
+        comuna de <b>${aMayus(mandatario.comuna)}</b>,
+        ciudad de <b>${aMayus(mandatario.ciudad)}</b>,
+        teléfono <b>${aMayus(mandatario.telefono)}</b>,
+        correo electrónico <b>${aMayus(mandatario.email)}</b>,
+        para que en mi nombre suscriba en <b>${aMayus(mandante.afp)}</b>, una solicitud de <b>${aMayus(mandante.tipoPension)}</b>.
+        </p>
+
+        ${(empleador.nombreORazonSocial || empleador.rut || empleador.domicilio || empleador.email || empleador.telefono) ? `
+        <p class="empleador-datos">
+        <br/>
+        Asimismo, expongo que a la fecha, los datos de mi empleador son los siguientes:   
+        <br/>
+        <br/><b>Razón social:</b> <b>${aMayus(empleador.nombreORazonSocial)}</b>
+        <br/><b>Rut:</b> <b>${aMayus(empleador.rut)}</b>
+        <br/><b>Dirección:</b> <b>${aMayus(empleador.domicilio)}</b>
+        <br/><b>Correo electrónico:</b> <b>${aMayus(empleador.email)}</b>
+        <br/><b>Telefono:</b> <b>${aMayus(empleador.telefono)}</b>
+        </p>
+        ` : ''}
+
+        <p>
+        Para efectos de la suscripción de la pensión antes mencionada, declaro conocer que tienen la calidad de beneficiarios y de pensión de sobrevivencia: el cónyuge, los hijos, la madre o padre de hijos de filiación no matrimonial y, a falta de todos los anteriores, los padres.
+        </p>
+        ${parseInt(mandante.numeroBeneficiarios || 0, 10) > 0 ? `
+        <p>
+        En consecuencia, efectúo la siguiente declaración de beneficiarios:  
+        </p>
+        <h3>Beneficiarios</h3>
+        <table>
+        <tr>
+        <th>Nombre Completo</th>
+        <th>Sexo</th>
+        <th class="col-rut">RUT</th>
+        <th>Fecha Nacimiento</th>
+        <th>Parentesco</th>
+        <th>Fecha mat./unión civil</th>
+        <th>Ciudad mat./unión civil</th>
+        <th>Observaciones</th>
+        </tr>
+        ${beneficiarios}
+        </table>
+        </br>
+        ` : ''}
+
+        <p>
+        Por otra parte, señalo los siguientes antecedentes 
+        que el mandatario deberá considerar para suscribir 
+        en mi nombre en la solicitud 
+        de <b>${aMayus(mandante.tipoPension)}</b>
+        </p>
+
+        <h3>Antecedentes</h3>
+        <table border="1" style="border-collapse:collapse;width:100%;">
+        ${tablaAntecedentesCorto || '<tr><td>Ninguno seleccionado</td><td class="col-respuesta"><b>-</b></td></tr>'}
+        </table>
+        </br>
+
+        <p>
+        Asimismo, autorizo al mandatario para:  
+        </p>
+
+        <h3>Autorizaciones</h3>
+        <table border="1" style="border-collapse:collapse;width:100%;">
+        ${(tablaAutorizacionesCorto || "") + (tablaCertificadosCorto || "") || '<tr><td>Ninguna seleccionada</td><td class="col-respuesta"><b>-</b></td></tr>'}
+        </table>
+        <br>
+
+        ${(autorizaciones.banco || autorizaciones.tipoCuenta || autorizaciones.numeroCuenta) ? `
+        <h3>Datos de cuenta bancaria</h3>
+        <table border="1" style="border-collapse:collapse;width:100%;">
+        <tr><td>Banco</td><td><b>${aMayus(autorizaciones.banco || "")}</b></td></tr>
+        <tr><td>Tipo de cuenta</td><td><b>${aMayus(autorizaciones.tipoCuenta || "")}</b></td></tr>
+        <tr><td>Número de cuenta</td><td><b>${aMayus(autorizaciones.numeroCuenta || "")}</b></td></tr>
+        </table>
+        <br>
+        ` : ''}
+
+        <p>
+        Otorgo el presente mandato para los únicos 
+        fines antes señalados y se entiende revocado 
+        por otro de fecha posterior o por término de 
+        la gestión encomendada.
+        </p>
+        <p>
+        Finalmente, declaro conocer que el trámite de pensión 
+        es gratuito, sin perjuicio de que puedo contratar 
+        voluntariamente una asesoría previsional para dicho trámite.    
+        </p>
+
+        <br><br><br><br><br><br>
+
+        <div class="firmas" style="margin-top:40px;overflow:hidden;width:100%;">
+        <div class="firma-izq" style="float:left;width:45%;text-align:center;">
+        <p>______________________________</p>
+        <p>${aMayus(nombreMandante)}</p>
+        <p>RUT: ${aMayus(mandante.rut)}</p>
+        </div>
+        <div class="firma-der" style="float:right;width:45%;text-align:center;">
+        <p>______________________________</p>
+        <p>${aMayus(nombreMandatario)}</p>
+        <p>RUT: ${aMayus(mandatario.rut)}</p>
+        </div>
+        </div>
+
+        </body>
+        </html>
+        `;
+
+        const blob = new Blob(["\ufeff", html], { type: "application/msword" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "mandato_corto.doc";
+        a.click();
+        URL.revokeObjectURL(url);
       }
 
       // Genera el contrato de prestación de servicios de asesoría y lo descarga como archivo .doc.
@@ -2465,7 +2724,17 @@
 
               generarMandatoSimple(data);
 
-            }); 
+            });
+
+            btnMandatoCorto.addEventListener("click", function () {
+              const result = validate(form);
+              if (!result.ok) {
+                setStatus("Debes completar el formulario primero");
+                return;
+              }
+              const data = formDataToObject(form);
+              generarMandatoCorto(data);
+            });
 
         if (btnContrato) {
           btnContrato.addEventListener("click", async () => {
