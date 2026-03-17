@@ -1653,16 +1653,6 @@
         </table>
         <br>
 
-        ${(autorizaciones.banco || autorizaciones.tipoCuenta || autorizaciones.numeroCuenta) ? `
-        <h3>Datos de cuenta bancaria</h3>
-        <table border="1" style="border-collapse:collapse;width:100%;">
-        <tr><td>Banco</td><td><b>${aMayus(autorizaciones.banco || "")}</b></td></tr>
-        <tr><td>Tipo de cuenta</td><td><b>${aMayus(autorizaciones.tipoCuenta || "")}</b></td></tr>
-        <tr><td>Número de cuenta</td><td><b>${aMayus(autorizaciones.numeroCuenta || "")}</b></td></tr>
-        </table>
-        <br>
-        ` : ''}
-
         <p>
         Otorgo el presente mandato para los únicos 
         fines antes señalados y se entiende revocado 
