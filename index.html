@@ -1562,32 +1562,11 @@
       // Genera el mandato corto: mismo contenido que el mandato completo pero en Antecedentes,
       // Autorizaciones y Certificados solo se listan las opciones marcadas con "Sí" en el formulario.
       function generarMandatoCorto(data) {
-        const empleador = data.empleador || {};
         const mandante = data.mandante || {};
         const mandatario = data.mandatario || {};
         const antecedentes = data.antecedentes || {};
         const autorizaciones = data.autorizaciones || {};
         const certificados = data.certificados || {};
-
-        let beneficiarios = "";
-        if (data.beneficiarios) {
-          const lista = Object.values(data.beneficiarios);
-          lista.forEach(function (b) {
-            const nombreCompleto = [b.nombres, b.apellidoPaterno, b.apellidoMaterno].filter(Boolean).join(" ");
-            beneficiarios += `
-        <tr>
-        <td><b>${aMayus(nombreCompleto)}</b></td>
-        <td><b>${aMayus(b.sexo)}</b></td>
-        <td class="col-rut"><b>${aMayus(b.rut)}</b></td>
-        <td><b>${aMayus(b.fechaNacimiento)}</b></td>
-        <td><b>${aMayus(b.parentesco)}</b></td>
-        <td><b>${aMayus(b.fechaMatrimonioUnionCivil)}</b></td>
-        <td><b>${aMayus(b.ciudadMatrimonioUnionCivil)}</b></td>
-        <td><b>${aMayus(b.observaciones)}</b></td>
-        </tr>
-        `;
-          });
-        }
 
         const nombreMandante =
           `${mandante.nombres || ""} ${mandante.apellidoPaterno || ""} ${mandante.apellidoMaterno || ""}`;
@@ -1649,42 +1628,7 @@
         para que en mi nombre suscriba en <b>${aMayus(mandante.afp)}</b>, una solicitud de <b>${aMayus(mandante.tipoPension)}</b>.
         </p>
 
-        ${(empleador.nombreORazonSocial || empleador.rut || empleador.domicilio || empleador.email || empleador.telefono) ? `
-        <p class="empleador-datos">
-        <br/>
-        Asimismo, expongo que a la fecha, los datos de mi empleador son los siguientes:   
-        <br/>
-        <br/><b>Razón social:</b> <b>${aMayus(empleador.nombreORazonSocial)}</b>
-        <br/><b>Rut:</b> <b>${aMayus(empleador.rut)}</b>
-        <br/><b>Dirección:</b> <b>${aMayus(empleador.domicilio)}</b>
-        <br/><b>Correo electrónico:</b> <b>${aMayus(empleador.email)}</b>
-        <br/><b>Telefono:</b> <b>${aMayus(empleador.telefono)}</b>
-        </p>
-        ` : ''}
-
-        <p>
-        Para efectos de la suscripción de la pensión antes mencionada, declaro conocer que tienen la calidad de beneficiarios y de pensión de sobrevivencia: el cónyuge, los hijos, la madre o padre de hijos de filiación no matrimonial y, a falta de todos los anteriores, los padres.
-        </p>
-        ${parseInt(mandante.numeroBeneficiarios || 0, 10) > 0 ? `
-        <p>
-        En consecuencia, efectúo la siguiente declaración de beneficiarios:  
-        </p>
-        <h3>Beneficiarios</h3>
-        <table>
-        <tr>
-        <th>Nombre Completo</th>
-        <th>Sexo</th>
-        <th class="col-rut">RUT</th>
-        <th>Fecha Nacimiento</th>
-        <th>Parentesco</th>
-        <th>Fecha mat./unión civil</th>
-        <th>Ciudad mat./unión civil</th>
-        <th>Observaciones</th>
-        </tr>
-        ${beneficiarios}
-        </table>
-        </br>
-        ` : ''}
+       
 
         <p>
         Por otra parte, señalo los siguientes antecedentes 
