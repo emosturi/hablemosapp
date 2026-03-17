@@ -1033,7 +1033,10 @@
         if (sexoVal === "masculino" && sexoInputM) sexoInputM.checked = true;
         else if (sexoVal === "femenino" && sexoInputF) sexoInputF.checked = true;
         setFechaFromIso(diaSel, mesSel, anioSel, hiddenFecha, c.fecha_nacimiento);
-        if (estadoCivilSel) estadoCivilSel.value = c.estado_civil || "";
+        if (estadoCivilSel) {
+          estadoCivilSel.value = c.estado_civil || "";
+          try { estadoCivilSel.dispatchEvent(new Event("change", { bubbles: true })); } catch (_) {}
+        }
         document.getElementById("cliente_domicilio").value = c.domicilio || "";
         document.getElementById("cliente_comuna").value = c.comuna || "";
         document.getElementById("cliente_ciudad").value = c.ciudad || "";
@@ -1042,10 +1045,7 @@
         document.getElementById("cliente_email").value = c.email || "";
         document.getElementById("cliente_afp").value = c.afp || "";
         document.getElementById("cliente_salud").value = c.institucion_salud || "";
-        if (estadoCivilSel && sectionConyuge) {
-          var v = (c.estado_civil || "").toLowerCase();
-          sectionConyuge.classList.toggle("section-hidden", v.indexOf("casado") === -1 && v.indexOf("conviviente") === -1);
-        }
+        // La visibilidad del cónyuge se controla por el handler de estado civil (change).
         document.getElementById("conyuge_nombres").value = c.conyuge_nombres || "";
         document.getElementById("conyuge_apPaterno").value = c.conyuge_apellido_paterno || "";
         document.getElementById("conyuge_apMaterno").value = c.conyuge_apellido_materno || "";
