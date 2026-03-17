@@ -1599,7 +1599,7 @@
         </head>
         <body>
 
-        <h2>MANDATO PARA ${aMayus(mandante.tipoPension)}</h2>
+        <h2>MANDATO PARA ${aMayus(mandante.cambioModalidadTramite === "Sí" ? "INICIAR CAMBIO DE MODALIDAD" : "RETIRAR CERTIFICADO DE SALDO")} DE ${aMayus(mandante.tipoPension)}</h2>
 
         <p>
         Con fecha ${fechaHoy} y por medio del siguiente instrumento, yo 
@@ -1625,33 +1625,35 @@
         ciudad de <b>${aMayus(mandatario.ciudad)}</b>,
         teléfono <b>${aMayus(mandatario.telefono)}</b>,
         correo electrónico <b>${aMayus(mandatario.email)}</b>,
-        para que en mi nombre suscriba en <b>${aMayus(mandante.afp)}</b>, una solicitud de <b>${aMayus(mandante.tipoPension)}</b>.
+        para que en mi nombre y en representación efectúe en <b>${aMayus(mandante.afp)} lo siguiente:
         </p>
 
        
 
+        ${tablaAntecedentesCorto ? `
         <p>
         Por otra parte, señalo los siguientes antecedentes 
         que el mandatario deberá considerar para suscribir 
         en mi nombre en la solicitud 
         de <b>${aMayus(mandante.tipoPension)}</b>
         </p>
-
         <h3>Antecedentes</h3>
         <table border="1" style="border-collapse:collapse;width:100%;">
-        ${tablaAntecedentesCorto || '<tr><td>Ninguno seleccionado</td><td class="col-respuesta"><b>-</b></td></tr>'}
+        ${tablaAntecedentesCorto}
         </table>
         </br>
+        ` : ''}
 
+        ${(tablaAutorizacionesCorto || tablaCertificadosCorto) ? `
         <p>
         Asimismo, autorizo al mandatario para:  
         </p>
-
         <h3>Autorizaciones</h3>
         <table border="1" style="border-collapse:collapse;width:100%;">
-        ${(tablaAutorizacionesCorto || "") + (tablaCertificadosCorto || "") || '<tr><td>Ninguna seleccionada</td><td class="col-respuesta"><b>-</b></td></tr>'}
+        ${(tablaAutorizacionesCorto || "") + (tablaCertificadosCorto || "")}
         </table>
         <br>
+        ` : ''}
 
         <p>
         Otorgo el presente mandato para los únicos 
