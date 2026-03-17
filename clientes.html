@@ -333,27 +333,32 @@
             </div>
             <div class="grid">
               <div class="field col-4">
-                <label for="conyuge_nombres">Nombres</label>
+                <label for="conyuge_nombres">Nombres <span class="req">*</span></label>
                 <input id="conyuge_nombres" name="conyuge.nombres" />
+                <div class="error" data-error-for="conyuge_nombres"></div>
               </div>
               <div class="field col-4">
-                <label for="conyuge_apPaterno">Apellido Paterno</label>
+                <label for="conyuge_apPaterno">Apellido Paterno <span class="req">*</span></label>
                 <input id="conyuge_apPaterno" name="conyuge.apellidoPaterno" />
+                <div class="error" data-error-for="conyuge_apPaterno"></div>
               </div>
               <div class="field col-4">
-                <label for="conyuge_apMaterno">Apellido Materno</label>
+                <label for="conyuge_apMaterno">Apellido Materno <span class="req">*</span></label>
                 <input id="conyuge_apMaterno" name="conyuge.apellidoMaterno" />
+                <div class="error" data-error-for="conyuge_apMaterno"></div>
               </div>
               <div class="field col-4">
-                <label for="conyuge_nacionalidad">Nacionalidad</label>
+                <label for="conyuge_nacionalidad">Nacionalidad <span class="req">*</span></label>
                 <input id="conyuge_nacionalidad" name="conyuge.nacionalidad" placeholder="Ej. Chilena" />
+                <div class="error" data-error-for="conyuge_nacionalidad"></div>
               </div>
               <div class="field col-4">
-                <label for="conyuge_rut">RUT</label>
+                <label for="conyuge_rut">RUT <span class="req">*</span></label>
                 <input id="conyuge_rut" name="conyuge.rut" class="rut-input" placeholder="12.345.678-5" />
+                <div class="error" data-error-for="conyuge_rut"></div>
               </div>
               <div class="field col-4">
-                <label>Sexo</label>
+                <label>Sexo <span class="req">*</span></label>
                 <div class="radio-row" role="group" aria-label="Sexo cónyuge/conviviente">
                   <label class="radio-pill">
                     <input type="radio" name="conyuge.sexo" value="Masculino" />
@@ -364,28 +369,32 @@
                     Femenino
                   </label>
                 </div>
+                <div class="error" data-error-for="conyuge_sexo"></div>
               </div>
               <div class="field col-4">
-                <label for="conyuge_fechaNac">Fecha de nacimiento</label>
+                <label for="conyuge_fechaNac">Fecha de nacimiento <span class="req">*</span></label>
                 <div class="date-group">
                   <select id="conyuge_fechaNac_dia"><option value="" selected disabled>Día</option></select>
                   <select id="conyuge_fechaNac_mes"><option value="" selected disabled>Mes</option></select>
                   <select id="conyuge_fechaNac_anio"><option value="" selected disabled>Año</option></select>
                   <input type="hidden" id="conyuge_fechaNac" name="conyuge.fechaNacimiento" />
                 </div>
+                <div class="error" data-error-for="conyuge_fechaNac"></div>
               </div>
               <div class="field col-4">
-                <label for="conyuge_fechaMatrimonio">Fecha de matrimonio</label>
+                <label for="conyuge_fechaMatrimonio">Fecha de matrimonio <span class="req">*</span></label>
                 <div class="date-group">
                   <select id="conyuge_fechaMatrimonio_dia"><option value="" selected disabled>Día</option></select>
                   <select id="conyuge_fechaMatrimonio_mes"><option value="" selected disabled>Mes</option></select>
                   <select id="conyuge_fechaMatrimonio_anio"><option value="" selected disabled>Año</option></select>
                   <input type="hidden" id="conyuge_fechaMatrimonio" name="conyuge.fechaMatrimonio" />
                 </div>
+                <div class="error" data-error-for="conyuge_fechaMatrimonio"></div>
               </div>
               <div class="field col-6">
-                <label for="conyuge_lugarMatrimonio">Lugar de matrimonio</label>
+                <label for="conyuge_lugarMatrimonio">Lugar de matrimonio <span class="req">*</span></label>
                 <input id="conyuge_lugarMatrimonio" name="conyuge.lugarMatrimonio" />
+                <div class="error" data-error-for="conyuge_lugarMatrimonio"></div>
               </div>
             </div>
           </div>
@@ -539,12 +548,6 @@
                   </label>
                 </div>
                 <div class="error" data-error-for="solicitud.cambioModalidadTramite"></div>
-              </div>
-
-              <div class="field col-6">
-                <label for="solicitud_benef">N° de Beneficiarios <span class="req">*</span></label>
-                <input id="solicitud_benef" name="solicitud.numeroBeneficiarios" type="number" min="0" step="1" required inputmode="numeric" />
-                <div class="error" data-error-for="solicitud.numeroBeneficiarios"></div>
               </div>
             </div>
           </div>
@@ -738,7 +741,6 @@
       var sectionHijosBloque = document.getElementById("sectionHijosBloque");
       var numHijosSel = document.getElementById("numHijos");
       var hijosContainer = document.getElementById("hijosContainer");
-      var solBenefInput = document.getElementById("solicitud_benef");
       var benefSection = document.getElementById("beneficiariosSection");
       var benefContainer = document.getElementById("beneficiariosContainer");
 
@@ -893,9 +895,23 @@
         return div;
       }
 
+      function inferNumeroBeneficiarios() {
+        var n = 0;
+        // Cónyuge/conviviente visible => 1 beneficiario
+        if (sectionConyuge && !sectionConyuge.classList.contains("section-hidden")) n += 1;
+        // Hijos menores 24 => tantos como seleccione numHijos
+        var si = form.querySelector("input[name='tieneHijosMenores24']:checked");
+        var tieneH = !!(si && si.value === "Sí");
+        if (tieneH) {
+          var nh = parseInt((numHijosSel && numHijosSel.value) || "0", 10);
+          if (!isNaN(nh) && nh > 0) n += nh;
+        }
+        return n;
+      }
+
       function actualizarBeneficiarios() {
-        if (!solBenefInput || !benefSection || !benefContainer) return;
-        var n = parseInt(solBenefInput.value || 0, 10);
+        if (!benefSection || !benefContainer) return;
+        var n = inferNumeroBeneficiarios();
         var actual = benefContainer.children.length;
         benefSection.classList.toggle("section-hidden", !(n > 0));
         if (n > actual) {
@@ -932,7 +948,35 @@
       if (estadoCivilSel && sectionConyuge) {
         function toggleConyuge() {
           var v = (estadoCivilSel.value || "").toLowerCase();
-          sectionConyuge.classList.toggle("section-hidden", v.indexOf("casado") === -1 && v.indexOf("conviviente") === -1);
+          var visible = !(v.indexOf("casado") === -1 && v.indexOf("conviviente") === -1);
+          sectionConyuge.classList.toggle("section-hidden", !visible);
+
+          // Obligatorio solo cuando la sección está visible.
+          var reqIds = [
+            "conyuge_nombres",
+            "conyuge_apPaterno",
+            "conyuge_apMaterno",
+            "conyuge_nacionalidad",
+            "conyuge_rut",
+            "conyuge_fechaNac",
+            "conyuge_fechaMatrimonio",
+            "conyuge_lugarMatrimonio"
+          ];
+          reqIds.forEach(function(id) {
+            var el = document.getElementById(id);
+            if (!el) return;
+            if (visible) el.setAttribute("required", "true");
+            else el.removeAttribute("required");
+          });
+
+          // Radios sexo (required en ambos inputs para forzar selección)
+          var sexoRadios = form.querySelectorAll('input[name="conyuge.sexo"]');
+          sexoRadios.forEach(function(r) {
+            if (visible) r.setAttribute("required", "true");
+            else r.removeAttribute("required");
+          });
+
+          actualizarBeneficiarios();
         }
         estadoCivilSel.addEventListener("change", toggleConyuge);
         toggleConyuge();
@@ -942,6 +986,7 @@
         function toggleHijos() {
           var si = form.querySelector("input[name='tieneHijosMenores24']:checked");
           sectionHijosBloque.classList.toggle("section-hidden", !si || si.value !== "Sí");
+          actualizarBeneficiarios();
         }
         radiosHijos.forEach(function(r) { r.addEventListener("change", toggleHijos); });
         toggleHijos();
@@ -1013,7 +1058,10 @@
         }
       }
       if (numHijosSel && hijosContainer) {
-        numHijosSel.addEventListener("change", actualizarHijos);
+        numHijosSel.addEventListener("change", function() {
+          actualizarHijos();
+          actualizarBeneficiarios();
+        });
         actualizarHijos();
       }
 
@@ -1022,10 +1070,7 @@
       renderYesNo(document.getElementById("autorizacionesQuestions"), "autorizaciones", autorizacionesItems);
       renderYesNo(document.getElementById("certificadosQuestions"), "certificados", certificadosItems);
 
-      if (solBenefInput) {
-        solBenefInput.addEventListener("input", actualizarBeneficiarios);
-        actualizarBeneficiarios();
-      }
+      actualizarBeneficiarios();
 
       form.querySelectorAll(".rut-input").forEach(function(input) {
         input.addEventListener("blur", function() { this.value = normalizeRut(this.value); });
@@ -1081,6 +1126,24 @@
         var co = data.conyuge || {};
         var showConyuge = sectionConyuge && !sectionConyuge.classList.contains("section-hidden");
         if (showConyuge) {
+          if (!rutIsValid(document.getElementById("conyuge_rut").value || "")) {
+            setError(form, "conyuge_rut", "RUT inválido");
+            return;
+          }
+          if (!co.fechaNacimiento || !/^\d{2}-\d{2}-\d{4}$/.test(co.fechaNacimiento)) {
+            setError(form, "conyuge_fechaNac", "Seleccione una fecha válida");
+            return;
+          }
+          if (!co.fechaMatrimonio || !/^\d{2}-\d{2}-\d{4}$/.test(co.fechaMatrimonio)) {
+            setError(form, "conyuge_fechaMatrimonio", "Seleccione una fecha válida");
+            return;
+          }
+          var sexoCony = form.querySelector("input[name='conyuge.sexo']:checked");
+          if (!sexoCony) {
+            setError(form, "conyuge_sexo", "Seleccione sexo");
+            return;
+          }
+
           row.conyuge_nombres = (co.nombres || "").trim() || null;
           row.conyuge_apellido_paterno = (co.apellidoPaterno || "").trim() || null;
           row.conyuge_apellido_materno = (co.apellidoMaterno || "").trim() || null;
@@ -1139,8 +1202,7 @@
           ? ((solicitud.cambioModalidadTramite || "").trim() === "Sí")
           : null;
 
-        var nBenef = parseInt((solicitud.numeroBeneficiarios || "0").toString(), 10);
-        row.solicitud_numero_beneficiarios = isNaN(nBenef) ? null : nBenef;
+        row.solicitud_numero_beneficiarios = inferNumeroBeneficiarios();
         row.solicitud_beneficiarios = Array.isArray(data.beneficiarios) ? data.beneficiarios : [];
         row.solicitud_antecedentes = antecedentes || {};
         row.solicitud_autorizaciones = autorizaciones || {};
