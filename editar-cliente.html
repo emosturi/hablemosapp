@@ -267,7 +267,7 @@
               </div>
               <div class="field col-4">
                 <label for="cliente_rut">RUT <span class="req">*</span></label>
-                <input id="cliente_rut" name="cliente.rut" required inputmode="text" autocomplete="off" placeholder="12.345.678-5" />
+                <input id="cliente_rut" name="cliente.rut" class="rut-input" required inputmode="text" autocomplete="off" placeholder="12.345.678-5" />
                 <div class="error" data-error-for="cliente_rut"></div>
               </div>
               <div class="field col-4">
@@ -1049,10 +1049,12 @@
         document.getElementById("conyuge_nombres").value = c.conyuge_nombres || "";
         document.getElementById("conyuge_apPaterno").value = c.conyuge_apellido_paterno || "";
         document.getElementById("conyuge_apMaterno").value = c.conyuge_apellido_materno || "";
+        document.getElementById("conyuge_nacionalidad").value = c.conyuge_nacionalidad || "";
         document.getElementById("conyuge_rut").value = c.conyuge_rut || "";
         setFechaFromIso(conyugeDia, conyugeMes, conyugeAnio, conyugeHidden, c.conyuge_fecha_nacimiento);
         setFechaFromIso(matDia, matMes, matAnio, matHidden, c.conyuge_fecha_matrimonio);
         document.getElementById("conyuge_lugarMatrimonio").value = c.conyuge_lugar_matrimonio || "";
+        if (c.conyuge_sexo) setFormFromObject(form, { conyuge: { sexo: c.conyuge_sexo } });
         var radioSi = form.querySelector("input[name='tieneHijosMenores24'][value='Sí']");
         var radioNo = form.querySelector("input[name='tieneHijosMenores24'][value='No']");
         if (c.tiene_hijos_menores_24 && radioSi) radioSi.checked = true;
@@ -1192,6 +1194,23 @@
         var co = data.conyuge || {};
         var showConyuge = sectionConyuge && !sectionConyuge.classList.contains("section-hidden");
         if (showConyuge) {
+            function requireText(id, msg) {
+              var el = document.getElementById(id);
+              var v = el ? String(el.value || "").trim() : "";
+              if (!v) {
+                setError(form, id, msg || "Campo obligatorio");
+                if (el && typeof el.focus === "function") el.focus();
+                return false;
+              }
+              return true;
+            }
+
+            if (!requireText("conyuge_nombres", "Ingrese nombres")) return;
+            if (!requireText("conyuge_apPaterno", "Ingrese apellido paterno")) return;
+            if (!requireText("conyuge_apMaterno", "Ingrese apellido materno")) return;
+            if (!requireText("conyuge_nacionalidad", "Ingrese nacionalidad")) return;
+            if (!requireText("conyuge_lugarMatrimonio", "Ingrese lugar de matrimonio/unión civil")) return;
+
           if (!rutIsValid(document.getElementById("conyuge_rut").value || "")) {
             setError(form, "conyuge_rut", "RUT inválido");
             return;
