@@ -1148,44 +1148,46 @@
         e.preventDefault();
         if (!clientId) return;
         clearErrors(form);
+        var btnSubmit = form.querySelector('button[type="submit"]');
 
-        if (!rutIsValid(rutInput.value)) {
-          setError(form, "cliente_rut", "RUT inválido");
-          rutInput.focus();
-          return;
-        }
-        var fechaVal = hiddenFecha.value;
-        if (!fechaVal || !/^\d{2}-\d{2}-\d{4}$/.test(fechaVal)) {
-          setError(form, "cliente_fechaNac", "Seleccione una fecha válida");
-          return;
-        }
+        try {
+          if (!rutIsValid(rutInput.value)) {
+            setError(form, "cliente_rut", "RUT inválido");
+            rutInput.focus();
+            return;
+          }
+          var fechaVal = hiddenFecha.value;
+          if (!fechaVal || !/^\d{2}-\d{2}-\d{4}$/.test(fechaVal)) {
+            setError(form, "cliente_fechaNac", "Seleccione una fecha válida");
+            return;
+          }
 
-        var data = formDataToObject(form);
-        var c = data.cliente || {};
-        var solicitud = data.solicitud || {};
-        var antecedentes = data.antecedentes || {};
-        var autorizaciones = data.autorizaciones || {};
-        var certificados = data.certificados || {};
-        var fechaNac = toIsoDate(fechaVal);
+          var data = formDataToObject(form);
+          var c = data.cliente || {};
+          var solicitud = data.solicitud || {};
+          var antecedentes = data.antecedentes || {};
+          var autorizaciones = data.autorizaciones || {};
+          var certificados = data.certificados || {};
+          var fechaNac = toIsoDate(fechaVal);
 
-        var row = {
-          rut: (c.rut || "").trim(),
-          nombres: (c.nombres || "").trim() || null,
-          apellido_paterno: (c.apellidoPaterno || "").trim() || null,
-          apellido_materno: (c.apellidoMaterno || "").trim() || null,
-          fecha_nacimiento: fechaNac,
-          estado_civil: (c.estadoCivil || "").trim() || null,
-          domicilio: (c.domicilio || "").trim() || null,
-          comuna: (c.comuna || "").trim() || null,
-          ciudad: (c.ciudad || "").trim() || null,
-          profesion_oficio: (c.profesionUOficio || "").trim() || null,
-          telefono: (c.telefono || "").trim() || null,
-          email: (c.email || "").trim() || null,
-          afp: (c.afp || "").trim() || null,
-          institucion_salud: (c.institucionSalud || "").trim() || null,
-          nacionalidad: (c.nacionalidad || "").trim() || null,
-          sexo: (c.sexo || "").trim() || null
-        };
+          var row = {
+            rut: (c.rut || "").trim(),
+            nombres: (c.nombres || "").trim() || null,
+            apellido_paterno: (c.apellidoPaterno || "").trim() || null,
+            apellido_materno: (c.apellidoMaterno || "").trim() || null,
+            fecha_nacimiento: fechaNac,
+            estado_civil: (c.estadoCivil || "").trim() || null,
+            domicilio: (c.domicilio || "").trim() || null,
+            comuna: (c.comuna || "").trim() || null,
+            ciudad: (c.ciudad || "").trim() || null,
+            profesion_oficio: (c.profesionUOficio || "").trim() || null,
+            telefono: (c.telefono || "").trim() || null,
+            email: (c.email || "").trim() || null,
+            afp: (c.afp || "").trim() || null,
+            institucion_salud: (c.institucionSalud || "").trim() || null,
+            nacionalidad: (c.nacionalidad || "").trim() || null,
+            sexo: (c.sexo || "").trim() || null
+          };
 
         var co = data.conyuge || {};
         var showConyuge = sectionConyuge && !sectionConyuge.classList.contains("section-hidden");
@@ -1270,27 +1272,44 @@
         row.solicitud_autorizaciones = autOut;
         row.solicitud_certificados = certificados || {};
 
-        var url = window.SUPABASE_URL;
-        var key = window.SUPABASE_ANON_KEY;
-        if (!url || !key || url.indexOf("TU_PROYECTO") !== -1) {
-          setStatus("Configura supabase-config.js con tu URL y anon key de Supabase.");
-          return;
+          var url = window.SUPABASE_URL;
+          var key = window.SUPABASE_ANON_KEY;
+          if (!url || !key || url.indexOf("TU_PROYECTO") !== -1) {
+            setStatus("Configura supabase-config.js con tu URL y anon key de Supabase.");
+            return;
+          }
+          if (!window.supabase || !window.supabase.createClient) {
+            setStatus("No se pudo cargar Supabase (revisa conexión a CDN).");
+            return;
+          }
+
+          setStatus("Guardando…");
+          if (btnSubmit) btnSubmit.disabled = true;
+          var supabase = window.supabase.createClient(url, key);
+          supabase.from("clientes").update(row).eq("id", clientId)
+            .then(function(result) {
+              if (result.error) {
+                setStatus("Error al guardar: " + (result.error.message || "Intenta de nuevo."));
+                setError(form, "cliente_rut", result.error.message || "Error al guardar.");
+                return;
+              }
+              document.getElementById("status").innerHTML =
+                'Cliente actualizado correctamente. <a href="ver-cliente.html?id=' +
+                encodeURIComponent(clientId) +
+                '" style="color:var(--accent)">Ver cliente</a>';
+            })
+            .catch(function(err) {
+              setStatus("Error: " + (err && err.message ? err.message : "Error de conexión."));
+              setError(form, "cliente_rut", (err && err.message) ? err.message : "Error de conexión.");
+            })
+            .finally(function() {
+              if (btnSubmit) btnSubmit.disabled = false;
+            });
+        } catch (err) {
+          setStatus("Error inesperado: " + (err && err.message ? err.message : String(err)));
+          if (btnSubmit) btnSubmit.disabled = false;
+          console.error("[editar-cliente] submit error:", err);
         }
-        setStatus("Guardando…");
-        var supabase = window.supabase.createClient(url, key);
-        supabase.from("clientes").update(row).eq("id", clientId)
-          .then(function(result) {
-            if (result.error) {
-              setStatus("");
-              setError(form, "cliente_rut", result.error.message || "Error al guardar.");
-              return;
-            }
-            document.getElementById("status").innerHTML = "Cliente actualizado correctamente. <a href=\"ver-cliente.html?id=" + encodeURIComponent(clientId) + "\" style=\"color:var(--accent)\">Ver cliente</a>";
-          })
-          .catch(function(err) {
-            setStatus("");
-            setError(form, "cliente_rut", err.message || "Error de conexión.");
-          });
       });
 
       // Cancelar enlaza a revisar-clientes.html (no necesita handler)
