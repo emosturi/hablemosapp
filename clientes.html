@@ -195,128 +195,6 @@
 
       <div class="panel">
         <form id="clienteForm" novalidate>
-          <!-- Solicitud de pensión (público, sin mandatario) -->
-          <div class="section" aria-labelledby="solicitudTitle">
-            <div class="section-title">
-              <h2 id="solicitudTitle">Solicitud de pensión</h2>
-              <span class="hint">Estos datos se guardan, pero aquí no se generan mandatos</span>
-            </div>
-            <div class="grid">
-              <div class="field col-12">
-                <label>Tipo de Pensión <span class="req">*</span></label>
-                <div class="radio-row" role="group" aria-label="Tipo de Pensión">
-                  <label class="radio-pill">
-                    <input type="radio" name="solicitud.tipoPension" value="Pensión de Vejez por edad" required />
-                    Pensión de Vejez por edad
-                  </label>
-                  <label class="radio-pill">
-                    <input type="radio" name="solicitud.tipoPension" value="Pensión de Vejez anticipada" required />
-                    Pensión de Vejez anticipada
-                  </label>
-                  <label class="radio-pill">
-                    <input type="radio" name="solicitud.tipoPension" value="Pensión de invalidez" required />
-                    Pensión de invalidez
-                  </label>
-                  <label class="radio-pill">
-                    <input type="radio" name="solicitud.tipoPension" value="Pensión de sobrevivencia" required />
-                    Pensión de sobrevivencia
-                  </label>
-                </div>
-                <div class="error" data-error-for="solicitud.tipoPension"></div>
-              </div>
-
-              <div class="field col-12">
-                <label>Es un trámite de cambio de modalidad? <span class="req">*</span></label>
-                <div class="radio-row" role="group" aria-label="Trámite de cambio de modalidad">
-                  <label class="radio-pill">
-                    <input type="radio" name="solicitud.cambioModalidadTramite" value="Sí" required />
-                    Sí
-                  </label>
-                  <label class="radio-pill">
-                    <input type="radio" name="solicitud.cambioModalidadTramite" value="No" required />
-                    No
-                  </label>
-                </div>
-                <div class="error" data-error-for="solicitud.cambioModalidadTramite"></div>
-              </div>
-
-              <div class="field col-6">
-                <label for="solicitud_benef">N° de Beneficiarios <span class="req">*</span></label>
-                <input id="solicitud_benef" name="solicitud.numeroBeneficiarios" type="number" min="0" step="1" required inputmode="numeric" />
-                <div class="error" data-error-for="solicitud.numeroBeneficiarios"></div>
-              </div>
-            </div>
-          </div>
-
-          <div class="section section-hidden" id="beneficiariosSection" aria-labelledby="beneficiariosTitle">
-            <div class="section-title">
-              <h2 id="beneficiariosTitle">Datos de Beneficiarios</h2>
-              <span class="hint">Completa los datos de cada beneficiario</span>
-            </div>
-            <div id="beneficiariosContainer"></div>
-          </div>
-
-          <div class="section" aria-labelledby="antecedentesTitle">
-            <div class="section-title">
-              <h2 id="antecedentesTitle">Antecedentes</h2>
-              <span class="hint">Marca Sí o No en cada opción</span>
-            </div>
-            <div id="antecedentesQuestions" class="grid"></div>
-          </div>
-
-          <div class="section" aria-labelledby="autorizacionesTitle">
-            <div class="section-title">
-              <h2 id="autorizacionesTitle">Autorizaciones</h2>
-              <span class="hint">Marca Sí o No en cada autorización</span>
-            </div>
-            <div class="grid">
-              <div id="autorizacionesQuestions" class="col-12"></div>
-
-              <div id="cuentaBancariaField" class="grid col-12" style="display:none">
-                <div class="field col-4">
-                  <label for="cuenta_banco">Banco</label>
-                  <select id="cuenta_banco" name="autorizaciones.banco">
-                    <option value="" selected disabled>Selecciona…</option>
-                    <option>Banco de Chile</option>
-                    <option>Banco Santander Chile</option>
-                    <option>BCI</option>
-                    <option>Scotiabank Chile</option>
-                    <option>BancoEstado</option>
-                    <option>Banco Itaú Chile</option>
-                    <option>Banco BICE</option>
-                    <option>Banco Falabella</option>
-                    <option>Banco Ripley</option>
-                    <option>Banco Consorcio</option>
-                  </select>
-                  <div class="error" data-error-for="cuenta_banco"></div>
-                </div>
-                <div class="field col-4">
-                  <label for="cuenta_tipo">Tipo de cuenta</label>
-                  <select id="cuenta_tipo" name="autorizaciones.tipoCuenta">
-                    <option value="" selected disabled>Selecciona…</option>
-                    <option>Cuenta Corriente</option>
-                    <option>Cuenta de Ahorro</option>
-                    <option>Cuenta Vista/Cuenta RUT</option>
-                  </select>
-                  <div class="error" data-error-for="cuenta_tipo"></div>
-                </div>
-                <div class="field col-4">
-                  <label for="cuenta_bancaria">Número de cuenta</label>
-                  <input id="cuenta_bancaria" name="autorizaciones.numeroCuenta" type="text" placeholder="Ej: 12345678-9" inputmode="numeric" />
-                  <div class="error" data-error-for="cuenta_bancaria"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="section" aria-labelledby="certificadosTitle">
-            <div class="section-title">
-              <h2 id="certificadosTitle">Certificados</h2>
-              <span class="hint">Marca Sí o No en cada certificado a retirar</span>
-            </div>
-            <div id="certificadosQuestions" class="grid"></div>
-          </div>
-
           <!-- Datos del cliente -->
           <div class="section" aria-labelledby="clienteTitle">
             <div class="section-title">
@@ -618,6 +496,91 @@
             </div>
           </div>
 
+          <!-- Solicitud de pensión (público, sin mandatario) -->
+          <div class="section" aria-labelledby="solicitudTitle">
+            <div class="section-title">
+              <h2 id="solicitudTitle">Solicitud de pensión</h2>
+              <span class="hint">Estos datos se guardan, pero aquí no se generan mandatos</span>
+            </div>
+            <div class="grid">
+              <div class="field col-12">
+                <label>Tipo de Pensión <span class="req">*</span></label>
+                <div class="radio-row" role="group" aria-label="Tipo de Pensión">
+                  <label class="radio-pill">
+                    <input type="radio" name="solicitud.tipoPension" value="Pensión de Vejez por edad" required />
+                    Pensión de Vejez por edad
+                  </label>
+                  <label class="radio-pill">
+                    <input type="radio" name="solicitud.tipoPension" value="Pensión de Vejez anticipada" required />
+                    Pensión de Vejez anticipada
+                  </label>
+                  <label class="radio-pill">
+                    <input type="radio" name="solicitud.tipoPension" value="Pensión de invalidez" required />
+                    Pensión de invalidez
+                  </label>
+                  <label class="radio-pill">
+                    <input type="radio" name="solicitud.tipoPension" value="Pensión de sobrevivencia" required />
+                    Pensión de sobrevivencia
+                  </label>
+                </div>
+                <div class="error" data-error-for="solicitud.tipoPension"></div>
+              </div>
+
+              <div class="field col-12">
+                <label>Es un trámite de cambio de modalidad? <span class="req">*</span></label>
+                <div class="radio-row" role="group" aria-label="Trámite de cambio de modalidad">
+                  <label class="radio-pill">
+                    <input type="radio" name="solicitud.cambioModalidadTramite" value="Sí" required />
+                    Sí
+                  </label>
+                  <label class="radio-pill">
+                    <input type="radio" name="solicitud.cambioModalidadTramite" value="No" required />
+                    No
+                  </label>
+                </div>
+                <div class="error" data-error-for="solicitud.cambioModalidadTramite"></div>
+              </div>
+
+              <div class="field col-6">
+                <label for="solicitud_benef">N° de Beneficiarios <span class="req">*</span></label>
+                <input id="solicitud_benef" name="solicitud.numeroBeneficiarios" type="number" min="0" step="1" required inputmode="numeric" />
+                <div class="error" data-error-for="solicitud.numeroBeneficiarios"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section section-hidden" id="beneficiariosSection" aria-labelledby="beneficiariosTitle">
+            <div class="section-title">
+              <h2 id="beneficiariosTitle">Datos de Beneficiarios</h2>
+              <span class="hint">Completa los datos de cada beneficiario</span>
+            </div>
+            <div id="beneficiariosContainer"></div>
+          </div>
+
+          <div class="section" aria-labelledby="antecedentesTitle">
+            <div class="section-title">
+              <h2 id="antecedentesTitle">Antecedentes</h2>
+              <span class="hint">Marca Sí o No en cada opción</span>
+            </div>
+            <div id="antecedentesQuestions" class="grid"></div>
+          </div>
+
+          <div class="section" aria-labelledby="autorizacionesTitle">
+            <div class="section-title">
+              <h2 id="autorizacionesTitle">Autorizaciones</h2>
+              <span class="hint">Marca Sí o No en cada autorización</span>
+            </div>
+            <div id="autorizacionesQuestions" class="grid"></div>
+          </div>
+
+          <div class="section" aria-labelledby="certificadosTitle">
+            <div class="section-title">
+              <h2 id="certificadosTitle">Certificados</h2>
+              <span class="hint">Marca Sí o No en cada certificado a retirar</span>
+            </div>
+            <div id="certificadosQuestions" class="grid"></div>
+          </div>
+
           <div class="actions">
             <div class="btns">
               <button type="submit">Guardar cliente</button>
@@ -778,10 +741,6 @@
       var solBenefInput = document.getElementById("solicitud_benef");
       var benefSection = document.getElementById("beneficiariosSection");
       var benefContainer = document.getElementById("beneficiariosContainer");
-      var cuentaField = document.getElementById("cuentaBancariaField");
-      var cuentaBanco = document.getElementById("cuenta_banco");
-      var cuentaTipo = document.getElementById("cuenta_tipo");
-      var cuentaInput = document.getElementById("cuenta_bancaria");
 
       var antecedentesItems = [
         { key: "deseoPensionPreliminar", label: "Deseo pensión preliminar" },
@@ -947,25 +906,6 @@
         }
       }
 
-      function updateCuentaBancariaVisibility() {
-        if (!cuentaField || !cuentaBanco || !cuentaTipo || !cuentaInput) return;
-        var selected = form.querySelector('input[name="autorizaciones.ingresarDatosCuentaBancaria"]:checked');
-        if (!selected) return;
-        if (selected.value === "Sí") {
-          cuentaField.style.display = "grid";
-          cuentaBanco.required = true;
-          cuentaTipo.required = true;
-          cuentaInput.required = true;
-        } else {
-          cuentaField.style.display = "none";
-          cuentaBanco.required = false;
-          cuentaTipo.required = false;
-          cuentaInput.required = false;
-          cuentaBanco.value = "";
-          cuentaTipo.value = "";
-          cuentaInput.value = "";
-        }
-      }
 
       form.addEventListener("keydown", function(e) {
         if (e.key === "Enter" && e.target.tagName !== "TEXTAREA") e.preventDefault();
@@ -1086,11 +1026,6 @@
         solBenefInput.addEventListener("input", actualizarBeneficiarios);
         actualizarBeneficiarios();
       }
-
-      updateCuentaBancariaVisibility();
-      form.addEventListener("change", function (e) {
-        if (e && e.target && e.target.name === "autorizaciones.ingresarDatosCuentaBancaria") updateCuentaBancariaVisibility();
-      });
 
       form.querySelectorAll(".rut-input").forEach(function(input) {
         input.addEventListener("blur", function() { this.value = normalizeRut(this.value); });
