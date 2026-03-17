@@ -195,6 +195,128 @@
 
       <div class="panel">
         <form id="clienteForm" novalidate>
+          <!-- Solicitud de pensión (público, sin mandatario) -->
+          <div class="section" aria-labelledby="solicitudTitle">
+            <div class="section-title">
+              <h2 id="solicitudTitle">Solicitud de pensión</h2>
+              <span class="hint">Estos datos se guardan, pero aquí no se generan mandatos</span>
+            </div>
+            <div class="grid">
+              <div class="field col-12">
+                <label>Tipo de Pensión <span class="req">*</span></label>
+                <div class="radio-row" role="group" aria-label="Tipo de Pensión">
+                  <label class="radio-pill">
+                    <input type="radio" name="solicitud.tipoPension" value="Pensión de Vejez por edad" required />
+                    Pensión de Vejez por edad
+                  </label>
+                  <label class="radio-pill">
+                    <input type="radio" name="solicitud.tipoPension" value="Pensión de Vejez anticipada" required />
+                    Pensión de Vejez anticipada
+                  </label>
+                  <label class="radio-pill">
+                    <input type="radio" name="solicitud.tipoPension" value="Pensión de invalidez" required />
+                    Pensión de invalidez
+                  </label>
+                  <label class="radio-pill">
+                    <input type="radio" name="solicitud.tipoPension" value="Pensión de sobrevivencia" required />
+                    Pensión de sobrevivencia
+                  </label>
+                </div>
+                <div class="error" data-error-for="solicitud.tipoPension"></div>
+              </div>
+
+              <div class="field col-12">
+                <label>Es un trámite de cambio de modalidad? <span class="req">*</span></label>
+                <div class="radio-row" role="group" aria-label="Trámite de cambio de modalidad">
+                  <label class="radio-pill">
+                    <input type="radio" name="solicitud.cambioModalidadTramite" value="Sí" required />
+                    Sí
+                  </label>
+                  <label class="radio-pill">
+                    <input type="radio" name="solicitud.cambioModalidadTramite" value="No" required />
+                    No
+                  </label>
+                </div>
+                <div class="error" data-error-for="solicitud.cambioModalidadTramite"></div>
+              </div>
+
+              <div class="field col-6">
+                <label for="solicitud_benef">N° de Beneficiarios <span class="req">*</span></label>
+                <input id="solicitud_benef" name="solicitud.numeroBeneficiarios" type="number" min="0" step="1" required inputmode="numeric" />
+                <div class="error" data-error-for="solicitud.numeroBeneficiarios"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section section-hidden" id="beneficiariosSection" aria-labelledby="beneficiariosTitle">
+            <div class="section-title">
+              <h2 id="beneficiariosTitle">Datos de Beneficiarios</h2>
+              <span class="hint">Completa los datos de cada beneficiario</span>
+            </div>
+            <div id="beneficiariosContainer"></div>
+          </div>
+
+          <div class="section" aria-labelledby="antecedentesTitle">
+            <div class="section-title">
+              <h2 id="antecedentesTitle">Antecedentes</h2>
+              <span class="hint">Marca Sí o No en cada opción</span>
+            </div>
+            <div id="antecedentesQuestions" class="grid"></div>
+          </div>
+
+          <div class="section" aria-labelledby="autorizacionesTitle">
+            <div class="section-title">
+              <h2 id="autorizacionesTitle">Autorizaciones</h2>
+              <span class="hint">Marca Sí o No en cada autorización</span>
+            </div>
+            <div class="grid">
+              <div id="autorizacionesQuestions" class="col-12"></div>
+
+              <div id="cuentaBancariaField" class="grid col-12" style="display:none">
+                <div class="field col-4">
+                  <label for="cuenta_banco">Banco</label>
+                  <select id="cuenta_banco" name="autorizaciones.banco">
+                    <option value="" selected disabled>Selecciona…</option>
+                    <option>Banco de Chile</option>
+                    <option>Banco Santander Chile</option>
+                    <option>BCI</option>
+                    <option>Scotiabank Chile</option>
+                    <option>BancoEstado</option>
+                    <option>Banco Itaú Chile</option>
+                    <option>Banco BICE</option>
+                    <option>Banco Falabella</option>
+                    <option>Banco Ripley</option>
+                    <option>Banco Consorcio</option>
+                  </select>
+                  <div class="error" data-error-for="cuenta_banco"></div>
+                </div>
+                <div class="field col-4">
+                  <label for="cuenta_tipo">Tipo de cuenta</label>
+                  <select id="cuenta_tipo" name="autorizaciones.tipoCuenta">
+                    <option value="" selected disabled>Selecciona…</option>
+                    <option>Cuenta Corriente</option>
+                    <option>Cuenta de Ahorro</option>
+                    <option>Cuenta Vista/Cuenta RUT</option>
+                  </select>
+                  <div class="error" data-error-for="cuenta_tipo"></div>
+                </div>
+                <div class="field col-4">
+                  <label for="cuenta_bancaria">Número de cuenta</label>
+                  <input id="cuenta_bancaria" name="autorizaciones.numeroCuenta" type="text" placeholder="Ej: 12345678-9" inputmode="numeric" />
+                  <div class="error" data-error-for="cuenta_bancaria"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section" aria-labelledby="certificadosTitle">
+            <div class="section-title">
+              <h2 id="certificadosTitle">Certificados</h2>
+              <span class="hint">Marca Sí o No en cada certificado a retirar</span>
+            </div>
+            <div id="certificadosQuestions" class="grid"></div>
+          </div>
+
           <!-- Datos del cliente -->
           <div class="section" aria-labelledby="clienteTitle">
             <div class="section-title">
@@ -594,8 +716,32 @@
           for (var i = 0; i < parts.length; i++) {
             var p = parts[i];
             var isLast = i === parts.length - 1;
-            if (isLast) cur[p] = v;
-            else cur = cur[p] = (cur[p] && typeof cur[p] === "object") ? cur[p] : {};
+            var isIndex = /^\d+$/.test(p);
+            if (isLast) {
+              if (isIndex) {
+                // Si el contenedor no es array, cae a objeto para compatibilidad.
+                if (Array.isArray(cur)) cur[parseInt(p, 10)] = v;
+                else cur[p] = v;
+              } else {
+                cur[p] = v;
+              }
+            } else {
+              var next = parts[i + 1];
+              var nextIsIndex = /^\d+$/.test(next);
+              if (isIndex) {
+                if (Array.isArray(cur)) {
+                  var idx = parseInt(p, 10);
+                  cur[idx] = (cur[idx] && typeof cur[idx] === "object") ? cur[idx] : (nextIsIndex ? [] : {});
+                  cur = cur[idx];
+                } else {
+                  cur[p] = (cur[p] && typeof cur[p] === "object") ? cur[p] : (nextIsIndex ? [] : {});
+                  cur = cur[p];
+                }
+              } else {
+                cur[p] = (cur[p] && typeof cur[p] === "object") ? cur[p] : (nextIsIndex ? [] : {});
+                cur = cur[p];
+              }
+            }
           }
         });
         return out;
@@ -629,6 +775,197 @@
       var sectionHijosBloque = document.getElementById("sectionHijosBloque");
       var numHijosSel = document.getElementById("numHijos");
       var hijosContainer = document.getElementById("hijosContainer");
+      var solBenefInput = document.getElementById("solicitud_benef");
+      var benefSection = document.getElementById("beneficiariosSection");
+      var benefContainer = document.getElementById("beneficiariosContainer");
+      var cuentaField = document.getElementById("cuentaBancariaField");
+      var cuentaBanco = document.getElementById("cuenta_banco");
+      var cuentaTipo = document.getElementById("cuenta_tipo");
+      var cuentaInput = document.getElementById("cuenta_bancaria");
+
+      var antecedentesItems = [
+        { key: "deseoPensionPreliminar", label: "Deseo pensión preliminar" },
+        { key: "solicitarPgu", label: "Solicitar Pensión Garantizada Universal?" },
+        { key: "solicitarAporteSolidarioInvalidez", label: "Solicitar aporte solidario de invalidez? (si corresponde)" },
+        { key: "reciboPensionAntiguoSistema", label: "Recibo pensión antiguo sistema" },
+        { key: "reciboPensionInvalidezEsteSistema", label: "Recibo pensión invalidez de este Sistema" },
+        { key: "ajustePensionMinima", label: "Deseo que mi pensión se ajuste a la pensión mínima" },
+        { key: "ajustePensionBasicaSolidaria", label: "Deseo que mi pensión se ajuste a la pensión básica solidaria" },
+        { key: "afectoEstatutoAdministrativo", label: "Estoy afecto al Estatuto Administrativo..." },
+        { key: "destinareApv", label: "Destinaré Ahorro Previsional Voluntario al financiamiento de mi pensión" },
+        { key: "destinareApvc", label: "Destinaré Ahorro Previsional Voluntario Colectivo al financiamiento de mi pensión" },
+        { key: "traspasareCtaAhorroVoluntario", label: "Traspasaré fondos desde mi Cuenta de Ahorro Voluntario para el financiamiento de mi pensión" },
+        { key: "poseoDepositosConvenidos", label: "Poseo depósitos convenidos" },
+        { key: "traspasareCesantia", label: "Traspasaré fondos desde mi Cuenta Individual de Cesantía" },
+        { key: "cotizacionesOtroPais", label: "Tengo cotizaciones en otro país" },
+        { key: "residenciaOtroPais", label: "Tengo períodos de residencia en otro país" },
+        { key: "cambioTipoFondo", label: "Deseo cambiar de Tipo de Fondo" },
+        { key: "listadoPublico", label: "Deseo que mis datos personales aparezcan en un LISTADO PÚBLICO DE INFORMACIÓN" }
+      ];
+
+      var autorizacionesItems = [
+        { key: "terminarTramite", label: "Terminar trámite?" },
+        { key: "suscribirBonoReconocimiento", label: "Suscribir solicitud de Bono de Reconocimiento" },
+        { key: "solicitarInfoEstadoTramite", label: "Solicitar información respecto del estado del trámite de pensión" },
+        { key: "retirarCertificadoSaldo", label: "Retirar en la AFP el Certificado de Saldo" },
+        { key: "suscribirDestinoCotizacionesVoluntarias", label: 'Suscribir formulario \"Destino de Cotizaciones Voluntarias\"' },
+        { key: "suscribirTransferenciaAhorroVoluntario", label: 'Suscribir formulario \"Transferencia de Fondos desde la Cuentas de Ahorro Voluntario\"' },
+        { key: "suscribirSeleccionAlternativasApv", label: 'Suscribir formulario \"Selección de Alternativas de Ahorro Previsional Voluntario\"' },
+        { key: "suscribirCambioModalidadPension", label: "Suscribir solicitud de cambio de modalidad de pensión" },
+        { key: "suscribirCalculoExcedente", label: "Suscribir solicitud de cálculo de excedente de libre disposición" },
+        { key: "suscribirMantenerValorNominal", label: "Suscribir opción por mantener el valor nominal del saldo destinado a pensión" },
+        { key: "retirarDuplicadoScompOriginal", label: "Retirar duplicado de solicitud de ofertas y certificado de saldo original (SCOMP)" },
+        { key: "ingresarDatosCuentaBancaria", label: "Ingresar datos de cuenta bancaria" },
+        { key: "obtenerInfoPagoPensionYTraspaso", label: "Obtener información sobre pago de pensión y traspaso" },
+        { key: "firmarExencionCotizarEdadLegal", label: "Firmar exención de cotizar por tener edad legal" },
+        { key: "realizarReclamosTramite", label: "Realizar reclamos respecto del trámite" }
+      ];
+
+      var certificadosItems = [
+        { key: "historicoCotizaciones", label: "Histórico de cotizaciones" },
+        { key: "antecedentePrevisional", label: "Antecedente previsional" },
+        { key: "certificadoTrabajoPesado", label: "Certificado de trabajo pesado" },
+        { key: "certificadoVacacionesProgresivas", label: "Certificado de vacaciones progresivas" },
+        { key: "certificadoEstadoCuentas", label: "Certificado estado de cuentas" },
+        { key: "certificadoCalidadPensionado", label: "Certificado de calidad de pensionado" }
+      ];
+
+      function renderYesNo(container, groupName, items) {
+        if (!container) return;
+        container.innerHTML = "";
+        items.forEach(function(item) {
+          var name = groupName + "." + item.key;
+          var field = document.createElement("div");
+          field.className = "field col-12";
+          field.innerHTML =
+            '<label>' + (item.label || "") + ' <span class="req">*</span></label>' +
+            '<div class="radio-row" role="group" aria-label="' + (item.label || "") + '">' +
+              '<label class="radio-pill"><input type="radio" name="' + name + '" value="Sí" required /> Sí</label>' +
+              '<label class="radio-pill"><input type="radio" name="' + name + '" value="No" required /> No</label>' +
+            "</div>" +
+            '<div class="error" data-error-for="' + name + '"></div>';
+          container.appendChild(field);
+        });
+      }
+
+      function crearBeneficiario(i) {
+        var div = document.createElement("div");
+        div.className = "section";
+        div.innerHTML =
+          '<div class="section-title"><h2>Beneficiario ' + (i + 1) + '</h2><span class="hint">Datos del beneficiario</span></div>' +
+          '<div class="grid">' +
+            '<div class="field col-4"><label>Nombres <span class="req">*</span></label><input name="beneficiarios.' + i + '.nombres" required /><div class="error" data-error-for="beneficiarios.' + i + '.nombres"></div></div>' +
+            '<div class="field col-4"><label>Apellido Paterno <span class="req">*</span></label><input name="beneficiarios.' + i + '.apellidoPaterno" required /><div class="error" data-error-for="beneficiarios.' + i + '.apellidoPaterno"></div></div>' +
+            '<div class="field col-4"><label>Apellido Materno <span class="req">*</span></label><input name="beneficiarios.' + i + '.apellidoMaterno" required /><div class="error" data-error-for="beneficiarios.' + i + '.apellidoMaterno"></div></div>' +
+            '<div class="field col-4"><label>RUT <span class="req">*</span></label><input class="rut-input rut-benef" name="beneficiarios.' + i + '.rut" placeholder="12.345.678-5" required /><div class="error" data-error-for="beneficiarios.' + i + '.rut"></div></div>' +
+            '<div class="field col-4"><label>Sexo <span class="req">*</span></label><select name="beneficiarios.' + i + '.sexo" required><option value="" selected disabled>Selecciona…</option><option>Masculino</option><option>Femenino</option></select><div class="error" data-error-for="beneficiarios.' + i + '.sexo"></div></div>' +
+            '<div class="field col-4"><label>Parentesco <span class="req">*</span></label><select name="beneficiarios.' + i + '.parentesco" required class="benef-parentesco"><option value="" selected disabled>Selecciona…</option><option value="Cónyuge">Cónyuge</option><option value="Conviviente civil">Conviviente civil</option><option value="MPHFNM">MPHFNM</option><option value="Hijo/a">Hijo/a</option><option value="Madre">Madre</option><option value="Padre">Padre</option></select><div class="error" data-error-for="beneficiarios.' + i + '.parentesco"></div></div>' +
+
+            '<div class="benef-matrimonio-fields col-12" id="benef_' + i + '_matrimonio" style="display:none;">' +
+              '<div class="grid">' +
+                '<div class="field col-4">' +
+                  '<label>Fecha de matrimonio/unión civil</label>' +
+                  '<div class="date-group">' +
+                    '<select id="benef_' + i + '_mat_dia"><option value="" selected disabled>Día</option></select>' +
+                    '<select id="benef_' + i + '_mat_mes"><option value="" selected disabled>Mes</option></select>' +
+                    '<select id="benef_' + i + '_mat_anio"><option value="" selected disabled>Año</option></select>' +
+                    '<input type="hidden" name="beneficiarios.' + i + '.fechaMatrimonioUnionCivil" id="benef_' + i + '_mat_fecha" />' +
+                  "</div>" +
+                "</div>" +
+                '<div class="field col-4"><label>Ciudad del matrimonio/unión civil</label><input name="beneficiarios.' + i + '.ciudadMatrimonioUnionCivil" /></div>' +
+              "</div>" +
+            "</div>" +
+
+            '<div class="field col-4"><label>Beneficiario es inválido? <span class="req">*</span></label><div class="radio-row" role="group" aria-label="Beneficiario inválido"><label class="radio-pill"><input type="radio" name="beneficiarios.' + i + '.esInvalido" value="Sí" required /> Sí</label><label class="radio-pill"><input type="radio" name="beneficiarios.' + i + '.esInvalido" value="No" required /> No</label></div><div class="error" data-error-for="beneficiarios.' + i + '.esInvalido"></div></div>' +
+
+            '<div class="field col-4"><label>Fecha nacimiento <span class="req">*</span></label>' +
+              '<div class="date-group">' +
+                '<select id="benef_' + i + '_dia"><option value="" selected disabled>Día</option></select>' +
+                '<select id="benef_' + i + '_mes"><option value="" selected disabled>Mes</option></select>' +
+                '<select id="benef_' + i + '_anio"><option value="" selected disabled>Año</option></select>' +
+                '<input type="hidden" id="benef_' + i + '_fecha" name="beneficiarios.' + i + '.fechaNacimiento" required />' +
+              "</div>" +
+              '<div class="error" data-error-for="beneficiarios.' + i + '.fechaNacimiento"></div>' +
+            "</div>" +
+
+            '<div class="field col-12"><label>Observaciones</label><textarea name="beneficiarios.' + i + '.observaciones"></textarea><div class="error" data-error-for="beneficiarios.' + i + '.observaciones"></div></div>' +
+          "</div>";
+
+        var diaSelB = div.querySelector("#benef_" + i + "_dia");
+        var mesSelB = div.querySelector("#benef_" + i + "_mes");
+        var anioSelB = div.querySelector("#benef_" + i + "_anio");
+        var hiddenB = div.querySelector("#benef_" + i + "_fecha");
+        if (diaSelB && mesSelB && anioSelB && hiddenB) {
+          llenarSelectFecha(diaSelB, mesSelB, anioSelB, 1900);
+          var updateHiddenB = function() {
+            var d = diaSelB.value, m = mesSelB.value, y = anioSelB.value;
+            hiddenB.value = (d && m && y) ? (d + "-" + m + "-" + y) : "";
+          };
+          diaSelB.addEventListener("change", updateHiddenB);
+          mesSelB.addEventListener("change", updateHiddenB);
+          anioSelB.addEventListener("change", updateHiddenB);
+        }
+
+        var parentescoSel = div.querySelector('select[name="beneficiarios.' + i + '.parentesco"]');
+        var matrimonioBlock = div.querySelector("#benef_" + i + "_matrimonio");
+        if (parentescoSel && matrimonioBlock) {
+          var toggleMatrimonio = function() {
+            var v = parentescoSel.value;
+            matrimonioBlock.style.display = (v === "Cónyuge" || v === "Conviviente civil") ? "" : "none";
+          };
+          parentescoSel.addEventListener("change", toggleMatrimonio);
+        }
+
+        var matDia = div.querySelector("#benef_" + i + "_mat_dia");
+        var matMes = div.querySelector("#benef_" + i + "_mat_mes");
+        var matAnio = div.querySelector("#benef_" + i + "_mat_anio");
+        var matHidden = div.querySelector("#benef_" + i + "_mat_fecha");
+        if (matDia && matMes && matAnio && matHidden) {
+          llenarSelectFecha(matDia, matMes, matAnio, 1900);
+          var updateMatHidden = function() {
+            var d = matDia.value, m = matMes.value, y = matAnio.value;
+            matHidden.value = (d && m && y) ? (d + "-" + m + "-" + y) : "";
+          };
+          matDia.addEventListener("change", updateMatHidden);
+          matMes.addEventListener("change", updateMatHidden);
+          matAnio.addEventListener("change", updateMatHidden);
+        }
+
+        return div;
+      }
+
+      function actualizarBeneficiarios() {
+        if (!solBenefInput || !benefSection || !benefContainer) return;
+        var n = parseInt(solBenefInput.value || 0, 10);
+        var actual = benefContainer.children.length;
+        benefSection.classList.toggle("section-hidden", !(n > 0));
+        if (n > actual) {
+          for (var i = actual; i < n; i++) benefContainer.appendChild(crearBeneficiario(i));
+        }
+        if (n < actual) {
+          while (benefContainer.children.length > n) benefContainer.removeChild(benefContainer.lastChild);
+        }
+      }
+
+      function updateCuentaBancariaVisibility() {
+        if (!cuentaField || !cuentaBanco || !cuentaTipo || !cuentaInput) return;
+        var selected = form.querySelector('input[name="autorizaciones.ingresarDatosCuentaBancaria"]:checked');
+        if (!selected) return;
+        if (selected.value === "Sí") {
+          cuentaField.style.display = "grid";
+          cuentaBanco.required = true;
+          cuentaTipo.required = true;
+          cuentaInput.required = true;
+        } else {
+          cuentaField.style.display = "none";
+          cuentaBanco.required = false;
+          cuentaTipo.required = false;
+          cuentaInput.required = false;
+          cuentaBanco.value = "";
+          cuentaTipo.value = "";
+          cuentaInput.value = "";
+        }
+      }
 
       form.addEventListener("keydown", function(e) {
         if (e.key === "Enter" && e.target.tagName !== "TEXTAREA") e.preventDefault();
@@ -740,6 +1077,21 @@
         actualizarHijos();
       }
 
+      // Secciones del formulario de solicitud de pensión (sin mandatario)
+      renderYesNo(document.getElementById("antecedentesQuestions"), "antecedentes", antecedentesItems);
+      renderYesNo(document.getElementById("autorizacionesQuestions"), "autorizaciones", autorizacionesItems);
+      renderYesNo(document.getElementById("certificadosQuestions"), "certificados", certificadosItems);
+
+      if (solBenefInput) {
+        solBenefInput.addEventListener("input", actualizarBeneficiarios);
+        actualizarBeneficiarios();
+      }
+
+      updateCuentaBancariaVisibility();
+      form.addEventListener("change", function (e) {
+        if (e && e.target && e.target.name === "autorizaciones.ingresarDatosCuentaBancaria") updateCuentaBancariaVisibility();
+      });
+
       form.querySelectorAll(".rut-input").forEach(function(input) {
         input.addEventListener("blur", function() { this.value = normalizeRut(this.value); });
       });
@@ -766,6 +1118,10 @@
 
         var data = formDataToObject(form);
         var c = data.cliente || {};
+        var solicitud = data.solicitud || {};
+        var antecedentes = data.antecedentes || {};
+        var autorizaciones = data.autorizaciones || {};
+        var certificados = data.certificados || {};
         var fechaNac = toIsoDate(fechaVal);
 
         var row = {
@@ -841,6 +1197,19 @@
         row.banco = (bancoData.banco || "").trim() || null;
         row.tipo_cuenta = (bancoData.tipoCuenta || "").trim() || null;
         row.numero_cuenta = (bancoData.numeroCuenta || "").trim() || null;
+
+        // Secciones del formulario de solicitud de pensión (sin mandatario)
+        row.solicitud_tipo_pension = (solicitud.tipoPension || "").trim() || null;
+        row.solicitud_cambio_modalidad_tramite = (solicitud.cambioModalidadTramite || "").trim()
+          ? ((solicitud.cambioModalidadTramite || "").trim() === "Sí")
+          : null;
+
+        var nBenef = parseInt((solicitud.numeroBeneficiarios || "0").toString(), 10);
+        row.solicitud_numero_beneficiarios = isNaN(nBenef) ? null : nBenef;
+        row.solicitud_beneficiarios = Array.isArray(data.beneficiarios) ? data.beneficiarios : [];
+        row.solicitud_antecedentes = antecedentes || {};
+        row.solicitud_autorizaciones = autorizaciones || {};
+        row.solicitud_certificados = certificados || {};
 
         var url = window.SUPABASE_URL;
         var key = window.SUPABASE_ANON_KEY;
