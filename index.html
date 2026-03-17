@@ -1209,7 +1209,7 @@
 
         <body>
 
-        <h2>MANDATO PARA ${aMayus(mandante.tipoPension)}</h2>
+        <h2>MANDATO PARA TRÁMITE DE ${aMayus(mandante.tipoPension)}</h2>
 
         <p>
         Con fecha ${fechaHoy} y por medio del siguiente instrumento, yo 
@@ -1253,12 +1253,12 @@
 
         
         <p>
-        Para efectos de la suscripción de la pensión antes mencionada, declaro conocer que tienen la calidad de beneficiarios y de pensión de sobrevivencia: el cónyuge, los hijos, la madre o padre de hijos de filiación no matrimonial y, a falta de todos los anteriores, los padres.
+        Para efectos de la suscripción de la pensión antes mencionada, declaro conocer que tienen la calidad de beneficiarios de pensión de sobrevivencia: el cónyuge, los hijos, la madre o padre de hijos de filiación no matrimonial y, a falta de todos los anteriores, los padres. En consecuencia, efectúo la siguiente declaración de beneficiarios:
         </p> 
         ${parseInt(mandante.numeroBeneficiarios || 0, 10) > 0 ? `
-        <p>
-        En consecuencia, efectúo la siguiente declaración de beneficiarios:  
-        </p>
+        
+          
+    
         
         <h3>Beneficiarios</h3>
 
@@ -1601,7 +1601,7 @@
         </head>
         <body>
 
-        <h2>MANDATO PARA ${aMayus(mandante.cambioModalidadTramite === "Sí" ? "INICIAR CAMBIO DE MODALIDAD" : "RETIRAR CERTIFICADO DE SALDO")} DE ${aMayus(mandante.tipoPension)}</h2>
+        <h2>MANDATO PARA TRÁMITE DE ${aMayus(mandante.cambioModalidadTramite === "Sí" ? "INICIAR CAMBIO DE MODALIDAD" : "RETIRAR CERTIFICADO DE SALDO")} DE ${aMayus(mandante.tipoPension)}</h2>
 
         <p>
         Con fecha ${fechaHoy} y por medio del siguiente instrumento, yo 
@@ -2134,6 +2134,91 @@
         return siguiente;
       }
 
+      // Construye el objeto fila para la tabla clientes a partir de los datos del formulario de pensión (mandato).
+      function buildClienteRowFromMandatoData(data) {
+        const mandante = data.mandante || {};
+        const empleador = data.empleador || {};
+        const autorizaciones = data.autorizaciones || {};
+        const antecedentes = data.antecedentes || {};
+        const certificados = data.certificados || {};
+
+        const fechaNac = parseDDMMYYYY(mandante.fechaNacimiento);
+        const row = {
+          rut: String(mandante.rut || "").trim().toUpperCase().replace(/\s/g, "") || null,
+          nombres: (mandante.nombres || "").trim() || null,
+          apellido_paterno: (mandante.apellidoPaterno || "").trim() || null,
+          apellido_materno: (mandante.apellidoMaterno || "").trim() || null,
+          fecha_nacimiento: fechaNac && fechaNac.iso ? fechaNac.iso : null,
+          estado_civil: (mandante.estadoCivil || "").trim() || null,
+          domicilio: (mandante.domicilio || "").trim() || null,
+          comuna: (mandante.comuna || "").trim() || null,
+          ciudad: (mandante.ciudad || "").trim() || null,
+          profesion_oficio: (mandante.profesionUOficio || "").trim() || null,
+          telefono: (mandante.telefono || "").trim() || null,
+          email: (mandante.email || "").trim() || null,
+          afp: (mandante.afp || "").trim() || null,
+          institucion_salud: (mandante.institucionSalud || "").trim() || null,
+          nacionalidad: (mandante.nacionalidad || "").trim() || null,
+          sexo: (mandante.sexo || "").trim() || null,
+          empleador_razon_social: (empleador.nombreORazonSocial || "").trim() || null,
+          empleador_rut: (empleador.rut || "").trim() || null,
+          empleador_direccion: (empleador.domicilio || "").trim() || null,
+          empleador_telefono: (empleador.telefono || "").trim() || null,
+          empleador_email: (empleador.email || "").trim() || null,
+          banco: (autorizaciones.banco || "").trim() || null,
+          tipo_cuenta: (autorizaciones.tipoCuenta || "").trim() || null,
+          numero_cuenta: (autorizaciones.numeroCuenta || "").trim() || null,
+          solicitud_tipo_pension: (mandante.tipoPension || "").trim() || null,
+          solicitud_cambio_modalidad_tramite: (mandante.cambioModalidadTramite || "").trim() === "Sí",
+          solicitud_antecedentes: antecedentes && typeof antecedentes === "object" ? antecedentes : {},
+          solicitud_autorizaciones: (function () {
+            const aut = autorizaciones && typeof autorizaciones === "object" ? autorizaciones : {};
+            const out = Object.assign({}, aut);
+            const tieneBanco = (autorizaciones.banco || autorizaciones.tipoCuenta || autorizaciones.numeroCuenta || "").toString().trim();
+            out.ingresarDatosCuentaBancaria = tieneBanco ? "Sí" : "No";
+            return out;
+          })(),
+          solicitud_certificados: certificados && typeof certificados === "object" ? certificados : {},
+        };
+
+        const numBenef = parseInt(mandante.numeroBeneficiarios || 0, 10);
+        row.solicitud_numero_beneficiarios = isNaN(numBenef) ? 0 : numBenef;
+
+        const beneficiariosData = data.beneficiarios;
+        if (beneficiariosData && typeof beneficiariosData === "object") {
+          const lista = Object.values(beneficiariosData);
+          row.solicitud_beneficiarios = lista.map(function (b) {
+            const f = (b.fechaNacimiento && parseDDMMYYYY(b.fechaNacimiento)) ? parseDDMMYYYY(b.fechaNacimiento).iso : null;
+            return {
+              nombres: (b.nombres || "").trim() || null,
+              apellido_paterno: (b.apellidoPaterno || "").trim() || null,
+              apellido_materno: (b.apellidoMaterno || "").trim() || null,
+              rut: (b.rut || "").trim() || null,
+              fecha_nacimiento: f,
+              parentesco: (b.parentesco || "").trim() || null,
+              sexo: (b.sexo || "").trim() || null,
+              fecha_matrimonio_union_civil: (b.fechaMatrimonioUnionCivil && parseDDMMYYYY(b.fechaMatrimonioUnionCivil)) ? parseDDMMYYYY(b.fechaMatrimonioUnionCivil).iso : null,
+              ciudad_matrimonio_union_civil: (b.ciudadMatrimonioUnionCivil || "").trim() || null,
+              observaciones: (b.observaciones || "").trim() || null,
+            };
+          });
+        } else {
+          row.solicitud_beneficiarios = [];
+        }
+
+        return row;
+      }
+
+      // Guarda o actualiza el cliente en Supabase a partir de los datos del formulario de pensión (mandato).
+      // Usa RUT como clave; si ya existe el cliente se actualiza.
+      async function saveClienteFromMandatoData(supabaseClient, data) {
+        if (!supabaseClient) return;
+        const row = buildClienteRowFromMandatoData(data);
+        if (!row.rut) return;
+        const { error } = await supabaseClient.from("clientes").upsert(row, { onConflict: "rut" });
+        if (error) throw error;
+      }
+
       // Valida el dígito verificador de un RUT chileno.
       function rutIsValid(rut) {
         const s = String(rut || "").toUpperCase().replace(/[^0-9K]/g, "");
@@ -2632,29 +2717,44 @@
               });
             }
 
-            btnMandatoSimple.addEventListener("click", ()=>{
-
-              const result = validate(form);
-
-              if(!result.ok){
-              setStatus("Debes completar el formulario primero");
-              return;
-              }
-
-              const data = formDataToObject(form);
-
-              generarMandatoSimple(data);
-
-            });
-
-            btnMandatoCorto.addEventListener("click", function () {
+            btnMandatoSimple.addEventListener("click", async function () {
               const result = validate(form);
               if (!result.ok) {
                 setStatus("Debes completar el formulario primero");
                 return;
               }
               const data = formDataToObject(form);
+              if (supabaseClient) {
+                try {
+                  await saveClienteFromMandatoData(supabaseClient, data);
+                  setStatus("Cliente actualizado. Generando mandato…");
+                } catch (e) {
+                  console.error("Error al guardar cliente:", e);
+                  setStatus("No se pudo guardar el cliente en la base de datos. " + (e.message || ""));
+                }
+              }
+              generarMandatoSimple(data);
+              setStatus("");
+            });
+
+            btnMandatoCorto.addEventListener("click", async function () {
+              const result = validate(form);
+              if (!result.ok) {
+                setStatus("Debes completar el formulario primero");
+                return;
+              }
+              const data = formDataToObject(form);
+              if (supabaseClient) {
+                try {
+                  await saveClienteFromMandatoData(supabaseClient, data);
+                  setStatus("Cliente actualizado. Generando mandato corto…");
+                } catch (e) {
+                  console.error("Error al guardar cliente:", e);
+                  setStatus("No se pudo guardar el cliente en la base de datos. " + (e.message || ""));
+                }
+              }
               generarMandatoCorto(data);
+              setStatus("");
             });
 
         if (btnContrato) {

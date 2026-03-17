@@ -1133,7 +1133,38 @@
           : null;
 
         row.solicitud_numero_beneficiarios = inferNumeroBeneficiarios();
-        row.solicitud_beneficiarios = [];
+        // Armar solicitud_beneficiarios desde cónyuge e hijos (misma estructura que en el formulario de pensión)
+        var solicitudBenef = [];
+        if (showConyuge && (co.nombres || co.apellidoPaterno || co.apellidoMaterno || co.rut)) {
+          var parentescoConyuge = (c.estadoCivil || "").toLowerCase().indexOf("conviviente") !== -1 ? "Conviviente civil" : "Cónyuge";
+          solicitudBenef.push({
+            nombres: (co.nombres || "").trim() || null,
+            apellido_paterno: (co.apellidoPaterno || "").trim() || null,
+            apellido_materno: (co.apellidoMaterno || "").trim() || null,
+            rut: (co.rut || "").trim() || null,
+            fecha_nacimiento: toIsoDate(co.fechaNacimiento) || null,
+            parentesco: parentescoConyuge,
+            sexo: (co.sexo || "").trim() || null,
+            fecha_matrimonio_union_civil: toIsoDate(co.fechaMatrimonio) || null,
+            ciudad_matrimonio_union_civil: (co.lugarMatrimonio || "").trim() || null,
+            observaciones: null
+          });
+        }
+        hijosArr.forEach(function (h) {
+          solicitudBenef.push({
+            nombres: h.nombres,
+            apellido_paterno: h.apellido_paterno,
+            apellido_materno: h.apellido_materno,
+            rut: h.rut,
+            fecha_nacimiento: h.fecha_nacimiento,
+            parentesco: "Hijo/a",
+            sexo: h.sexo,
+            fecha_matrimonio_union_civil: null,
+            ciudad_matrimonio_union_civil: null,
+            observaciones: null
+          });
+        });
+        row.solicitud_beneficiarios = solicitudBenef;
         row.solicitud_antecedentes = antecedentes || {};
         // Inferir "ingresarDatosCuentaBancaria" desde Datos bancarios (no se pregunta Sí/No)
         var autOut = (autorizaciones && typeof autorizaciones === "object") ? autorizaciones : {};
