@@ -62,6 +62,22 @@
       .section-title h2 { font-size: 16px; margin: 0; letter-spacing: 0.02em; }
       .hint { color: var(--muted); font-size: 12px; }
 
+      .section.collapsible > .section-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        user-select: none;
+      }
+      .section.collapsible > .section-title .toggle-icon {
+        font-size: 12px;
+        color: var(--muted);
+        width: 16px;
+        flex: 0 0 auto;
+      }
+      .section.collapsible.collapsed > .section-body { display: none; }
+      .section.collapsible > .section-body { margin-top: 10px; }
+
       .grid {
         display: grid;
         grid-template-columns: repeat(12, 1fr);
@@ -403,7 +419,7 @@
           <div class="section" aria-labelledby="hijosTitle">
             <div class="section-title">
               <h2 id="hijosTitle">¿Tiene hijos menores de 24 años?</h2>
-            </div>
+*            </div>
             <div class="radio-row" role="group" aria-label="Hijos menores 24">
               <label class="radio-pill">
                 <input type="radio" name="tieneHijosMenores24" value="Sí" />
@@ -465,10 +481,12 @@
           </div>
 
           <!-- Datos bancarios -->
-          <div class="section" aria-labelledby="bancoTitle">
-            <div class="section-title">
+          <div class="section collapsible collapsed" aria-labelledby="bancoTitle">
+            <div class="section-title" role="button" tabindex="0" aria-expanded="false">
+              <span class="toggle-icon" aria-hidden="true">▼</span>
               <h2 id="bancoTitle">Datos bancarios (datos opcionales)</h2>
             </div>
+            <div class="section-body">
             <div class="grid">
               <div class="field col-4">
                 <label for="banco_nombre">Banco (opcional)</label>
@@ -503,32 +521,35 @@
                 <input id="banco_numero" name="banco.numeroCuenta" inputmode="numeric" />
               </div>
             </div>
+            </div>
           </div>
 
           <!-- Solicitud de pensión (público, sin mandatario) -->
-          <div class="section" aria-labelledby="solicitudTitle">
-            <div class="section-title">
+          <div class="section collapsible collapsed" aria-labelledby="solicitudTitle">
+            <div class="section-title" role="button" tabindex="0" aria-expanded="false">
+              <span class="toggle-icon" aria-hidden="true">▼</span>
               <h2 id="solicitudTitle">Solicitud de pensión</h2>
               <span class="hint">Estos datos se guardan, pero aquí no se generan mandatos</span>
             </div>
+            <div class="section-body">
             <div class="grid">
               <div class="field col-12">
-                <label>Tipo de Pensión <span class="req">*</span></label>
+                <label>Tipo de Pensión</label>
                 <div class="radio-row" role="group" aria-label="Tipo de Pensión">
                   <label class="radio-pill">
-                    <input type="radio" name="solicitud.tipoPension" value="Pensión de Vejez por edad" required />
+                    <input type="radio" name="solicitud.tipoPension" value="Pensión de Vejez por edad" />
                     Pensión de Vejez por edad
                   </label>
                   <label class="radio-pill">
-                    <input type="radio" name="solicitud.tipoPension" value="Pensión de Vejez anticipada" required />
+                    <input type="radio" name="solicitud.tipoPension" value="Pensión de Vejez anticipada" />
                     Pensión de Vejez anticipada
                   </label>
                   <label class="radio-pill">
-                    <input type="radio" name="solicitud.tipoPension" value="Pensión de invalidez" required />
+                    <input type="radio" name="solicitud.tipoPension" value="Pensión de invalidez" />
                     Pensión de invalidez
                   </label>
                   <label class="radio-pill">
-                    <input type="radio" name="solicitud.tipoPension" value="Pensión de sobrevivencia" required />
+                    <input type="radio" name="solicitud.tipoPension" value="Pensión de sobrevivencia" />
                     Pensión de sobrevivencia
                   </label>
                 </div>
@@ -536,44 +557,54 @@
               </div>
 
               <div class="field col-12">
-                <label>Es un trámite de cambio de modalidad? <span class="req">*</span></label>
+                <label>Es un trámite de cambio de modalidad?</label>
                 <div class="radio-row" role="group" aria-label="Trámite de cambio de modalidad">
                   <label class="radio-pill">
-                    <input type="radio" name="solicitud.cambioModalidadTramite" value="Sí" required />
+                    <input type="radio" name="solicitud.cambioModalidadTramite" value="Sí" />
                     Sí
                   </label>
                   <label class="radio-pill">
-                    <input type="radio" name="solicitud.cambioModalidadTramite" value="No" required />
+                    <input type="radio" name="solicitud.cambioModalidadTramite" value="No" />
                     No
                   </label>
                 </div>
                 <div class="error" data-error-for="solicitud.cambioModalidadTramite"></div>
               </div>
             </div>
+            </div>
           </div>
 
-          <div class="section" aria-labelledby="antecedentesTitle">
-            <div class="section-title">
+          <div class="section collapsible collapsed" aria-labelledby="antecedentesTitle">
+            <div class="section-title" role="button" tabindex="0" aria-expanded="false">
+              <span class="toggle-icon" aria-hidden="true">▼</span>
               <h2 id="antecedentesTitle">Antecedentes</h2>
               <span class="hint">Marca Sí o No en cada opción</span>
             </div>
-            <div id="antecedentesQuestions" class="grid"></div>
+            <div class="section-body">
+              <div id="antecedentesQuestions" class="grid"></div>
+            </div>
           </div>
 
-          <div class="section" aria-labelledby="autorizacionesTitle">
-            <div class="section-title">
+          <div class="section collapsible collapsed" aria-labelledby="autorizacionesTitle">
+            <div class="section-title" role="button" tabindex="0" aria-expanded="false">
+              <span class="toggle-icon" aria-hidden="true">▼</span>
               <h2 id="autorizacionesTitle">Autorizaciones</h2>
               <span class="hint">Marca Sí o No en cada autorización</span>
             </div>
-            <div id="autorizacionesQuestions" class="grid"></div>
+            <div class="section-body">
+              <div id="autorizacionesQuestions" class="grid"></div>
+            </div>
           </div>
 
-          <div class="section" aria-labelledby="certificadosTitle">
-            <div class="section-title">
+          <div class="section collapsible collapsed" aria-labelledby="certificadosTitle">
+            <div class="section-title" role="button" tabindex="0" aria-expanded="false">
+              <span class="toggle-icon" aria-hidden="true">▼</span>
               <h2 id="certificadosTitle">Certificados</h2>
               <span class="hint">Marca Sí o No en cada certificado a retirar</span>
             </div>
-            <div id="certificadosQuestions" class="grid"></div>
+            <div class="section-body">
+              <div id="certificadosQuestions" class="grid"></div>
+            </div>
           </div>
 
           <div class="actions">
@@ -789,10 +820,10 @@
           var field = document.createElement("div");
           field.className = "field col-12";
           field.innerHTML =
-            '<label>' + (item.label || "") + ' <span class="req">*</span></label>' +
+            '<label>' + (item.label || "") + "</label>" +
             '<div class="radio-row" role="group" aria-label="' + (item.label || "") + '">' +
-              '<label class="radio-pill"><input type="radio" name="' + name + '" value="Sí" required /> Sí</label>' +
-              '<label class="radio-pill"><input type="radio" name="' + name + '" value="No" required /> No</label>' +
+              '<label class="radio-pill"><input type="radio" name="' + name + '" value="Sí" /> Sí</label>' +
+              '<label class="radio-pill"><input type="radio" name="' + name + '" value="No" /> No</label>' +
             "</div>" +
             '<div class="error" data-error-for="' + name + '"></div>';
           container.appendChild(field);
@@ -816,6 +847,21 @@
 
       form.addEventListener("keydown", function(e) {
         if (e.key === "Enter" && e.target.tagName !== "TEXTAREA") e.preventDefault();
+      });
+
+      // Colapsables
+      document.querySelectorAll(".section.collapsible > .section-title").forEach(function(header) {
+        header.addEventListener("click", function() {
+          var section = header.closest(".section.collapsible");
+          if (!section) return;
+          section.classList.toggle("collapsed");
+          header.setAttribute("aria-expanded", String(!section.classList.contains("collapsed")));
+        });
+        header.addEventListener("keydown", function(e) {
+          if (e.key !== "Enter" && e.key !== " ") return;
+          e.preventDefault();
+          header.click();
+        });
       });
 
       llenarSelectFecha(diaSel, mesSel, anioSel, 1900);
