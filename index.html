@@ -1105,8 +1105,12 @@
         const lista = Object.values(data.beneficiarios);
 
         lista.forEach(b => {
-
         const nombreCompleto = [b.nombres, b.apellidoPaterno, b.apellidoMaterno].filter(Boolean).join(" ");
+        let obs = "";
+        if ((b.ciudadMatrimonioUnionCivil || "").trim() || (b.fechaMatrimonioUnionCivil || "").trim()) {
+          obs = "CIRCUNSCRIPCION " + (b.ciudadMatrimonioUnionCivil || "").trim() + ", " + (b.fechaMatrimonioUnionCivil || "").trim();
+        }
+        if ((b.observaciones || "").trim()) obs += (obs ? " " : "") + (b.observaciones || "").trim();
         beneficiarios += `
         <tr>
         <td>${aMayus(nombreCompleto)}</td>
@@ -1114,12 +1118,9 @@
         <td class="col-rut">${aMayus(b.rut)}</td>
         <td>${aMayus(b.fechaNacimiento)}</td>
         <td>${aMayus(b.parentesco)}</td>
-        <td>${aMayus(b.fechaMatrimonioUnionCivil)}</td>
-        <td>${aMayus(b.ciudadMatrimonioUnionCivil)}</td>
-        <td>${aMayus(b.observaciones)}</td>
+        <td>${aMayus(obs)}</td>
         </tr>
         `;
-
         });
 
         }
@@ -1159,11 +1160,13 @@
         border-collapse:collapse;
         width:100%;
         margin-top:10px;
+        font-size:9pt;
         }
 
         td,th{
         border:1px solid black;
         padding:4px;
+        font-size:9pt;
         }
         .col-rut{
         white-space:nowrap;
@@ -1268,11 +1271,9 @@
         <tr>
         <th>Nombre Completo</th>
         <th>Sexo</th>
-        <th class="col-rut">RUT</th>
-        <th>Fecha Nacimiento</th>
+        <th class="col-rut">Rut</th>
+        <th>Fecha de Nac.</th>
         <th>Parentesco</th>
-        <th>Fecha mat./unión civil</th>
-        <th>Ciudad mat./unión civil</th>
         <th>Observaciones</th>
         </tr>
 
@@ -1588,8 +1589,8 @@
         <style>
         body{ font-family:Arial; font-size:12pt; line-height:1.5; margin:15px 12px; }
         p{ text-align:justify; }
-        table{ border-collapse:collapse; width:100%; margin-top:10px; }
-        td,th{ border:1px solid black; padding:4px; }
+        table{ border-collapse:collapse; width:100%; margin-top:10px; font-size:9pt; }
+        td,th{ border:1px solid black; padding:4px; font-size:9pt; }
         .col-rut{ white-space:nowrap; width:1%; min-width:7em; }
         .col-respuesta{ min-width:8em; width:8em; white-space:nowrap; word-break:keep-all; }
         h2,h3{ margin-top:20px; page-break-after:avoid; }
@@ -1715,8 +1716,6 @@
         <td>${aMayus(nombreBenef)}</td>
         <td>${aMayus(b.parentesco)}</td>
         <td>${aMayus(b.fechaNacimiento)}</td>
-        <td>${aMayus(b.fechaMatrimonioUnionCivil)}</td>
-        <td>${aMayus(b.ciudadMatrimonioUnionCivil)}</td>
         <td class="col-rut">${aMayus(b.rut)}</td>
         <td>${aMayus(b.esInvalido)}</td>
         </tr>
@@ -1764,11 +1763,12 @@
           border-collapse:collapse;
           width:100%;
           margin-top:8px;
+          font-size:9pt;
         }
         td,th{
           border:1px solid #000;
           padding:4px;
-          font-size:10pt;
+          font-size:9pt;
         }
         .col-rut{
           white-space:nowrap;
@@ -1831,13 +1831,11 @@
         </p>
         <table>
         <tr>
-          <th>NOMBRE</th>
-          <th>PARENTESCO</th>
-          <th>FECHA NAC.</th>
-          <th>F. MAT./UN. CIV.</th>
-          <th>CIUDAD MAT./UN. CIV.</th>
-          <th class="col-rut">RUT</th>
-          <th>INV.</th>
+          <th>Nombre completo</th>
+          <th>Parentesco</th>
+          <th>Fecha de nac.</th>
+          <th class="col-rut">Rut</th>
+          <th>Inválido</th>
         </tr>
         ${filasBeneficiarios}
         </table>
