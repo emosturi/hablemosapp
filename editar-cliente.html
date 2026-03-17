@@ -62,6 +62,22 @@
       .section-title h2 { font-size: 16px; margin: 0; letter-spacing: 0.02em; }
       .hint { color: var(--muted); font-size: 12px; }
 
+      .section.collapsible > .section-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        user-select: none;
+      }
+      .section.collapsible > .section-title .toggle-icon {
+        font-size: 12px;
+        color: var(--muted);
+        width: 16px;
+        flex: 0 0 auto;
+      }
+      .section.collapsible.collapsed > .section-body { display: none; }
+      .section.collapsible > .section-body { margin-top: 10px; }
+
       .grid {
         display: grid;
         grid-template-columns: repeat(12, 1fr);
@@ -366,27 +382,32 @@
             </div>
             <div class="grid">
               <div class="field col-4">
-                <label for="conyuge_nombres">Nombres</label>
+                <label for="conyuge_nombres">Nombres <span class="req">*</span></label>
                 <input id="conyuge_nombres" name="conyuge.nombres" />
+                <div class="error" data-error-for="conyuge_nombres"></div>
               </div>
               <div class="field col-4">
-                <label for="conyuge_apPaterno">Apellido Paterno</label>
+                <label for="conyuge_apPaterno">Apellido Paterno <span class="req">*</span></label>
                 <input id="conyuge_apPaterno" name="conyuge.apellidoPaterno" />
+                <div class="error" data-error-for="conyuge_apPaterno"></div>
               </div>
               <div class="field col-4">
-                <label for="conyuge_apMaterno">Apellido Materno</label>
+                <label for="conyuge_apMaterno">Apellido Materno <span class="req">*</span></label>
                 <input id="conyuge_apMaterno" name="conyuge.apellidoMaterno" />
+                <div class="error" data-error-for="conyuge_apMaterno"></div>
               </div>
               <div class="field col-4">
-                <label for="conyuge_nacionalidad">Nacionalidad</label>
+                <label for="conyuge_nacionalidad">Nacionalidad <span class="req">*</span></label>
                 <input id="conyuge_nacionalidad" name="conyuge.nacionalidad" placeholder="Ej. Chilena" />
+                <div class="error" data-error-for="conyuge_nacionalidad"></div>
               </div>
               <div class="field col-4">
-                <label for="conyuge_rut">RUT</label>
+                <label for="conyuge_rut">RUT <span class="req">*</span></label>
                 <input id="conyuge_rut" name="conyuge.rut" class="rut-input" placeholder="12.345.678-5" />
+                <div class="error" data-error-for="conyuge_rut"></div>
               </div>
               <div class="field col-4">
-                <label>Sexo</label>
+                <label>Sexo <span class="req">*</span></label>
                 <div class="radio-row" role="group" aria-label="Sexo cónyuge/conviviente">
                   <label class="radio-pill">
                     <input type="radio" name="conyuge.sexo" value="Masculino" />
@@ -397,28 +418,32 @@
                     Femenino
                   </label>
                 </div>
+                <div class="error" data-error-for="conyuge_sexo"></div>
               </div>
               <div class="field col-4">
-                <label for="conyuge_fechaNac">Fecha de nacimiento</label>
+                <label for="conyuge_fechaNac">Fecha de nacimiento <span class="req">*</span></label>
                 <div class="date-group">
                   <select id="conyuge_fechaNac_dia"><option value="" selected disabled>Día</option></select>
                   <select id="conyuge_fechaNac_mes"><option value="" selected disabled>Mes</option></select>
                   <select id="conyuge_fechaNac_anio"><option value="" selected disabled>Año</option></select>
                   <input type="hidden" id="conyuge_fechaNac" name="conyuge.fechaNacimiento" />
                 </div>
+                <div class="error" data-error-for="conyuge_fechaNac"></div>
               </div>
               <div class="field col-4">
-                <label for="conyuge_fechaMatrimonio">Fecha de matrimonio</label>
+                <label for="conyuge_fechaMatrimonio">Fecha de matrimonio <span class="req">*</span></label>
                 <div class="date-group">
                   <select id="conyuge_fechaMatrimonio_dia"><option value="" selected disabled>Día</option></select>
                   <select id="conyuge_fechaMatrimonio_mes"><option value="" selected disabled>Mes</option></select>
                   <select id="conyuge_fechaMatrimonio_anio"><option value="" selected disabled>Año</option></select>
                   <input type="hidden" id="conyuge_fechaMatrimonio" name="conyuge.fechaMatrimonio" />
                 </div>
+                <div class="error" data-error-for="conyuge_fechaMatrimonio"></div>
               </div>
               <div class="field col-6">
-                <label for="conyuge_lugarMatrimonio">Lugar de matrimonio</label>
+                <label for="conyuge_lugarMatrimonio">Lugar de matrimonio <span class="req">*</span></label>
                 <input id="conyuge_lugarMatrimonio" name="conyuge.lugarMatrimonio" />
+                <div class="error" data-error-for="conyuge_lugarMatrimonio"></div>
               </div>
             </div>
           </div>
@@ -488,11 +513,14 @@
             </div>
           </div>
 
-          <!-- Datos bancarios -->
-          <div class="section" aria-labelledby="bancoTitle">
-            <div class="section-title">
+          <!-- Datos bancarios (colapsable y opcional) -->
+          <div class="section collapsible collapsed" aria-labelledby="bancoTitle">
+            <div class="section-title" role="button" tabindex="0" aria-expanded="false">
+              <span class="toggle-icon" aria-hidden="true">▼</span>
               <h2 id="bancoTitle">Datos bancarios</h2>
+              <span class="hint">Opcional</span>
             </div>
+            <div class="section-body">
             <div class="grid">
               <div class="field col-4">
                 <label for="banco_nombre">Banco</label>
@@ -526,6 +554,90 @@
                 <label for="banco_numero">Número de cuenta</label>
                 <input id="banco_numero" name="banco.numeroCuenta" inputmode="numeric" />
               </div>
+            </div>
+            </div>
+          </div>
+
+          <!-- Solicitud de pensión (colapsable y opcional, sin mandatario) -->
+          <div class="section collapsible collapsed" aria-labelledby="solicitudTitle">
+            <div class="section-title" role="button" tabindex="0" aria-expanded="false">
+              <span class="toggle-icon" aria-hidden="true">▼</span>
+              <h2 id="solicitudTitle">Solicitud de pensión</h2>
+              <span class="hint">Opcional</span>
+            </div>
+            <div class="section-body">
+              <div class="grid">
+                <div class="field col-12">
+                  <label>Tipo de Pensión</label>
+                  <div class="radio-row" role="group" aria-label="Tipo de Pensión">
+                    <label class="radio-pill">
+                      <input type="radio" name="solicitud.tipoPension" value="Pensión de Vejez por edad" />
+                      Pensión de Vejez por edad
+                    </label>
+                    <label class="radio-pill">
+                      <input type="radio" name="solicitud.tipoPension" value="Pensión de Vejez anticipada" />
+                      Pensión de Vejez anticipada
+                    </label>
+                    <label class="radio-pill">
+                      <input type="radio" name="solicitud.tipoPension" value="Pensión de invalidez" />
+                      Pensión de invalidez
+                    </label>
+                    <label class="radio-pill">
+                      <input type="radio" name="solicitud.tipoPension" value="Pensión de sobrevivencia" />
+                      Pensión de sobrevivencia
+                    </label>
+                  </div>
+                  <div class="error" data-error-for="solicitud.tipoPension"></div>
+                </div>
+
+                <div class="field col-12">
+                  <label>Es un trámite de cambio de modalidad?</label>
+                  <div class="radio-row" role="group" aria-label="Trámite de cambio de modalidad">
+                    <label class="radio-pill">
+                      <input type="radio" name="solicitud.cambioModalidadTramite" value="Sí" />
+                      Sí
+                    </label>
+                    <label class="radio-pill">
+                      <input type="radio" name="solicitud.cambioModalidadTramite" value="No" />
+                      No
+                    </label>
+                  </div>
+                  <div class="error" data-error-for="solicitud.cambioModalidadTramite"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section collapsible collapsed" aria-labelledby="antecedentesTitle">
+            <div class="section-title" role="button" tabindex="0" aria-expanded="false">
+              <span class="toggle-icon" aria-hidden="true">▼</span>
+              <h2 id="antecedentesTitle">Antecedentes</h2>
+              <span class="hint">Opcional</span>
+            </div>
+            <div class="section-body">
+              <div id="antecedentesQuestions" class="grid"></div>
+            </div>
+          </div>
+
+          <div class="section collapsible collapsed" aria-labelledby="autorizacionesTitle">
+            <div class="section-title" role="button" tabindex="0" aria-expanded="false">
+              <span class="toggle-icon" aria-hidden="true">▼</span>
+              <h2 id="autorizacionesTitle">Autorizaciones</h2>
+              <span class="hint">Opcional</span>
+            </div>
+            <div class="section-body">
+              <div id="autorizacionesQuestions" class="grid"></div>
+            </div>
+          </div>
+
+          <div class="section collapsible collapsed" aria-labelledby="certificadosTitle">
+            <div class="section-title" role="button" tabindex="0" aria-expanded="false">
+              <span class="toggle-icon" aria-hidden="true">▼</span>
+              <h2 id="certificadosTitle">Certificados</h2>
+              <span class="hint">Opcional</span>
+            </div>
+            <div class="section-body">
+              <div id="certificadosQuestions" class="grid"></div>
             </div>
           </div>
 
@@ -611,6 +723,31 @@
         });
         return out;
       }
+      function setFormFromObject(form, data) {
+        if (!data || typeof data !== "object") return;
+        var flat = {};
+        function walk(obj, path) {
+          path = path || [];
+          Object.keys(obj).forEach(function(k) {
+            var v = obj[k];
+            var next = path.concat([k]);
+            if (v && typeof v === "object" && !Array.isArray(v)) walk(v, next);
+            else flat[next.join(".")] = v;
+          });
+        }
+        walk(data, []);
+        Object.keys(flat).forEach(function(name) {
+          var value = flat[name];
+          var nodes = form.querySelectorAll('[name="' + CSS.escape(name) + '"]');
+          if (!nodes.length) return;
+          var first = nodes[0];
+          if (first.type === "radio") {
+            nodes.forEach(function(n) { n.checked = String(n.value) === String(value); });
+          } else {
+            first.value = (value == null) ? "" : value;
+          }
+        });
+      }
       function setStatus(msg) { document.getElementById("status").textContent = msg || ""; }
       function clearErrors(form) {
         form.querySelectorAll("[data-error-for]").forEach(function(n) { n.textContent = ""; });
@@ -640,6 +777,86 @@
       var sectionHijosBloque = document.getElementById("sectionHijosBloque");
       var numHijosSel = document.getElementById("numHijos");
       var hijosContainer = document.getElementById("hijosContainer");
+
+      // Colapsables
+      document.querySelectorAll(".section.collapsible > .section-title").forEach(function(header) {
+        header.addEventListener("click", function() {
+          var section = header.closest(".section.collapsible");
+          if (!section) return;
+          section.classList.toggle("collapsed");
+          header.setAttribute("aria-expanded", String(!section.classList.contains("collapsed")));
+        });
+        header.addEventListener("keydown", function(e) {
+          if (e.key !== "Enter" && e.key !== " ") return;
+          e.preventDefault();
+          header.click();
+        });
+      });
+
+      // Secciones "Solicitud de pensión" (opcionales)
+      var antecedentesItems = [
+        { key: "deseoPensionPreliminar", label: "Deseo pensión preliminar" },
+        { key: "solicitarPgu", label: "Solicitar Pensión Garantizada Universal?" },
+        { key: "solicitarAporteSolidarioInvalidez", label: "Solicitar aporte solidario de invalidez? (si corresponde)" },
+        { key: "reciboPensionAntiguoSistema", label: "Recibo pensión antiguo sistema" },
+        { key: "reciboPensionInvalidezEsteSistema", label: "Recibo pensión invalidez de este Sistema" },
+        { key: "ajustePensionMinima", label: "Deseo que mi pensión se ajuste a la pensión mínima" },
+        { key: "ajustePensionBasicaSolidaria", label: "Deseo que mi pensión se ajuste a la pensión básica solidaria" },
+        { key: "afectoEstatutoAdministrativo", label: "Estoy afecto al Estatuto Administrativo..." },
+        { key: "destinareApv", label: "Destinaré Ahorro Previsional Voluntario al financiamiento de mi pensión" },
+        { key: "destinareApvc", label: "Destinaré Ahorro Previsional Voluntario Colectivo al financiamiento de mi pensión" },
+        { key: "traspasareCtaAhorroVoluntario", label: "Traspasaré fondos desde mi Cuenta de Ahorro Voluntario para el financiamiento de mi pensión" },
+        { key: "poseoDepositosConvenidos", label: "Poseo depósitos convenidos" },
+        { key: "traspasareCesantia", label: "Traspasaré fondos desde mi Cuenta Individual de Cesantía" },
+        { key: "cotizacionesOtroPais", label: "Tengo cotizaciones en otro país" },
+        { key: "residenciaOtroPais", label: "Tengo períodos de residencia en otro país" },
+        { key: "cambioTipoFondo", label: "Deseo cambiar de Tipo de Fondo" },
+        { key: "listadoPublico", label: "Deseo que mis datos personales aparezcan en un LISTADO PÚBLICO DE INFORMACIÓN" }
+      ];
+      var autorizacionesItems = [
+        { key: "terminarTramite", label: "Terminar trámite?" },
+        { key: "suscribirBonoReconocimiento", label: "Suscribir solicitud de Bono de Reconocimiento" },
+        { key: "solicitarInfoEstadoTramite", label: "Solicitar información respecto del estado del trámite de pensión" },
+        { key: "retirarCertificadoSaldo", label: "Retirar en la AFP el Certificado de Saldo" },
+        { key: "suscribirDestinoCotizacionesVoluntarias", label: 'Suscribir formulario "Destino de Cotizaciones Voluntarias"' },
+        { key: "suscribirTransferenciaAhorroVoluntario", label: 'Suscribir formulario "Transferencia de Fondos desde la Cuentas de Ahorro Voluntario"' },
+        { key: "suscribirSeleccionAlternativasApv", label: 'Suscribir formulario "Selección de Alternativas de Ahorro Previsional Voluntario"' },
+        { key: "suscribirCambioModalidadPension", label: "Suscribir solicitud de cambio de modalidad de pensión" },
+        { key: "suscribirCalculoExcedente", label: "Suscribir solicitud de cálculo de excedente de libre disposición" },
+        { key: "suscribirMantenerValorNominal", label: "Suscribir opción por mantener el valor nominal del saldo destinado a pensión" },
+        { key: "retirarDuplicadoScompOriginal", label: "Retirar duplicado de solicitud de ofertas y certificado de saldo original (SCOMP)" },
+        { key: "obtenerInfoPagoPensionYTraspaso", label: "Obtener información sobre pago de pensión y traspaso" },
+        { key: "firmarExencionCotizarEdadLegal", label: "Firmar exención de cotizar por tener edad legal" },
+        { key: "realizarReclamosTramite", label: "Realizar reclamos respecto del trámite" }
+      ];
+      var certificadosItems = [
+        { key: "historicoCotizaciones", label: "Histórico de cotizaciones" },
+        { key: "antecedentePrevisional", label: "Antecedente previsional" },
+        { key: "certificadoTrabajoPesado", label: "Certificado de trabajo pesado" },
+        { key: "certificadoVacacionesProgresivas", label: "Certificado de vacaciones progresivas" },
+        { key: "certificadoEstadoCuentas", label: "Certificado estado de cuentas" },
+        { key: "certificadoCalidadPensionado", label: "Certificado de calidad de pensionado" }
+      ];
+      function renderYesNo(container, groupName, items) {
+        if (!container) return;
+        container.innerHTML = "";
+        items.forEach(function(item) {
+          var name = groupName + "." + item.key;
+          var field = document.createElement("div");
+          field.className = "field col-12";
+          field.innerHTML =
+            "<label>" + (item.label || "") + "</label>" +
+            '<div class="radio-row" role="group" aria-label="' + (item.label || "") + '">' +
+              '<label class="radio-pill"><input type="radio" name="' + name + '" value="Sí" /> Sí</label>' +
+              '<label class="radio-pill"><input type="radio" name="' + name + '" value="No" /> No</label>' +
+            "</div>" +
+            '<div class="error" data-error-for="' + name + '"></div>';
+          container.appendChild(field);
+        });
+      }
+      renderYesNo(document.getElementById("antecedentesQuestions"), "antecedentes", antecedentesItems);
+      renderYesNo(document.getElementById("autorizacionesQuestions"), "autorizaciones", autorizacionesItems);
+      renderYesNo(document.getElementById("certificadosQuestions"), "certificados", certificadosItems);
 
       var clientId = (function() {
         var p = new URLSearchParams(window.location.search);
@@ -675,10 +892,45 @@
       if (estadoCivilSel && sectionConyuge) {
         function toggleConyuge() {
           var v = (estadoCivilSel.value || "").toLowerCase();
-          sectionConyuge.classList.toggle("section-hidden", v.indexOf("casado") === -1 && v.indexOf("conviviente") === -1);
+          var visible = !(v.indexOf("casado") === -1 && v.indexOf("conviviente") === -1);
+          sectionConyuge.classList.toggle("section-hidden", !visible);
+
+          var reqIds = [
+            "conyuge_nombres",
+            "conyuge_apPaterno",
+            "conyuge_apMaterno",
+            "conyuge_nacionalidad",
+            "conyuge_rut",
+            "conyuge_fechaNac",
+            "conyuge_fechaMatrimonio",
+            "conyuge_lugarMatrimonio"
+          ];
+          reqIds.forEach(function(id) {
+            var el = document.getElementById(id);
+            if (!el) return;
+            if (visible) el.setAttribute("required", "true");
+            else el.removeAttribute("required");
+          });
+          var sexoRadios = form.querySelectorAll('input[name="conyuge.sexo"]');
+          sexoRadios.forEach(function(r) {
+            if (visible) r.setAttribute("required", "true");
+            else r.removeAttribute("required");
+          });
         }
         estadoCivilSel.addEventListener("change", toggleConyuge);
         toggleConyuge();
+      }
+
+      function inferNumeroBeneficiarios() {
+        var n = 0;
+        if (sectionConyuge && !sectionConyuge.classList.contains("section-hidden")) n += 1;
+        var si = form.querySelector("input[name='tieneHijosMenores24']:checked");
+        var tieneH = !!(si && si.value === "Sí");
+        if (tieneH) {
+          var nh = parseInt((numHijosSel && numHijosSel.value) || "0", 10);
+          if (!isNaN(nh) && nh > 0) n += nh;
+        }
+        return n;
       }
 
       if (radiosHijos.length && sectionHijosBloque) {
@@ -835,6 +1087,35 @@
         document.getElementById("banco_nombre").value = c.banco || "";
         document.getElementById("banco_tipo").value = c.tipo_cuenta || "";
         document.getElementById("banco_numero").value = c.numero_cuenta || "";
+
+        // Solicitud de pensión (si existe)
+        if (c.solicitud_tipo_pension) {
+          setFormFromObject(form, { solicitud: { tipoPension: c.solicitud_tipo_pension } });
+        }
+        if (c.solicitud_cambio_modalidad_tramite === true) {
+          setFormFromObject(form, { solicitud: { cambioModalidadTramite: "Sí" } });
+        } else if (c.solicitud_cambio_modalidad_tramite === false) {
+          setFormFromObject(form, { solicitud: { cambioModalidadTramite: "No" } });
+        }
+
+        function normalizeYesNoObject(obj) {
+          if (!obj || typeof obj !== "object") return null;
+          var out = {};
+          Object.keys(obj).forEach(function(k) {
+            var v = obj[k];
+            if (v === true) out[k] = "Sí";
+            else if (v === false) out[k] = "No";
+            else if (v === "Si") out[k] = "Sí";
+            else out[k] = v;
+          });
+          return out;
+        }
+        var ant = normalizeYesNoObject(c.solicitud_antecedentes);
+        if (ant) setFormFromObject(form, { antecedentes: ant });
+        var aut = normalizeYesNoObject(c.solicitud_autorizaciones);
+        if (aut) setFormFromObject(form, { autorizaciones: aut });
+        var cert = normalizeYesNoObject(c.solicitud_certificados);
+        if (cert) setFormFromObject(form, { certificados: cert });
       }
 
       if (clientId) {
@@ -881,6 +1162,10 @@
 
         var data = formDataToObject(form);
         var c = data.cliente || {};
+        var solicitud = data.solicitud || {};
+        var antecedentes = data.antecedentes || {};
+        var autorizaciones = data.autorizaciones || {};
+        var certificados = data.certificados || {};
         var fechaNac = toIsoDate(fechaVal);
 
         var row = {
@@ -905,6 +1190,24 @@
         var co = data.conyuge || {};
         var showConyuge = sectionConyuge && !sectionConyuge.classList.contains("section-hidden");
         if (showConyuge) {
+          if (!rutIsValid(document.getElementById("conyuge_rut").value || "")) {
+            setError(form, "conyuge_rut", "RUT inválido");
+            return;
+          }
+          if (!co.fechaNacimiento || !/^\d{2}-\d{2}-\d{4}$/.test(co.fechaNacimiento)) {
+            setError(form, "conyuge_fechaNac", "Seleccione una fecha válida");
+            return;
+          }
+          if (!co.fechaMatrimonio || !/^\d{2}-\d{2}-\d{4}$/.test(co.fechaMatrimonio)) {
+            setError(form, "conyuge_fechaMatrimonio", "Seleccione una fecha válida");
+            return;
+          }
+          var sexoCony = form.querySelector("input[name='conyuge.sexo']:checked");
+          if (!sexoCony) {
+            setError(form, "conyuge_sexo", "Seleccione sexo");
+            return;
+          }
+
           row.conyuge_nombres = (co.nombres || "").trim() || null;
           row.conyuge_apellido_paterno = (co.apellidoPaterno || "").trim() || null;
           row.conyuge_apellido_materno = (co.apellidoMaterno || "").trim() || null;
@@ -952,6 +1255,20 @@
         row.banco = (bancoData.banco || "").trim() || null;
         row.tipo_cuenta = (bancoData.tipoCuenta || "").trim() || null;
         row.numero_cuenta = (bancoData.numeroCuenta || "").trim() || null;
+
+        // Secciones del formulario de solicitud de pensión (sin mandatario)
+        row.solicitud_tipo_pension = (solicitud.tipoPension || "").trim() || null;
+        row.solicitud_cambio_modalidad_tramite = (solicitud.cambioModalidadTramite || "").trim()
+          ? ((solicitud.cambioModalidadTramite || "").trim() === "Sí")
+          : null;
+        row.solicitud_numero_beneficiarios = inferNumeroBeneficiarios();
+        row.solicitud_beneficiarios = [];
+        row.solicitud_antecedentes = antecedentes || {};
+        // Inferir ingresarDatosCuentaBancaria desde Datos bancarios
+        var autOut = (autorizaciones && typeof autorizaciones === "object") ? autorizaciones : {};
+        autOut.ingresarDatosCuentaBancaria = (row.banco || row.tipo_cuenta || row.numero_cuenta) ? "Sí" : "No";
+        row.solicitud_autorizaciones = autOut;
+        row.solicitud_certificados = certificados || {};
 
         var url = window.SUPABASE_URL;
         var key = window.SUPABASE_ANON_KEY;
