@@ -2622,7 +2622,34 @@
                   afp: c.afp || "",
                   institucionSalud: c.institucion_salud || ""
                 };
+
+                // Solicitud de pensión (si existe en la tabla clientes)
+                if (c.solicitud_tipo_pension) mandanteData.tipoPension = c.solicitud_tipo_pension;
+                if (c.solicitud_cambio_modalidad_tramite === true) mandanteData.cambioModalidadTramite = "Sí";
+                else if (c.solicitud_cambio_modalidad_tramite === false) mandanteData.cambioModalidadTramite = "No";
+
                 setFormFromObject(form, { mandante: mandanteData });
+
+                // Antecedentes / Autorizaciones / Certificados (si existen en la tabla clientes)
+                function normalizeYesNoObject(obj) {
+                  if (!obj || typeof obj !== "object") return null;
+                  var out = {};
+                  Object.keys(obj).forEach(function (k) {
+                    var v = obj[k];
+                    if (v === true) out[k] = "Sí";
+                    else if (v === false) out[k] = "No";
+                    else if (v === "Si") out[k] = "Sí";
+                    else out[k] = v;
+                  });
+                  return out;
+                }
+                var ant = normalizeYesNoObject(c.solicitud_antecedentes);
+                if (ant) setFormFromObject(form, { antecedentes: ant });
+                var aut = normalizeYesNoObject(c.solicitud_autorizaciones);
+                if (aut) setFormFromObject(form, { autorizaciones: aut });
+                var cert = normalizeYesNoObject(c.solicitud_certificados);
+                if (cert) setFormFromObject(form, { certificados: cert });
+
                 if (mandanteHidden && mandanteHidden.value && mandanteDia && mandanteMes && mandanteAnio) {
                   var match = mandanteHidden.value.match(/^(\d{2})-(\d{2})-(\d{4})$/);
                   if (match) {
