@@ -1050,6 +1050,7 @@
         document.getElementById("conyuge_apPaterno").value = c.conyuge_apellido_paterno || "";
         document.getElementById("conyuge_apMaterno").value = c.conyuge_apellido_materno || "";
         document.getElementById("conyuge_nacionalidad").value = c.conyuge_nacionalidad || "";
+        if (c.conyuge_nacionalidad) setFormFromObject(form, { conyuge: { nacionalidad: c.conyuge_nacionalidad } });
         document.getElementById("conyuge_rut").value = c.conyuge_rut || "";
         setFechaFromIso(conyugeDia, conyugeMes, conyugeAnio, conyugeHidden, c.conyuge_fecha_nacimiento);
         setFechaFromIso(matDia, matMes, matAnio, matHidden, c.conyuge_fecha_matrimonio);
