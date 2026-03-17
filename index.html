@@ -2986,9 +2986,12 @@
                   elegirOpcion(cuentaBanco, c.banco, aliasBanco);
                   elegirOpcion(cuentaTipo, c.tipo_cuenta, aliasTipo);
                 }
-                // Autorrellenar beneficiarios en base a cónyuge/conviviente e hijos menores de 24 años
+                // Autorrellenar beneficiarios en base a cónyuge/conviviente e hijos menores de 24 años.
+                // Si el cliente es casado o conviviente civil, desplegar al menos un beneficiario (cónyuge) aunque no haya datos en BD.
                 try {
                   var beneficiarios = [];
+                  var estadoCivilStr = (c.estado_civil || "").toLowerCase();
+                  var esCasadoOConviviente = estadoCivilStr.indexOf("casado") !== -1 || estadoCivilStr.indexOf("conviviente") !== -1;
                   // Cónyuge / conviviente civil
                   if (c.conyuge_nombres || c.conyuge_rut || c.conyuge_apellido_paterno || c.conyuge_apellido_materno) {
                     var fechaConyuge = "";
@@ -3031,6 +3034,22 @@
                       ciudadMatrimonioUnionCivil: c.conyuge_lugar_matrimonio || "",
                       esInvalido: "No",
                       observaciones: observConyuge
+                    });
+                  } else if (esCasadoOConviviente) {
+                    // Cliente casado/conviviente pero sin datos de cónyuge en BD: mostrar un beneficiario vacío para completar
+                    var parentescoVacio = estadoCivilStr.indexOf("conviviente") !== -1 ? "Conviviente civil" : "Cónyuge";
+                    beneficiarios.push({
+                      nombres: "",
+                      apellidoPaterno: "",
+                      apellidoMaterno: "",
+                      rut: "",
+                      sexo: "",
+                      parentesco: parentescoVacio,
+                      fechaNacimiento: "",
+                      fechaMatrimonioUnionCivil: "",
+                      ciudadMatrimonioUnionCivil: "",
+                      esInvalido: "No",
+                      observaciones: ""
                     });
                   }
                   // Hijos menores de 24 años
@@ -3097,8 +3116,32 @@
                           }
                         }
                       }
+                      // Mostrar bloque de matrimonio/unión civil si el beneficiario es cónyuge o conviviente civil
+                      if (b.parentesco === "Cónyuge" || b.parentesco === "Conviviente civil") {
+                        var matBlock = document.getElementById("benef_" + idx + "_matrimonio");
+                        if (matBlock) matBlock.style.display = "";
+                        var ciudadInput = form.querySelector('input[name="beneficiarios.' + idx + '.ciudadMatrimonioUnionCivil"]');
+                        if (ciudadInput && (b.ciudadMatrimonioUnionCivil || "").trim()) ciudadInput.value = b.ciudadMatrimonioUnionCivil;
+                      }
                     });
                     setFormFromObject(form, { beneficiarios: benefObj, mandante: { numeroBeneficiarios: String(beneficiarios.length) } });
+                  }
+                  // Si el cliente es casado/conviviente y no teníamos datos de cónyuge, igual desplegar la sección con 1 beneficiario
+                  else if (esCasadoOConviviente && benefInput && typeof actualizarBeneficiarios === "function") {
+                    benefInput.value = "1";
+                    actualizarBeneficiarios();
+                    var parentescoVacio = estadoCivilStr.indexOf("conviviente") !== -1 ? "Conviviente civil" : "Cónyuge";
+                    setFormFromObject(form, {
+                      beneficiarios: {
+                        0: {
+                          parentesco: parentescoVacio,
+                          esInvalido: "No"
+                        }
+                      },
+                      mandante: { numeroBeneficiarios: "1" }
+                    });
+                    var matBlock0 = document.getElementById("benef_0_matrimonio");
+                    if (matBlock0) matBlock0.style.display = "";
                   }
                 } catch (_e) {
                   // Si algo falla en el prellenado de beneficiarios, no bloquear el formulario
