@@ -552,14 +552,6 @@
             </div>
           </div>
 
-          <div class="section section-hidden" id="beneficiariosSection" aria-labelledby="beneficiariosTitle">
-            <div class="section-title">
-              <h2 id="beneficiariosTitle">Datos de Beneficiarios</h2>
-              <span class="hint">Completa los datos de cada beneficiario</span>
-            </div>
-            <div id="beneficiariosContainer"></div>
-          </div>
-
           <div class="section" aria-labelledby="antecedentesTitle">
             <div class="section-title">
               <h2 id="antecedentesTitle">Antecedentes</h2>
@@ -741,8 +733,6 @@
       var sectionHijosBloque = document.getElementById("sectionHijosBloque");
       var numHijosSel = document.getElementById("numHijos");
       var hijosContainer = document.getElementById("hijosContainer");
-      var benefSection = document.getElementById("beneficiariosSection");
-      var benefContainer = document.getElementById("beneficiariosContainer");
 
       var antecedentesItems = [
         { key: "deseoPensionPreliminar", label: "Deseo pensión preliminar" },
@@ -809,92 +799,6 @@
         });
       }
 
-      function crearBeneficiario(i) {
-        var div = document.createElement("div");
-        div.className = "section";
-        div.innerHTML =
-          '<div class="section-title"><h2>Beneficiario ' + (i + 1) + '</h2><span class="hint">Datos del beneficiario</span></div>' +
-          '<div class="grid">' +
-            '<div class="field col-4"><label>Nombres <span class="req">*</span></label><input name="beneficiarios.' + i + '.nombres" required /><div class="error" data-error-for="beneficiarios.' + i + '.nombres"></div></div>' +
-            '<div class="field col-4"><label>Apellido Paterno <span class="req">*</span></label><input name="beneficiarios.' + i + '.apellidoPaterno" required /><div class="error" data-error-for="beneficiarios.' + i + '.apellidoPaterno"></div></div>' +
-            '<div class="field col-4"><label>Apellido Materno <span class="req">*</span></label><input name="beneficiarios.' + i + '.apellidoMaterno" required /><div class="error" data-error-for="beneficiarios.' + i + '.apellidoMaterno"></div></div>' +
-            '<div class="field col-4"><label>RUT <span class="req">*</span></label><input class="rut-input rut-benef" name="beneficiarios.' + i + '.rut" placeholder="12.345.678-5" required /><div class="error" data-error-for="beneficiarios.' + i + '.rut"></div></div>' +
-            '<div class="field col-4"><label>Sexo <span class="req">*</span></label><select name="beneficiarios.' + i + '.sexo" required><option value="" selected disabled>Selecciona…</option><option>Masculino</option><option>Femenino</option></select><div class="error" data-error-for="beneficiarios.' + i + '.sexo"></div></div>' +
-            '<div class="field col-4"><label>Parentesco <span class="req">*</span></label><select name="beneficiarios.' + i + '.parentesco" required class="benef-parentesco"><option value="" selected disabled>Selecciona…</option><option value="Cónyuge">Cónyuge</option><option value="Conviviente civil">Conviviente civil</option><option value="MPHFNM">MPHFNM</option><option value="Hijo/a">Hijo/a</option><option value="Madre">Madre</option><option value="Padre">Padre</option></select><div class="error" data-error-for="beneficiarios.' + i + '.parentesco"></div></div>' +
-
-            '<div class="benef-matrimonio-fields col-12" id="benef_' + i + '_matrimonio" style="display:none;">' +
-              '<div class="grid">' +
-                '<div class="field col-4">' +
-                  '<label>Fecha de matrimonio/unión civil</label>' +
-                  '<div class="date-group">' +
-                    '<select id="benef_' + i + '_mat_dia"><option value="" selected disabled>Día</option></select>' +
-                    '<select id="benef_' + i + '_mat_mes"><option value="" selected disabled>Mes</option></select>' +
-                    '<select id="benef_' + i + '_mat_anio"><option value="" selected disabled>Año</option></select>' +
-                    '<input type="hidden" name="beneficiarios.' + i + '.fechaMatrimonioUnionCivil" id="benef_' + i + '_mat_fecha" />' +
-                  "</div>" +
-                "</div>" +
-                '<div class="field col-4"><label>Ciudad del matrimonio/unión civil</label><input name="beneficiarios.' + i + '.ciudadMatrimonioUnionCivil" /></div>' +
-              "</div>" +
-            "</div>" +
-
-            '<div class="field col-4"><label>Beneficiario es inválido? <span class="req">*</span></label><div class="radio-row" role="group" aria-label="Beneficiario inválido"><label class="radio-pill"><input type="radio" name="beneficiarios.' + i + '.esInvalido" value="Sí" required /> Sí</label><label class="radio-pill"><input type="radio" name="beneficiarios.' + i + '.esInvalido" value="No" required /> No</label></div><div class="error" data-error-for="beneficiarios.' + i + '.esInvalido"></div></div>' +
-
-            '<div class="field col-4"><label>Fecha nacimiento <span class="req">*</span></label>' +
-              '<div class="date-group">' +
-                '<select id="benef_' + i + '_dia"><option value="" selected disabled>Día</option></select>' +
-                '<select id="benef_' + i + '_mes"><option value="" selected disabled>Mes</option></select>' +
-                '<select id="benef_' + i + '_anio"><option value="" selected disabled>Año</option></select>' +
-                '<input type="hidden" id="benef_' + i + '_fecha" name="beneficiarios.' + i + '.fechaNacimiento" required />' +
-              "</div>" +
-              '<div class="error" data-error-for="beneficiarios.' + i + '.fechaNacimiento"></div>' +
-            "</div>" +
-
-            '<div class="field col-12"><label>Observaciones</label><textarea name="beneficiarios.' + i + '.observaciones"></textarea><div class="error" data-error-for="beneficiarios.' + i + '.observaciones"></div></div>' +
-          "</div>";
-
-        var diaSelB = div.querySelector("#benef_" + i + "_dia");
-        var mesSelB = div.querySelector("#benef_" + i + "_mes");
-        var anioSelB = div.querySelector("#benef_" + i + "_anio");
-        var hiddenB = div.querySelector("#benef_" + i + "_fecha");
-        if (diaSelB && mesSelB && anioSelB && hiddenB) {
-          llenarSelectFecha(diaSelB, mesSelB, anioSelB, 1900);
-          var updateHiddenB = function() {
-            var d = diaSelB.value, m = mesSelB.value, y = anioSelB.value;
-            hiddenB.value = (d && m && y) ? (d + "-" + m + "-" + y) : "";
-          };
-          diaSelB.addEventListener("change", updateHiddenB);
-          mesSelB.addEventListener("change", updateHiddenB);
-          anioSelB.addEventListener("change", updateHiddenB);
-        }
-
-        var parentescoSel = div.querySelector('select[name="beneficiarios.' + i + '.parentesco"]');
-        var matrimonioBlock = div.querySelector("#benef_" + i + "_matrimonio");
-        if (parentescoSel && matrimonioBlock) {
-          var toggleMatrimonio = function() {
-            var v = parentescoSel.value;
-            matrimonioBlock.style.display = (v === "Cónyuge" || v === "Conviviente civil") ? "" : "none";
-          };
-          parentescoSel.addEventListener("change", toggleMatrimonio);
-        }
-
-        var matDia = div.querySelector("#benef_" + i + "_mat_dia");
-        var matMes = div.querySelector("#benef_" + i + "_mat_mes");
-        var matAnio = div.querySelector("#benef_" + i + "_mat_anio");
-        var matHidden = div.querySelector("#benef_" + i + "_mat_fecha");
-        if (matDia && matMes && matAnio && matHidden) {
-          llenarSelectFecha(matDia, matMes, matAnio, 1900);
-          var updateMatHidden = function() {
-            var d = matDia.value, m = matMes.value, y = matAnio.value;
-            matHidden.value = (d && m && y) ? (d + "-" + m + "-" + y) : "";
-          };
-          matDia.addEventListener("change", updateMatHidden);
-          matMes.addEventListener("change", updateMatHidden);
-          matAnio.addEventListener("change", updateMatHidden);
-        }
-
-        return div;
-      }
-
       function inferNumeroBeneficiarios() {
         var n = 0;
         // Cónyuge/conviviente visible => 1 beneficiario
@@ -907,19 +811,6 @@
           if (!isNaN(nh) && nh > 0) n += nh;
         }
         return n;
-      }
-
-      function actualizarBeneficiarios() {
-        if (!benefSection || !benefContainer) return;
-        var n = inferNumeroBeneficiarios();
-        var actual = benefContainer.children.length;
-        benefSection.classList.toggle("section-hidden", !(n > 0));
-        if (n > actual) {
-          for (var i = actual; i < n; i++) benefContainer.appendChild(crearBeneficiario(i));
-        }
-        if (n < actual) {
-          while (benefContainer.children.length > n) benefContainer.removeChild(benefContainer.lastChild);
-        }
       }
 
 
@@ -975,8 +866,6 @@
             if (visible) r.setAttribute("required", "true");
             else r.removeAttribute("required");
           });
-
-          actualizarBeneficiarios();
         }
         estadoCivilSel.addEventListener("change", toggleConyuge);
         toggleConyuge();
@@ -986,7 +875,6 @@
         function toggleHijos() {
           var si = form.querySelector("input[name='tieneHijosMenores24']:checked");
           sectionHijosBloque.classList.toggle("section-hidden", !si || si.value !== "Sí");
-          actualizarBeneficiarios();
         }
         radiosHijos.forEach(function(r) { r.addEventListener("change", toggleHijos); });
         toggleHijos();
@@ -1060,7 +948,6 @@
       if (numHijosSel && hijosContainer) {
         numHijosSel.addEventListener("change", function() {
           actualizarHijos();
-          actualizarBeneficiarios();
         });
         actualizarHijos();
       }
@@ -1069,8 +956,6 @@
       renderYesNo(document.getElementById("antecedentesQuestions"), "antecedentes", antecedentesItems);
       renderYesNo(document.getElementById("autorizacionesQuestions"), "autorizaciones", autorizacionesItems);
       renderYesNo(document.getElementById("certificadosQuestions"), "certificados", certificadosItems);
-
-      actualizarBeneficiarios();
 
       form.querySelectorAll(".rut-input").forEach(function(input) {
         input.addEventListener("blur", function() { this.value = normalizeRut(this.value); });
@@ -1203,7 +1088,7 @@
           : null;
 
         row.solicitud_numero_beneficiarios = inferNumeroBeneficiarios();
-        row.solicitud_beneficiarios = Array.isArray(data.beneficiarios) ? data.beneficiarios : [];
+        row.solicitud_beneficiarios = [];
         row.solicitud_antecedentes = antecedentes || {};
         row.solicitud_autorizaciones = autorizaciones || {};
         row.solicitud_certificados = certificados || {};
