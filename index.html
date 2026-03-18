@@ -1206,6 +1206,13 @@
         width:45%;
         text-align:center;
         }
+        .tabla-firmas td{
+        border:none;
+        width:50%;
+        text-align:center;
+        vertical-align:top;
+        padding:0 20px;
+        }
 
         </style>
         </head>
@@ -1530,18 +1537,22 @@
 
         <br><br><br><br><br><br>
 
-        <div class="firmas" style="margin-top:40px;overflow:hidden;width:100%;">
-        <div class="firma-izq" style="float:left;width:45%;text-align:center;">
+        <table class="tabla-firmas" border="0" cellpadding="0" cellspacing="0" style="margin-top:40px;width:100%;">
+        <tr>
+        <td>
         <p>______________________________</p>
-        <p>${aMayus(nombreMandante)}</p>
-        <p>RUT: ${aMayus(mandante.rut)}</p>
-        </div>
-        <div class="firma-der" style="float:right;width:45%;text-align:center;">
+        <p>Firma Cliente</p>
+        <p><b>${aMayus(nombreMandante)}</b></p>
+        <p>RUT: <b>${aMayus(mandante.rut)}</b></p>
+        </td>
+        <td>
         <p>______________________________</p>
-        <p>${aMayus(nombreMandatario)}</p>
-        <p>RUT: ${aMayus(mandatario.rut)}</p>
-        </div>
-        </div>
+        <p>Firma Asesor Previsional</p>
+        <p><b>${aMayus(nombreMandatario)}</b></p>
+        <p>RUT: <b>${aMayus(mandatario.rut)}</b></p>
+        </td>
+        </tr>
+        </table>
 
         </body>
         </html>
@@ -1599,6 +1610,7 @@
         .firmas{ margin-top:40px; overflow:hidden; width:100%; }
         .firma-izq{ float:left; width:45%; text-align:center; }
         .firma-der{ float:right; width:45%; text-align:center; }
+        .tabla-firmas td{ border:none; width:50%; text-align:center; vertical-align:top; padding:0 20px; }
         </style>
         </head>
         <body>
@@ -1659,18 +1671,22 @@
 
         <br><br><br><br><br><br>
 
-        <div class="firmas" style="margin-top:40px;overflow:hidden;width:100%;">
-        <div class="firma-izq" style="float:left;width:45%;text-align:center;">
+        <table class="tabla-firmas" border="0" cellpadding="0" cellspacing="0" style="margin-top:40px;width:100%;">
+        <tr>
+        <td>
         <p>______________________________</p>
-        <p>${aMayus(nombreMandante)}</p>
-        <p>RUT: ${aMayus(mandante.rut)}</p>
-        </div>
-        <div class="firma-der" style="float:right;width:45%;text-align:center;">
+        <p>Firma Cliente</p>
+        <p><b>${aMayus(nombreMandante)}</b></p>
+        <p>RUT: <b>${aMayus(mandante.rut)}</b></p>
+        </td>
+        <td>
         <p>______________________________</p>
-        <p>${aMayus(nombreMandatario)}</p>
-        <p>RUT: ${aMayus(mandatario.rut)}</p>
-        </div>
-        </div>
+        <p>Firma Asesor Previsional</p>
+        <p><b>${aMayus(nombreMandatario)}</b></p>
+        <p>RUT: <b>${aMayus(mandatario.rut)}</b></p>
+        </td>
+        </tr>
+        </table>
 
         </body>
         </html>
@@ -3013,15 +3029,6 @@
                     var parentescoConyuge = (c.estado_civil || "").toLowerCase().indexOf("conviviente") !== -1
                       ? "Conviviente civil"
                       : "Cónyuge";
-                    var observConyuge = "";
-                    if (fechaMat || c.conyuge_lugar_matrimonio) {
-                      var tipoVinculo = parentescoConyuge === "Conviviente civil" ? "Unión civil" : "Matrimonio";
-                      observConyuge = tipoVinculo;
-                      if (fechaMat) observConyuge += " en fecha " + fechaMat;
-                      if (c.conyuge_lugar_matrimonio) {
-                        observConyuge += (fechaMat ? ", " : " en ") + "lugar " + c.conyuge_lugar_matrimonio;
-                      }
-                    }
                     beneficiarios.push({
                       nombres: c.conyuge_nombres || "",
                       apellidoPaterno: c.conyuge_apellido_paterno || "",
@@ -3033,7 +3040,7 @@
                       fechaMatrimonioUnionCivil: fechaMat,
                       ciudadMatrimonioUnionCivil: c.conyuge_lugar_matrimonio || "",
                       esInvalido: "No",
-                      observaciones: observConyuge
+                      observaciones: ""
                     });
                   } else if (esCasadoOConviviente) {
                     // Cliente casado/conviviente pero sin datos de cónyuge en BD: mostrar un beneficiario vacío para completar
