@@ -2106,6 +2106,12 @@
         }
       }
 
+      // Formato canónico de RUT para BD: solo dígitos y K (ej. 123456785). Evita duplicados por formato distinto.
+      function rutToCanonical(rut) {
+        if (!rut) return "";
+        return String(rut).trim().toUpperCase().replace(/[^0-9K]/g, "");
+      }
+
       // Normaliza un RUT (quita caracteres inválidos y aplica puntos y guion).
       function normalizeRut(raw) {
         if (!raw) return "";
@@ -2159,7 +2165,7 @@
 
         const fechaNac = parseDDMMYYYY(mandante.fechaNacimiento);
         const row = {
-          rut: String(mandante.rut || "").trim().toUpperCase().replace(/\s/g, "") || null,
+          rut: (rutToCanonical(mandante.rut) || null),
           nombres: (mandante.nombres || "").trim() || null,
           apellido_paterno: (mandante.apellidoPaterno || "").trim() || null,
           apellido_materno: (mandante.apellidoMaterno || "").trim() || null,
@@ -2176,7 +2182,7 @@
           nacionalidad: (mandante.nacionalidad || "").trim() || null,
           sexo: (mandante.sexo || "").trim() || null,
           empleador_razon_social: (empleador.nombreORazonSocial || "").trim() || null,
-          empleador_rut: (empleador.rut || "").trim() || null,
+          empleador_rut: (rutToCanonical(empleador.rut) || null),
           empleador_direccion: (empleador.domicilio || "").trim() || null,
           empleador_telefono: (empleador.telefono || "").trim() || null,
           empleador_email: (empleador.email || "").trim() || null,
@@ -2208,7 +2214,7 @@
               nombres: (b.nombres || "").trim() || null,
               apellido_paterno: (b.apellidoPaterno || "").trim() || null,
               apellido_materno: (b.apellidoMaterno || "").trim() || null,
-              rut: (b.rut || "").trim() || null,
+              rut: (rutToCanonical(b.rut) || null),
               fecha_nacimiento: f,
               parentesco: (b.parentesco || "").trim() || null,
               sexo: (b.sexo || "").trim() || null,
@@ -2912,7 +2918,7 @@
                   } else { fechaStr = ""; }
                 } else { fechaStr = ""; }
                 var mandanteData = {
-                  rut: c.rut || "",
+                  rut: normalizeRut(c.rut) || (c.rut || ""),
                   nacionalidad: c.nacionalidad || "",
                   sexo: c.sexo || "",
                   nombres: c.nombres || "",

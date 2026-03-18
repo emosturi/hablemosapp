@@ -332,6 +332,15 @@
 
           searchInput.addEventListener("input", filtrar);
 
+          function formatRutDisplay(rut) {
+            if (!rut) return "";
+            var s = String(rut).trim().toUpperCase().replace(/[^0-9K]/g, "");
+            if (s.length < 2) return rut;
+            var body = s.slice(0, -1), dv = s.slice(-1);
+            var bodyWithDots = body.split("").reverse().join("").replace(/(\d{3})(?=\d)/g, "$1.").split("").reverse().join("");
+            return bodyWithDots + "-" + dv;
+          }
+
           function cargarLista() {
             loadingEl.style.display = "block";
             errorEl.style.display = "none";
@@ -390,7 +399,7 @@
 
               list.forEach(function (item) {
                 var fecha = item.created_at ? new Date(item.created_at).toLocaleDateString("es-CL") : "";
-                var searchText = [item.nombre || "", (item.rut || "").replace(/\./g, "").replace(/-/g, ""), (item.telefono || "").replace(/\s/g, "")].join(" ").toLowerCase();
+                var searchText = [item.nombre || "", (item.rut || "").replace(/[^0-9K]/gi, ""), (item.telefono || "").replace(/\s/g, "")].join(" ").toLowerCase();
                 var tr = document.createElement("tr");
                 tr.className = "client-row";
                 tr.setAttribute("data-id", item.id);
@@ -409,7 +418,7 @@
                 }
                 tr.innerHTML =
                   "<td class=\"client-name\">" + (item.nombre || "-") + "</td>" +
-                  "<td class=\"td-rut\">" + (item.rut || "-") + "</td>" +
+                  "<td class=\"td-rut\">" + (item.rut ? formatRutDisplay(item.rut) : "-") + "</td>" +
                   "<td class=\"td-tel\">" + (item.telefono || "-") + "</td>" +
                   "<td class=\"td-registro\">" + fecha + "</td>" +
                   "<td class=\"" + tipoClass + "\">" + tipoLabel + "</td>" +

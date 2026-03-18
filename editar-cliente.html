@@ -655,6 +655,11 @@
     <script src="supabase-config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script>
+      // Formato canónico para BD: solo dígitos y K (evita duplicados por distinto formato de RUT).
+      function rutToCanonical(rut) {
+        if (!rut) return "";
+        return String(rut).trim().toUpperCase().replace(/[^0-9K]/g, "");
+      }
       function normalizeRut(raw) {
         if (!raw) return "";
         var s = String(raw).trim().toUpperCase().replace(/[^0-9K]/g, "");
@@ -1025,7 +1030,7 @@
         document.getElementById("cliente_nombres").value = c.nombres || "";
         document.getElementById("cliente_apPaterno").value = c.apellido_paterno || "";
         document.getElementById("cliente_apMaterno").value = c.apellido_materno || "";
-        document.getElementById("cliente_rut").value = c.rut || "";
+        document.getElementById("cliente_rut").value = normalizeRut(c.rut) || (c.rut || "");
         document.getElementById("cliente_nacionalidad").value = c.nacionalidad || "";
         var sexoVal = (c.sexo || "").toLowerCase();
         var sexoInputM = form.querySelector("input[name='cliente.sexo'][value='Masculino']");
@@ -1051,7 +1056,7 @@
         document.getElementById("conyuge_apMaterno").value = c.conyuge_apellido_materno || "";
         document.getElementById("conyuge_nacionalidad").value = c.conyuge_nacionalidad || "";
         if (c.conyuge_nacionalidad) setFormFromObject(form, { conyuge: { nacionalidad: c.conyuge_nacionalidad } });
-        document.getElementById("conyuge_rut").value = c.conyuge_rut || "";
+        document.getElementById("conyuge_rut").value = normalizeRut(c.conyuge_rut) || (c.conyuge_rut || "");
         setFechaFromIso(conyugeDia, conyugeMes, conyugeAnio, conyugeHidden, c.conyuge_fecha_nacimiento);
         setFechaFromIso(matDia, matMes, matAnio, matHidden, c.conyuge_fecha_matrimonio);
         document.getElementById("conyuge_lugarMatrimonio").value = c.conyuge_lugar_matrimonio || "";
@@ -1070,7 +1075,7 @@
           (form.querySelector("input[name='hijo_" + i + "_apellidoPaterno']") || {}).value = h.apellido_paterno || "";
           (form.querySelector("input[name='hijo_" + i + "_apellidoMaterno']") || {}).value = h.apellido_materno || "";
           (form.querySelector("input[name='hijo_" + i + "_nacionalidad']") || {}).value = h.nacionalidad || "";
-          (form.querySelector("input[name='hijo_" + i + "_rut']") || {}).value = h.rut || "";
+          (form.querySelector("input[name='hijo_" + i + "_rut']") || {}).value = normalizeRut(h.rut) || (h.rut || "");
           var sexoSel = form.querySelector("select[name='hijo_" + i + "_sexo']");
           if (sexoSel) sexoSel.value = h.sexo || "";
           var iso = h.fecha_nacimiento;
@@ -1083,7 +1088,7 @@
         });
         if (sectionHijosBloque) sectionHijosBloque.classList.toggle("section-hidden", !c.tiene_hijos_menores_24);
         document.getElementById("empleador_razonSocial").value = c.empleador_razon_social || "";
-        document.getElementById("empleador_rut").value = c.empleador_rut || "";
+        document.getElementById("empleador_rut").value = normalizeRut(c.empleador_rut) || (c.empleador_rut || "");
         document.getElementById("empleador_direccion").value = c.empleador_direccion || "";
         document.getElementById("empleador_telefono").value = c.empleador_telefono || "";
         document.getElementById("empleador_email").value = c.empleador_email || "";
@@ -1174,7 +1179,7 @@
           var fechaNac = toIsoDate(fechaVal);
 
           var row = {
-            rut: (c.rut || "").trim(),
+            rut: (rutToCanonical(c.rut) || null),
             nombres: (c.nombres || "").trim() || null,
             apellido_paterno: (c.apellidoPaterno || "").trim() || null,
             apellido_materno: (c.apellidoMaterno || "").trim() || null,
@@ -1233,7 +1238,7 @@
           row.conyuge_nombres = (co.nombres || "").trim() || null;
           row.conyuge_apellido_paterno = (co.apellidoPaterno || "").trim() || null;
           row.conyuge_apellido_materno = (co.apellidoMaterno || "").trim() || null;
-          row.conyuge_rut = (co.rut || "").trim() || null;
+          row.conyuge_rut = (rutToCanonical(co.rut) || null);
           row.conyuge_fecha_nacimiento = toIsoDate(co.fechaNacimiento);
           row.conyuge_fecha_matrimonio = toIsoDate(co.fechaMatrimonio);
           row.conyuge_lugar_matrimonio = (co.lugarMatrimonio || "").trim() || null;
@@ -1259,7 +1264,7 @@
               nombres: (nombres || "").trim() || null,
               apellido_paterno: (apP || "").trim() || null,
               apellido_materno: (apM || "").trim() || null,
-              rut: (rut || "").trim() || null,
+              rut: (rutToCanonical(rut) || null),
               fecha_nacimiento: fNac
             });
           }
@@ -1268,7 +1273,7 @@
 
         var emp = data.empleador || {};
         row.empleador_razon_social = (emp.razonSocial || "").trim() || null;
-        row.empleador_rut = (emp.rut || "").trim() || null;
+        row.empleador_rut = (rutToCanonical(emp.rut) || null);
         row.empleador_direccion = (emp.direccion || "").trim() || null;
         row.empleador_telefono = (emp.telefono || "").trim() || null;
         row.empleador_email = (emp.email || "").trim() || null;

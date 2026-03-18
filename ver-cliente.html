@@ -206,10 +206,18 @@
             var c = result.data;
             var nombre = [c.nombres, c.apellido_paterno, c.apellido_materno].filter(Boolean).join(" ");
             document.getElementById("titulo").textContent = nombre || "Ver cliente";
-            document.getElementById("subtitulo").textContent = "RUT: " + (c.rut || "-");
+            document.getElementById("subtitulo").textContent = "RUT: " + (c.rut ? formatRutDisplay(c.rut) : "-");
             document.getElementById("lnkEditar").href = "editar-cliente.html?id=" + encodeURIComponent(id);
             document.getElementById("lnkUsar").href = "index.html?cliente=" + encodeURIComponent(id);
 
+            function formatRutDisplay(rut) {
+              if (!rut) return "";
+              var s = String(rut).trim().toUpperCase().replace(/[^0-9K]/g, "");
+              if (s.length < 2) return rut;
+              var body = s.slice(0, -1), dv = s.slice(-1);
+              var bodyWithDots = body.split("").reverse().join("").replace(/(\d{3})(?=\d)/g, "$1.").split("").reverse().join("");
+              return bodyWithDots + "-" + dv;
+            }
             function fmtDate(d) {
               if (!d) return "";
               if (typeof d === "string" && d.match(/^\d{4}-\d{2}-\d{2}/)) {
@@ -226,7 +234,7 @@
             var html = "";
             html += '<div class="section"><h2>Datos del cliente</h2><div class="grid">';
             html += item("Nombres", c.nombres) + item("Apellido Paterno", c.apellido_paterno) + item("Apellido Materno", c.apellido_materno);
-            html += item("RUT", c.rut) + item("Nacionalidad", c.nacionalidad) + item("Sexo", c.sexo);
+            html += item("RUT", c.rut ? formatRutDisplay(c.rut) : c.rut) + item("Nacionalidad", c.nacionalidad) + item("Sexo", c.sexo);
             html += item("Fecha nacimiento", fmtDate(c.fecha_nacimiento)) + item("Estado civil", c.estado_civil);
             html += item("Dirección", c.domicilio) + item("Comuna", c.comuna) + item("Ciudad", c.ciudad);
             html += item("Profesión/ocupación", c.profesion_oficio) + item("Teléfono", c.telefono) + item("Email", c.email);
@@ -236,7 +244,7 @@
             if (c.conyuge_nombres || c.conyuge_rut || c.conyuge_lugar_matrimonio || c.conyuge_nacionalidad || c.conyuge_sexo) {
               html += '<div class="section"><h2>Cónyuge / Conviviente civil</h2><div class="grid">';
               html += item("Nombres", c.conyuge_nombres) + item("Apellido Paterno", c.conyuge_apellido_paterno) + item("Apellido Materno", c.conyuge_apellido_materno);
-              html += item("Nacionalidad", c.conyuge_nacionalidad) + item("Sexo", c.conyuge_sexo) + item("RUT", c.conyuge_rut);
+              html += item("Nacionalidad", c.conyuge_nacionalidad) + item("Sexo", c.conyuge_sexo) + item("RUT", c.conyuge_rut ? formatRutDisplay(c.conyuge_rut) : c.conyuge_rut);
               html += item("Fecha nacimiento", fmtDate(c.conyuge_fecha_nacimiento)) + item("Fecha matrimonio", fmtDate(c.conyuge_fecha_matrimonio)) + item("Lugar matrimonio", c.conyuge_lugar_matrimonio);
               html += "</div></div>";
             }
@@ -246,7 +254,7 @@
               c.hijos.forEach(function (h, i) {
                 html += '<div class="grid" style="margin-bottom:10px;">';
                 html += item("Hijo " + (i + 1) + " - Nombres", h.nombres) + item("Apellido Paterno", h.apellido_paterno) + item("Apellido Materno", h.apellido_materno);
-                html += item("Nacionalidad", h.nacionalidad) + item("Sexo", h.sexo) + item("RUT", h.rut) + item("Fecha nacimiento", fmtDate(h.fecha_nacimiento));
+                html += item("Nacionalidad", h.nacionalidad) + item("Sexo", h.sexo) + item("RUT", h.rut ? formatRutDisplay(h.rut) : h.rut) + item("Fecha nacimiento", fmtDate(h.fecha_nacimiento));
                 html += "</div>";
               });
               html += "</div>";
@@ -254,7 +262,7 @@
 
             if (c.empleador_razon_social || c.empleador_rut) {
               html += '<div class="section"><h2>Datos empleador</h2><div class="grid">';
-              html += item("Razón Social", c.empleador_razon_social) + item("RUT", c.empleador_rut) + item("Dirección", c.empleador_direccion);
+              html += item("Razón Social", c.empleador_razon_social) + item("RUT", c.empleador_rut ? formatRutDisplay(c.empleador_rut) : c.empleador_rut) + item("Dirección", c.empleador_direccion);
               html += item("Teléfono", c.empleador_telefono) + item("Email", c.empleador_email);
               html += "</div></div>";
             }
