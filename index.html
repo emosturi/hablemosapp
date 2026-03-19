@@ -1219,7 +1219,7 @@
 
         <body>
 
-        <h2>MANDATO PARA TRÁMITE DE ${aMayus(mandante.tipoPension)}</h2>
+        <h2>MANDATO PARA INICIAR TRÁMITE DE ${aMayus(mandante.tipoPension)}</h2>
         <h3 style="text-align:center">${aMayus(mandante.tipoPension)}</h3>
 
         <p>
@@ -1620,7 +1620,7 @@
         </head>
         <body>
 
-        <h2>MANDATO PARA TRÁMITE DE ${aMayus(mandante.cambioModalidadTramite === "Sí" ? "INICIAR CAMBIO DE MODALIDAD" : "RETIRAR CERTIFICADO DE SALDO")} DE ${aMayus(mandante.tipoPension)}</h2>
+        <h2>MANDATO PARA  ${aMayus(mandante.cambioModalidadTramite === "Sí" ? "INICIAR TRÁMITE DE CAMBIO DE MODALIDAD" : "RETIRAR CERTIFICADO DE SALDO")} DE ${aMayus(mandante.tipoPension)}</h2>
 
         <p>
         Con fecha ${fechaHoy} y por medio del siguiente instrumento, yo 
@@ -2948,7 +2948,8 @@
 
                 setFormFromObject(form, { mandante: mandanteData });
 
-                // Antecedentes / Autorizaciones / Certificados (si existen en la tabla clientes)
+                // Antecedentes / Autorizaciones / Certificados:
+                // si no hay datos guardados, por defecto quedan en "No".
                 function normalizeYesNoObject(obj) {
                   if (!obj || typeof obj !== "object") return null;
                   var out = {};
@@ -2961,12 +2962,17 @@
                   });
                   return out;
                 }
-                var ant = normalizeYesNoObject(c.solicitud_antecedentes);
-                if (ant) setFormFromObject(form, { antecedentes: ant });
-                var aut = normalizeYesNoObject(c.solicitud_autorizaciones);
-                if (aut) setFormFromObject(form, { autorizaciones: aut });
-                var cert = normalizeYesNoObject(c.solicitud_certificados);
-                if (cert) setFormFromObject(form, { certificados: cert });
+                function defaultsNo(items) {
+                  var out = {};
+                  items.forEach(function (it) { out[it.key] = "No"; });
+                  return out;
+                }
+                var ant = Object.assign(defaultsNo(antecedentesItems), normalizeYesNoObject(c.solicitud_antecedentes) || {});
+                setFormFromObject(form, { antecedentes: ant });
+                var aut = Object.assign(defaultsNo(autorizacionesItems), normalizeYesNoObject(c.solicitud_autorizaciones) || {});
+                setFormFromObject(form, { autorizaciones: aut });
+                var cert = Object.assign(defaultsNo(certificadosItems), normalizeYesNoObject(c.solicitud_certificados) || {});
+                setFormFromObject(form, { certificados: cert });
 
                 if (mandanteHidden && mandanteHidden.value && mandanteDia && mandanteMes && mandanteAnio) {
                   var match = mandanteHidden.value.match(/^(\d{2})-(\d{2})-(\d{4})$/);
