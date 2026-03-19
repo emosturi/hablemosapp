@@ -1067,6 +1067,22 @@
         return String(s ?? "").toUpperCase();
       }
 
+      // En móvil algunos visores rechazan .doc generado desde HTML.
+      // Por compatibilidad, descargamos .html en móvil y .doc en escritorio.
+      function descargarDocumentoWordCompat(html, baseName) {
+        const ua = navigator.userAgent || "";
+        const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
+        const ext = isMobile ? "html" : "doc";
+        const mime = isMobile ? "text/html;charset=utf-8" : "application/msword";
+        const blob = new Blob(["\ufeff", html], { type: mime });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${baseName}.${ext}`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+
       // Rellena selectores de día, mes y año con rangos válidos.
       function llenarSelectFecha(diaSel, mesSel, anioSel, minYear = 1900, maxYear = new Date().getFullYear()) {
         if (diaSel) {
@@ -1558,19 +1574,7 @@
         </html>
         `;
 
-        const blob = new Blob(
-        ["\ufeff", html],
-        {type:"application/msword"}
-        );
-
-        const url = URL.createObjectURL(blob);
-
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "mandato.doc";
-        a.click();
-
-        URL.revokeObjectURL(url);
+        descargarDocumentoWordCompat(html, "mandato");
 
       }
 
@@ -1697,13 +1701,7 @@
         </html>
         `;
 
-        const blob = new Blob(["\ufeff", html], { type: "application/msword" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "mandato_corto.doc";
-        a.click();
-        URL.revokeObjectURL(url);
+        descargarDocumentoWordCompat(html, "mandato_corto");
       }
 
       // Genera el contrato de prestación de servicios de asesoría y lo descarga como archivo .doc.
@@ -2056,15 +2054,7 @@
         </html>
         `;
 
-        const blob = new Blob(["\ufeff", html], { type: "application/msword" });
-        const url = URL.createObjectURL(blob);
-
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "contrato_asesoria.doc";
-        a.click();
-
-        URL.revokeObjectURL(url);
+        descargarDocumentoWordCompat(html, "contrato_asesoria");
       }
 
       // Crea nodos de DOM de forma compacta (helper para construir el formulario).
