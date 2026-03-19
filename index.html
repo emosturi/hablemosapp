@@ -2245,6 +2245,16 @@
         if (error) throw error;
       }
 
+      // Marca en BD qué documentos ya fueron generados para el cliente (por RUT).
+      async function markClienteDocumentoGenerado(supabaseClient, rutRaw, flags) {
+        if (!supabaseClient) return;
+        const rut = rutToCanonical(rutRaw);
+        if (!rut) return;
+        const payload = Object.assign({ rut: rut }, flags || {});
+        const { error } = await supabaseClient.from("clientes").upsert(payload, { onConflict: "rut" });
+        if (error) throw error;
+      }
+
       // Valida el dígito verificador de un RUT chileno.
       function rutIsValid(rut) {
         const s = String(rut || "").toUpperCase().replace(/[^0-9K]/g, "");
@@ -2753,6 +2763,7 @@
               if (supabaseClient) {
                 try {
                   await saveClienteFromMandatoData(supabaseClient, data);
+                  await markClienteDocumentoGenerado(supabaseClient, data.mandante && data.mandante.rut, { tiene_mandato_largo: true });
                   setStatus("Cliente actualizado. Generando mandato…");
                 } catch (e) {
                   console.error("Error al guardar cliente:", e);
@@ -2773,6 +2784,7 @@
               if (supabaseClient) {
                 try {
                   await saveClienteFromMandatoData(supabaseClient, data);
+                  await markClienteDocumentoGenerado(supabaseClient, data.mandante && data.mandante.rut, { tiene_mandato_corto: true });
                   setStatus("Cliente actualizado. Generando mandato corto…");
                 } catch (e) {
                   console.error("Error al guardar cliente:", e);
@@ -2794,6 +2806,10 @@
 
             const data = formDataToObject(form);
             try {
+              if (supabaseClient) {
+                await saveClienteFromMandatoData(supabaseClient, data);
+                await markClienteDocumentoGenerado(supabaseClient, data.mandante && data.mandante.rut, { tiene_contrato: true });
+              }
               data.numeroContratoSecuencial = supabaseClient
                 ? await getOrAssignNumeroContrato(supabaseClient, data)
                 : "NNN";

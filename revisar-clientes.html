@@ -88,6 +88,17 @@
       .btn-icon-svg { width: 16px; height: 16px; display: inline-block; vertical-align: middle; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
       .td-tipo { color: var(--muted); font-size: 13px; }
       .td-tipo.potencial { color: #c4b5fd; }
+      .td-docs { font-size: 12px; color: var(--muted); }
+      .doc-badge {
+        display: inline-block;
+        margin-right: 4px;
+        padding: 2px 6px;
+        border-radius: 6px;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text);
+        font-weight: 700;
+      }
       @media (max-width: 640px) {
         .th-tel, .th-registro, .th-rut, .th-tipo, .td-tel, .td-registro, .td-rut, .td-tipo { display: none !important; }
         .btn-icon { display: inline; }
@@ -222,6 +233,7 @@
               <th class="th-tel">Teléfono</th>
               <th class="th-registro">Registro</th>
               <th class="th-tipo">Tipo</th>
+              <th class="th-docs">Docs</th>
               <th>Acciones</th>
             </tr>
           </thead>
@@ -350,7 +362,7 @@
             noResults.style.display = "none";
 
             Promise.all([
-              supabase.from("clientes").select("id, rut, nombres, apellido_paterno, apellido_materno, telefono, created_at").order("created_at", { ascending: false }),
+              supabase.from("clientes").select("id, rut, nombres, apellido_paterno, apellido_materno, telefono, created_at, tiene_contrato, tiene_mandato_corto, tiene_mandato_largo").order("created_at", { ascending: false }),
               supabase.from("clientes_potenciales").select("id, nombre, telefono, created_at").order("created_at", { ascending: false })
             ]).then(function (results) {
               loadingEl.style.display = "none";
@@ -371,7 +383,10 @@
                   nombre: [c.nombres, c.apellido_paterno, c.apellido_materno].filter(Boolean).join(" "),
                   rut: c.rut || "",
                   telefono: c.telefono || "",
-                  created_at: c.created_at
+                  created_at: c.created_at,
+                  tiene_contrato: c.tiene_contrato === true,
+                  tiene_mandato_corto: c.tiene_mandato_corto === true,
+                  tiene_mandato_largo: c.tiene_mandato_largo === true
                 });
               });
               potenciales.forEach(function (p) {
@@ -381,7 +396,10 @@
                   nombre: p.nombre || "",
                   rut: "",
                   telefono: p.telefono || "",
-                  created_at: p.created_at
+                  created_at: p.created_at,
+                  tiene_contrato: false,
+                  tiene_mandato_corto: false,
+                  tiene_mandato_largo: false
                 });
               });
               list.sort(function (a, b) {
@@ -407,6 +425,14 @@
                 tr.setAttribute("data-search", searchText);
                 var tipoLabel = item.tipo === "potencial" ? "Potencial" : "Cliente";
                 var tipoClass = item.tipo === "potencial" ? "td-tipo potencial" : "td-tipo";
+                var docsHtml = "-";
+                if (item.tipo === "cliente") {
+                  docsHtml = "";
+                  if (item.tiene_contrato) docsHtml += '<span class="doc-badge" title="Contrato">C</span>';
+                  if (item.tiene_mandato_corto) docsHtml += '<span class="doc-badge" title="Mandato corto">MC</span>';
+                  if (item.tiene_mandato_largo) docsHtml += '<span class="doc-badge" title="Mandato largo">ML</span>';
+                  if (!docsHtml) docsHtml = "-";
+                }
                 var accionesHtml;
                 if (item.tipo === "cliente") {
                   accionesHtml =
@@ -422,6 +448,7 @@
                   "<td class=\"td-tel\">" + (item.telefono || "-") + "</td>" +
                   "<td class=\"td-registro\">" + fecha + "</td>" +
                   "<td class=\"" + tipoClass + "\">" + tipoLabel + "</td>" +
+                  "<td class=\"td-docs\">" + docsHtml + "</td>" +
                   '<td class="acciones">' + accionesHtml + "</td>";
                 tbody.appendChild(tr);
                 var btnBorrar = tr.querySelector(".btn-borrar");
