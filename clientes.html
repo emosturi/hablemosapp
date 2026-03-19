@@ -464,6 +464,7 @@
               <div class="field col-4">
                 <label for="empleador_rut">RUT</label>
                 <input id="empleador_rut" name="empleador.rut" class="rut-input" placeholder="12.345.678-5" />
+                <div class="error" data-error-for="empleador_rut"></div>
               </div>
               <div class="field col-6">
                 <label for="empleador_direccion">Dirección</label>
@@ -1128,6 +1129,14 @@
         row.hijos = hijosArr;
 
         var emp = data.empleador || {};
+        var empleadorRutInput = document.getElementById("empleador_rut");
+        if (empleadorRutInput && empleadorRutInput.value && String(empleadorRutInput.value).trim() !== "") {
+          if (!rutIsValid(empleadorRutInput.value)) {
+            setError(form, "empleador_rut", "RUT de empleador inválido");
+            empleadorRutInput.focus();
+            return;
+          }
+        }
         row.empleador_razon_social = (emp.razonSocial || "").trim() || null;
         row.empleador_rut = (rutToCanonical(emp.rut) || null);
         row.empleador_direccion = (emp.direccion || "").trim() || null;
