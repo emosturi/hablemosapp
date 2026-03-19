@@ -98,7 +98,9 @@
         background: rgba(255, 255, 255, 0.05);
         color: var(--text);
         font-weight: 700;
+        text-decoration: none;
       }
+      .doc-badge:hover { background: rgba(139, 92, 246, 0.2); }
       @media (max-width: 640px) {
         .th-tel, .th-registro, .th-rut, .th-tipo, .td-tel, .td-registro, .td-rut, .td-tipo { display: none !important; }
         .btn-icon { display: inline; }
@@ -428,9 +430,9 @@
                 var docsHtml = "-";
                 if (item.tipo === "cliente") {
                   docsHtml = "";
-                  if (item.tiene_contrato) docsHtml += '<span class="doc-badge" title="Contrato">C</span>';
-                  if (item.tiene_mandato_corto) docsHtml += '<span class="doc-badge" title="Mandato corto">MC</span>';
-                  if (item.tiene_mandato_largo) docsHtml += '<span class="doc-badge" title="Mandato largo">ML</span>';
+                  if (item.tiene_contrato) docsHtml += '<a class="doc-badge" title="Imprimir contrato" href="index.html?cliente=' + encodeURIComponent(item.id) + '&imprimir=contrato">C</a>';
+                  if (item.tiene_mandato_corto) docsHtml += '<a class="doc-badge" title="Imprimir mandato corto" href="index.html?cliente=' + encodeURIComponent(item.id) + '&imprimir=mandato_corto">MC</a>';
+                  if (item.tiene_mandato_largo) docsHtml += '<a class="doc-badge" title="Imprimir mandato largo" href="index.html?cliente=' + encodeURIComponent(item.id) + '&imprimir=mandato_largo">ML</a>';
                   if (!docsHtml) docsHtml = "-";
                 }
                 var accionesHtml;
@@ -457,7 +459,7 @@
                   tr.querySelector(".btn-editar").addEventListener("click", function (e) { e.stopPropagation(); });
                   tr.querySelector(".btn-use").addEventListener("click", function (e) { e.stopPropagation(); });
                   tr.addEventListener("click", function (e) {
-                    if (e.target.closest("td.acciones")) return;
+                    if (e.target.closest("td.acciones") || e.target.closest("td.td-docs")) return;
                     window.location.href = "ver-cliente.html?id=" + encodeURIComponent(item.id);
                   });
                 } else {

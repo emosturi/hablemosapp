@@ -2922,6 +2922,7 @@
 
             var params = new URLSearchParams(window.location.search);
             var clienteId = params.get("cliente");
+            var autoDoc = params.get("imprimir");
             if (clienteId && supabaseClient) {
               supabaseClient.from("clientes").select("*").eq("id", clienteId).single().then(function (r) {
                 if (r.error || !r.data) {
@@ -3186,8 +3187,39 @@
                 } catch (_e) {
                   // Si algo falla en el prellenado de beneficiarios, no bloquear el formulario
                 }
-                history.replaceState({}, "", "index.html");
-                setStatus("Datos del cliente cargados. Revisa y completa tipo de pensión, beneficiarios, etc.");
+                var finalizarPrefill = function (msg) {
+                  history.replaceState({}, "", "index.html");
+                  setStatus(msg || "Datos del cliente cargados. Revisa y completa tipo de pensión, beneficiarios, etc.");
+                };
+
+                if (autoDoc) {
+                  var dataAuto = formDataToObject(form);
+                  if (autoDoc === "mandato_largo") {
+                    generarMandatoSimple(dataAuto);
+                    finalizarPrefill("Mandato descargado.");
+                    return;
+                  }
+                  if (autoDoc === "mandato_corto") {
+                    generarMandatoCorto(dataAuto);
+                    finalizarPrefill("Mandato corto descargado.");
+                    return;
+                  }
+                  if (autoDoc === "contrato") {
+                    Promise.resolve().then(async function () {
+                      try {
+                        dataAuto.numeroContratoSecuencial = await getOrAssignNumeroContrato(supabaseClient, dataAuto);
+                      } catch (e) {
+                        console.error("Error al obtener número de contrato:", e);
+                        dataAuto.numeroContratoSecuencial = "NNN";
+                      }
+                      generarContrato(dataAuto);
+                      finalizarPrefill("Contrato descargado.");
+                    });
+                    return;
+                  }
+                }
+
+                finalizarPrefill();
               });
             }
             }
