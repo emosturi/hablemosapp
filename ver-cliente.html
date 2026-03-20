@@ -517,7 +517,7 @@
               if (isNaN(nuevo) || nuevo < 1 || nuevo > ETAPAS_TRAMITE.length) return;
               var fechasNuevas = JSON.parse(JSON.stringify(fechasTramite(c)));
               var hoy = new Date().toISOString().slice(0, 10);
-              for (var k = 1; k < nuevo; k++) {
+              for (var k = 1; k <= nuevo; k++) {
                 var key = String(k);
                 if (!fechasNuevas[key]) fechasNuevas[key] = hoy;
               }
