@@ -107,10 +107,37 @@
         .btn-icon { display: inline; }
         .btn-text { display: none; }
         .btn-small { padding: 8px 10px; margin-right: 4px; min-width: 36px; text-align: center; }
-        table { font-size: 14px; table-layout: auto; }
-        th, td { padding: 8px 6px; word-break: break-word; }
-        .client-name { max-width: 100%; }
-        td.acciones { white-space: nowrap; }
+        table { font-size: 14px; table-layout: auto; display: block; }
+        thead { display: none; }
+        tbody { display: block; }
+        tr.client-row {
+          display: flex;
+          flex-wrap: wrap;
+          border-bottom: 1px solid var(--border);
+          padding: 14px 0;
+          gap: 10px 16px;
+        }
+        tr.client-row:last-child { border-bottom: none; }
+        tr.client-row td {
+          padding: 0;
+          border: none;
+          display: block;
+        }
+        tr.client-row td.client-name {
+          flex: 1 1 100%;
+          font-weight: 600;
+          font-size: 15px;
+          margin-bottom: 2px;
+        }
+        tr.client-row td.td-docs,
+        tr.client-row td.acciones {
+          flex: 0 0 auto;
+          display: inline-flex;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: 6px;
+        }
+        tr.client-row td.td-docs .doc-badge { margin-right: 0; }
       }
       .loading { color: var(--muted); padding: 20px; }
       .error-msg { color: var(--danger); padding: 20px; }
