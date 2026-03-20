@@ -460,7 +460,10 @@
             }
 
             var html = "";
-            html += buildTimelineSection(c);
+            var tieneMandato = c.tiene_mandato_largo === true || c.tiene_mandato_corto === true;
+            if (tieneMandato) {
+              html += buildTimelineSection(c);
+            }
             html += '<div class="section"><h2>Datos del cliente</h2><div class="grid">';
             html += item("Nombres", c.nombres) + item("Apellido Paterno", c.apellido_paterno) + item("Apellido Materno", c.apellido_materno);
             html += item("RUT", c.rut ? formatRutDisplay(c.rut) : c.rut) + item("Nacionalidad", c.nacionalidad) + item("Sexo", c.sexo);
@@ -509,6 +512,7 @@
               var sel = document.getElementById("tramiteEtapaSelect");
               var btn = document.getElementById("btnGuardarTramite");
               var msgEl = document.getElementById("tramiteSaveMsg");
+              if (!sel || !btn) return;
               var nuevo = parseInt(sel && sel.value, 10);
               if (isNaN(nuevo) || nuevo < 1 || nuevo > ETAPAS_TRAMITE.length) return;
               var fechasNuevas = JSON.parse(JSON.stringify(fechasTramite(c)));
