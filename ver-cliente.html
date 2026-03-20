@@ -287,8 +287,8 @@
           if (etapa4) {
             var hasBono = clienteRow && clienteRow.posee_bono_reconocimiento === true;
             if (hasBono) {
-              var dueBono45 = addCalendarDays(etapa4, 45);
-              if (dueBono45) out.push({ key: "e4_bono_posee_45c", due: dueBono45, msg: "Seguimiento Bono de Reconocimiento: plazo de 45 días corridos para siguiente paso (Certificado de Saldo)." });
+              var dueBono45 = addBusinessDays(etapa4, 45);
+              if (dueBono45) out.push({ key: "e4_bono_posee_45h", due: dueBono45, msg: "Seguimiento Bono de Reconocimiento: plazo de 45 días hábiles para siguiente paso (Certificado de Saldo)." });
             } else if (yesNo(aut, "suscribirBonoReconocimiento")) {
               var dueBono90 = addCalendarDays(etapa4, 90);
               if (dueBono90) out.push({ key: "e4_bono_suscribir_90c", due: dueBono90, msg: "Seguimiento Bono de Reconocimiento: plazo de 90 días corridos para siguiente paso (Certificado de Saldo)." });
