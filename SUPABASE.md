@@ -28,6 +28,8 @@ Con eso se crea la tabla `clientes` y las políticas de seguridad (RLS): cualqui
 
 **Si ya tenías la tabla `clientes` creada** (versión anterior), ejecuta además el archivo **`supabase-schema-migration-clientes-v2.sql`** en el SQL Editor para añadir las columnas de cónyuge, hijos, empleador y datos bancarios.
 
+Para la **línea de tiempo del trámite** en `ver-cliente.html`, ejecuta también **`supabase-migration-clientes-tramite-etapas.sql`** (columnas `tramite_etapa_actual` y `tramite_etapas_fechas`).
+
 ## 4. Crear un usuario para el login
 
 1. En Supabase ve a **Authentication > Users**.
