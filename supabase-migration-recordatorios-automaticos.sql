@@ -7,9 +7,9 @@ alter table public.recordatorios
 alter table public.recordatorios
   add column if not exists auto_key text;
 
+drop index if exists ux_recordatorios_cliente_autokey;
 create unique index if not exists ux_recordatorios_cliente_autokey
-  on public.recordatorios (cliente_id, auto_key)
-  where auto_key is not null;
+  on public.recordatorios (cliente_id, auto_key);
 
 comment on column public.recordatorios.auto_generado is 'true si fue generado automáticamente por reglas de etapas';
 comment on column public.recordatorios.auto_key is 'clave única de regla automática por cliente';

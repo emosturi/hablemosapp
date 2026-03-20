@@ -356,7 +356,15 @@
             };
             return supabase.from("recordatorios").upsert(payload, { onConflict: "cliente_id,auto_key" });
           });
-          return Promise.all(jobs);
+          return Promise.all(jobs).then(function (results) {
+            var errs = (results || [])
+              .map(function (r) { return r && r.error ? r.error : null; })
+              .filter(Boolean);
+            if (errs.length > 0) {
+              var detail = errs.map(function (e) { return e.message || String(e); }).join(" | ");
+              throw new Error(detail);
+            }
+          });
         }
 
         supabase.auth.getSession().then(function (r) {
