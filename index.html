@@ -921,6 +921,7 @@
 
       const antecedentesItems = [
         { key: "deseoPensionPreliminar", label: "Deseo pensión preliminar" },
+        { key: "poseeBonoReconocimiento", label: "¿Posee bono de reconocimiento?" },
         { key: "solicitarPgu", label: "Solicitar Pensión Garantizada Universal?" },
         { key: "solicitarAporteSolidarioInvalidez", label: "Solicitar aporte solidario de invalidez? (si corresponde)" },
         { key: "reciboPensionAntiguoSistema", label: "Recibo pensión antiguo sistema" },
@@ -987,6 +988,7 @@
       // Etiquetas exactas del mandato (mismo texto que en el .doc completo)
       const antecedentesMandateLabels = {
         deseoPensionPreliminar: "Deseo pensión preliminar",
+        poseeBonoReconocimiento: "Poseo bono de reconocimiento",
         solicitarPgu: "Solicitar Pensión Garantizada Universal",
         solicitarAporteSolidarioInvalidez: "Solicitar aporte solidario de invalidez (si corresponde)",
         reciboPensionAntiguoSistema: "Recibo pensión antiguo sistema",
@@ -2184,6 +2186,7 @@
           banco: (autorizaciones.banco || "").trim() || null,
           tipo_cuenta: (autorizaciones.tipoCuenta || "").trim() || null,
           numero_cuenta: (autorizaciones.numeroCuenta || "").trim() || null,
+          posee_bono_reconocimiento: (antecedentes.poseeBonoReconocimiento || "").trim() === "Sí",
           solicitud_tipo_pension: (mandante.tipoPension || "").trim() || null,
           solicitud_cambio_modalidad_tramite: (mandante.cambioModalidadTramite || "").trim() === "Sí",
           solicitud_antecedentes: antecedentes && typeof antecedentes === "object" ? antecedentes : {},
@@ -2975,6 +2978,8 @@
                   return out;
                 }
                 var ant = Object.assign(defaultsNo(antecedentesItems), normalizeYesNoObject(c.solicitud_antecedentes) || {});
+                if (c.posee_bono_reconocimiento === true) ant.poseeBonoReconocimiento = "Sí";
+                else if (c.posee_bono_reconocimiento === false) ant.poseeBonoReconocimiento = "No";
                 setFormFromObject(form, { antecedentes: ant });
                 var aut = Object.assign(defaultsNo(autorizacionesItems), normalizeYesNoObject(c.solicitud_autorizaciones) || {});
                 setFormFromObject(form, { autorizaciones: aut });

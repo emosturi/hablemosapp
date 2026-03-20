@@ -230,6 +230,135 @@
           "Verificación del primer pago",
         ];
 
+        function parseISODate(s) {
+          var m = String(s || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+          if (!m) return null;
+          var d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+          if (isNaN(d.getTime())) return null;
+          return d;
+        }
+        function isoDate(d) {
+          var y = d.getFullYear();
+          var m = String(d.getMonth() + 1).padStart(2, "0");
+          var day = String(d.getDate()).padStart(2, "0");
+          return y + "-" + m + "-" + day;
+        }
+        function addCalendarDays(baseIso, n) {
+          var d = parseISODate(baseIso);
+          if (!d) return null;
+          d.setDate(d.getDate() + n);
+          return isoDate(d);
+        }
+        function addBusinessDays(baseIso, n) {
+          var d = parseISODate(baseIso);
+          if (!d) return null;
+          var left = Number(n) || 0;
+          while (left > 0) {
+            d.setDate(d.getDate() + 1);
+            var w = d.getDay();
+            if (w !== 0 && w !== 6) left -= 1;
+          }
+          return isoDate(d);
+        }
+        function nextMonthFirstDay(baseIso) {
+          var d = parseISODate(baseIso);
+          if (!d) return null;
+          d = new Date(d.getFullYear(), d.getMonth() + 1, 1);
+          return isoDate(d);
+        }
+        function prevDay(baseIso) {
+          return addCalendarDays(baseIso, -1);
+        }
+        function yesNo(obj, key) {
+          if (!obj || typeof obj !== "object") return false;
+          var v = obj[key];
+          return v === true || v === "Sí" || v === "Si" || v === "SI" || v === "si";
+        }
+        function buildAutoReminderRules(clienteRow, fechasEtapas) {
+          var out = [];
+          var ant = (clienteRow && clienteRow.solicitud_antecedentes && typeof clienteRow.solicitud_antecedentes === "object") ? clienteRow.solicitud_antecedentes : {};
+          var aut = (clienteRow && clienteRow.solicitud_autorizaciones && typeof clienteRow.solicitud_autorizaciones === "object") ? clienteRow.solicitud_autorizaciones : {};
+          var etapa2 = fechasEtapas["2"];
+          if (etapa2) {
+            var dueVisado = addBusinessDays(etapa2, 3);
+            if (dueVisado) out.push({ key: "e2_visado_3hb", due: dueVisado, msg: "Vence plazo de 3 días hábiles para Visado del mandato en AFP." });
+          }
+          var etapa4 = fechasEtapas["4"];
+          if (etapa4) {
+            var hasBono = clienteRow && clienteRow.posee_bono_reconocimiento === true;
+            if (hasBono) {
+              var dueBono45 = addCalendarDays(etapa4, 45);
+              if (dueBono45) out.push({ key: "e4_bono_posee_45c", due: dueBono45, msg: "Seguimiento Bono de Reconocimiento: plazo de 45 días corridos para siguiente paso (Certificado de Saldo)." });
+            } else if (yesNo(aut, "suscribirBonoReconocimiento")) {
+              var dueBono90 = addCalendarDays(etapa4, 90);
+              if (dueBono90) out.push({ key: "e4_bono_suscribir_90c", due: dueBono90, msg: "Seguimiento Bono de Reconocimiento: plazo de 90 días corridos para siguiente paso (Certificado de Saldo)." });
+            } else {
+              var hasAPV = yesNo(ant, "destinareApv") || yesNo(ant, "destinareApvc") || yesNo(ant, "traspasareCesantia");
+              var dueSaldo = addBusinessDays(etapa4, hasAPV ? 45 : 10);
+              if (dueSaldo) out.push({ key: "e4_cert_saldo_base", due: dueSaldo, msg: "Seguimiento: plazo estimado para Emisión de Certificado de Saldo desde Inicio de trámite de Pensión." });
+            }
+          }
+          var etapa5 = fechasEtapas["5"];
+          if (etapa5) {
+            var dueEstudios = addBusinessDays(etapa5, 3);
+            if (dueEstudios) out.push({ key: "e5_estudios_3hb", due: dueEstudios, msg: "Vence plazo de 3 días hábiles para Estudios Preliminares." });
+          }
+          var etapa7 = fechasEtapas["7"];
+          if (etapa7) {
+            var dueOferta = addBusinessDays(etapa7, 4);
+            if (dueOferta) out.push({ key: "e7_ofertas_4hb", due: dueOferta, msg: "Vence plazo de 4 días hábiles para recepción de certificado de ofertas original (SCOMP)." });
+          }
+          var etapa8 = fechasEtapas["8"];
+          if (etapa8) {
+            var dueScomp15 = addBusinessDays(etapa8, 15);
+            if (dueScomp15) out.push({ key: "e8_venc_scomp_15hb", due: dueScomp15, msg: "Alerta: vencimiento SCOMP (último día de cierre)." });
+            var dueRemate7 = addBusinessDays(etapa8, 7);
+            if (dueRemate7) out.push({ key: "e8_venc_remate_7hb", due: dueRemate7, msg: "Alerta: vencimiento para solicitud de remate." });
+          }
+          var etapa11 = fechasEtapas["11"];
+          if (etapa11) {
+            var dueFondos = addBusinessDays(etapa11, 12);
+            if (dueFondos) {
+              out.push({ key: "e11_fondos_compania_12hb", due: dueFondos, msg: "Seguimiento: traspaso de fondos a la compañía (12 días hábiles desde Día de cierre)." });
+              var duePrimerPago = addCalendarDays(dueFondos, 10);
+              if (duePrimerPago) out.push({ key: "e11_primer_pago_10d_post_fondos", due: duePrimerPago, msg: "Verificar primer pago (10 días después de recepción de fondos en compañía)." });
+            }
+            if (yesNo(ant, "deseoPensionPreliminar")) {
+              var nextMonth = nextMonthFirstDay(etapa11);
+              var duePagoPreliminar = nextMonth ? addBusinessDays(nextMonth, 10) : null;
+              if (duePagoPreliminar) {
+                out.push({ key: "e11_pago_preliminar_10hb_mes_sig", due: duePagoPreliminar, msg: "Seguimiento pago preliminar: primeros 10 días hábiles del mes siguiente." });
+                var duePrimerPagoPre = addCalendarDays(duePagoPreliminar, 10);
+                if (duePrimerPagoPre) out.push({ key: "e11_primer_pago_10d_post_preliminar", due: duePrimerPagoPre, msg: "Verificar primer pago (10 días después de fondos en compañía, caso pago preliminar)." });
+              }
+            }
+          }
+          return out;
+        }
+        function scheduleAutoReminders(clienteRow, fechasEtapas) {
+          var rules = buildAutoReminderRules(clienteRow, fechasEtapas);
+          if (!rules || rules.length === 0) return Promise.resolve();
+          var nombre = [clienteRow.nombres, clienteRow.apellido_paterno, clienteRow.apellido_materno].filter(Boolean).join(" ") || "Cliente";
+          var tel = (clienteRow.telefono || "").toString().trim() || null;
+          var jobs = rules.map(function (r) {
+            var fechaAviso = prevDay(r.due);
+            if (!fechaAviso) return Promise.resolve();
+            var payload = {
+              cliente_id: id,
+              cliente_nombre: nombre,
+              cliente_telefono: tel,
+              fecha: fechaAviso,
+              hora: "20:00",
+              mensaje: "[AUTO] " + r.msg + " (Vence: " + r.due + ")",
+              enviado: false,
+              auto_generado: true,
+              auto_key: r.key,
+            };
+            return supabase.from("recordatorios").upsert(payload, { onConflict: "cliente_id,auto_key" });
+          });
+          return Promise.all(jobs);
+        }
+
         supabase.auth.getSession().then(function (r) {
           if (!r.data.session) {
             window.location.replace("login.html");
@@ -404,15 +533,29 @@
                   }
                   c.tramite_etapa_actual = up.data.tramite_etapa_actual;
                   c.tramite_etapas_fechas = up.data.tramite_etapas_fechas;
-                  var sec = document.querySelector(".timeline-section");
-                  if (sec) sec.outerHTML = buildTimelineSection(c);
-                  var btnNuevo = document.getElementById("btnGuardarTramite");
-                  if (btnNuevo) btnNuevo.addEventListener("click", guardarEtapaTramite);
-                  var msgNuevo = document.getElementById("tramiteSaveMsg");
-                  if (msgNuevo) {
-                    msgNuevo.textContent = "Guardado correctamente.";
-                    msgNuevo.className = "ok";
-                  }
+                  scheduleAutoReminders(c, fechasTramite(c))
+                    .then(function () {
+                      var sec = document.querySelector(".timeline-section");
+                      if (sec) sec.outerHTML = buildTimelineSection(c);
+                      var btnNuevo = document.getElementById("btnGuardarTramite");
+                      if (btnNuevo) btnNuevo.addEventListener("click", guardarEtapaTramite);
+                      var msgNuevo = document.getElementById("tramiteSaveMsg");
+                      if (msgNuevo) {
+                        msgNuevo.textContent = "Guardado correctamente. Recordatorios automáticos actualizados.";
+                        msgNuevo.className = "ok";
+                      }
+                    })
+                    .catch(function (errAuto) {
+                      var sec = document.querySelector(".timeline-section");
+                      if (sec) sec.outerHTML = buildTimelineSection(c);
+                      var btnNuevo = document.getElementById("btnGuardarTramite");
+                      if (btnNuevo) btnNuevo.addEventListener("click", guardarEtapaTramite);
+                      var msgNuevo = document.getElementById("tramiteSaveMsg");
+                      if (msgNuevo) {
+                        msgNuevo.textContent = "Etapa guardada, pero falló la programación automática de recordatorios: " + (errAuto && errAuto.message ? errAuto.message : "");
+                        msgNuevo.className = "err";
+                      }
+                    });
                 });
             }
 

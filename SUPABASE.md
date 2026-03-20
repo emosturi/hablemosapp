@@ -29,6 +29,8 @@ Con eso se crea la tabla `clientes` y las políticas de seguridad (RLS): cualqui
 **Si ya tenías la tabla `clientes` creada** (versión anterior), ejecuta además el archivo **`supabase-schema-migration-clientes-v2.sql`** en el SQL Editor para añadir las columnas de cónyuge, hijos, empleador y datos bancarios.
 
 Para la **línea de tiempo del trámite** en `ver-cliente.html`, ejecuta también **`supabase-migration-clientes-tramite-etapas.sql`** (columnas `tramite_etapa_actual` y `tramite_etapas_fechas`).
+Para los **recordatorios automáticos por etapa**, ejecuta además **`supabase-migration-recordatorios-automaticos.sql`** (columnas `auto_generado`, `auto_key` e índice único por cliente/regla).
+Si quieres usar la regla de etapa 4 basada en bono de reconocimiento, ejecuta también **`supabase-migration-clientes-bono-reconocimiento.sql`** (`posee_bono_reconocimiento`).
 
 ## 4. Crear un usuario para el login
 
