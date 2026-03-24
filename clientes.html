@@ -201,6 +201,23 @@
       .menu-dropdown a.active { color: var(--accent); }
       .menu-dropdown a .tab-icon { width: 16px; height: 16px; flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
       .menu-dropdown .menu-divider { height: 1px; background: var(--border); margin: 6px 0; }
+      .registro-publico-banner {
+        display: none;
+        margin: 0 0 16px;
+        padding: 12px 14px;
+        border-radius: 12px;
+        border: 1px solid rgba(34, 197, 94, 0.35);
+        background: rgba(34, 197, 94, 0.1);
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 14px;
+        line-height: 1.45;
+      }
+      .need-invite-block {
+        display: none;
+        padding: 22px 18px;
+        line-height: 1.5;
+      }
+      .need-invite-block a { color: var(--accent); }
     </style>
   </head>
   <body>
@@ -211,9 +228,20 @@
       <header>
         <h1>Registro de Afiliados</h1>
         <p class="subtitle">Ingrese sus datos personales. Los campos con * son obligatorios.</p>
+        <p id="bannerRegistroPublico" class="registro-publico-banner" role="status">
+          Está completando un formulario enviado por su asesor previsional. No necesita crear una cuenta; al enviar, sus datos quedarán asociados a quien le compartió el enlace.
+        </p>
       </header>
 
       <div class="panel">
+        <div id="needInviteBlock" class="need-invite-block" role="alert">
+          <p>
+            Para completar este registro necesita el <strong>enlace personal</strong> que le envió su asesor previsional (por WhatsApp, correo, etc.). Si no lo tiene, pídaselo.
+          </p>
+          <p class="subtitle" style="margin-top: 14px">
+            ¿Es asesor? <a href="login.html">Iniciar sesión</a> para registrar clientes sin enlace público.
+          </p>
+        </div>
         <form id="clienteForm" novalidate>
           <!-- Datos del cliente -->
           <div class="section" aria-labelledby="clienteTitle">
@@ -762,6 +790,30 @@
         }
       }
 
+      function registroAfiliadosRefValido(s) {
+        return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+          String(s || "").trim()
+        );
+      }
+      (function gateRegistroAfiliados() {
+        var u = window.SUPABASE_URL,
+          k = window.SUPABASE_ANON_KEY;
+        if (!u || !k || u.indexOf("TU_PROYECTO") !== -1) return;
+        var ref = new URLSearchParams(window.location.search).get("ref");
+        if (registroAfiliadosRefValido(ref)) {
+          var b = document.getElementById("bannerRegistroPublico");
+          if (b) b.style.display = "block";
+          return;
+        }
+        window.supabase.createClient(u, k).auth.getSession().then(function (r) {
+          if (r.data.session) return;
+          var form = document.getElementById("clienteForm");
+          var need = document.getElementById("needInviteBlock");
+          if (form) form.style.display = "none";
+          if (need) need.style.display = "block";
+        });
+      })();
+
       var form = document.getElementById("clienteForm");
       var diaSel = document.getElementById("cliente_fechaNac_dia");
       var mesSel = document.getElementById("cliente_fechaNac_mes");
@@ -1207,34 +1259,80 @@
         }
         setStatus("Guardando…");
         var supabase = window.supabase.createClient(url, key);
-        supabase.from("clientes").upsert(row, { onConflict: "rut" })
-          .then(function(result) {
-            if (result.error) {
-              setStatus("");
-              setError(form, "cliente_rut", result.error.message || "Error al guardar.");
-              return;
-            }
-            setStatus("Cliente guardado correctamente.");
-            form.reset();
-            if (hiddenFecha) hiddenFecha.value = "";
-            if (numHijosSel) numHijosSel.value = "0";
-            hijosContainer.innerHTML = "";
-            if (typeof actualizarHijos === "function") actualizarHijos();
-            if (sectionConyuge) sectionConyuge.classList.add("section-hidden");
-            if (sectionHijosBloque) sectionHijosBloque.classList.add("section-hidden");
+        var refToken = new URLSearchParams(window.location.search).get("ref");
 
-            if (window.NOTIFY_FUNCTION_URL && window.NOTIFY_SECRET) {
-              fetch(window.NOTIFY_FUNCTION_URL, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ secret: window.NOTIFY_SECRET, client: row })
-              }).catch(function() {});
-            }
-          })
-          .catch(function(err) {
+        function afterSaveOk() {
+          setStatus("Cliente guardado correctamente.");
+          form.reset();
+          if (hiddenFecha) hiddenFecha.value = "";
+          if (numHijosSel) numHijosSel.value = "0";
+          hijosContainer.innerHTML = "";
+          if (typeof actualizarHijos === "function") actualizarHijos();
+          if (sectionConyuge) sectionConyuge.classList.add("section-hidden");
+          if (sectionHijosBloque) sectionHijosBloque.classList.add("section-hidden");
+
+          if (window.NOTIFY_FUNCTION_URL && window.NOTIFY_SECRET) {
+            fetch(window.NOTIFY_FUNCTION_URL, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ secret: window.NOTIFY_SECRET, client: row }),
+            }).catch(function () {});
+          }
+        }
+
+        supabase.auth.getSession().then(function (sr) {
+          if (sr.data && sr.data.session && sr.data.session.user) {
+            row.user_id = sr.data.session.user.id;
+            supabase
+              .from("clientes")
+              .upsert(row, { onConflict: "user_id,rut" })
+              .then(function (result) {
+                if (result.error) {
+                  setStatus("");
+                  setError(form, "cliente_rut", result.error.message || "Error al guardar.");
+                  return;
+                }
+                afterSaveOk();
+              })
+              .catch(function (err) {
+                setStatus("");
+                setError(form, "cliente_rut", err.message || "Error de conexión.");
+              });
+            return;
+          }
+
+          if (!registroAfiliadosRefValido(refToken)) {
             setStatus("");
-            setError(form, "cliente_rut", err.message || "Error de conexión.");
-          });
+            setError(
+              form,
+              "cliente_rut",
+              "Para enviar el formulario necesita el enlace personal que le envió su asesor (o iniciar sesión como asesor)."
+            );
+            return;
+          }
+
+          delete row.user_id;
+          supabase
+            .rpc("registrar_cliente_por_invite", { p_invite: refToken.trim(), p_row: row })
+            .then(function (result) {
+              if (result.error) {
+                setStatus("");
+                var msg = result.error.message || "Error al guardar.";
+                if (/invite_invalida|invite_requerida/i.test(msg)) {
+                  msg = "El enlace de registro no es válido o expiró. Solicite un nuevo enlace a su asesor.";
+                } else if (/rut_invalido/i.test(msg)) {
+                  msg = "RUT inválido. Revise el número ingresado.";
+                }
+                setError(form, "cliente_rut", msg);
+                return;
+              }
+              afterSaveOk();
+            })
+            .catch(function (err) {
+              setStatus("");
+              setError(form, "cliente_rut", err.message || "Error de conexión.");
+            });
+        });
       });
 
       document.getElementById("btnLimpiar").addEventListener("click", function() {

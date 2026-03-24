@@ -222,6 +222,8 @@
             return;
           }
 
+          var userId = r.data.session.user.id;
+
           var form = document.getElementById("formPotencial");
           var statusEl = document.getElementById("status");
           var btnEnviar = document.getElementById("btnEnviar");
@@ -257,7 +259,7 @@
           btnEnviar.disabled = true;
           setStatus("Guardando…");
 
-          supabase.from("clientes_potenciales").insert({ nombre: nombre, telefono: telefono, ciudad: ciudad })
+          supabase.from("clientes_potenciales").insert({ user_id: userId, nombre: nombre, telefono: telefono, ciudad: ciudad })
             .then(function (result) {
               btnEnviar.disabled = false;
               if (result.error) {

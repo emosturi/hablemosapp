@@ -44,7 +44,23 @@ exports.handler = async function (event) {
   const supabase = createClient(supabaseUrl, supabaseKey);
 
   try {
+    let userId = (body.user_id || "").toString().trim() || null;
+    if (!userId && body.cliente_id) {
+      const cr = await supabase.from("clientes").select("user_id").eq("id", body.cliente_id).maybeSingle();
+      userId = cr.data && cr.data.user_id ? String(cr.data.user_id) : null;
+    }
+    if (!userId) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({
+          error:
+            "Falta user_id o cliente_id válido para asociar el recordatorio al asesor (multi-usuario).",
+        }),
+      };
+    }
+
     const { error } = await supabase.from("recordatorios").insert({
+      user_id: userId,
       cliente_id: body.cliente_id || null,
       cliente_nombre: (body.cliente_nombre || "").toString().trim() || null,
       cliente_telefono: (body.cliente_telefono || "").toString().trim() || null,

@@ -215,6 +215,7 @@
           return;
         }
         var supabase = window.supabase.createClient(url, key);
+        var currentSessionUserId = null;
 
         var ETAPAS_TRAMITE = [
           "Reunión de firma de contrato y mandato",
@@ -346,6 +347,7 @@
             var fechaAviso = prevDay(r.due);
             if (!fechaAviso) return Promise.resolve();
             var payload = {
+              user_id: currentSessionUserId,
               cliente_id: id,
               cliente_nombre: nombre,
               cliente_telefono: tel,
@@ -374,6 +376,8 @@
             window.location.replace("login.html");
             return;
           }
+
+          currentSessionUserId = r.data.session.user.id;
 
           supabase.from("clientes").select("*").eq("id", id).single().then(function (result) {
             document.getElementById("loading").style.display = "none";

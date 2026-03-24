@@ -2148,15 +2148,39 @@
         const rutKey = String(rutRaw || "").toUpperCase().replace(/[^0-9K]/g, "");
         if (!rutKey || rutKey.length < 2) return "NNN";
 
-        var res = await supabaseClient.from("numeros_contrato").select("numero_secuencial").eq("rut_mandante", rutKey).maybeSingle();
+        const sess = await supabaseClient.auth.getSession();
+        const userId = sess && sess.data && sess.data.session && sess.data.session.user && sess.data.session.user.id;
+        if (!userId) return "NNN";
+
+        var res = await supabaseClient
+          .from("numeros_contrato")
+          .select("numero_secuencial")
+          .eq("user_id", userId)
+          .eq("rut_mandante", rutKey)
+          .maybeSingle();
         if (res.data && res.data.numero_secuencial != null) return res.data.numero_secuencial;
 
-        var maxRes = await supabaseClient.from("numeros_contrato").select("numero_secuencial").order("numero_secuencial", { ascending: false }).limit(1).maybeSingle();
+        var maxRes = await supabaseClient
+          .from("numeros_contrato")
+          .select("numero_secuencial")
+          .eq("user_id", userId)
+          .order("numero_secuencial", { ascending: false })
+          .limit(1)
+          .maybeSingle();
         var maxActual = (maxRes.data && maxRes.data.numero_secuencial != null) ? maxRes.data.numero_secuencial : 339;
         var siguiente = maxActual + 1;
-        var insertRes = await supabaseClient.from("numeros_contrato").insert({ rut_mandante: rutKey, numero_secuencial: siguiente }).select("numero_secuencial").maybeSingle();
+        var insertRes = await supabaseClient
+          .from("numeros_contrato")
+          .insert({ user_id: userId, rut_mandante: rutKey, numero_secuencial: siguiente })
+          .select("numero_secuencial")
+          .maybeSingle();
         if (insertRes.error) {
-          var again = await supabaseClient.from("numeros_contrato").select("numero_secuencial").eq("rut_mandante", rutKey).maybeSingle();
+          var again = await supabaseClient
+            .from("numeros_contrato")
+            .select("numero_secuencial")
+            .eq("user_id", userId)
+            .eq("rut_mandante", rutKey)
+            .maybeSingle();
           if (again.data && again.data.numero_secuencial != null) return again.data.numero_secuencial;
           return siguiente;
         }
@@ -2164,7 +2188,7 @@
       }
 
       // Construye el objeto fila para la tabla clientes a partir de los datos del formulario de pensión (mandato).
-      function buildClienteRowFromMandatoData(data) {
+      function buildClienteRowFromMandatoData(data, userId) {
         const mandante = data.mandante || {};
         const empleador = data.empleador || {};
         const autorizaciones = data.autorizaciones || {};
@@ -2173,6 +2197,7 @@
 
         const fechaNac = parseDDMMYYYY(mandante.fechaNacimiento);
         const row = {
+          user_id: userId || null,
           rut: (rutToCanonical(mandante.rut) || null),
           nombres: (mandante.nombres || "").trim() || null,
           apellido_paterno: (mandante.apellidoPaterno || "").trim() || null,
@@ -2243,19 +2268,24 @@
       // Usa RUT como clave; si ya existe el cliente se actualiza.
       async function saveClienteFromMandatoData(supabaseClient, data) {
         if (!supabaseClient) return;
-        const row = buildClienteRowFromMandatoData(data);
+        const sess = await supabaseClient.auth.getSession();
+        const uid = sess && sess.data && sess.data.session && sess.data.session.user && sess.data.session.user.id;
+        if (!uid) throw new Error("No hay sesión activa. Vuelve a iniciar sesión.");
+        const row = buildClienteRowFromMandatoData(data, uid);
         if (!row.rut) return;
-        const { error } = await supabaseClient.from("clientes").upsert(row, { onConflict: "rut" });
+        const { error } = await supabaseClient.from("clientes").upsert(row, { onConflict: "user_id,rut" });
         if (error) throw error;
       }
 
-      // Marca en BD qué documentos ya fueron generados para el cliente (por RUT).
+      // Marca en BD qué documentos ya fueron generados para el cliente (por RUT del propietario actual).
       async function markClienteDocumentoGenerado(supabaseClient, rutRaw, flags) {
         if (!supabaseClient) return;
         const rut = rutToCanonical(rutRaw);
         if (!rut) return;
-        const payload = Object.assign({ rut: rut }, flags || {});
-        const { error } = await supabaseClient.from("clientes").upsert(payload, { onConflict: "rut" });
+        const sess = await supabaseClient.auth.getSession();
+        const uid = sess && sess.data && sess.data.session && sess.data.session.user && sess.data.session.user.id;
+        if (!uid) return;
+        const { error } = await supabaseClient.from("clientes").update(flags || {}).eq("rut", rut).eq("user_id", uid);
         if (error) throw error;
       }
 
