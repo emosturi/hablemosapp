@@ -925,6 +925,7 @@
 
       const antecedentesItems = [
         { key: "deseoPensionPreliminar", label: "Deseo pensión preliminar" },
+        { key: "deseoPagoRetroactivo", label: "¿Desea pago retroactivo?" },
         { key: "poseeBonoReconocimiento", label: "¿Posee bono de reconocimiento?" },
         { key: "solicitarPgu", label: "Solicitar Pensión Garantizada Universal?" },
         { key: "solicitarAporteSolidarioInvalidez", label: "Solicitar aporte solidario de invalidez? (si corresponde)" },
@@ -992,6 +993,7 @@
       // Etiquetas exactas del mandato (mismo texto que en el .doc completo)
       const antecedentesMandateLabels = {
         deseoPensionPreliminar: "Deseo pensión preliminar",
+        deseoPagoRetroactivo: "Deseo pago retroactivo",
         poseeBonoReconocimiento: "Poseo bono de reconocimiento",
         solicitarPgu: "Solicitar Pensión Garantizada Universal",
         solicitarAporteSolidarioInvalidez: "Solicitar aporte solidario de invalidez (si corresponde)",
@@ -1326,6 +1328,11 @@
         <tr>
         <td>Deseo pensión preliminar</td>
         <td class="col-respuesta"><span style="white-space:nowrap">${antecedentes.deseoPensionPreliminar === "Sí" ? "Sí" : "No"}</span></td>
+        </tr>
+
+        <tr>
+        <td>¿Desea pago retroactivo?</td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${antecedentes.deseoPagoRetroactivo === "Sí" ? "Sí" : "No"}</span></td>
         </tr>
 
         <tr>
