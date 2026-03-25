@@ -208,26 +208,6 @@
       .menu-dropdown a.active { color: var(--accent); }
       .menu-dropdown a .tab-icon { width: 16px; height: 16px; flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
       .menu-dropdown .menu-divider { height: 1px; background: var(--border); margin: 6px 0; }
-      .invite-registro-box {
-        margin-bottom: 18px;
-        padding: 16px;
-        border-radius: var(--radius);
-        border: 1px solid var(--border);
-        background: rgba(139, 92, 246, 0.08);
-      }
-      .invite-registro-box h2 { font-size: 16px; margin: 0 0 8px; letter-spacing: 0; }
-      .invite-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: stretch; margin-top: 10px; }
-      .invite-row input {
-        flex: 1;
-        min-width: 200px;
-        padding: 10px 12px;
-        border-radius: 10px;
-        border: 1px solid var(--border);
-        background: rgba(0, 0, 0, 0.2);
-        color: var(--text);
-        font-size: 13px;
-      }
-      .invite-msg { margin: 8px 0 0; font-size: 13px; color: var(--muted); min-height: 1.2em; }
     </style>
   </head>
   <body>
@@ -242,6 +222,7 @@
           <a href="clientes.html">Registro de Afiliados</a>
           <a href="revisar-clientes.html" class="active">Listado de Clientes</a>
           <a href="clientes-potenciales.html">Clientes Potenciales</a>
+          <a href="enlace-registro-publico.html">Enlace registro público</a>
           <a href="recordatorios.html">Recordatorios</a>
           <div class="menu-divider"></div>
           <a href="#" id="btnCerrarSesion" title="Cerrar sesión"><svg class="tab-icon" viewBox="0 0 24 24"><rect x="4" y="4" width="10" height="16" rx="1"/><path d="M10 12h10M17 9l3 3-3 3"/></svg> Cerrar sesión</a>
@@ -264,20 +245,9 @@
         <p class="subtitle">Clientes que se han registrado. Revisa los datos y úsalos para llenar el formulario de mandatos y contratos.</p>
         <p class="header-links">
           <a href="clientes.html" class="header-link">Registro de Afiliados (como asesor)</a>
+          <a href="enlace-registro-publico.html" class="header-link">Enlace público para clientes</a>
         </p>
       </header>
-
-      <div id="inviteRegistroBox" class="invite-registro-box" style="display: none">
-        <h2>Enlace público de registro</h2>
-        <p class="subtitle" style="margin: 0 0 4px">
-          Comparta esta URL con el cliente. No necesita cuenta en el sitio; al enviar el formulario, el registro quedará asociado a usted.
-        </p>
-        <div class="invite-row">
-          <input type="text" id="inviteRegistroUrl" readonly placeholder="Generando enlace…" aria-label="URL de registro público" />
-          <button type="button" class="btn-use" id="btnCopyInvite" style="margin: 0">Copiar</button>
-        </div>
-        <p id="inviteRegistroMsg" class="invite-msg"></p>
-      </div>
 
       <div class="panel">
         <div id="loading" class="loading">Cargando clientes…</div>
@@ -332,75 +302,6 @@
             window.location.replace("login.html");
             return;
           }
-
-          var uid = r.data.session.user.id;
-          (function setupInviteRegistroLink() {
-            var box = document.getElementById("inviteRegistroBox");
-            var input = document.getElementById("inviteRegistroUrl");
-            var btnCopy = document.getElementById("btnCopyInvite");
-            var msgEl = document.getElementById("inviteRegistroMsg");
-            if (!box || !input || !btnCopy) return;
-            box.style.display = "block";
-
-            function setUrl(tokenId) {
-              var u = new URL("clientes.html", window.location.href);
-              u.searchParams.set("ref", tokenId);
-              input.value = u.href;
-            }
-
-            supabase
-              .from("registro_afiliados_invites")
-              .select("id")
-              .eq("owner_user_id", uid)
-              .maybeSingle()
-              .then(function (q) {
-                if (q.data && q.data.id) {
-                  setUrl(q.data.id);
-                  return;
-                }
-                if (q.error && msgEl) {
-                  msgEl.textContent =
-                    q.error.message ||
-                    "No se pudo cargar el enlace. Ejecuta en Supabase: supabase-migration-registro-afiliados-enlace-publico.sql";
-                  return;
-                }
-                supabase
-                  .from("registro_afiliados_invites")
-                  .insert({ owner_user_id: uid })
-                  .select("id")
-                  .single()
-                  .then(function (ins) {
-                    if (ins.error) {
-                      if (msgEl) {
-                        msgEl.textContent =
-                          ins.error.message ||
-                          "No se pudo crear el enlace. Ejecuta la migración registro-afiliados-enlace-publico.sql";
-                      }
-                      return;
-                    }
-                    if (ins.data && ins.data.id) setUrl(ins.data.id);
-                  });
-              });
-
-            btnCopy.addEventListener("click", function () {
-              var t = (input.value || "").trim();
-              if (!t) return;
-              input.select();
-              input.setSelectionRange(0, 99999);
-              if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(t).then(function () {
-                  if (msgEl) {
-                    msgEl.textContent = "Enlace copiado.";
-                    setTimeout(function () {
-                      if (msgEl.textContent === "Enlace copiado.") msgEl.textContent = "";
-                    }, 2500);
-                  }
-                });
-              } else if (msgEl) {
-                msgEl.textContent = "Copie manualmente el texto del recuadro.";
-              }
-            });
-          })();
 
           var loadingEl = document.getElementById("loading");
           var errorEl = document.getElementById("error");
