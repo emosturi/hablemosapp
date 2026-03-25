@@ -199,6 +199,8 @@
             return;
           }
 
+          var sessionUserId = r.data.session.user.id;
+
           supabase.from("clientes_potenciales").select("*").eq("id", id).single().then(function (result) {
             document.getElementById("loading").style.display = "none";
             if (result.error || !result.data) {
@@ -281,6 +283,7 @@
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({
                     secret: secret,
+                    user_id: sessionUserId,
                     fecha: fecha,
                     hora: hora,
                     mensaje: mensaje,
