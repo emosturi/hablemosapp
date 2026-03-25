@@ -185,7 +185,7 @@
           ¿Tiene bono de reconocimiento?
         </p>
         <p class="subtitle" style="margin: -8px 0 18px; font-size: 13px;">
-          Esta respuesta se guarda en el cliente y define recordatorios automáticos del trámite.
+          Es el único dato necesario para que la línea de tiempo y los recordatorios automáticos funcionen bien (no hace falta haber generado un mandato).
         </p>
         <div class="modal-actions">
           <button type="button" id="btnCerrarModalBono" class="btn-secondary">Cancelar</button>
@@ -490,15 +490,14 @@
             }
 
             var html = "";
-            var tieneMandato = c.tiene_mandato_largo === true || c.tiene_mandato_corto === true;
-            if (tieneMandato && !bonoReconocimientoDefinido(c)) {
+            if (!bonoReconocimientoDefinido(c)) {
               html +=
                 '<div class="section" id="tramiteActivarWrap">' +
                 "<h2>Línea de tiempo del trámite</h2>" +
-                '<p class="timeline-hint">Para ver las etapas del trámite y los recordatorios automáticos, active la línea de tiempo respondiendo si el cliente tiene bono de reconocimiento.</p>' +
+                '<p class="timeline-hint">Puede activar la línea de tiempo en cualquier momento (no requiere mandato firmado). Solo necesitamos saber si el cliente tiene bono de reconocimiento para calcular bien las etapas y los recordatorios.</p>' +
                 '<button type="button" class="btn" id="btnActivarLineaTiempo">Activar línea de tiempo</button>' +
                 "</div>";
-            } else if (tieneMandato && bonoReconocimientoDefinido(c)) {
+            } else {
               html += buildTimelineSection(c);
             }
             html += '<div class="section"><h2>Datos del cliente</h2><div class="grid">';
