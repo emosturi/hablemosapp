@@ -92,6 +92,8 @@
       .modal-actions .btn-primary { background: var(--accent); color: #fff; }
       .modal-actions .btn-secondary { background: rgba(255,255,255,0.1); color: var(--text); }
       .modal-actions button:disabled { opacity: 0.6; cursor: not-allowed; }
+      .modal-actions .btn-si { background: #22c55e; color: #fff; }
+      .modal-actions .btn-no { background: rgba(239, 68, 68, 0.85); color: #fff; }
       .modal-feedback { margin-top: 12px; font-size: 13px; }
       .modal-feedback.error { color: #ef4444; }
       .modal-feedback.success { color: #22c55e; }
@@ -174,6 +176,24 @@
       <div id="loading" class="loading">Cargando datos del cliente…</div>
       <div id="error" class="error-msg" style="display:none;"></div>
       <div id="contenido" class="panel" style="display:none;"></div>
+    </div>
+
+    <div class="modal-overlay" id="modalActivarTramite" role="dialog" aria-labelledby="modalActivarTramiteTitulo" aria-modal="true">
+      <div class="modal">
+        <h3 id="modalActivarTramiteTitulo">Activar línea de tiempo</h3>
+        <p style="margin: 0 0 18px; font-size: 14px; line-height: 1.45; color: var(--text);">
+          ¿Tiene bono de reconocimiento?
+        </p>
+        <p class="subtitle" style="margin: -8px 0 18px; font-size: 13px;">
+          Esta respuesta se guarda en el cliente y define recordatorios automáticos del trámite.
+        </p>
+        <div class="modal-actions">
+          <button type="button" id="btnCerrarModalBono" class="btn-secondary">Cancelar</button>
+          <button type="button" id="btnBonoNo" class="btn-no">No</button>
+          <button type="button" id="btnBonoSi" class="btn-si">Sí</button>
+        </div>
+        <div class="modal-feedback" id="modalBonoFeedback" style="display: none;"></div>
+      </div>
     </div>
 
     <div class="modal-overlay" id="modalRecordatorio" role="dialog" aria-labelledby="modalRecordatorioTitulo">
@@ -465,9 +485,20 @@
               );
             }
 
+            function bonoReconocimientoDefinido(cRow) {
+              return cRow.posee_bono_reconocimiento === true || cRow.posee_bono_reconocimiento === false;
+            }
+
             var html = "";
             var tieneMandato = c.tiene_mandato_largo === true || c.tiene_mandato_corto === true;
-            if (tieneMandato) {
+            if (tieneMandato && !bonoReconocimientoDefinido(c)) {
+              html +=
+                '<div class="section" id="tramiteActivarWrap">' +
+                "<h2>Línea de tiempo del trámite</h2>" +
+                '<p class="timeline-hint">Para ver las etapas del trámite y los recordatorios automáticos, active la línea de tiempo respondiendo si el cliente tiene bono de reconocimiento.</p>' +
+                '<button type="button" class="btn" id="btnActivarLineaTiempo">Activar línea de tiempo</button>' +
+                "</div>";
+            } else if (tieneMandato && bonoReconocimientoDefinido(c)) {
               html += buildTimelineSection(c);
             }
             html += '<div class="section"><h2>Datos del cliente</h2><div class="grid">';
@@ -579,6 +610,81 @@
 
             var btnGuardarTramite = document.getElementById("btnGuardarTramite");
             if (btnGuardarTramite) btnGuardarTramite.addEventListener("click", guardarEtapaTramite);
+
+            var modalBono = document.getElementById("modalActivarTramite");
+            var btnActivarLineaTiempo = document.getElementById("btnActivarLineaTiempo");
+            var btnCerrarModalBono = document.getElementById("btnCerrarModalBono");
+            var btnBonoSi = document.getElementById("btnBonoSi");
+            var btnBonoNo = document.getElementById("btnBonoNo");
+            var modalBonoFeedback = document.getElementById("modalBonoFeedback");
+
+            function cerrarModalBono() {
+              if (modalBono) modalBono.classList.remove("open");
+              if (modalBonoFeedback) {
+                modalBonoFeedback.style.display = "none";
+                modalBonoFeedback.textContent = "";
+                modalBonoFeedback.className = "modal-feedback";
+              }
+            }
+
+            function guardarBonoYMostrarTimeline(tieneBono) {
+              var ant = {};
+              if (c.solicitud_antecedentes && typeof c.solicitud_antecedentes === "object" && !Array.isArray(c.solicitud_antecedentes)) {
+                try {
+                  ant = JSON.parse(JSON.stringify(c.solicitud_antecedentes));
+                } catch (e) {
+                  ant = {};
+                }
+              }
+              ant.poseeBonoReconocimiento = tieneBono ? "Sí" : "No";
+
+              if (btnBonoSi) btnBonoSi.disabled = true;
+              if (btnBonoNo) btnBonoNo.disabled = true;
+              if (modalBonoFeedback) {
+                modalBonoFeedback.style.display = "block";
+                modalBonoFeedback.className = "modal-feedback";
+                modalBonoFeedback.textContent = "Guardando…";
+              }
+
+              supabase
+                .from("clientes")
+                .update({ posee_bono_reconocimiento: tieneBono, solicitud_antecedentes: ant })
+                .eq("id", id)
+                .select()
+                .single()
+                .then(function (up) {
+                  if (btnBonoSi) btnBonoSi.disabled = false;
+                  if (btnBonoNo) btnBonoNo.disabled = false;
+                  if (up.error) {
+                    if (modalBonoFeedback) {
+                      modalBonoFeedback.className = "modal-feedback error";
+                      modalBonoFeedback.textContent = up.error.message || "No se pudo guardar.";
+                    }
+                    return;
+                  }
+                  c.posee_bono_reconocimiento = up.data.posee_bono_reconocimiento;
+                  c.solicitud_antecedentes = up.data.solicitud_antecedentes || ant;
+                  cerrarModalBono();
+                  var wrap = document.getElementById("tramiteActivarWrap");
+                  if (wrap) wrap.outerHTML = buildTimelineSection(c);
+                  var btnNuevo = document.getElementById("btnGuardarTramite");
+                  if (btnNuevo) btnNuevo.addEventListener("click", guardarEtapaTramite);
+                });
+            }
+
+            if (btnActivarLineaTiempo && modalBono) {
+              btnActivarLineaTiempo.addEventListener("click", function () {
+                modalBono.classList.add("open");
+              });
+            }
+            if (btnCerrarModalBono) btnCerrarModalBono.addEventListener("click", cerrarModalBono);
+            if (modalBono) {
+              modalBono.addEventListener("click", function (e) {
+                if (e.target === modalBono) cerrarModalBono();
+              });
+            }
+            if (btnBonoSi) btnBonoSi.addEventListener("click", function () { guardarBonoYMostrarTimeline(true); });
+            if (btnBonoNo) btnBonoNo.addEventListener("click", function () { guardarBonoYMostrarTimeline(false); });
 
             var clienteNombre = nombre;
             var clienteTelefono = (c.telefono || "").toString().trim();
