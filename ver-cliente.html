@@ -407,7 +407,31 @@
               return;
             }
 
+            function bonoDesdeAntecedentes(ant) {
+              if (!ant || typeof ant !== "object" || Array.isArray(ant)) return null;
+              var v = ant.poseeBonoReconocimiento;
+              if (v === true) return true;
+              if (v === false) return false;
+              if (typeof v === "string") {
+                var s = v.trim().toLowerCase();
+                if (s === "sí" || s === "si") return true;
+                if (s === "no") return false;
+              }
+              return null;
+            }
+
+            function sincronizarPoseeBonoEnCliente(cRow) {
+              if (cRow.posee_bono_reconocimiento === true || cRow.posee_bono_reconocimiento === false) return;
+              var b = bonoDesdeAntecedentes(cRow.solicitud_antecedentes);
+              if (b === true || b === false) cRow.posee_bono_reconocimiento = b;
+            }
+
+            function bonoReconocimientoDefinido(cRow) {
+              return cRow.posee_bono_reconocimiento === true || cRow.posee_bono_reconocimiento === false;
+            }
+
             var c = result.data;
+            sincronizarPoseeBonoEnCliente(c);
             var nombre = [c.nombres, c.apellido_paterno, c.apellido_materno].filter(Boolean).join(" ");
             document.getElementById("titulo").textContent = nombre || "Ver cliente";
             document.getElementById("subtitulo").textContent = "RUT: " + (c.rut ? formatRutDisplay(c.rut) : "-");
@@ -483,10 +507,6 @@
                 items +
                 "</ol></div>"
               );
-            }
-
-            function bonoReconocimientoDefinido(cRow) {
-              return cRow.posee_bono_reconocimiento === true || cRow.posee_bono_reconocimiento === false;
             }
 
             var html = "";
