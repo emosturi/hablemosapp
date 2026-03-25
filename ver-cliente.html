@@ -153,13 +153,6 @@
           trigger.addEventListener("click", function(e) { e.stopPropagation(); dropdown.classList.toggle("open"); trigger.setAttribute("aria-expanded", dropdown.classList.contains("open")); });
           document.addEventListener("click", function() { dropdown.classList.remove("open"); trigger.setAttribute("aria-expanded", "false"); });
         }
-        var btn = document.getElementById("btnCerrarSesion");
-        if (btn) {
-          var url = window.SUPABASE_URL, key = window.SUPABASE_ANON_KEY;
-          if (url && key && url.indexOf("TU_PROYECTO") === -1) {
-            btn.addEventListener("click", function(e) { e.preventDefault(); window.supabase.createClient(url, key).auth.signOut().then(function() { window.location.href = "login.html"; }); });
-          }
-        }
       })();
     </script>
     <div class="page">
@@ -222,12 +215,6 @@
       (function () {
         var params = new URLSearchParams(window.location.search);
         var id = params.get("id");
-        if (!id) {
-          document.getElementById("loading").style.display = "none";
-          document.getElementById("error").style.display = "block";
-          document.getElementById("error").textContent = "Falta el ID del cliente. Vuelve al listado.";
-          return;
-        }
 
         var url = window.SUPABASE_URL;
         var key = window.SUPABASE_ANON_KEY;
@@ -236,6 +223,23 @@
           return;
         }
         var supabase = window.supabase.createClient(url, key);
+
+        var btnCerrarNav = document.getElementById("btnCerrarSesion");
+        if (btnCerrarNav) {
+          btnCerrarNav.addEventListener("click", function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            supabase.auth.signOut().then(function () { window.location.href = "login.html"; });
+          });
+        }
+
+        if (!id) {
+          document.getElementById("loading").style.display = "none";
+          document.getElementById("error").style.display = "block";
+          document.getElementById("error").textContent = "Falta el ID del cliente. Vuelve al listado.";
+          return;
+        }
+
         var currentSessionUserId = null;
 
         var ETAPAS_TRAMITE = [

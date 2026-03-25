@@ -149,19 +149,6 @@
             if (trigger) trigger.setAttribute("aria-expanded", "false");
           });
         }
-        var btn = document.getElementById("btnCerrarSesion");
-        if (btn) {
-          var u = window.SUPABASE_URL,
-            k = window.SUPABASE_ANON_KEY;
-          if (u && k && u.indexOf("TU_PROYECTO") === -1) {
-            btn.addEventListener("click", function (e) {
-              e.preventDefault();
-              window.supabase.createClient(u, k).auth.signOut().then(function () {
-                window.location.href = "login.html";
-              });
-            });
-          }
-        }
       })();
     </script>
 
@@ -223,6 +210,15 @@
         var shareNative = document.getElementById("shareNative");
 
         var supabase = window.supabase.createClient(cfgUrl, cfgKey);
+
+        var btnCerrarNav = document.getElementById("btnCerrarSesion");
+        if (btnCerrarNav) {
+          btnCerrarNav.addEventListener("click", function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            supabase.auth.signOut().then(function () { window.location.href = "login.html"; });
+          });
+        }
 
         actualizarHrefCompartir("");
         if (shareNative) shareNative.disabled = true;

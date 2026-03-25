@@ -231,13 +231,6 @@
           trigger.addEventListener("click", function(e) { e.stopPropagation(); dropdown.classList.toggle("open"); trigger.setAttribute("aria-expanded", dropdown.classList.contains("open")); });
           document.addEventListener("click", function() { dropdown.classList.remove("open"); if (trigger) trigger.setAttribute("aria-expanded", "false"); });
         }
-        var btn = document.getElementById("btnCerrarSesion");
-        if (btn) {
-          var url = window.SUPABASE_URL, key = window.SUPABASE_ANON_KEY;
-          if (url && key && url.indexOf("TU_PROYECTO") === -1) {
-            btn.addEventListener("click", function(e) { e.preventDefault(); window.supabase.createClient(url, key).auth.signOut().then(function() { window.location.href = "login.html"; }); });
-          }
-        }
       })();
     </script>
     <div class="page">
@@ -660,6 +653,21 @@
     <script src="supabase-config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script>
+      (function () {
+        var u = window.SUPABASE_URL,
+          k = window.SUPABASE_ANON_KEY;
+        if (!u || !k || u.indexOf("TU_PROYECTO") !== -1 || !window.supabase || !window.supabase.createClient) return;
+        var supNav = window.supabase.createClient(u, k);
+        var btnNav = document.getElementById("btnCerrarSesion");
+        if (btnNav) {
+          btnNav.addEventListener("click", function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            supNav.auth.signOut().then(function () { window.location.href = "login.html"; });
+          });
+        }
+      })();
+
       // Formato canónico para BD: solo dígitos y K (evita duplicados por distinto formato de RUT).
       function rutToCanonical(rut) {
         if (!rut) return "";
