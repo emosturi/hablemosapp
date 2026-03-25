@@ -76,6 +76,12 @@
       }
       .client-row { cursor: pointer; }
       .client-row:hover { background: rgba(255,255,255,0.04); }
+      /* Cliente con línea de tiempo en «Día del cierre (AFP)» o etapa posterior (guardado en ver cliente) */
+      tr.client-row.cliente-post-cierre-afp {
+        background: rgba(34, 211, 238, 0.07);
+        box-shadow: inset 3px 0 0 0 rgba(34, 211, 238, 0.5);
+      }
+      tr.client-row.cliente-post-cierre-afp:hover { background: rgba(34, 211, 238, 0.11); }
       .client-row td.acciones { cursor: default; }
       .client-row td.acciones a,
       .client-row td.acciones button { cursor: pointer; }
@@ -118,6 +124,9 @@
           gap: 10px 16px;
         }
         tr.client-row:last-child { border-bottom: none; }
+        tr.client-row.cliente-post-cierre-afp {
+          box-shadow: inset 3px 0 0 0 rgba(34, 211, 238, 0.5);
+        }
         tr.client-row td {
           padding: 0;
           border: none;
@@ -385,6 +394,18 @@
             return bodyWithDots + "-" + dv;
           }
 
+          /** Etapa 11 = «Día del cierre (afp)» en ver-cliente (ETAPAS_TRAMITE). */
+          function clientePostCierreAfp(row) {
+            if (!row || row.tipo !== "cliente") return false;
+            var n = parseInt(row.tramite_etapa_actual, 10);
+            if (!isNaN(n) && n >= 11) return true;
+            var f = row.tramite_etapas_fechas;
+            if (f && typeof f === "object" && !Array.isArray(f)) {
+              if (f["11"] != null || f[11] != null) return true;
+            }
+            return false;
+          }
+
           function cargarLista() {
             loadingEl.style.display = "block";
             errorEl.style.display = "none";
@@ -394,7 +415,7 @@
             noResults.style.display = "none";
 
             Promise.all([
-              supabase.from("clientes").select("id, rut, nombres, apellido_paterno, apellido_materno, telefono, created_at, tiene_contrato, tiene_mandato_corto, tiene_mandato_largo").order("created_at", { ascending: false }),
+              supabase.from("clientes").select("id, rut, nombres, apellido_paterno, apellido_materno, telefono, created_at, tiene_contrato, tiene_mandato_corto, tiene_mandato_largo, tramite_etapa_actual, tramite_etapas_fechas").order("created_at", { ascending: false }),
               supabase.from("clientes_potenciales").select("id, nombre, telefono, created_at").order("created_at", { ascending: false })
             ]).then(function (results) {
               loadingEl.style.display = "none";
@@ -418,7 +439,9 @@
                   created_at: c.created_at,
                   tiene_contrato: c.tiene_contrato === true,
                   tiene_mandato_corto: c.tiene_mandato_corto === true,
-                  tiene_mandato_largo: c.tiene_mandato_largo === true
+                  tiene_mandato_largo: c.tiene_mandato_largo === true,
+                  tramite_etapa_actual: c.tramite_etapa_actual,
+                  tramite_etapas_fechas: c.tramite_etapas_fechas
                 });
               });
               potenciales.forEach(function (p) {
@@ -450,8 +473,12 @@
               list.forEach(function (item) {
                 var fecha = item.created_at ? new Date(item.created_at).toLocaleDateString("es-CL") : "";
                 var searchText = [item.nombre || "", (item.rut || "").replace(/[^0-9K]/gi, ""), (item.telefono || "").replace(/\s/g, "")].join(" ").toLowerCase();
+                var postCierre = clientePostCierreAfp(item);
                 var tr = document.createElement("tr");
-                tr.className = "client-row";
+                tr.className = "client-row" + (postCierre ? " cliente-post-cierre-afp" : "");
+                if (postCierre) {
+                  tr.title = "Trámite en etapa «Día del cierre (AFP)» o posterior (línea de tiempo guardada).";
+                }
                 tr.setAttribute("data-id", item.id);
                 tr.setAttribute("data-tipo", item.tipo);
                 tr.setAttribute("data-search", searchText);
