@@ -13,6 +13,7 @@
         --border: rgba(255, 255, 255, 0.14);
         --accent: #8b5cf6;
         --danger: #ef4444;
+        --ok: #22c55e;
         --shadow: 0 16px 50px rgba(0, 0, 0, 0.45);
         --radius: 16px;
       }
@@ -56,12 +57,51 @@
       }
 
       .subtitle {
-        margin: 0 0 24px;
+        margin: 0 0 20px;
         color: var(--muted);
         font-size: 14px;
         text-align: center;
         line-height: 1.4;
       }
+
+      .auth-tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 22px;
+        padding: 4px;
+        background: rgba(0, 0, 0, 0.22);
+        border-radius: 12px;
+        border: 1px solid var(--border);
+      }
+
+      .auth-tab {
+        flex: 1;
+        padding: 10px 12px;
+        border: none;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        background: transparent;
+        color: var(--muted);
+        font-family: inherit;
+        transition: background 0.15s, color 0.15s;
+      }
+
+      .auth-tab:hover { color: var(--text); }
+
+      .auth-tab.active {
+        background: rgba(139, 92, 246, 0.35);
+        color: #fff;
+      }
+
+      .auth-tab:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+
+      .auth-pane { display: none; }
+      .auth-pane.active { display: block; }
 
       .field {
         margin-bottom: 16px;
@@ -99,6 +139,13 @@
         margin-top: 6px;
       }
 
+      .success {
+        font-size: 13px;
+        color: #86efac;
+        line-height: 1.45;
+        margin-bottom: 16px;
+      }
+
       button[type="submit"] {
         width: 100%;
         padding: 14px;
@@ -109,9 +156,15 @@
         cursor: pointer;
         background: var(--accent);
         color: #fff;
+        font-family: inherit;
       }
 
       button[type="submit"]:hover { opacity: 0.95; }
+
+      button[type="submit"]:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
 
       .links {
         margin-top: 20px;
@@ -125,43 +178,110 @@
       }
 
       .links a:hover { color: var(--text); }
+
+      .hint {
+        font-size: 12px;
+        color: var(--muted);
+        margin: -8px 0 16px;
+        line-height: 1.4;
+      }
     </style>
   </head>
   <body>
     <div class="page">
       <div class="panel">
         <h1>Acceso al formulario de pensión</h1>
-        <p class="subtitle">Ingresa tu email y contraseña para continuar</p>
+        <p class="subtitle">Área para asesores. Usa tu cuenta para gestionar clientes y trámites.</p>
 
-        <form id="loginForm" novalidate>
-          <div class="field">
-            <label for="email">Email</label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              autocomplete="email"
-              required
-            />
-            <div class="error" id="error_email"></div>
-          </div>
+        <div class="success" id="registerSuccess" style="display: none" role="status"></div>
 
-          <div class="field">
-            <label for="password">Contraseña</label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              autocomplete="current-password"
-              required
-            />
-            <div class="error" id="error_password"></div>
-          </div>
+        <div class="auth-tabs" role="tablist" aria-label="Tipo de acceso">
+          <button type="button" class="auth-tab active" id="tabLogin" role="tab" aria-selected="true" aria-controls="paneLogin">
+            Iniciar sesión
+          </button>
+          <button type="button" class="auth-tab" id="tabRegister" role="tab" aria-selected="false" aria-controls="paneRegister">
+            Nuevo asesor
+          </button>
+        </div>
 
-          <div class="error" id="error_general"></div>
+        <div id="paneLogin" class="auth-pane active" role="tabpanel" aria-labelledby="tabLogin">
+          <form id="loginForm" novalidate>
+            <div class="field">
+              <label for="email">Email</label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autocomplete="email"
+                required
+              />
+              <div class="error" id="error_email"></div>
+            </div>
 
-          <button type="submit">Entrar</button>
-        </form>
+            <div class="field">
+              <label for="password">Contraseña</label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autocomplete="current-password"
+                required
+              />
+              <div class="error" id="error_password"></div>
+            </div>
+
+            <div class="error" id="error_general"></div>
+
+            <button type="submit" id="btnLogin">Entrar</button>
+          </form>
+        </div>
+
+        <div id="paneRegister" class="auth-pane" role="tabpanel" aria-labelledby="tabRegister" hidden>
+          <p class="hint">Crea una cuenta con el correo que usarás como asesor. Si tu proyecto Supabase exige confirmar el email, revisa la bandeja de entrada antes de entrar.</p>
+          <form id="registerForm" novalidate>
+            <div class="field">
+              <label for="regEmail">Email</label>
+              <input
+                id="regEmail"
+                name="regEmail"
+                type="email"
+                autocomplete="email"
+                required
+              />
+              <div class="error" id="error_reg_email"></div>
+            </div>
+
+            <div class="field">
+              <label for="regPassword">Contraseña</label>
+              <input
+                id="regPassword"
+                name="regPassword"
+                type="password"
+                autocomplete="new-password"
+                required
+                minlength="6"
+              />
+              <div class="error" id="error_reg_password"></div>
+            </div>
+
+            <div class="field">
+              <label for="regPassword2">Repetir contraseña</label>
+              <input
+                id="regPassword2"
+                name="regPassword2"
+                type="password"
+                autocomplete="new-password"
+                required
+                minlength="6"
+              />
+              <div class="error" id="error_reg_password2"></div>
+            </div>
+
+            <div class="error" id="error_register_general"></div>
+
+            <button type="submit" id="btnRegister">Crear cuenta</button>
+          </form>
+        </div>
 
         <p class="links">
           <a href="clientes.html">Registro de Afiliados</a>
@@ -173,20 +293,89 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script>
       (function () {
-        var form = document.getElementById("loginForm");
+        var tabLogin = document.getElementById("tabLogin");
+        var tabRegister = document.getElementById("tabRegister");
+        var paneLogin = document.getElementById("paneLogin");
+        var paneRegister = document.getElementById("paneRegister");
+
+        var formLogin = document.getElementById("loginForm");
+        var formRegister = document.getElementById("registerForm");
         var inputEmail = document.getElementById("email");
         var inputPassword = document.getElementById("password");
         var errorGeneral = document.getElementById("error_general");
 
-        function clearErrors() {
+        var regEmail = document.getElementById("regEmail");
+        var regPassword = document.getElementById("regPassword");
+        var regPassword2 = document.getElementById("regPassword2");
+        var errorRegisterGeneral = document.getElementById("error_register_general");
+        var registerSuccess = document.getElementById("registerSuccess");
+        var btnLogin = document.getElementById("btnLogin");
+        var btnRegister = document.getElementById("btnRegister");
+
+        function showPane(which) {
+          var isLogin = which === "login";
+          tabLogin.classList.toggle("active", isLogin);
+          tabRegister.classList.toggle("active", !isLogin);
+          tabLogin.setAttribute("aria-selected", isLogin);
+          tabRegister.setAttribute("aria-selected", !isLogin);
+          paneLogin.classList.toggle("active", isLogin);
+          paneRegister.classList.toggle("active", !isLogin);
+          paneLogin.hidden = !isLogin;
+          paneRegister.hidden = isLogin;
+          if (isLogin) {
+            clearLoginErrors();
+            errorRegisterGeneral.textContent = "";
+          } else {
+            clearRegisterErrors();
+            errorGeneral.textContent = "";
+            registerSuccess.style.display = "none";
+            registerSuccess.textContent = "";
+          }
+        }
+
+        tabLogin.addEventListener("click", function () { showPane("login"); });
+        tabRegister.addEventListener("click", function () { showPane("register"); });
+
+        function clearLoginErrors() {
           document.getElementById("error_email").textContent = "";
           document.getElementById("error_password").textContent = "";
           errorGeneral.textContent = "";
         }
 
-        form.addEventListener("submit", function (e) {
+        function clearRegisterErrors() {
+          document.getElementById("error_reg_email").textContent = "";
+          document.getElementById("error_reg_password").textContent = "";
+          document.getElementById("error_reg_password2").textContent = "";
+          errorRegisterGeneral.textContent = "";
+        }
+
+        function getSupabase() {
+          var url = window.SUPABASE_URL;
+          var key = window.SUPABASE_ANON_KEY;
+          if (!url || !key || url.indexOf("TU_PROYECTO") !== -1) {
+            return { error: "Configura supabase-config.js con tu URL y anon key de Supabase." };
+          }
+          return { client: window.supabase.createClient(url, key) };
+        }
+
+        function mapAuthError(msg) {
+          if (!msg) return "No se pudo completar la operación.";
+          var m = String(msg).toLowerCase();
+          if (m.indexOf("already registered") !== -1 || m.indexOf("user already") !== -1) {
+            return "Ese email ya tiene cuenta. Inicia sesión o recupera la contraseña desde Supabase.";
+          }
+          if (m.indexOf("password") !== -1 && m.indexOf("least") !== -1) {
+            return "La contraseña no cumple la longitud mínima que exige tu proyecto (suele ser 6 caracteres o más).";
+          }
+          if (m.indexOf("invalid login") !== -1 || m.indexOf("invalid credentials") !== -1) {
+            return "Email o contraseña incorrectos.";
+          }
+          return msg;
+        }
+
+        formLogin.addEventListener("submit", function (e) {
           e.preventDefault();
-          clearErrors();
+          clearLoginErrors();
 
           var email = (inputEmail.value || "").trim();
           var password = inputPassword.value || "";
@@ -203,20 +392,21 @@
             return;
           }
 
-          var url = window.SUPABASE_URL;
-          var key = window.SUPABASE_ANON_KEY;
-          if (!url || !key || url.indexOf("TU_PROYECTO") !== -1) {
-            errorGeneral.textContent = "Configura supabase-config.js con tu URL y anon key de Supabase.";
+          var sb = getSupabase();
+          if (sb.error) {
+            errorGeneral.textContent = sb.error;
             return;
           }
 
-          var supabase = window.supabase.createClient(url, key);
+          btnLogin.disabled = true;
           errorGeneral.textContent = "Conectando…";
 
-          supabase.auth.signInWithPassword({ email: email, password: password })
+          sb.client.auth
+            .signInWithPassword({ email: email, password: password })
             .then(function (result) {
+              btnLogin.disabled = false;
               if (result.error) {
-                errorGeneral.textContent = result.error.message || "Usuario o contraseña incorrectos.";
+                errorGeneral.textContent = mapAuthError(result.error.message);
                 inputPassword.value = "";
                 inputPassword.focus();
                 return;
@@ -224,7 +414,83 @@
               window.location.href = "index.html";
             })
             .catch(function (err) {
-              errorGeneral.textContent = err.message || "Error al conectar. Revisa la consola.";
+              btnLogin.disabled = false;
+              errorGeneral.textContent = err.message || "Error al conectar.";
+            });
+        });
+
+        formRegister.addEventListener("submit", function (e) {
+          e.preventDefault();
+          clearRegisterErrors();
+          registerSuccess.style.display = "none";
+          registerSuccess.textContent = "";
+
+          var email = (regEmail.value || "").trim();
+          var p1 = regPassword.value || "";
+          var p2 = regPassword2.value || "";
+
+          if (!email) {
+            document.getElementById("error_reg_email").textContent = "Ingresa tu email";
+            regEmail.focus();
+            return;
+          }
+
+          if (!p1) {
+            document.getElementById("error_reg_password").textContent = "Elige una contraseña";
+            regPassword.focus();
+            return;
+          }
+
+          if (p1.length < 6) {
+            document.getElementById("error_reg_password").textContent = "Mínimo 6 caracteres (ajusta según tu política en Supabase).";
+            regPassword.focus();
+            return;
+          }
+
+          if (p1 !== p2) {
+            document.getElementById("error_reg_password2").textContent = "Las contraseñas no coinciden";
+            regPassword2.focus();
+            return;
+          }
+
+          var sb = getSupabase();
+          if (sb.error) {
+            errorRegisterGeneral.textContent = sb.error;
+            return;
+          }
+
+          btnRegister.disabled = true;
+          errorRegisterGeneral.textContent = "Creando cuenta…";
+
+          sb.client.auth
+            .signUp({ email: email, password: p1 })
+            .then(function (result) {
+              btnRegister.disabled = false;
+              if (result.error) {
+                errorRegisterGeneral.textContent = mapAuthError(result.error.message);
+                return;
+              }
+
+              errorRegisterGeneral.textContent = "";
+
+              if (result.data && result.data.session) {
+                window.location.href = "index.html";
+                return;
+              }
+
+              registerSuccess.style.display = "block";
+              registerSuccess.textContent =
+                "Cuenta creada. Si tu proyecto requiere confirmar el email, abre el enlace que te enviamos y luego usa «Iniciar sesión». Si la confirmación está desactivada en Supabase, entra ahora con tu email y contraseña.";
+              regPassword.value = "";
+              regPassword2.value = "";
+              showPane("login");
+              inputEmail.value = email;
+              inputPassword.value = "";
+              inputPassword.focus();
+            })
+            .catch(function (err) {
+              btnRegister.disabled = false;
+              errorRegisterGeneral.textContent = err.message || "Error al registrar.";
             });
         });
       })();
