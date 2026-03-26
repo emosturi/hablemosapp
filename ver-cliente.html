@@ -440,27 +440,54 @@
         }
         function scheduleAutoReminders(clienteRow, fechasEtapas) {
           var rules = buildAutoReminderRules(clienteRow, fechasEtapas);
-          if (!rules || rules.length === 0) return Promise.resolve();
+          if (!rules || rules.length === 0) {
+            // Si no hay reglas vigentes, limpiar recordatorios automáticos anteriores del cliente.
+            return supabase.from("recordatorios").delete().eq("cliente_id", id).eq("auto_generado", true)
+              .then(function (res) {
+                if (res && res.error) throw res.error;
+              });
+          }
           var nombre = [clienteRow.nombres, clienteRow.apellido_paterno, clienteRow.apellido_materno].filter(Boolean).join(" ") || "Cliente";
           var tel = (clienteRow.telefono || "").toString().trim() || null;
-          var jobs = rules.map(function (r) {
-            var fechaAviso = prevDay(r.due);
-            if (!fechaAviso) return Promise.resolve();
-            var payload = {
-              user_id: currentSessionUserId,
-              cliente_id: id,
-              cliente_nombre: nombre,
-              cliente_telefono: tel,
-              fecha: fechaAviso,
-              hora: "20:00",
-              mensaje: "[AUTO] " + r.msg + " (Vence: " + r.due + ")",
-              enviado: false,
-              auto_generado: true,
-              auto_key: r.key,
-            };
-            return supabase.from("recordatorios").upsert(payload, { onConflict: "cliente_id,auto_key" });
+
+          // Cuando el usuario se adelanta etapas, conservar solo la alerta más "nueva" (mayor due).
+          var latest = null;
+          rules.forEach(function (r) {
+            var aviso = prevDay(r.due);
+            if (!aviso) return;
+            if (!latest) {
+              latest = { rule: r, aviso: aviso };
+              return;
+            }
+            if (String(r.due) > String(latest.rule.due)) {
+              latest = { rule: r, aviso: aviso };
+            }
           });
-          return Promise.all(jobs).then(function (results) {
+
+          if (!latest) {
+            return supabase.from("recordatorios").delete().eq("cliente_id", id).eq("auto_generado", true)
+              .then(function (res) {
+                if (res && res.error) throw res.error;
+              });
+          }
+
+          var payload = {
+            user_id: currentSessionUserId,
+            cliente_id: id,
+            cliente_nombre: nombre,
+            cliente_telefono: tel,
+            fecha: latest.aviso,
+            hora: "20:00",
+            mensaje: "[AUTO] " + latest.rule.msg + " (Vence: " + latest.rule.due + ")",
+            enviado: false,
+            auto_generado: true,
+            auto_key: latest.rule.key,
+          };
+
+          return Promise.all([
+            supabase.from("recordatorios").upsert(payload, { onConflict: "cliente_id,auto_key" }),
+            supabase.from("recordatorios").delete().eq("cliente_id", id).eq("auto_generado", true).neq("auto_key", latest.rule.key),
+          ]).then(function (results) {
             var errs = (results || [])
               .map(function (r) { return r && r.error ? r.error : null; })
               .filter(Boolean);
