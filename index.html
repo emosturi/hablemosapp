@@ -1733,6 +1733,7 @@
         const fechaActualTexto = fechaHoyHablado();
         const ciudad = mandante.ciudad || "";
         const nombreTramite = mandante.tipoPension || "";
+        const esCambioModalidad = (mandante.cambioModalidadTramite || "").trim() === "Sí";
 
         // Número de contrato: registro asesor + número secuencial (asignado por RUT del mandante al pulsar Generar Contrato)
         const numeroSecuencial = data.numeroContratoSecuencial ?? "NNN";
@@ -1851,7 +1852,7 @@
         Superintendencia de Pensiones con el N° <b>${aMayus(mandatario.numeroRegistroAsesorPrevisional)}</b>,
         domiciliado en <b>${aMayus(mandatario.domicilio)}</b>, comuna de <b>${aMayus(mandatario.comuna)}</b> ciudad de <b>${aMayus(mandatario.ciudad)}</b>,
         celular <b>${aMayus(mandatario.telefono)}</b> e-mail: <b>${aMayus(mandatario.email)}</b>, en adelante el “ASESOR PREVISIONAL”.
-        Las partes acuerdan el siguiente contrato de asesoría para realizar trámite de <b>${aMayus(nombreTramite)}</b>.
+        Las partes acuerdan el siguiente contrato de asesoría para realizar trámite de <b>${aMayus(esCambioModalidad ? "cambio de modalidad para " + nombreTramite : nombreTramite)}</b>.
         </p>
 
         <h2>ANTECEDENTES DEL GRUPO FAMILIAR CON DERECHO A PENSIÓN</h2>
@@ -2832,6 +2833,13 @@
 
         if (btnContrato) {
           btnContrato.addEventListener("click", async () => {
+            const cambioModalidadSeleccionado = form.querySelector('input[name="mandante.cambioModalidadTramite"]:checked');
+            if (!cambioModalidadSeleccionado) {
+              setError(form, "mandante.cambioModalidadTramite", "Selecciona si es cambio de modalidad.");
+              setStatus("Debes indicar si el trámite es cambio de modalidad para generar contrato.");
+              return;
+            }
+
             const result = validate(form, { soloParaContrato: true });
 
             if (!result.ok) {
