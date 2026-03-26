@@ -609,7 +609,7 @@
                 var nb = Number(b.numero_contrato_secuencial);
                 var aTiene = isFinite(na);
                 var bTiene = isFinite(nb);
-                if (aTiene && bTiene && na !== nb) return na - nb;
+                if (aTiene && bTiene && na !== nb) return nb - na;
                 if (aTiene && !bTiene) return -1;
                 if (!aTiene && bTiene) return 1;
                 var ta = a.created_at ? new Date(a.created_at).getTime() : 0;
