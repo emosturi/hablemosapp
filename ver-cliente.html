@@ -538,6 +538,12 @@
               var empty = !val || String(val).trim() === "";
               return '<div class="item' + (empty ? " empty" : "") + '"><label>' + label + '</label><span>' + (val || "-") + '</span></div>';
             }
+            function fmtMontoUf(v) {
+              if (v === null || v === undefined || String(v).trim() === "") return "";
+              var n = Number(String(v).replace(",", "."));
+              if (!isFinite(n)) return String(v) + " UF";
+              return n.toLocaleString("es-CL", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " UF";
+            }
 
             function etapaActualNumero(cRow) {
               var v = cRow && cRow.tramite_etapa_actual;
@@ -593,7 +599,7 @@
             if (c.pensionado === true) {
               html += '<div class="section"><h2>Pensionado</h2><div class="grid">';
               html += item("Compañía", c.pension_compania);
-              html += item("Monto pensión", c.pension_monto);
+              html += item("Monto pensión", fmtMontoUf(c.pension_monto));
               html += item("Modalidad", c.pension_modalidad);
               html += item("Período garantizado", (c.pension_periodo_garantizado === true) ? "Sí" : (c.pension_periodo_garantizado === false) ? "No" : "");
               html += "</div></div>";
