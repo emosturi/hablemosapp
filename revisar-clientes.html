@@ -296,6 +296,7 @@
         <div id="tabsWrap" class="tabs-wrap" style="display:none;">
           <button type="button" class="tab-btn active" id="tabClientes">Clientes (<span id="countClientes">0</span>)</button>
           <button type="button" class="tab-btn" id="tabPotenciales">Potenciales (<span id="countPotenciales">0</span>)</button>
+          <button type="button" class="tab-btn" id="tabPensionados">Pensionados (<span id="countPensionados">0</span>)</button>
         </div>
         <div id="searchWrap" class="search-wrap" style="display:none;">
           <input type="search" id="searchClientes" placeholder="Buscar por nombre, RUT o teléfono…" autocomplete="off" />
@@ -354,8 +355,10 @@
           var tabsWrapEl = document.getElementById("tabsWrap");
           var tabClientesEl = document.getElementById("tabClientes");
           var tabPotencialesEl = document.getElementById("tabPotenciales");
+          var tabPensionadosEl = document.getElementById("tabPensionados");
           var countClientesEl = document.getElementById("countClientes");
           var countPotencialesEl = document.getElementById("countPotenciales");
+          var countPensionadosEl = document.getElementById("countPensionados");
           var tbody = document.getElementById("tbody");
           var searchInput = document.getElementById("searchClientes");
           var noResults = document.getElementById("noResults");
@@ -369,6 +372,7 @@
           var deleteTipo = null;
           var allClientes = [];
           var allPotenciales = [];
+          var allPensionados = [];
           var activeTab = "clientes";
 
           function filtrar() {
@@ -455,9 +459,10 @@
           function updateTabUI() {
             tabClientesEl.classList.toggle("active", activeTab === "clientes");
             tabPotencialesEl.classList.toggle("active", activeTab === "potenciales");
-            searchInput.placeholder = activeTab === "clientes"
-              ? "Buscar por nombre, RUT o teléfono…"
-              : "Buscar por nombre o teléfono…";
+            tabPensionadosEl.classList.toggle("active", activeTab === "pensionados");
+            searchInput.placeholder = activeTab === "potenciales"
+              ? "Buscar por nombre o teléfono…"
+              : "Buscar por nombre, RUT o teléfono…";
           }
 
           function renderTabla(list) {
@@ -523,9 +528,10 @@
           }
 
           function renderTab() {
-            var current = activeTab === "clientes" ? allClientes : allPotenciales;
+            var current = activeTab === "clientes" ? allClientes : (activeTab === "pensionados" ? allPensionados : allPotenciales);
             if (countClientesEl) countClientesEl.textContent = String(allClientes.length);
             if (countPotencialesEl) countPotencialesEl.textContent = String(allPotenciales.length);
+            if (countPensionadosEl) countPensionadosEl.textContent = String(allPensionados.length);
             updateTabUI();
             noResults.style.display = "none";
             searchInput.value = "";
@@ -534,7 +540,7 @@
               emptyEl.style.display = "block";
               emptyEl.textContent = activeTab === "clientes"
                 ? "No hay clientes registrados."
-                : "No hay clientes potenciales.";
+                : (activeTab === "pensionados" ? "No hay pensionados." : "No hay clientes potenciales.");
               return;
             }
             emptyEl.style.display = "none";
@@ -552,7 +558,7 @@
             noResults.style.display = "none";
 
             Promise.all([
-              supabase.from("clientes").select("id, rut, nombres, apellido_paterno, apellido_materno, telefono, created_at, tiene_contrato, tiene_mandato_corto, tiene_mandato_largo, tramite_etapa_actual, tramite_etapas_fechas").order("created_at", { ascending: false }),
+              supabase.from("clientes").select("id, rut, nombres, apellido_paterno, apellido_materno, telefono, created_at, tiene_contrato, tiene_mandato_corto, tiene_mandato_largo, tramite_etapa_actual, tramite_etapas_fechas, pensionado").order("created_at", { ascending: false }),
               supabase.from("clientes_potenciales").select("id, nombre, telefono, created_at").order("created_at", { ascending: false }),
               supabase.from("numeros_contrato").select("rut_mandante, numero_secuencial")
             ]).then(function (results) {
@@ -587,7 +593,8 @@
                   tiene_mandato_largo: c.tiene_mandato_largo === true,
                   tramite_etapa_actual: c.tramite_etapa_actual,
                   tramite_etapas_fechas: c.tramite_etapas_fechas,
-                  numero_contrato_secuencial: mapaNumeroContrato[rutToCanonical(c.rut)]
+                  numero_contrato_secuencial: mapaNumeroContrato[rutToCanonical(c.rut)],
+                  pensionado: c.pensionado === true
                 };
               });
               var potenciales = (results[1].data || []).map(function (p) {
@@ -622,10 +629,11 @@
                 return tb - ta;
               });
 
-              allClientes = clientes;
+              allPensionados = clientes.filter(function (c) { return c.pensionado === true; });
+              allClientes = clientes.filter(function (c) { return c.pensionado !== true; });
               allPotenciales = potenciales;
 
-              if (allClientes.length === 0 && allPotenciales.length === 0) {
+              if (allClientes.length === 0 && allPotenciales.length === 0 && allPensionados.length === 0) {
                 emptyEl.style.display = "block";
                 emptyEl.textContent = "No hay clientes ni clientes potenciales.";
                 return;
@@ -643,6 +651,10 @@
           });
           tabPotencialesEl.addEventListener("click", function () {
             activeTab = "potenciales";
+            renderTab();
+          });
+          tabPensionadosEl.addEventListener("click", function () {
+            activeTab = "pensionados";
             renderTab();
           });
 
