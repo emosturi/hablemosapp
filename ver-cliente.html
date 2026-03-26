@@ -85,7 +85,7 @@
       .modal { background: #0f1729; border: 1px solid var(--border); border-radius: var(--radius); max-width: 420px; width: 100%; padding: 24px; box-shadow: var(--shadow); }
       .modal h3 { margin: 0 0 16px; font-size: 18px; }
       .modal label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 4px; }
-      .modal input, .modal textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: rgba(0,0,0,0.2); color: var(--text); font-size: 14px; margin-bottom: 14px; font-family: inherit; }
+      .modal input, .modal textarea, .modal select { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: rgba(0,0,0,0.2); color: var(--text); font-size: 14px; margin-bottom: 14px; font-family: inherit; }
       .modal textarea { min-height: 80px; resize: vertical; }
       .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
       .modal-actions button { flex: 1; padding: 10px 16px; border-radius: 10px; font-size: 14px; font-weight: 500; cursor: pointer; border: none; }
@@ -205,6 +205,36 @@
             <button type="submit" id="btnEnviarRecordatorio" class="btn-primary">Programar recordatorio</button>
           </div>
           <div class="modal-feedback" id="modalFeedback" style="display:none;"></div>
+        </form>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="modalPensionado" role="dialog" aria-labelledby="modalPensionadoTitulo" aria-modal="true">
+      <div class="modal">
+        <h3 id="modalPensionadoTitulo">Finalización: marcar como pensionado</h3>
+        <p style="margin: 0 0 18px; font-size: 14px; line-height: 1.45; color: var(--text);">
+          Al completar la etapa final de la línea de tiempo, registra los datos de pensión para el cliente.
+        </p>
+        <form id="formPensionado">
+          <label for="pensionCompania">Compañía</label>
+          <select id="pensionCompania" name="pensionCompania" required></select>
+
+          <label for="pensionMonto">Monto de la pensión</label>
+          <input type="number" id="pensionMonto" name="pensionMonto" required min="0" step="0.01" />
+
+          <label for="pensionModalidad">Modalidad</label>
+          <select id="pensionModalidad" name="pensionModalidad" required></select>
+
+          <div id="pensionPeriodoWrap" style="display:none;">
+            <label for="pensionPeriodoGarantizado">¿Tiene período garantizado?</label>
+            <select id="pensionPeriodoGarantizado" name="pensionPeriodoGarantizado"></select>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" id="btnCerrarModalPensionado" class="btn-secondary">Cancelar</button>
+            <button type="submit" id="btnGuardarPensionado" class="btn-primary">Guardar y marcar pensionado</button>
+          </div>
+          <div class="modal-feedback" id="modalPensionadoFeedback" style="display:none;"></div>
         </form>
       </div>
     </div>
@@ -617,6 +647,10 @@
                         msgNuevo.textContent = "Guardado correctamente. Recordatorios automáticos actualizados.";
                         msgNuevo.className = "ok";
                       }
+                      // Si el cliente llegó al final de la línea de tiempo, abrir formulario de pensionado.
+                      if (nuevo >= 13) {
+                        abrirModalPensionadoSiCorresponde();
+                      }
                     })
                     .catch(function (errAuto) {
                       var sec = document.querySelector(".timeline-section");
@@ -788,6 +822,222 @@
                   .finally(function () { btnEnviar.disabled = false; });
               });
             }
+
+            // =========================
+            // Modal de Pensionado (etapa 13)
+            // =========================
+            var modalPensionado = document.getElementById("modalPensionado");
+            var formPensionado = document.getElementById("formPensionado");
+            var btnCerrarModalPensionado = document.getElementById("btnCerrarModalPensionado");
+            var modalPensionadoFeedback = document.getElementById("modalPensionadoFeedback");
+            var selCompania = document.getElementById("pensionCompania");
+            var inputMonto = document.getElementById("pensionMonto");
+            var selModalidad = document.getElementById("pensionModalidad");
+            var wrapPeriodo = document.getElementById("pensionPeriodoWrap");
+            var selPeriodoGarantizado = document.getElementById("pensionPeriodoGarantizado");
+
+            function esPensionadoFlag(v) {
+              return v === true || v === "true" || v === "Sí" || v === "SI" || v === "si";
+            }
+
+            function modalidadTieneRentaVitalicia(mod) {
+              var m = (mod || "").toString().toLowerCase();
+              return m.indexOf("renta vitalicia") !== -1;
+            }
+
+            function mostrarFeedbackPension(msg, esError) {
+              if (!modalPensionadoFeedback) return;
+              modalPensionadoFeedback.textContent = msg || "";
+              modalPensionadoFeedback.className = "modal-feedback " + (esError ? "error" : "success");
+              modalPensionadoFeedback.style.display = "block";
+            }
+
+            function cerrarModalPensionado() {
+              if (modalPensionado) modalPensionado.classList.remove("open");
+              if (modalPensionadoFeedback) {
+                modalPensionadoFeedback.style.display = "none";
+                modalPensionadoFeedback.textContent = "";
+                modalPensionadoFeedback.className = "modal-feedback";
+              }
+            }
+
+            function cargarOpcionesPensionado() {
+              if (!selCompania || !selModalidad || !selPeriodoGarantizado) return;
+
+              // Compañías: rentas vitalicias + AFP.
+              // Nota: si necesitas una lista más completa/actualizada, edítala aquí.
+              var companias = [
+                // AFPs
+                "AFP Capital",
+                "AFP Cuprum",
+                "AFP Habitat",
+                "AFP Modelo",
+                "AFP PlanVital",
+                "AFP Provida",
+                "AFP Uno",
+                // Ejemplos de compañías de rentas vitalicias (aseguradoras)
+                "Compañía de Seguros Generales Suramericana S.A.",
+                "Compañía de Seguros de Vida Sura",
+                "RSA Seguros",
+                "Zurich Chile",
+              ];
+
+              selCompania.innerHTML = "";
+              companias.forEach(function (c) {
+                var opt = document.createElement("option");
+                opt.value = c;
+                opt.textContent = c;
+                selCompania.appendChild(opt);
+              });
+
+              var modalidades = [
+                "retiro programado",
+                "renta vitalicia inmediata",
+                "renta vitalicia diferida con renta temporal",
+                "retiro programado con renta vitalicia",
+              ];
+              selModalidad.innerHTML = "";
+              modalidades.forEach(function (m) {
+                var opt = document.createElement("option");
+                opt.value = m;
+                opt.textContent = m;
+                selModalidad.appendChild(opt);
+              });
+
+              // Periodo garantizado (solo si hay renta vitalicia)
+              selPeriodoGarantizado.innerHTML = "";
+              ["Sí", "No"].forEach(function (v) {
+                var opt = document.createElement("option");
+                opt.value = v;
+                opt.textContent = v;
+                selPeriodoGarantizado.appendChild(opt);
+              });
+            }
+
+            var pensionModalAbierta = false;
+            function abrirModalPensionadoSiCorresponde() {
+              if (!modalPensionado) return;
+              if (pensionModalAbierta) return;
+              if (esPensionadoFlag(c.pensionado)) return;
+
+              var etapa = parseInt(c.tramite_etapa_actual, 10);
+              if (isNaN(etapa) || etapa < 13) return;
+
+              cargarOpcionesPensionado();
+
+              // Prefill con datos si existen
+              if (selCompania) {
+                var opt0 = selCompania.options && selCompania.options[0] ? selCompania.options[0] : null;
+                selCompania.value = c.pension_compania || (opt0 ? opt0.value : "");
+              }
+              if (inputMonto) inputMonto.value = c.pension_monto || "";
+              if (selModalidad) selModalidad.value = c.pension_modalidad || "";
+
+              var requierePeriodo = modalidadTieneRentaVitalicia(selModalidad ? selModalidad.value : "");
+              if (wrapPeriodo) wrapPeriodo.style.display = requierePeriodo ? "block" : "none";
+              if (requierePeriodo && selPeriodoGarantizado) {
+                var periodoValor = c.pension_periodo_garantizado;
+                var periodoStr = periodoValor === true ? "Sí" : periodoValor === false ? "No" : "";
+                if (periodoStr) selPeriodoGarantizado.value = periodoStr;
+              }
+
+              if (modalPensionadoFeedback) {
+                modalPensionadoFeedback.style.display = "none";
+                modalPensionadoFeedback.textContent = "";
+              }
+
+              modalPensionado.classList.add("open");
+              pensionModalAbierta = true;
+            }
+
+            if (selModalidad) {
+              selModalidad.addEventListener("change", function () {
+                var requierePeriodo = modalidadTieneRentaVitalicia(this.value);
+                if (wrapPeriodo) wrapPeriodo.style.display = requierePeriodo ? "block" : "none";
+              });
+            }
+
+            if (btnCerrarModalPensionado) btnCerrarModalPensionado.addEventListener("click", function () {
+              pensionModalAbierta = false;
+              cerrarModalPensionado();
+            });
+            if (modalPensionado) {
+              modalPensionado.addEventListener("click", function (e) {
+                if (e.target === modalPensionado) {
+                  pensionModalAbierta = false;
+                  cerrarModalPensionado();
+                }
+              });
+            }
+
+            if (formPensionado) {
+              formPensionado.addEventListener("submit", function (e) {
+                e.preventDefault();
+                if (!selCompania || !inputMonto || !selModalidad) return;
+
+                var compania = (selCompania.value || "").toString().trim();
+                var monto = (inputMonto.value || "").toString().trim();
+                var modalidad = (selModalidad.value || "").toString().trim();
+                var requierePeriodo = modalidadTieneRentaVitalicia(modalidad);
+                var periodoStr = requierePeriodo && selPeriodoGarantizado ? (selPeriodoGarantizado.value || "").toString().trim() : "";
+
+                if (!compania) return mostrarFeedbackPension("Selecciona la compañía.", true);
+                if (!monto) return mostrarFeedbackPension("Ingresa el monto de la pensión.", true);
+                if (!modalidad) return mostrarFeedbackPension("Selecciona la modalidad.", true);
+                if (requierePeriodo && !periodoStr) return mostrarFeedbackPension("Selecciona si tiene período garantizado.", true);
+
+                var btnGuardar = document.getElementById("btnGuardarPensionado");
+                if (btnGuardar) btnGuardar.disabled = true;
+                mostrarFeedbackPension("Guardando…", false);
+
+                var periodoBool = null;
+                if (requierePeriodo) {
+                  periodoBool = periodoStr === "Sí";
+                }
+
+                supabase
+                  .from("clientes")
+                  .update({
+                    pensionado: true,
+                    pension_compania: compania,
+                    pension_monto: monto,
+                    pension_modalidad: modalidad,
+                    pension_periodo_garantizado: requierePeriodo ? periodoBool : null,
+                  })
+                  .eq("id", id)
+                  .select()
+                  .single()
+                  .then(function (up) {
+                    if (btnGuardar) btnGuardar.disabled = false;
+                    if (up.error) {
+                      mostrarFeedbackPension(up.error.message || "No se pudo guardar el pensionado.", true);
+                      return;
+                    }
+
+                    // Actualiza el cliente en memoria para no abrir el modal nuevamente.
+                    c.pensionado = true;
+                    c.pension_compania = compania;
+                    c.pension_monto = monto;
+                    c.pension_modalidad = modalidad;
+                    c.pension_periodo_garantizado = requierePeriodo ? periodoBool : null;
+
+                    mostrarFeedbackPension("Datos guardados correctamente.", false);
+                    setTimeout(function () {
+                      pensionModalAbierta = false;
+                      cerrarModalPensionado();
+                    }, 900);
+                  })
+                  .catch(function (err) {
+                    if (btnGuardar) btnGuardar.disabled = false;
+                    mostrarFeedbackPension((err && err.message ? err.message : "Error inesperado"), true);
+                  });
+              });
+            }
+
+            // Si ya venía en etapa 13 y no estaba marcado como pensionado, abrir al cargar.
+            setTimeout(function () {
+              abrirModalPensionadoSiCorresponde();
+            }, 0);
           });
         });
       })();
