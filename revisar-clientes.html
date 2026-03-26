@@ -206,6 +206,26 @@
         opacity: 0.7;
       }
       .no-results { color: var(--muted); padding: 20px; display: none; }
+      .tabs-wrap {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 14px;
+        flex-wrap: wrap;
+      }
+      .tab-btn {
+        border: 1px solid var(--border);
+        background: rgba(255,255,255,0.06);
+        color: var(--muted);
+        border-radius: 10px;
+        padding: 8px 12px;
+        font-size: 13px;
+        cursor: pointer;
+      }
+      .tab-btn.active {
+        background: rgba(139, 92, 246, 0.25);
+        color: var(--text);
+        border-color: rgba(139, 92, 246, 0.55);
+      }
       .nav-bar { display: flex; align-items: center; padding: 12px 16px; background: rgba(0,0,0,0.25); border-bottom: 1px solid var(--border); max-width: 1100px; margin: 0 auto; position: relative; }
       .menu-trigger { display: flex; align-items: center; gap: 8px; padding: 8px 14px; background: rgba(255,255,255,0.08); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-size: 14px; font-weight: 500; cursor: pointer; outline: none; }
       .menu-trigger:hover { background: rgba(255,255,255,0.12); }
@@ -262,6 +282,10 @@
         <div id="loading" class="loading">Cargando clientes…</div>
         <div id="error" class="error-msg" style="display:none;"></div>
         <div id="empty" class="empty" style="display:none;">No hay clientes ni clientes potenciales.</div>
+        <div id="tabsWrap" class="tabs-wrap" style="display:none;">
+          <button type="button" class="tab-btn active" id="tabClientes">Clientes (<span id="countClientes">0</span>)</button>
+          <button type="button" class="tab-btn" id="tabPotenciales">Potenciales (<span id="countPotenciales">0</span>)</button>
+        </div>
         <div id="searchWrap" class="search-wrap" style="display:none;">
           <input type="search" id="searchClientes" placeholder="Buscar por nombre, RUT o teléfono…" autocomplete="off" />
         </div>
@@ -317,6 +341,11 @@
           var emptyEl = document.getElementById("empty");
           var tablaEl = document.getElementById("tabla");
           var searchWrapEl = document.getElementById("searchWrap");
+          var tabsWrapEl = document.getElementById("tabsWrap");
+          var tabClientesEl = document.getElementById("tabClientes");
+          var tabPotencialesEl = document.getElementById("tabPotenciales");
+          var countClientesEl = document.getElementById("countClientes");
+          var countPotencialesEl = document.getElementById("countPotenciales");
           var tbody = document.getElementById("tbody");
           var searchInput = document.getElementById("searchClientes");
           var noResults = document.getElementById("noResults");
@@ -328,6 +357,9 @@
 
           var deleteId = null;
           var deleteTipo = null;
+          var allClientes = [];
+          var allPotenciales = [];
+          var activeTab = "clientes";
 
           function filtrar() {
             var q = (searchInput.value || "").trim().toLowerCase();
@@ -406,12 +438,102 @@
             return false;
           }
 
+          function updateTabUI() {
+            tabClientesEl.classList.toggle("active", activeTab === "clientes");
+            tabPotencialesEl.classList.toggle("active", activeTab === "potenciales");
+            searchInput.placeholder = activeTab === "clientes"
+              ? "Buscar por nombre, RUT o teléfono…"
+              : "Buscar por nombre o teléfono…";
+          }
+
+          function renderTabla(list) {
+            tbody.innerHTML = "";
+            list.forEach(function (item) {
+              var fecha = item.created_at ? new Date(item.created_at).toLocaleDateString("es-CL") : "";
+              var searchText = [item.nombre || "", (item.rut || "").replace(/[^0-9K]/gi, ""), (item.telefono || "").replace(/\s/g, "")].join(" ").toLowerCase();
+              var postCierre = clientePostCierreAfp(item);
+              var tr = document.createElement("tr");
+              tr.className = "client-row" + (postCierre ? " cliente-post-cierre-afp" : "");
+              if (postCierre) {
+                tr.title = "Trámite en etapa «Día del cierre (AFP)» o posterior (línea de tiempo guardada).";
+              }
+              tr.setAttribute("data-id", item.id);
+              tr.setAttribute("data-tipo", item.tipo);
+              tr.setAttribute("data-search", searchText);
+              var tipoLabel = item.tipo === "potencial" ? "Potencial" : "Cliente";
+              var tipoClass = item.tipo === "potencial" ? "td-tipo potencial" : "td-tipo";
+              var docsHtml = "-";
+              if (item.tipo === "cliente") {
+                docsHtml = "";
+                if (item.tiene_contrato) docsHtml += '<a class="doc-badge" title="Imprimir contrato" href="index.html?cliente=' + encodeURIComponent(item.id) + '&imprimir=contrato">C</a>';
+                if (item.tiene_mandato_corto) docsHtml += '<a class="doc-badge" title="Imprimir mandato corto" href="index.html?cliente=' + encodeURIComponent(item.id) + '&imprimir=mandato_corto">MC</a>';
+                if (item.tiene_mandato_largo) docsHtml += '<a class="doc-badge" title="Imprimir mandato largo" href="index.html?cliente=' + encodeURIComponent(item.id) + '&imprimir=mandato_largo">ML</a>';
+                if (!docsHtml) docsHtml = "-";
+              }
+              var accionesHtml;
+              if (item.tipo === "cliente") {
+                accionesHtml =
+                  '<a href="editar-cliente.html?id=' + encodeURIComponent(item.id) + '" class="btn-small btn-editar" title="Editar"><span class="btn-icon" aria-hidden="true"><svg class="btn-icon-svg" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span><span class="btn-text">Editar</span></a>' +
+                  '<a href="index.html?cliente=' + encodeURIComponent(item.id) + '" class="btn-small btn-use" title="Usar en formulario de pensiones"><span class="btn-icon" aria-hidden="true"><svg class="btn-icon-svg" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg></span><span class="btn-text">Usar</span></a>' +
+                  '<button type="button" class="btn-small btn-borrar" title="Borrar" data-id="' + item.id + '"><span class="btn-icon" aria-hidden="true"><svg class="btn-icon-svg" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z"/><path d="M10 11v6M14 11v6"/></svg></span><span class="btn-text">Borrar</span></button>';
+              } else {
+                accionesHtml = '<button type="button" class="btn-small btn-borrar" title="Borrar" data-id="' + item.id + '"><span class="btn-icon" aria-hidden="true"><svg class="btn-icon-svg" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z"/><path d="M10 11v6M14 11v6"/></svg></span><span class="btn-text">Borrar</span></button>';
+              }
+              tr.innerHTML =
+                "<td class=\"client-name\">" + (item.nombre || "-") + "</td>" +
+                "<td class=\"td-rut\">" + (item.rut ? formatRutDisplay(item.rut) : "-") + "</td>" +
+                "<td class=\"td-tel\">" + (item.telefono || "-") + "</td>" +
+                "<td class=\"td-registro\">" + fecha + "</td>" +
+                "<td class=\"" + tipoClass + "\">" + tipoLabel + "</td>" +
+                "<td class=\"td-docs\">" + docsHtml + "</td>" +
+                '<td class="acciones">' + accionesHtml + "</td>";
+              tbody.appendChild(tr);
+              var btnBorrar = tr.querySelector(".btn-borrar");
+              if (btnBorrar) btnBorrar.addEventListener("click", function (e) { e.stopPropagation(); openModal(item.id, item.tipo); });
+              if (item.tipo === "cliente") {
+                tr.querySelector(".btn-editar").addEventListener("click", function (e) { e.stopPropagation(); });
+                tr.querySelector(".btn-use").addEventListener("click", function (e) { e.stopPropagation(); });
+                tr.addEventListener("click", function (e) {
+                  if (e.target.closest("td.acciones") || e.target.closest("td.td-docs")) return;
+                  window.location.href = "ver-cliente.html?id=" + encodeURIComponent(item.id);
+                });
+              } else {
+                tr.addEventListener("click", function (e) {
+                  if (e.target.closest("td.acciones")) return;
+                  window.location.href = "ver-potencial.html?id=" + encodeURIComponent(item.id);
+                });
+              }
+            });
+            filtrar();
+          }
+
+          function renderTab() {
+            var current = activeTab === "clientes" ? allClientes : allPotenciales;
+            if (countClientesEl) countClientesEl.textContent = String(allClientes.length);
+            if (countPotencialesEl) countPotencialesEl.textContent = String(allPotenciales.length);
+            updateTabUI();
+            noResults.style.display = "none";
+            searchInput.value = "";
+            if (current.length === 0) {
+              tablaEl.style.display = "none";
+              emptyEl.style.display = "block";
+              emptyEl.textContent = activeTab === "clientes"
+                ? "No hay clientes registrados."
+                : "No hay clientes potenciales.";
+              return;
+            }
+            emptyEl.style.display = "none";
+            tablaEl.style.display = "table";
+            renderTabla(current);
+          }
+
           function cargarLista() {
             loadingEl.style.display = "block";
             errorEl.style.display = "none";
             emptyEl.style.display = "none";
             tablaEl.style.display = "none";
             searchWrapEl.style.display = "none";
+            tabsWrapEl.style.display = "none";
             noResults.style.display = "none";
 
             Promise.all([
@@ -426,11 +548,8 @@
                 errorEl.textContent = (errClientes && errClientes.message) || (errPotenciales && errPotenciales.message) || "Error al cargar.";
                 return;
               }
-              var clientes = results[0].data || [];
-              var potenciales = results[1].data || [];
-              var list = [];
-              clientes.forEach(function (c) {
-                list.push({
+              var clientes = (results[0].data || []).map(function (c) {
+                return {
                   id: c.id,
                   tipo: "cliente",
                   nombre: [c.nombres, c.apellido_paterno, c.apellido_materno].filter(Boolean).join(" "),
@@ -442,10 +561,10 @@
                   tiene_mandato_largo: c.tiene_mandato_largo === true,
                   tramite_etapa_actual: c.tramite_etapa_actual,
                   tramite_etapas_fechas: c.tramite_etapas_fechas
-                });
+                };
               });
-              potenciales.forEach(function (p) {
-                list.push({
+              var potenciales = (results[1].data || []).map(function (p) {
+                return {
                   id: p.id,
                   tipo: "potencial",
                   nombre: p.nombre || "",
@@ -455,80 +574,43 @@
                   tiene_contrato: false,
                   tiene_mandato_corto: false,
                   tiene_mandato_largo: false
-                });
+                };
               });
-              list.sort(function (a, b) {
+
+              clientes.sort(function (a, b) {
                 var ta = a.created_at ? new Date(a.created_at).getTime() : 0;
                 var tb = b.created_at ? new Date(b.created_at).getTime() : 0;
                 return tb - ta;
               });
-              if (list.length === 0) {
+              potenciales.sort(function (a, b) {
+                var ta = a.created_at ? new Date(a.created_at).getTime() : 0;
+                var tb = b.created_at ? new Date(b.created_at).getTime() : 0;
+                return tb - ta;
+              });
+
+              allClientes = clientes;
+              allPotenciales = potenciales;
+
+              if (allClientes.length === 0 && allPotenciales.length === 0) {
                 emptyEl.style.display = "block";
+                emptyEl.textContent = "No hay clientes ni clientes potenciales.";
                 return;
               }
-              tablaEl.style.display = "table";
-              searchWrapEl.style.display = "block";
-              tbody.innerHTML = "";
 
-              list.forEach(function (item) {
-                var fecha = item.created_at ? new Date(item.created_at).toLocaleDateString("es-CL") : "";
-                var searchText = [item.nombre || "", (item.rut || "").replace(/[^0-9K]/gi, ""), (item.telefono || "").replace(/\s/g, "")].join(" ").toLowerCase();
-                var postCierre = clientePostCierreAfp(item);
-                var tr = document.createElement("tr");
-                tr.className = "client-row" + (postCierre ? " cliente-post-cierre-afp" : "");
-                if (postCierre) {
-                  tr.title = "Trámite en etapa «Día del cierre (AFP)» o posterior (línea de tiempo guardada).";
-                }
-                tr.setAttribute("data-id", item.id);
-                tr.setAttribute("data-tipo", item.tipo);
-                tr.setAttribute("data-search", searchText);
-                var tipoLabel = item.tipo === "potencial" ? "Potencial" : "Cliente";
-                var tipoClass = item.tipo === "potencial" ? "td-tipo potencial" : "td-tipo";
-                var docsHtml = "-";
-                if (item.tipo === "cliente") {
-                  docsHtml = "";
-                  if (item.tiene_contrato) docsHtml += '<a class="doc-badge" title="Imprimir contrato" href="index.html?cliente=' + encodeURIComponent(item.id) + '&imprimir=contrato">C</a>';
-                  if (item.tiene_mandato_corto) docsHtml += '<a class="doc-badge" title="Imprimir mandato corto" href="index.html?cliente=' + encodeURIComponent(item.id) + '&imprimir=mandato_corto">MC</a>';
-                  if (item.tiene_mandato_largo) docsHtml += '<a class="doc-badge" title="Imprimir mandato largo" href="index.html?cliente=' + encodeURIComponent(item.id) + '&imprimir=mandato_largo">ML</a>';
-                  if (!docsHtml) docsHtml = "-";
-                }
-                var accionesHtml;
-                if (item.tipo === "cliente") {
-                  accionesHtml =
-                    '<a href="editar-cliente.html?id=' + encodeURIComponent(item.id) + '" class="btn-small btn-editar" title="Editar"><span class="btn-icon" aria-hidden="true"><svg class="btn-icon-svg" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span><span class="btn-text">Editar</span></a>' +
-                    '<a href="index.html?cliente=' + encodeURIComponent(item.id) + '" class="btn-small btn-use" title="Usar en formulario de pensiones"><span class="btn-icon" aria-hidden="true"><svg class="btn-icon-svg" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg></span><span class="btn-text">Usar</span></a>' +
-                    '<button type="button" class="btn-small btn-borrar" title="Borrar" data-id="' + item.id + '"><span class="btn-icon" aria-hidden="true"><svg class="btn-icon-svg" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z"/><path d="M10 11v6M14 11v6"/></svg></span><span class="btn-text">Borrar</span></button>';
-                } else {
-                  accionesHtml = '<button type="button" class="btn-small btn-borrar" title="Borrar" data-id="' + item.id + '"><span class="btn-icon" aria-hidden="true"><svg class="btn-icon-svg" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z"/><path d="M10 11v6M14 11v6"/></svg></span><span class="btn-text">Borrar</span></button>';
-                }
-                tr.innerHTML =
-                  "<td class=\"client-name\">" + (item.nombre || "-") + "</td>" +
-                  "<td class=\"td-rut\">" + (item.rut ? formatRutDisplay(item.rut) : "-") + "</td>" +
-                  "<td class=\"td-tel\">" + (item.telefono || "-") + "</td>" +
-                  "<td class=\"td-registro\">" + fecha + "</td>" +
-                  "<td class=\"" + tipoClass + "\">" + tipoLabel + "</td>" +
-                  "<td class=\"td-docs\">" + docsHtml + "</td>" +
-                  '<td class="acciones">' + accionesHtml + "</td>";
-                tbody.appendChild(tr);
-                var btnBorrar = tr.querySelector(".btn-borrar");
-                if (btnBorrar) btnBorrar.addEventListener("click", function (e) { e.stopPropagation(); openModal(item.id, item.tipo); });
-                if (item.tipo === "cliente") {
-                  tr.querySelector(".btn-editar").addEventListener("click", function (e) { e.stopPropagation(); });
-                  tr.querySelector(".btn-use").addEventListener("click", function (e) { e.stopPropagation(); });
-                  tr.addEventListener("click", function (e) {
-                    if (e.target.closest("td.acciones") || e.target.closest("td.td-docs")) return;
-                    window.location.href = "ver-cliente.html?id=" + encodeURIComponent(item.id);
-                  });
-                } else {
-                  tr.addEventListener("click", function (e) {
-                    if (e.target.closest("td.acciones")) return;
-                    window.location.href = "ver-potencial.html?id=" + encodeURIComponent(item.id);
-                  });
-                }
-              });
-              filtrar();
+              searchWrapEl.style.display = "block";
+              tabsWrapEl.style.display = "flex";
+              renderTab();
             });
           }
+
+          tabClientesEl.addEventListener("click", function () {
+            activeTab = "clientes";
+            renderTab();
+          });
+          tabPotencialesEl.addEventListener("click", function () {
+            activeTab = "potenciales";
+            renderTab();
+          });
 
           cargarLista();
 
