@@ -92,8 +92,6 @@
       .btn-icon { display: none; }
       .btn-text { display: inline; }
       .btn-icon-svg { width: 16px; height: 16px; display: inline-block; vertical-align: middle; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-      .td-tipo { color: var(--muted); font-size: 13px; }
-      .td-tipo.potencial { color: #c4b5fd; }
       .td-docs { font-size: 12px; color: var(--muted); }
       .doc-badge {
         display: inline-block;
@@ -109,7 +107,7 @@
       .doc-badge:hover { background: rgba(139, 92, 246, 0.2); }
       @media (max-width: 640px) {
         .page { padding: 20px 12px 40px; }
-        .th-tel, .th-registro, .th-rut, .th-tipo, .td-tel, .td-registro, .td-rut, .td-tipo { display: none !important; }
+        .th-tel, .th-registro, .th-rut, .td-tel, .td-registro, .td-rut { display: none !important; }
         .btn-icon { display: inline; }
         .btn-text { display: none; }
         .btn-small { padding: 8px 10px; margin-right: 4px; min-width: 36px; text-align: center; }
@@ -297,7 +295,6 @@
               <th class="th-rut">RUT</th>
               <th class="th-tel">Teléfono</th>
               <th class="th-registro">Registro</th>
-              <th class="th-tipo">Tipo</th>
               <th class="th-docs">Docs</th>
               <th>Acciones</th>
             </tr>
@@ -425,6 +422,10 @@
             var bodyWithDots = body.split("").reverse().join("").replace(/(\d{3})(?=\d)/g, "$1.").split("").reverse().join("");
             return bodyWithDots + "-" + dv;
           }
+          function rutToCanonical(rut) {
+            if (!rut) return "";
+            return String(rut).trim().toUpperCase().replace(/[^0-9K]/g, "");
+          }
 
           /** Etapa 11 = «Día del cierre (afp)» en ver-cliente (ETAPAS_TRAMITE). */
           function clientePostCierreAfp(row) {
@@ -460,8 +461,6 @@
               tr.setAttribute("data-id", item.id);
               tr.setAttribute("data-tipo", item.tipo);
               tr.setAttribute("data-search", searchText);
-              var tipoLabel = item.tipo === "potencial" ? "Potencial" : "Cliente";
-              var tipoClass = item.tipo === "potencial" ? "td-tipo potencial" : "td-tipo";
               var docsHtml = "-";
               if (item.tipo === "cliente") {
                 docsHtml = "";
@@ -484,7 +483,6 @@
                 "<td class=\"td-rut\">" + (item.rut ? formatRutDisplay(item.rut) : "-") + "</td>" +
                 "<td class=\"td-tel\">" + (item.telefono || "-") + "</td>" +
                 "<td class=\"td-registro\">" + fecha + "</td>" +
-                "<td class=\"" + tipoClass + "\">" + tipoLabel + "</td>" +
                 "<td class=\"td-docs\">" + docsHtml + "</td>" +
                 '<td class="acciones">' + accionesHtml + "</td>";
               tbody.appendChild(tr);
@@ -538,16 +536,27 @@
 
             Promise.all([
               supabase.from("clientes").select("id, rut, nombres, apellido_paterno, apellido_materno, telefono, created_at, tiene_contrato, tiene_mandato_corto, tiene_mandato_largo, tramite_etapa_actual, tramite_etapas_fechas").order("created_at", { ascending: false }),
-              supabase.from("clientes_potenciales").select("id, nombre, telefono, created_at").order("created_at", { ascending: false })
+              supabase.from("clientes_potenciales").select("id, nombre, telefono, created_at").order("created_at", { ascending: false }),
+              supabase.from("numeros_contrato").select("rut_mandante, numero_secuencial")
             ]).then(function (results) {
               loadingEl.style.display = "none";
               var errClientes = results[0].error;
               var errPotenciales = results[1].error;
-              if (errClientes || errPotenciales) {
+              var errNumeros = results[2].error;
+              if (errClientes || errPotenciales || errNumeros) {
                 errorEl.style.display = "block";
-                errorEl.textContent = (errClientes && errClientes.message) || (errPotenciales && errPotenciales.message) || "Error al cargar.";
+                errorEl.textContent = (errClientes && errClientes.message) || (errPotenciales && errPotenciales.message) || (errNumeros && errNumeros.message) || "Error al cargar.";
                 return;
               }
+              var numerosRows = results[2].data || [];
+              var mapaNumeroContrato = {};
+              numerosRows.forEach(function (n) {
+                var rutKey = rutToCanonical(n && n.rut_mandante);
+                if (!rutKey) return;
+                var num = Number(n.numero_secuencial);
+                if (!isFinite(num)) return;
+                mapaNumeroContrato[rutKey] = num;
+              });
               var clientes = (results[0].data || []).map(function (c) {
                 return {
                   id: c.id,
@@ -560,7 +569,8 @@
                   tiene_mandato_corto: c.tiene_mandato_corto === true,
                   tiene_mandato_largo: c.tiene_mandato_largo === true,
                   tramite_etapa_actual: c.tramite_etapa_actual,
-                  tramite_etapas_fechas: c.tramite_etapas_fechas
+                  tramite_etapas_fechas: c.tramite_etapas_fechas,
+                  numero_contrato_secuencial: mapaNumeroContrato[rutToCanonical(c.rut)]
                 };
               });
               var potenciales = (results[1].data || []).map(function (p) {
@@ -578,6 +588,13 @@
               });
 
               clientes.sort(function (a, b) {
+                var na = Number(a.numero_contrato_secuencial);
+                var nb = Number(b.numero_contrato_secuencial);
+                var aTiene = isFinite(na);
+                var bTiene = isFinite(nb);
+                if (aTiene && bTiene && na !== nb) return na - nb;
+                if (aTiene && !bTiene) return -1;
+                if (!aTiene && bTiene) return 1;
                 var ta = a.created_at ? new Date(a.created_at).getTime() : 0;
                 var tb = b.created_at ? new Date(b.created_at).getTime() : 0;
                 return tb - ta;
