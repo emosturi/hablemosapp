@@ -97,6 +97,13 @@
       .modal-feedback { margin-top: 12px; font-size: 13px; }
       .modal-feedback.error { color: #ef4444; }
       .modal-feedback.success { color: #22c55e; }
+      .checklist { margin: 0; padding: 0; list-style: none; }
+      .checklist li { display: flex; align-items: flex-start; gap: 10px; padding: 10px 8px; border-radius: 10px; }
+      .checklist li:hover { background: rgba(255,255,255,0.04); }
+      .checklist input[type="checkbox"] { margin-top: 2px; width: 18px; height: 18px; accent-color: var(--accent); }
+      .checklist .checklist-title { font-weight: 700; letter-spacing: 0.01em; }
+      .checklist .checklist-sub { color: var(--muted); font-size: 12px; margin-top: 2px; }
+      .checklist .group-label { margin: 14px 0 8px; color: var(--muted); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; }
       .timeline-hint { font-size: 13px; color: var(--muted); margin: 0 0 14px; line-height: 1.4; }
       .timeline-controls { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; margin-bottom: 20px; padding: 12px; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid var(--border); }
       .timeline-controls label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; width: 100%; }
@@ -164,6 +171,7 @@
           <a href="#" id="lnkEditar" class="btn">Editar cliente</a>
           <a href="index.html" id="lnkUsar" class="btn">Usar en formulario de pensión</a>
           <button type="button" id="btnRecordatorio" class="btn">Agregar Recordatorio</button>
+          <button type="button" id="btnChecklist" class="btn">Checklist</button>
         </div>
       </header>
 
@@ -236,6 +244,41 @@
           </div>
           <div class="modal-feedback" id="modalPensionadoFeedback" style="display:none;"></div>
         </form>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="modalChecklist" role="dialog" aria-labelledby="modalChecklistTitulo" aria-modal="true">
+      <div class="modal">
+        <h3 id="modalChecklistTitulo">Checklist del caso</h3>
+        <p style="margin: 0 0 14px; font-size: 13px; line-height: 1.45; color: var(--muted);">
+          Marca lo que ya está recibido/firmado. (Este checklist es solo visual por ahora.)
+        </p>
+
+        <ul class="checklist" aria-label="Checklist de documentos y pasos">
+          <li><input type="checkbox" id="chk_copia_ci" /><div><div class="checklist-title"><label for="chk_copia_ci">COPIA CI</label></div></div></li>
+          <li><input type="checkbox" id="chk_contrato_firmado" /><div><div class="checklist-title"><label for="chk_contrato_firmado">CONTRATO FIRMADO</label></div></div></li>
+          <li><input type="checkbox" id="chk_informe_final_firmado" /><div><div class="checklist-title"><label for="chk_informe_final_firmado">INFORME FINAL FIRMADO</label></div></div></li>
+          <li><input type="checkbox" id="chk_certificado_saldo" /><div><div class="checklist-title"><label for="chk_certificado_saldo">CERTIFICADO DE SALDO</label></div></div></li>
+          <li><input type="checkbox" id="chk_solicitud_ofertas_firmadas" /><div><div class="checklist-title"><label for="chk_solicitud_ofertas_firmadas">SOLICITUD DE OFERTAS FIRMADAS</label></div></div></li>
+          <li><input type="checkbox" id="chk_scomp_original" /><div><div class="checklist-title"><label for="chk_scomp_original">SCOMP ORIGINAL</label></div></div></li>
+          <li><input type="checkbox" id="chk_aceptacion_con_respaldo" /><div><div class="checklist-title"><label for="chk_aceptacion_con_respaldo">ACEPTACIÓN CON RESPALDO</label></div></div></li>
+          <li><input type="checkbox" id="chk_seleccion_decision_cambio" /><div><div class="checklist-title"><label for="chk_seleccion_decision_cambio">SELECCIÓN o DECISIÓN DE CAMBIO</label></div></div></li>
+          <li><input type="checkbox" id="chk_papeles_internos_compania" /><div><div class="checklist-title"><label for="chk_papeles_internos_compania">PAPELES INTERNOS DE COMPAÑÍA</label></div></div></li>
+        </ul>
+
+        <div class="group-label">Casos de invalidez</div>
+        <ul class="checklist" aria-label="Checklist invalidez">
+          <li>
+            <input type="checkbox" id="chk_dictamen_ejecutoriado" />
+            <div>
+              <div class="checklist-title"><label for="chk_dictamen_ejecutoriado">DICTÁMEN EJECUTORIADO</label></div>
+            </div>
+          </li>
+        </ul>
+
+        <div class="modal-actions">
+          <button type="button" id="btnCerrarModalChecklist" class="btn-secondary">Cerrar</button>
+        </div>
       </div>
     </div>
 
@@ -545,15 +588,24 @@
             }
 
             var html = "";
-            if (!bonoReconocimientoDefinido(c)) {
-              html +=
-                '<div class="section" id="tramiteActivarWrap">' +
-                "<h2>Línea de tiempo del trámite</h2>" +
-                '<p class="timeline-hint">Puede activar la línea de tiempo en cualquier momento (no requiere mandato firmado). Solo necesitamos saber si el cliente tiene bono de reconocimiento para calcular bien las etapas y los recordatorios.</p>' +
-                '<button type="button" class="btn" id="btnActivarLineaTiempo">Activar línea de tiempo</button>' +
-                "</div>";
+            if (c.pensionado === true) {
+              html += '<div class="section"><h2>Pensionado</h2><div class="grid">';
+              html += item("Compañía", c.pension_compania);
+              html += item("Monto pensión", c.pension_monto);
+              html += item("Modalidad", c.pension_modalidad);
+              html += item("Período garantizado", (c.pension_periodo_garantizado === true) ? "Sí" : (c.pension_periodo_garantizado === false) ? "No" : "");
+              html += "</div></div>";
             } else {
-              html += buildTimelineSection(c);
+              if (!bonoReconocimientoDefinido(c)) {
+                html +=
+                  '<div class="section" id="tramiteActivarWrap">' +
+                  "<h2>Línea de tiempo del trámite</h2>" +
+                  '<p class="timeline-hint">Puede activar la línea de tiempo en cualquier momento (no requiere mandato firmado). Solo necesitamos saber si el cliente tiene bono de reconocimiento para calcular bien las etapas y los recordatorios.</p>' +
+                  '<button type="button" class="btn" id="btnActivarLineaTiempo">Activar línea de tiempo</button>' +
+                  "</div>";
+              } else {
+                html += buildTimelineSection(c);
+              }
             }
             html += '<div class="section"><h2>Datos del cliente</h2><div class="grid">';
             html += item("Nombres", c.nombres) + item("Apellido Paterno", c.apellido_paterno) + item("Apellido Materno", c.apellido_materno);
@@ -1038,6 +1090,29 @@
             setTimeout(function () {
               abrirModalPensionadoSiCorresponde();
             }, 0);
+
+            // =========================
+            // Modal Checklist
+            // =========================
+            var modalChecklist = document.getElementById("modalChecklist");
+            var btnChecklist = document.getElementById("btnChecklist");
+            var btnCerrarModalChecklist = document.getElementById("btnCerrarModalChecklist");
+
+            function cerrarModalChecklist() {
+              if (modalChecklist) modalChecklist.classList.remove("open");
+            }
+
+            if (btnChecklist && modalChecklist) {
+              btnChecklist.addEventListener("click", function () {
+                modalChecklist.classList.add("open");
+              });
+            }
+            if (btnCerrarModalChecklist) btnCerrarModalChecklist.addEventListener("click", cerrarModalChecklist);
+            if (modalChecklist) {
+              modalChecklist.addEventListener("click", function (e) {
+                if (e.target === modalChecklist) cerrarModalChecklist();
+              });
+            }
           });
         });
       })();
