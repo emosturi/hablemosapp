@@ -905,6 +905,7 @@
 
           <div class="actions">
             <div class="btns">
+              <button type="button" id="btnGuardarBD">Guardar en BD</button>
               <button type="button" id="btnMandatoSimple">Generar Mandato</button>
               <button type="button" id="btnMandatoCorto">Generar Mandato Corto</button>
               <button type="button" id="btnContrato">Generar Contrato</button>
@@ -2736,6 +2737,7 @@
             const out = document.getElementById("output");
             const preview = document.getElementById("jsonPreview");
             const btnLimpiar = document.getElementById("btnLimpiar");
+            const btnGuardarBD = document.getElementById("btnGuardarBD");
             const btnMandatoSimple = document.getElementById("btnMandatoSimple");
             const btnMandatoCorto = document.getElementById("btnMandatoCorto");
             const btnContrato = document.getElementById("btnContrato");
@@ -2809,6 +2811,32 @@
               generarMandatoSimple(data);
               setStatus("");
             });
+
+            if (btnGuardarBD) {
+              btnGuardarBD.addEventListener("click", async function () {
+                const result = validate(form);
+                if (!result.ok) {
+                  setStatus("Debes completar el formulario primero");
+                  return;
+                }
+                if (!supabaseClient) {
+                  setStatus("No hay conexión a Supabase (inicia sesión o configura supabase-config.js).");
+                  return;
+                }
+                const data = formDataToObject(form);
+                btnGuardarBD.disabled = true;
+                setStatus("Guardando cliente en la base de datos…");
+                try {
+                  await saveClienteFromMandatoData(supabaseClient, data);
+                  setStatus("Cliente guardado/actualizado correctamente (sin generar descarga).");
+                } catch (e) {
+                  console.error("Error al guardar cliente:", e);
+                  setStatus("No se pudo guardar el cliente en la base de datos. " + (e && e.message ? e.message : ""));
+                } finally {
+                  btnGuardarBD.disabled = false;
+                }
+              });
+            }
 
             btnMandatoCorto.addEventListener("click", async function () {
               const result = validate(form);
