@@ -251,7 +251,7 @@
       <div class="modal">
         <h3 id="modalChecklistTitulo">Checklist del caso</h3>
         <p style="margin: 0 0 14px; font-size: 13px; line-height: 1.45; color: var(--muted);">
-          Marca lo que ya está recibido/firmado. (Este checklist es solo visual por ahora.)
+          Marca lo que ya está recibido/firmado.
         </p>
 
         <ul class="checklist" aria-label="Checklist de documentos y pasos">
@@ -278,7 +278,9 @@
 
         <div class="modal-actions">
           <button type="button" id="btnCerrarModalChecklist" class="btn-secondary">Cerrar</button>
+          <button type="button" id="btnGuardarChecklist" class="btn-primary">Guardar</button>
         </div>
+        <div class="modal-feedback" id="modalChecklistFeedback" style="display:none;"></div>
       </div>
     </div>
 
@@ -1097,13 +1099,61 @@
             var modalChecklist = document.getElementById("modalChecklist");
             var btnChecklist = document.getElementById("btnChecklist");
             var btnCerrarModalChecklist = document.getElementById("btnCerrarModalChecklist");
+            var btnGuardarChecklist = document.getElementById("btnGuardarChecklist");
+            var modalChecklistFeedback = document.getElementById("modalChecklistFeedback");
+
+            var CHECKLIST_KEYS = [
+              { key: "copia_ci", id: "chk_copia_ci" },
+              { key: "contrato_firmado", id: "chk_contrato_firmado" },
+              { key: "informe_final_firmado", id: "chk_informe_final_firmado" },
+              { key: "certificado_saldo", id: "chk_certificado_saldo" },
+              { key: "solicitud_ofertas_firmadas", id: "chk_solicitud_ofertas_firmadas" },
+              { key: "scomp_original", id: "chk_scomp_original" },
+              { key: "aceptacion_con_respaldo", id: "chk_aceptacion_con_respaldo" },
+              { key: "seleccion_decision_cambio", id: "chk_seleccion_decision_cambio" },
+              { key: "papeles_internos_compania", id: "chk_papeles_internos_compania" },
+              { key: "dictamen_ejecutoriado", id: "chk_dictamen_ejecutoriado" },
+            ];
 
             function cerrarModalChecklist() {
               if (modalChecklist) modalChecklist.classList.remove("open");
+              if (modalChecklistFeedback) {
+                modalChecklistFeedback.style.display = "none";
+                modalChecklistFeedback.textContent = "";
+                modalChecklistFeedback.className = "modal-feedback";
+              }
+            }
+
+            function getChecklistObjFromDom() {
+              var out = {};
+              CHECKLIST_KEYS.forEach(function (it) {
+                var el = document.getElementById(it.id);
+                if (!el) return;
+                out[it.key] = !!el.checked;
+              });
+              return out;
+            }
+
+            function applyChecklistObjToDom(obj) {
+              obj = (obj && typeof obj === "object" && !Array.isArray(obj)) ? obj : {};
+              CHECKLIST_KEYS.forEach(function (it) {
+                var el = document.getElementById(it.id);
+                if (!el) return;
+                el.checked = obj[it.key] === true;
+              });
+            }
+
+            function mostrarChecklistFeedback(msg, esError) {
+              if (!modalChecklistFeedback) return;
+              modalChecklistFeedback.textContent = msg || "";
+              modalChecklistFeedback.className = "modal-feedback " + (esError ? "error" : "success");
+              modalChecklistFeedback.style.display = "block";
             }
 
             if (btnChecklist && modalChecklist) {
               btnChecklist.addEventListener("click", function () {
+                // Cargar desde BD si existe
+                applyChecklistObjToDom(c.checklist_caso);
                 modalChecklist.classList.add("open");
               });
             }
@@ -1111,6 +1161,41 @@
             if (modalChecklist) {
               modalChecklist.addEventListener("click", function (e) {
                 if (e.target === modalChecklist) cerrarModalChecklist();
+              });
+            }
+
+            if (btnGuardarChecklist) {
+              btnGuardarChecklist.addEventListener("click", function () {
+                var checklist = getChecklistObjFromDom();
+                btnGuardarChecklist.disabled = true;
+                mostrarChecklistFeedback("Guardando…", false);
+                supabase
+                  .from("clientes")
+                  .update({ checklist_caso: checklist })
+                  .eq("id", id)
+                  .select("checklist_caso")
+                  .single()
+                  .then(function (up) {
+                    btnGuardarChecklist.disabled = false;
+                    if (up.error) {
+                      mostrarChecklistFeedback(up.error.message || "No se pudo guardar el checklist.", true);
+                      return;
+                    }
+                    c.checklist_caso = (up.data && up.data.checklist_caso) ? up.data.checklist_caso : checklist;
+                    mostrarChecklistFeedback("Checklist guardado.", false);
+                    setTimeout(function () {
+                      if (modalChecklist && modalChecklist.classList.contains("open")) {
+                        if (modalChecklistFeedback) {
+                          modalChecklistFeedback.style.display = "none";
+                          modalChecklistFeedback.textContent = "";
+                        }
+                      }
+                    }, 2000);
+                  })
+                  .catch(function (err) {
+                    btnGuardarChecklist.disabled = false;
+                    mostrarChecklistFeedback((err && err.message) ? err.message : "Error inesperado.", true);
+                  });
               });
             }
           });
