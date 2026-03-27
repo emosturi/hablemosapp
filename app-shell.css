@@ -24,6 +24,26 @@
   --radius-sm: 12px;
 }
 
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --surface: #141c1e;
+  --card: #1c2629;
+  --text: #e6f4f3;
+  --muted: #8aa8ad;
+  --border: #2f4248;
+  --primary: #00dfc3;
+  --primary-mid: #2dd4bf;
+  --primary-hover: #14b8a6;
+  --accent-bright: #5cf9e4;
+  --accent-soft: rgba(0, 223, 195, 0.16);
+  --warn-bg: rgba(250, 204, 21, 0.14);
+  --warn-text: #fde68a;
+  --danger-bg: rgba(220, 38, 38, 0.2);
+  --danger-text: #fecaca;
+  --danger: #f87171;
+  --shadow: 0 4px 28px rgba(0, 0, 0, 0.4);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -176,7 +196,14 @@ body {
 }
 
 .topbar .search-wrap input::placeholder {
-  color: #94a3a8;
+  color: var(--muted);
+  opacity: 0.85;
+}
+
+html[data-theme="dark"] .topbar .search-wrap input {
+  background: var(--surface)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' fill='none' stroke='%238aa8ad' stroke-width='2'%3E%3Ccircle cx='8' cy='8' r='6'/%3E%3Cpath d='M13 13l4 4'/%3E%3C/svg%3E")
+    12px center no-repeat;
 }
 
 .user-pill {
@@ -268,6 +295,50 @@ body {
   background: var(--accent-soft);
   color: var(--primary);
   font-weight: 600;
+}
+
+.btn-theme-toggle {
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.btn-theme-toggle:hover {
+  border-color: var(--primary-mid);
+  color: var(--primary);
+}
+
+.btn-theme-toggle:focus-visible {
+  outline: 2px solid var(--primary-mid);
+  outline-offset: 2px;
+}
+
+.btn-theme-toggle svg {
+  width: 20px;
+  height: 20px;
+}
+
+.btn-theme-toggle .theme-icon-sun {
+  display: none;
+}
+
+html[data-theme="dark"] .btn-theme-toggle .theme-icon-moon {
+  display: none;
+}
+
+html[data-theme="dark"] .btn-theme-toggle .theme-icon-sun {
+  display: block;
 }
 
 .content {
