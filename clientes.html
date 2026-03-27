@@ -1366,6 +1366,9 @@
         }
         setStatus("Guardando…");
         var supabase = window.supabase.createClient(url, key);
+        if (typeof window.installInactivityAutoLogout === "function") {
+          window.installInactivityAutoLogout(supabase, { timeoutMs: window.SESSION_IDLE_TIMEOUT_MS, redirectTo: "login.html" });
+        }
         var refToken = new URLSearchParams(window.location.search).get("ref");
 
         function afterSaveOk() {

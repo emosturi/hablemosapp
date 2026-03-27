@@ -179,6 +179,9 @@
           return;
         }
         var supabase = window.supabase.createClient(url, key);
+        if (typeof window.installInactivityAutoLogout === "function") {
+          window.installInactivityAutoLogout(supabase, { timeoutMs: window.SESSION_IDLE_TIMEOUT_MS, redirectTo: "login.html" });
+        }
 
         var btnCerrarNav = document.getElementById("btnCerrarSesion");
         if (btnCerrarNav) {

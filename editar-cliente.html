@@ -1220,6 +1220,9 @@
         var url = window.SUPABASE_URL, key = window.SUPABASE_ANON_KEY;
         if (url && key && url.indexOf("TU_PROYECTO") === -1) {
           var supabaseEdit = window.supabase.createClient(url, key);
+          if (typeof window.installInactivityAutoLogout === "function") {
+            window.installInactivityAutoLogout(supabaseEdit, { timeoutMs: window.SESSION_IDLE_TIMEOUT_MS, redirectTo: "login.html" });
+          }
           supabaseEdit.auth.getSession().then(function(r) {
             if (!r.data.session) { window.location.replace("login.html"); return; }
             supabaseEdit.from("clientes").select("*").eq("id", clientId).single().then(function(res) {
@@ -1434,6 +1437,9 @@
           setStatus("Guardando…");
           if (btnSubmit) btnSubmit.disabled = true;
           var supabase = window.supabase.createClient(url, key);
+        if (typeof window.installInactivityAutoLogout === "function") {
+          window.installInactivityAutoLogout(supabase, { timeoutMs: window.SESSION_IDLE_TIMEOUT_MS, redirectTo: "login.html" });
+        }
           supabase.from("clientes").update(row).eq("id", clientId)
             .then(function(result) {
               if (result.error) {

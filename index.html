@@ -421,6 +421,9 @@
           return;
         }
         var supabase = window.supabase.createClient(url, key);
+        if (typeof window.installInactivityAutoLogout === "function") {
+          window.installInactivityAutoLogout(supabase, { timeoutMs: window.SESSION_IDLE_TIMEOUT_MS, redirectTo: "login.html" });
+        }
         supabase.auth.getSession().then(function (r) {
           if (!r.data.session) window.location.replace("login.html");
         });

@@ -353,6 +353,17 @@
           }
         }
 
+        (function showIdleReasonMessage() {
+          try {
+            var params = new URLSearchParams(window.location.search || "");
+            if (params.get("reason") !== "idle") return;
+            errorGeneral.textContent = "Tu sesión se cerró automáticamente por inactividad (1 hora).";
+            showPane("login");
+          } catch (_e) {
+            // no-op
+          }
+        })();
+
         tabLogin.addEventListener("click", function () { showPane("login"); });
         tabRegister.addEventListener("click", function () { showPane("register"); });
 
