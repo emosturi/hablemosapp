@@ -874,6 +874,81 @@
         });
       }
       renderYesNo(document.getElementById("antecedentesQuestions"), "antecedentes", antecedentesItems);
+      var refreshAntecedentesApvApvcDetalle = function() {};
+      (function setupAntecedentesApvApvcDetalle() {
+        var f = form;
+        var apvRow = f.querySelector('[name="antecedentes.destinareApv"]');
+        apvRow = apvRow && apvRow.closest(".field");
+        var apvcRow = f.querySelector('[name="antecedentes.destinareApvc"]');
+        apvcRow = apvcRow && apvcRow.closest(".field");
+        if (!apvRow || !apvcRow) return;
+        var apvBlock = document.createElement("div");
+        apvBlock.className = "field col-12";
+        apvBlock.id = "bloqueDetalleApv";
+        apvBlock.style.display = "none";
+        apvBlock.innerHTML =
+          '<div class="grid" style="margin-top:0.35rem">' +
+          '<div class="field col-6"><label for="antecedentes_apv_inst">Institución APV</label>' +
+          '<input type="text" id="antecedentes_apv_inst" name="antecedentes.apvNombreInstitucion" autocomplete="organization" /></div>' +
+          '<div class="field col-3"><label for="antecedentes_apv_pct">Porcentaje a traspasar (%)</label>' +
+          '<input type="number" id="antecedentes_apv_pct" name="antecedentes.apvPorcentajeTraspaso" step="1" min="0" max="100" inputmode="numeric" /></div>' +
+          '</div><div class="error" data-error-for="antecedentes.apvDetalle"></div>';
+        var apvcBlock = document.createElement("div");
+        apvcBlock.className = "field col-12";
+        apvcBlock.id = "bloqueDetalleApvc";
+        apvcBlock.style.display = "none";
+        apvcBlock.innerHTML =
+          '<div class="grid" style="margin-top:0.35rem">' +
+          '<div class="field col-6"><label for="antecedentes_apvc_inst">Institución APVC</label>' +
+          '<input type="text" id="antecedentes_apvc_inst" name="antecedentes.apvcNombreInstitucion" autocomplete="organization" /></div>' +
+          '<div class="field col-3"><label for="antecedentes_apvc_pct">Porcentaje a traspasar (%)</label>' +
+          '<input type="number" id="antecedentes_apvc_pct" name="antecedentes.apvcPorcentajeTraspaso" step="1" min="0" max="100" inputmode="numeric" /></div>' +
+          '</div><div class="error" data-error-for="antecedentes.apvcDetalle"></div>';
+        apvRow.after(apvBlock);
+        apvcRow.after(apvcBlock);
+        var apvInstIn = apvBlock.querySelector('[name="antecedentes.apvNombreInstitucion"]');
+        var apvPctIn = apvBlock.querySelector('[name="antecedentes.apvPorcentajeTraspaso"]');
+        var apvcInstIn = apvcBlock.querySelector('[name="antecedentes.apvcNombreInstitucion"]');
+        var apvcPctIn = apvcBlock.querySelector('[name="antecedentes.apvcPorcentajeTraspaso"]');
+        refreshAntecedentesApvApvcDetalle = function() {
+          var rApv = f.querySelector('input[name="antecedentes.destinareApv"]:checked');
+          var rApvc = f.querySelector('input[name="antecedentes.destinareApvc"]:checked');
+          var forzarDestinoCotVol = (rApv && rApv.value === "Sí") || (rApvc && rApvc.value === "Sí");
+          if (rApv && rApv.value === "Sí") {
+            apvBlock.style.display = "";
+            apvInstIn.setAttribute("required", "required");
+            apvPctIn.setAttribute("required", "required");
+          } else {
+            apvBlock.style.display = "none";
+            apvInstIn.removeAttribute("required");
+            apvPctIn.removeAttribute("required");
+            apvInstIn.value = "";
+            apvPctIn.value = "";
+          }
+          if (rApvc && rApvc.value === "Sí") {
+            apvcBlock.style.display = "";
+            apvcInstIn.setAttribute("required", "required");
+            apvcPctIn.setAttribute("required", "required");
+          } else {
+            apvcBlock.style.display = "none";
+            apvcInstIn.removeAttribute("required");
+            apvcPctIn.removeAttribute("required");
+            apvcInstIn.value = "";
+            apvcPctIn.value = "";
+          }
+          if (forzarDestinoCotVol) {
+            var autSi = f.querySelector('input[name="autorizaciones.suscribirDestinoCotizacionesVoluntarias"][value="Sí"]');
+            if (autSi) autSi.checked = true;
+          }
+        };
+        f.addEventListener("change", function(ev) {
+          if (!ev.target) return;
+          if (ev.target.name === "antecedentes.destinareApv" || ev.target.name === "antecedentes.destinareApvc") {
+            refreshAntecedentesApvApvcDetalle();
+          }
+        });
+        refreshAntecedentesApvApvcDetalle();
+      })();
       renderYesNo(document.getElementById("autorizacionesQuestions"), "autorizaciones", autorizacionesItems);
       renderYesNo(document.getElementById("certificadosQuestions"), "certificados", certificadosItems);
 
@@ -1134,6 +1209,7 @@
         }
         var ant = normalizeYesNoObject(c.solicitud_antecedentes);
         if (ant) setFormFromObject(form, { antecedentes: ant });
+        refreshAntecedentesApvApvcDetalle();
         var aut = normalizeYesNoObject(c.solicitud_autorizaciones);
         if (aut) setFormFromObject(form, { autorizaciones: aut });
         var cert = normalizeYesNoObject(c.solicitud_certificados);
@@ -1304,6 +1380,39 @@
           : null;
         row.solicitud_numero_beneficiarios = inferNumeroBeneficiarios();
         row.solicitud_beneficiarios = [];
+        if ((antecedentes.destinareApv || "").trim() === "Sí") {
+          if (!String(antecedentes.apvNombreInstitucion || "").trim()) {
+            setError(form, "antecedentes.apvDetalle", "Indica la institución APV.");
+            return;
+          }
+          var apvPctRaw = String(antecedentes.apvPorcentajeTraspaso || "").trim();
+          if (!/^\d+$/.test(apvPctRaw)) {
+            setError(form, "antecedentes.apvDetalle", "Porcentaje APV: entero entre 0 y 100.");
+            return;
+          }
+          var apvPctNum = parseInt(apvPctRaw, 10);
+          if (apvPctNum < 0 || apvPctNum > 100) {
+            setError(form, "antecedentes.apvDetalle", "Porcentaje APV: entre 0 y 100.");
+            return;
+          }
+        }
+        if ((antecedentes.destinareApvc || "").trim() === "Sí") {
+          if (!String(antecedentes.apvcNombreInstitucion || "").trim()) {
+            setError(form, "antecedentes.apvcDetalle", "Indica la institución APVC.");
+            return;
+          }
+          var apvcPctRaw = String(antecedentes.apvcPorcentajeTraspaso || "").trim();
+          if (!/^\d+$/.test(apvcPctRaw)) {
+            setError(form, "antecedentes.apvcDetalle", "Porcentaje APVC: entero entre 0 y 100.");
+            return;
+          }
+          var apvcPctNum = parseInt(apvcPctRaw, 10);
+          if (apvcPctNum < 0 || apvcPctNum > 100) {
+            setError(form, "antecedentes.apvcDetalle", "Porcentaje APVC: entre 0 y 100.");
+            return;
+          }
+        }
+
         row.solicitud_antecedentes = antecedentes || {};
         // Inferir ingresarDatosCuentaBancaria desde Datos bancarios
         var autOut = (autorizaciones && typeof autorizaciones === "object") ? autorizaciones : {};

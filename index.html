@@ -1048,9 +1048,27 @@
           if (dataObj[item.key] === "Sí") {
             const label = (labelsMap && labelsMap[item.key]) || item.label;
             html += `<tr><td>${label}</td><td class="col-respuesta"><span style="white-space:nowrap">Sí</span></td></tr>\n`;
+            if (item.key === "destinareApv") html += htmlFilasDetalleApvMandato(dataObj);
+            if (item.key === "destinareApvc") html += htmlFilasDetalleApvcMandato(dataObj);
           }
         });
         return html;
+      }
+
+      // Detalle APV / APVC bajo las filas del mandato (texto plano para plantilla Word/HTML).
+      function htmlFilasDetalleApvMandato(antecedentes) {
+        const a = antecedentes || {};
+        if (a.destinareApv !== "Sí") return "";
+        const inst = a.apvNombreInstitucion != null ? String(a.apvNombreInstitucion) : "";
+        const pct = a.apvPorcentajeTraspaso != null && String(a.apvPorcentajeTraspaso).trim() !== "" ? String(a.apvPorcentajeTraspaso) : "";
+        return `<tr><td>Nombre Institución APV:</td><td class="col-respuesta"><span style="white-space:nowrap">${inst}</span></td></tr>\n<tr><td>Porcentaje de APV a traspasar:</td><td class="col-respuesta"><span style="white-space:nowrap">${pct}</span></td></tr>\n`;
+      }
+      function htmlFilasDetalleApvcMandato(antecedentes) {
+        const a = antecedentes || {};
+        if (a.destinareApvc !== "Sí") return "";
+        const inst = a.apvcNombreInstitucion != null ? String(a.apvcNombreInstitucion) : "";
+        const pct = a.apvcPorcentajeTraspaso != null && String(a.apvcPorcentajeTraspaso).trim() !== "" ? String(a.apvcPorcentajeTraspaso) : "";
+        return `<tr><td>Nombre Institución APVC:</td><td class="col-respuesta"><span style="white-space:nowrap">${inst}</span></td></tr>\n<tr><td>Porcentaje de APVC a traspasar:</td><td class="col-respuesta"><span style="white-space:nowrap">${pct}</span></td></tr>\n`;
       }
 
       const MESES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
@@ -1376,11 +1394,13 @@
         <td>Destinaré Ahorro Previsional Voluntario al financiamiento de mi pensión</td>
         <td class="col-respuesta"><span style="white-space:nowrap">${antecedentes.destinareApv === "Sí" ? "Sí" : "No"}</span></td>
         </tr>
+        ${htmlFilasDetalleApvMandato(antecedentes)}
 
         <tr>
         <td>Destinaré Ahorro Previsional Voluntario Colectivo al financiamiento de mi pensión</td>
         <td class="col-respuesta"><span style="white-space:nowrap">${antecedentes.destinareApvc === "Sí" ? "Sí" : "No"}</span></td>
         </tr>
+        ${htmlFilasDetalleApvcMandato(antecedentes)}
 
         <tr>
         <td>Traspasaré fondos desde mi Cuenta de Ahorro Voluntario para financiar mi pensión</td>
@@ -2502,6 +2522,42 @@
           }
         }
 
+        if (!soloParaContrato) {
+          function validarDetalleApv(apvSi, instSel, pctSel, errKey, etiqueta) {
+            if (!apvSi || apvSi.value !== "Sí") return true;
+            const instIn = instSel ? String(instSel.value || "").trim() : "";
+            const pctRaw = pctSel ? String(pctSel.value || "").trim() : "";
+            if (!instIn) {
+              ok = false;
+              if (instSel) instSel.setAttribute("aria-invalid", "true");
+              setError(form, errKey, "Indica la institución " + etiqueta + ".");
+              return false;
+            }
+            if (!/^\d+$/.test(pctRaw)) {
+              ok = false;
+              if (pctSel) pctSel.setAttribute("aria-invalid", "true");
+              setError(form, errKey, "Porcentaje " + etiqueta + ": ingresa un entero entre 0 y 100.");
+              return false;
+            }
+            const pctNum = parseInt(pctRaw, 10);
+            if (pctNum < 0 || pctNum > 100) {
+              ok = false;
+              if (pctSel) pctSel.setAttribute("aria-invalid", "true");
+              setError(form, errKey, "Porcentaje " + etiqueta + ": entre 0 y 100.");
+              return false;
+            }
+            return true;
+          }
+          const apvSi = form.querySelector('input[name="antecedentes.destinareApv"]:checked');
+          const apvcSi = form.querySelector('input[name="antecedentes.destinareApvc"]:checked');
+          const apvInst = form.querySelector('[name="antecedentes.apvNombreInstitucion"]');
+          const apvPct = form.querySelector('[name="antecedentes.apvPorcentajeTraspaso"]');
+          const apvcInst = form.querySelector('[name="antecedentes.apvcNombreInstitucion"]');
+          const apvcPct = form.querySelector('[name="antecedentes.apvcPorcentajeTraspaso"]');
+          validarDetalleApv(apvSi, apvInst, apvPct, "antecedentes.apvDetalle", "APV");
+          validarDetalleApv(apvcSi, apvcInst, apvcPct, "antecedentes.apvcDetalle", "APVC");
+        }
+
         return { ok, parsedBirth: parsed };
       }
 
@@ -2937,6 +2993,83 @@
         benefInput.addEventListener("input", actualizarBeneficiarios);
         
         renderYesNo(document.getElementById("antecedentesQuestions"), "antecedentes", antecedentesItems);
+        let refreshAntecedentesApvApvcDetalle = function () {};
+        (function setupAntecedentesApvApvcDetalle() {
+          const apvRow = form.querySelector('[name="antecedentes.destinareApv"]')?.closest(".field");
+          const apvcRow = form.querySelector('[name="antecedentes.destinareApvc"]')?.closest(".field");
+          if (!apvRow || !apvcRow) return;
+          const apvBlock = el("div", { class: "field col-12", id: "bloqueDetalleApv" }, [
+            el("div", { class: "grid", style: "margin-top:0.35rem" }, [
+              el("div", { class: "field col-6" }, [
+                el("label", { for: "antecedentes_apv_inst" }, "Institución APV"),
+                el("input", { type: "text", id: "antecedentes_apv_inst", name: "antecedentes.apvNombreInstitucion", autocomplete: "organization" }),
+              ]),
+              el("div", { class: "field col-3" }, [
+                el("label", { for: "antecedentes_apv_pct" }, "Porcentaje a traspasar (%)"),
+                el("input", { type: "number", id: "antecedentes_apv_pct", name: "antecedentes.apvPorcentajeTraspaso", step: "1", min: "0", max: "100", inputmode: "numeric" }),
+              ]),
+            ]),
+            el("div", { class: "error", "data-error-for": "antecedentes.apvDetalle" }),
+          ]);
+          apvBlock.style.display = "none";
+          const apvcBlock = el("div", { class: "field col-12", id: "bloqueDetalleApvc" }, [
+            el("div", { class: "grid", style: "margin-top:0.35rem" }, [
+              el("div", { class: "field col-6" }, [
+                el("label", { for: "antecedentes_apvc_inst" }, "Institución APVC"),
+                el("input", { type: "text", id: "antecedentes_apvc_inst", name: "antecedentes.apvcNombreInstitucion", autocomplete: "organization" }),
+              ]),
+              el("div", { class: "field col-3" }, [
+                el("label", { for: "antecedentes_apvc_pct" }, "Porcentaje a traspasar (%)"),
+                el("input", { type: "number", id: "antecedentes_apvc_pct", name: "antecedentes.apvcPorcentajeTraspaso", step: "1", min: "0", max: "100", inputmode: "numeric" }),
+              ]),
+            ]),
+            el("div", { class: "error", "data-error-for": "antecedentes.apvcDetalle" }),
+          ]);
+          apvcBlock.style.display = "none";
+          apvRow.after(apvBlock);
+          apvcRow.after(apvcBlock);
+          const apvInstIn = apvBlock.querySelector('[name="antecedentes.apvNombreInstitucion"]');
+          const apvPctIn = apvBlock.querySelector('[name="antecedentes.apvPorcentajeTraspaso"]');
+          const apvcInstIn = apvcBlock.querySelector('[name="antecedentes.apvcNombreInstitucion"]');
+          const apvcPctIn = apvcBlock.querySelector('[name="antecedentes.apvcPorcentajeTraspaso"]');
+          refreshAntecedentesApvApvcDetalle = function () {
+            const rApv = form.querySelector('input[name="antecedentes.destinareApv"]:checked');
+            const rApvc = form.querySelector('input[name="antecedentes.destinareApvc"]:checked');
+            const forzarDestinoCotVol = (rApv && rApv.value === "Sí") || (rApvc && rApvc.value === "Sí");
+            if (rApv && rApv.value === "Sí") {
+              apvBlock.style.display = "";
+              apvInstIn.required = true;
+              apvPctIn.required = true;
+            } else {
+              apvBlock.style.display = "none";
+              apvInstIn.required = false;
+              apvPctIn.required = false;
+              apvInstIn.value = "";
+              apvPctIn.value = "";
+            }
+            if (rApvc && rApvc.value === "Sí") {
+              apvcBlock.style.display = "";
+              apvcInstIn.required = true;
+              apvcPctIn.required = true;
+            } else {
+              apvcBlock.style.display = "none";
+              apvcInstIn.required = false;
+              apvcPctIn.required = false;
+              apvcInstIn.value = "";
+              apvcPctIn.value = "";
+            }
+            if (forzarDestinoCotVol) {
+              const autSi = form.querySelector('input[name="autorizaciones.suscribirDestinoCotizacionesVoluntarias"][value="Sí"]');
+              if (autSi) autSi.checked = true;
+            }
+          };
+          form.addEventListener("change", function (ev) {
+            if (ev.target && (ev.target.name === "antecedentes.destinareApv" || ev.target.name === "antecedentes.destinareApvc")) {
+              refreshAntecedentesApvApvcDetalle();
+            }
+          });
+          refreshAntecedentesApvApvcDetalle();
+        })();
         renderYesNo(document.getElementById("autorizacionesQuestions"), "autorizaciones", autorizacionesItems);
         const cuentaBancariaQuestion = form.querySelector('[name="autorizaciones.ingresarDatosCuentaBancaria"]')?.closest(".field");
         if (cuentaBancariaQuestion && cuentaField) cuentaBancariaQuestion.after(cuentaField);
@@ -2989,6 +3122,8 @@
                 out.hidden = true;
                 preview.textContent = "";
                 setStatus("Formulario limpio.");
+                refreshAntecedentesApvApvcDetalle();
+                updateCuentaBancariaVisibility();
               });
 
             var params = new URLSearchParams(window.location.search);
@@ -3059,6 +3194,7 @@
                 if (c.posee_bono_reconocimiento === true) ant.poseeBonoReconocimiento = "Sí";
                 else if (c.posee_bono_reconocimiento === false) ant.poseeBonoReconocimiento = "No";
                 setFormFromObject(form, { antecedentes: ant });
+                refreshAntecedentesApvApvcDetalle();
                 var aut = Object.assign(defaultsNo(autorizacionesItems), normalizeYesNoObject(c.solicitud_autorizaciones) || {});
                 setFormFromObject(form, { autorizaciones: aut });
                 var cert = Object.assign(defaultsNo(certificadosItems), normalizeYesNoObject(c.solicitud_certificados) || {});
