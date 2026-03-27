@@ -13,4 +13,4 @@ window.REMINDER_FUNCTION_URL = "https://hablemosapp.netlify.app/.netlify/functio
 
 window.ASESOR_REGISTRO_HABILITADO = true; // false = cerrado
 window.ASESOR_REGISTRO_CODIGO = "TU-CODIGO-SEGURO"; // opcional
-window.ASESOR_REGISTRO_DOMINIOS = ["tuempresa.cl", "asesores.tuempresa.cl"]; // opcional
+//window.ASESOR_REGISTRO_DOMINIOS = ["gmail.com", "asesores.tuempresa.cl"]; // opcional
