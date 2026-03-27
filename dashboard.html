@@ -37,6 +37,7 @@
         backdrop-filter: blur(6px);
       }
       .brand { font-weight: 700; letter-spacing: 0.02em; }
+      .menu-wrap { position: relative; }
       .btn-ghost {
         background: rgba(255, 255, 255, 0.08);
         border: 1px solid var(--border);
@@ -45,6 +46,30 @@
         padding: 8px 12px;
         cursor: pointer;
       }
+      .menu-dropdown {
+        position: absolute;
+        right: 0;
+        top: calc(100% + 8px);
+        min-width: 240px;
+        background: #0f1729;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+        padding: 8px;
+        display: none;
+        z-index: 20;
+      }
+      .menu-dropdown.open { display: block; }
+      .menu-dropdown a {
+        display: block;
+        text-decoration: none;
+        color: var(--text);
+        padding: 9px 10px;
+        border-radius: 8px;
+        font-size: 14px;
+      }
+      .menu-dropdown a:hover { background: rgba(255,255,255,0.08); }
+      .menu-divider { border-top: 1px solid var(--border); margin: 6px 0; }
 
       .container { max-width: 980px; margin: 0 auto; padding: 30px 18px 36px; }
       .hero {
@@ -95,7 +120,20 @@
   <body>
     <header class="topbar">
       <div class="brand">HablemosApp</div>
-      <button id="btnCerrarSesion" class="btn-ghost" type="button">Cerrar sesión</button>
+      <div class="menu-wrap">
+        <button id="menuTrigger" class="btn-ghost" type="button" aria-haspopup="true" aria-expanded="false">Menú</button>
+        <nav id="menuDropdown" class="menu-dropdown" aria-label="Navegación principal">
+          <a href="dashboard.html">Dashboard</a>
+          <a href="index.html">Formulario Pensión</a>
+          <a href="clientes.html">Registro de Afiliados</a>
+          <a href="revisar-clientes.html">Listado de Clientes</a>
+          <a href="clientes-potenciales.html">Clientes Potenciales</a>
+          <a href="enlace-registro-publico.html">Enlace registro público</a>
+          <a href="recordatorios.html">Recordatorios</a>
+          <div class="menu-divider"></div>
+          <a href="#" id="btnCerrarSesion">Cerrar sesión</a>
+        </nav>
+      </div>
     </header>
 
     <main class="container">
@@ -158,8 +196,23 @@
         });
 
         var btn = document.getElementById("btnCerrarSesion");
+        var trigger = document.getElementById("menuTrigger");
+        var dropdown = document.getElementById("menuDropdown");
+        if (trigger && dropdown) {
+          trigger.addEventListener("click", function (e) {
+            e.stopPropagation();
+            var open = !dropdown.classList.contains("open");
+            dropdown.classList.toggle("open", open);
+            trigger.setAttribute("aria-expanded", open ? "true" : "false");
+          });
+          document.addEventListener("click", function () {
+            dropdown.classList.remove("open");
+            trigger.setAttribute("aria-expanded", "false");
+          });
+        }
         if (btn) {
-          btn.addEventListener("click", function () {
+          btn.addEventListener("click", function (e) {
+            e.preventDefault();
             supabase.auth.signOut().then(function () {
               window.location.href = "login.html";
             });
