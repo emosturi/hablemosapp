@@ -377,6 +377,10 @@
           return e.slice(i + 1).toLowerCase().trim();
         }
 
+        function emailPareceValido(email) {
+          return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || "").trim());
+        }
+
         function setupRegisterPolicyUi() {
           var reglas = [];
           if (!REGISTRO_ASESORES_HABILITADO) {
@@ -425,6 +429,9 @@
         function mapAuthError(msg) {
           if (!msg) return "No se pudo completar la operación.";
           var m = String(msg).toLowerCase();
+          if (m.indexOf("email address is invalid") !== -1 || m.indexOf("invalid email") !== -1) {
+            return "El formato del email no es válido (ejemplo: nombre@dominio.com).";
+          }
           if (m.indexOf("already registered") !== -1 || m.indexOf("user already") !== -1) {
             return "Ese email ya tiene cuenta. Inicia sesión o recupera la contraseña desde Supabase.";
           }
@@ -446,6 +453,11 @@
 
           if (!email) {
             document.getElementById("error_email").textContent = "Ingresa tu email";
+            inputEmail.focus();
+            return;
+          }
+          if (!emailPareceValido(email)) {
+            document.getElementById("error_email").textContent = "Email inválido (usa formato nombre@dominio.com)";
             inputEmail.focus();
             return;
           }
@@ -501,6 +513,11 @@
 
           if (!email) {
             document.getElementById("error_reg_email").textContent = "Ingresa tu email";
+            regEmail.focus();
+            return;
+          }
+          if (!emailPareceValido(email)) {
+            document.getElementById("error_reg_email").textContent = "Email inválido (usa formato nombre@dominio.com)";
             regEmail.focus();
             return;
           }
