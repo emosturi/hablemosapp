@@ -104,6 +104,11 @@
       .checklist .checklist-title { font-weight: 700; letter-spacing: 0.01em; }
       .checklist .checklist-sub { color: var(--muted); font-size: 12px; margin-top: 2px; }
       .checklist .group-label { margin: 14px 0 8px; color: var(--muted); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; }
+      .checklist .checklist-upload-row { margin-top: 8px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+      .checklist .checklist-upload-row input[type="file"] { max-width: 280px; margin-bottom: 0; font-size: 12px; padding: 6px 8px; }
+      .checklist .checklist-file-meta { font-size: 12px; color: var(--muted); }
+      .checklist .checklist-file-link { font-size: 12px; color: var(--accent); text-decoration: none; }
+      .checklist .checklist-file-link:hover { text-decoration: underline; }
       .timeline-hint { font-size: 13px; color: var(--muted); margin: 0 0 14px; line-height: 1.4; }
       .timeline-controls { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; margin-bottom: 20px; padding: 12px; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid var(--border); }
       .timeline-controls label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; width: 100%; }
@@ -1134,6 +1139,7 @@
             var btnCerrarModalChecklist = document.getElementById("btnCerrarModalChecklist");
             var btnGuardarChecklist = document.getElementById("btnGuardarChecklist");
             var modalChecklistFeedback = document.getElementById("modalChecklistFeedback");
+            var CHECKLIST_STORAGE_BUCKET = "checklist-archivos";
 
             var CHECKLIST_KEYS = [
               { key: "copia_ci", id: "chk_copia_ci" },
@@ -1167,6 +1173,23 @@
               return out;
             }
 
+            function getChecklistFilesMap(obj) {
+              if (!obj || typeof obj !== "object" || Array.isArray(obj)) return {};
+              if (!obj._files || typeof obj._files !== "object" || Array.isArray(obj._files)) return {};
+              return obj._files;
+            }
+
+            function composeChecklistPayload(checklistBools, filesMap) {
+              var out = {};
+              var bools = (checklistBools && typeof checklistBools === "object" && !Array.isArray(checklistBools)) ? checklistBools : {};
+              CHECKLIST_KEYS.forEach(function (it) {
+                out[it.key] = bools[it.key] === true;
+              });
+              var fm = (filesMap && typeof filesMap === "object" && !Array.isArray(filesMap)) ? filesMap : {};
+              out._files = fm;
+              return out;
+            }
+
             function applyChecklistObjToDom(obj) {
               obj = (obj && typeof obj === "object" && !Array.isArray(obj)) ? obj : {};
               CHECKLIST_KEYS.forEach(function (it) {
@@ -1183,10 +1206,149 @@
               modalChecklistFeedback.style.display = "block";
             }
 
+            function extFromFilename(name) {
+              var n = String(name || "");
+              var i = n.lastIndexOf(".");
+              if (i === -1) return "";
+              return n.slice(i).toLowerCase().replace(/[^a-z0-9.]/g, "");
+            }
+
+            function safeFileBase(name) {
+              return String(name || "archivo")
+                .replace(/\.[^.]*$/, "")
+                .toLowerCase()
+                .replace(/[^a-z0-9_-]+/g, "-")
+                .replace(/^-+|-+$/g, "")
+                .slice(0, 60) || "archivo";
+            }
+
+            function renderChecklistFileMeta() {
+              var files = getChecklistFilesMap(c.checklist_caso);
+              CHECKLIST_KEYS.forEach(function (it) {
+                var meta = files[it.key];
+                var metaEl = document.getElementById("chk_file_meta_" + it.key);
+                var linkEl = document.getElementById("chk_file_link_" + it.key);
+                if (!metaEl || !linkEl) return;
+                if (meta && meta.name) {
+                  var size = (typeof meta.size === "number" && meta.size > 0) ? (" (" + Math.round(meta.size / 1024) + " KB)") : "";
+                  metaEl.textContent = "Archivo: " + meta.name + size;
+                  linkEl.style.display = "";
+                } else {
+                  metaEl.textContent = "Sin archivo";
+                  linkEl.style.display = "none";
+                }
+              });
+            }
+
+            function ensureChecklistUploadControls() {
+              CHECKLIST_KEYS.forEach(function (it) {
+                var checkbox = document.getElementById(it.id);
+                if (!checkbox) return;
+                var wrap = checkbox.parentElement ? checkbox.parentElement.querySelector("div") : null;
+                if (!wrap) return;
+                if (document.getElementById("chk_file_input_" + it.key)) return;
+
+                var row = document.createElement("div");
+                row.className = "checklist-upload-row";
+
+                var input = document.createElement("input");
+                input.type = "file";
+                input.id = "chk_file_input_" + it.key;
+                input.setAttribute("data-check-key", it.key);
+
+                var link = document.createElement("a");
+                link.href = "#";
+                link.id = "chk_file_link_" + it.key;
+                link.className = "checklist-file-link";
+                link.textContent = "Ver archivo";
+                link.style.display = "none";
+
+                var meta = document.createElement("span");
+                meta.id = "chk_file_meta_" + it.key;
+                meta.className = "checklist-file-meta";
+                meta.textContent = "Sin archivo";
+
+                row.appendChild(input);
+                row.appendChild(link);
+                row.appendChild(meta);
+                wrap.appendChild(row);
+
+                input.addEventListener("change", function (ev) {
+                  var f = ev.target && ev.target.files && ev.target.files[0] ? ev.target.files[0] : null;
+                  if (!f) return;
+                  var checkEl = document.getElementById(it.id);
+                  if (checkEl) checkEl.checked = true;
+
+                  var currentBools = getChecklistObjFromDom();
+                  var filesMap = getChecklistFilesMap(c.checklist_caso);
+                  var keyForFile = it.key;
+                  var now = Date.now();
+                  supabase.auth.getSession().then(function (sessRes) {
+                    var uid = sessRes && sessRes.data && sessRes.data.session && sessRes.data.session.user && sessRes.data.session.user.id;
+                    if (!uid) throw new Error("No hay sesión activa para subir archivos.");
+                    var filePath = uid + "/" + id + "/" + keyForFile + "/" + now + "-" + safeFileBase(f.name) + extFromFilename(f.name);
+                    mostrarChecklistFeedback("Subiendo archivo…", false);
+                    return supabase.storage
+                      .from(CHECKLIST_STORAGE_BUCKET)
+                      .upload(filePath, f, { upsert: false, contentType: f.type || undefined })
+                      .then(function (upRes) {
+                        if (upRes.error) throw upRes.error;
+                        filesMap[keyForFile] = {
+                          path: filePath,
+                          name: f.name,
+                          size: f.size,
+                          content_type: f.type || null,
+                          uploaded_at: new Date().toISOString(),
+                        };
+                        var payload = composeChecklistPayload(currentBools, filesMap);
+                        return supabase
+                          .from("clientes")
+                          .update({ checklist_caso: payload })
+                          .eq("id", id)
+                          .select("checklist_caso")
+                          .single();
+                      })
+                      .then(function (dbRes) {
+                        if (dbRes.error) throw dbRes.error;
+                        c.checklist_caso = (dbRes.data && dbRes.data.checklist_caso) ? dbRes.data.checklist_caso : composeChecklistPayload(currentBools, filesMap);
+                        renderChecklistFileMeta();
+                        mostrarChecklistFeedback("Archivo subido y checklist actualizado.", false);
+                        ev.target.value = "";
+                      });
+                  }).catch(function (errUp) {
+                    mostrarChecklistFeedback((errUp && errUp.message) ? errUp.message : "No se pudo subir el archivo.", true);
+                    ev.target.value = "";
+                  });
+                });
+
+                link.addEventListener("click", function (ev) {
+                  ev.preventDefault();
+                  var files = getChecklistFilesMap(c.checklist_caso);
+                  var info = files[it.key];
+                  if (!info || !info.path) return;
+                  supabase.storage
+                    .from(CHECKLIST_STORAGE_BUCKET)
+                    .createSignedUrl(info.path, 300)
+                    .then(function (r) {
+                      if (r.error || !r.data || !r.data.signedUrl) {
+                        mostrarChecklistFeedback((r.error && r.error.message) ? r.error.message : "No se pudo obtener enlace del archivo.", true);
+                        return;
+                      }
+                      window.open(r.data.signedUrl, "_blank", "noopener,noreferrer");
+                    })
+                    .catch(function (e) {
+                      mostrarChecklistFeedback((e && e.message) ? e.message : "No se pudo abrir el archivo.", true);
+                    });
+                });
+              });
+            }
+
             if (btnChecklist && modalChecklist) {
               btnChecklist.addEventListener("click", function () {
                 // Cargar desde BD si existe
                 applyChecklistObjToDom(c.checklist_caso);
+                ensureChecklistUploadControls();
+                renderChecklistFileMeta();
                 modalChecklist.classList.add("open");
               });
             }
@@ -1200,11 +1362,13 @@
             if (btnGuardarChecklist) {
               btnGuardarChecklist.addEventListener("click", function () {
                 var checklist = getChecklistObjFromDom();
+                var filesMap = getChecklistFilesMap(c.checklist_caso);
+                var payload = composeChecklistPayload(checklist, filesMap);
                 btnGuardarChecklist.disabled = true;
                 mostrarChecklistFeedback("Guardando…", false);
                 supabase
                   .from("clientes")
-                  .update({ checklist_caso: checklist })
+                  .update({ checklist_caso: payload })
                   .eq("id", id)
                   .select("checklist_caso")
                   .single()
@@ -1214,7 +1378,8 @@
                       mostrarChecklistFeedback(up.error.message || "No se pudo guardar el checklist.", true);
                       return;
                     }
-                    c.checklist_caso = (up.data && up.data.checklist_caso) ? up.data.checklist_caso : checklist;
+                    c.checklist_caso = (up.data && up.data.checklist_caso) ? up.data.checklist_caso : payload;
+                    renderChecklistFileMeta();
                     mostrarChecklistFeedback("Checklist guardado.", false);
                     setTimeout(function () {
                       if (modalChecklist && modalChecklist.classList.contains("open")) {
