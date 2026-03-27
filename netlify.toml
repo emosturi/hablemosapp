@@ -1,3 +1,8 @@
 # process-reminders: cada 5 min (pruebas); en producción cambiar a "*/15 * * * *"
 [functions."process-reminders"]
   schedule = "*/5 * * * *"
+
+[[redirects]]
+  from = "/"
+  to = "/dashboard.html"
+  status = 200
