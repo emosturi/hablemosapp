@@ -237,7 +237,7 @@
         </div>
 
         <div id="paneRegister" class="auth-pane" role="tabpanel" aria-labelledby="tabRegister" hidden>
-          <p class="hint">Crea una cuenta con el correo que usarás como asesor. Si tu proyecto Supabase exige confirmar el email, revisa la bandeja de entrada antes de entrar.</p>
+          <p class="hint" id="registerPolicyHint">Crea una cuenta con el correo que usarás como asesor. Si tu proyecto Supabase exige confirmar el email, revisa la bandeja de entrada antes de entrar.</p>
           <form id="registerForm" novalidate>
             <div class="field">
               <label for="regEmail">Email</label>
@@ -277,6 +277,18 @@
               <div class="error" id="error_reg_password2"></div>
             </div>
 
+            <div class="field" id="registerCodeField" style="display: none">
+              <label for="regInviteCode">Código de invitación</label>
+              <input
+                id="regInviteCode"
+                name="regInviteCode"
+                type="text"
+                autocomplete="off"
+                placeholder="Ingresa el código entregado por el administrador"
+              />
+              <div class="error" id="error_reg_invite_code"></div>
+            </div>
+
             <div class="error" id="error_register_general"></div>
 
             <button type="submit" id="btnRegister">Crear cuenta</button>
@@ -307,10 +319,18 @@
         var regEmail = document.getElementById("regEmail");
         var regPassword = document.getElementById("regPassword");
         var regPassword2 = document.getElementById("regPassword2");
+        var regInviteCode = document.getElementById("regInviteCode");
         var errorRegisterGeneral = document.getElementById("error_register_general");
+        var registerCodeField = document.getElementById("registerCodeField");
+        var registerPolicyHint = document.getElementById("registerPolicyHint");
         var registerSuccess = document.getElementById("registerSuccess");
         var btnLogin = document.getElementById("btnLogin");
         var btnRegister = document.getElementById("btnRegister");
+        var REGISTRO_ASESORES_HABILITADO = window.ASESOR_REGISTRO_HABILITADO === true;
+        var REGISTRO_ASESORES_CODIGO = typeof window.ASESOR_REGISTRO_CODIGO === "string" ? window.ASESOR_REGISTRO_CODIGO.trim() : "";
+        var REGISTRO_ASESORES_DOMINIOS = Array.isArray(window.ASESOR_REGISTRO_DOMINIOS)
+          ? window.ASESOR_REGISTRO_DOMINIOS.map(function (d) { return String(d || "").trim().toLowerCase(); }).filter(Boolean)
+          : [];
 
         function showPane(which) {
           var isLogin = which === "login";
@@ -346,7 +366,51 @@
           document.getElementById("error_reg_email").textContent = "";
           document.getElementById("error_reg_password").textContent = "";
           document.getElementById("error_reg_password2").textContent = "";
+          document.getElementById("error_reg_invite_code").textContent = "";
           errorRegisterGeneral.textContent = "";
+        }
+
+        function dominioEmail(email) {
+          var e = String(email || "");
+          var i = e.lastIndexOf("@");
+          if (i === -1) return "";
+          return e.slice(i + 1).toLowerCase().trim();
+        }
+
+        function setupRegisterPolicyUi() {
+          var reglas = [];
+          if (!REGISTRO_ASESORES_HABILITADO) {
+            tabRegister.disabled = true;
+            tabRegister.title = "Registro cerrado por el administrador";
+            tabRegister.classList.remove("active");
+            paneRegister.hidden = true;
+            paneRegister.classList.remove("active");
+            registerPolicyHint.textContent = "El registro de nuevos asesores está cerrado. Solicita un alta al administrador.";
+            btnRegister.disabled = true;
+            showPane("login");
+            return;
+          }
+
+          tabRegister.disabled = false;
+          btnRegister.disabled = false;
+
+          if (REGISTRO_ASESORES_CODIGO) {
+            registerCodeField.style.display = "";
+            regInviteCode.required = true;
+            reglas.push("código de invitación");
+          } else {
+            registerCodeField.style.display = "none";
+            regInviteCode.required = false;
+            regInviteCode.value = "";
+          }
+
+          if (REGISTRO_ASESORES_DOMINIOS.length) {
+            reglas.push("dominios permitidos: " + REGISTRO_ASESORES_DOMINIOS.join(", "));
+          }
+
+          if (reglas.length) {
+            registerPolicyHint.textContent = "Registro limitado: " + reglas.join(" | ") + ".";
+          }
         }
 
         function getSupabase() {
@@ -425,9 +489,15 @@
           registerSuccess.style.display = "none";
           registerSuccess.textContent = "";
 
+          if (!REGISTRO_ASESORES_HABILITADO) {
+            errorRegisterGeneral.textContent = "El registro de nuevos asesores está deshabilitado.";
+            return;
+          }
+
           var email = (regEmail.value || "").trim();
           var p1 = regPassword.value || "";
           var p2 = regPassword2.value || "";
+          var inviteCode = (regInviteCode.value || "").trim();
 
           if (!email) {
             document.getElementById("error_reg_email").textContent = "Ingresa tu email";
@@ -451,6 +521,22 @@
             document.getElementById("error_reg_password2").textContent = "Las contraseñas no coinciden";
             regPassword2.focus();
             return;
+          }
+
+          if (REGISTRO_ASESORES_CODIGO && inviteCode !== REGISTRO_ASESORES_CODIGO) {
+            document.getElementById("error_reg_invite_code").textContent = "Código de invitación inválido";
+            regInviteCode.focus();
+            return;
+          }
+
+          if (REGISTRO_ASESORES_DOMINIOS.length) {
+            var d = dominioEmail(email);
+            if (REGISTRO_ASESORES_DOMINIOS.indexOf(d) === -1) {
+              document.getElementById("error_reg_email").textContent =
+                "Solo se permite registro con dominios autorizados: " + REGISTRO_ASESORES_DOMINIOS.join(", ");
+              regEmail.focus();
+              return;
+            }
           }
 
           var sb = getSupabase();
@@ -493,6 +579,8 @@
               errorRegisterGeneral.textContent = err.message || "Error al registrar.";
             });
         });
+
+        setupRegisterPolicyUi();
       })();
     </script>
   </body>
