@@ -377,8 +377,15 @@
           return e.slice(i + 1).toLowerCase().trim();
         }
 
+        function normalizarEmail(email) {
+          return String(email || "")
+            .replace(/[\u200B-\u200D\uFEFF]/g, "")
+            .trim()
+            .toLowerCase();
+        }
+
         function emailPareceValido(email) {
-          return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || "").trim());
+          return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizarEmail(email));
         }
 
         function setupRegisterPolicyUi() {
@@ -448,7 +455,8 @@
           e.preventDefault();
           clearLoginErrors();
 
-          var email = (inputEmail.value || "").trim();
+          var email = normalizarEmail(inputEmail.value);
+          inputEmail.value = email;
           var password = inputPassword.value || "";
 
           if (!email) {
@@ -506,7 +514,8 @@
             return;
           }
 
-          var email = (regEmail.value || "").trim();
+          var email = normalizarEmail(regEmail.value);
+          regEmail.value = email;
           var p1 = regPassword.value || "";
           var p2 = regPassword2.value || "";
           var inviteCode = (regInviteCode.value || "").trim();
