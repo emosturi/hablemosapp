@@ -6,173 +6,528 @@
     <title>Dashboard - HablemosApp</title>
     <style>
       :root {
-        --bg: #0b1220;
-        --panel: rgba(255, 255, 255, 0.06);
-        --text: rgba(255, 255, 255, 0.92);
-        --muted: rgba(255, 255, 255, 0.72);
-        --border: rgba(255, 255, 255, 0.14);
-        --accent: #8b5cf6;
-        --shadow: 0 16px 50px rgba(0, 0, 0, 0.45);
+        --surface: #f0f4f2;
+        --card: #ffffff;
+        --text: #1a2e24;
+        --muted: #5c6d63;
+        --border: #e2e8e4;
+        --primary: #166534;
+        --primary-hover: #14532d;
+        --accent-soft: #dcfce7;
+        --warn-bg: #fef9c3;
+        --warn-text: #854d0e;
+        --danger-bg: #fee2e2;
+        --danger-text: #991b1b;
+        --shadow: 0 4px 24px rgba(22, 101, 52, 0.08);
         --radius: 16px;
+        --radius-sm: 12px;
       }
 
       * { box-sizing: border-box; }
       body {
         margin: 0;
-        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, sans-serif;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, sans-serif;
         color: var(--text);
-        background: radial-gradient(1200px 700px at 20% 0%, rgba(139, 92, 246, 0.25), transparent 60%),
-          radial-gradient(900px 600px at 90% 20%, rgba(34, 197, 94, 0.16), transparent 55%),
-          var(--bg);
+        background: var(--surface);
         min-height: 100vh;
+      }
+
+      .layout {
+        display: flex;
+        min-height: 100vh;
+      }
+
+      .sidebar {
+        width: 258px;
+        flex-shrink: 0;
+        background: var(--card);
+        border-right: 1px solid var(--border);
+        padding: 22px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .logo-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 20px;
+        padding: 0 6px;
+      }
+      .logo-dot {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary), #22c55e);
+        box-shadow: 0 4px 12px rgba(22, 101, 52, 0.25);
+      }
+      .logo-text { font-weight: 800; font-size: 1.15rem; letter-spacing: -0.02em; color: var(--text); }
+
+      .nav-label {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+        margin: 14px 8px 6px;
+      }
+      .sidebar a {
+        display: block;
+        padding: 10px 12px;
+        border-radius: var(--radius-sm);
+        color: var(--muted);
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 500;
+      }
+      .sidebar a:hover { background: var(--surface); color: var(--text); }
+      .sidebar a.active { background: var(--accent-soft); color: var(--primary); font-weight: 600; }
+      .sidebar-spacer { flex: 1; min-height: 16px; }
+      .sidebar .btn-logout {
+        margin-top: auto;
+        border: 1px solid var(--border);
+        background: var(--card);
+        color: var(--text);
+        padding: 10px 12px;
+        border-radius: var(--radius-sm);
+        font-size: 14px;
+        cursor: pointer;
+        font-family: inherit;
+      }
+      .sidebar .btn-logout:hover { border-color: var(--primary); color: var(--primary); }
+
+      .main {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
       }
 
       .topbar {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 16px 20px;
+        gap: 16px;
+        padding: 16px 24px;
+        background: var(--card);
         border-bottom: 1px solid var(--border);
-        background: rgba(0, 0, 0, 0.2);
-        backdrop-filter: blur(6px);
       }
-      .brand { font-weight: 700; letter-spacing: 0.02em; }
-      .menu-wrap { position: relative; }
-      .btn-ghost {
-        background: rgba(255, 255, 255, 0.08);
+      .search-wrap {
+        flex: 1;
+        max-width: 420px;
+      }
+      .search-wrap input {
+        width: 100%;
+        padding: 10px 14px 10px 40px;
         border: 1px solid var(--border);
-        color: var(--text);
-        border-radius: 10px;
-        padding: 8px 12px;
-        cursor: pointer;
+        border-radius: 12px;
+        font-size: 14px;
+        background: var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' fill='none' stroke='%235c6d63' stroke-width='2'%3E%3Ccircle cx='8' cy='8' r='6'/%3E%3Cpath d='M13 13l4 4'/%3E%3C/svg%3E") 12px center no-repeat;
       }
-      .menu-dropdown {
+      .search-wrap input::placeholder { color: #94a3a8; }
+      .user-pill {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 13px;
+      }
+      .user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary), #22c55e);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 15px;
+      }
+      .user-meta { line-height: 1.25; }
+      .user-meta .name { font-weight: 600; color: var(--text); }
+      .user-meta .email { color: var(--muted); font-size: 12px; max-width: 180px; overflow: hidden; text-overflow: ellipsis; }
+
+      .menu-mobile {
+        display: none;
+        position: relative;
+      }
+      .menu-mobile-btn {
+        padding: 8px 12px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: var(--card);
+        cursor: pointer;
+        font-size: 14px;
+      }
+      .menu-mobile-dd {
+        display: none;
         position: absolute;
         right: 0;
-        top: calc(100% + 8px);
-        min-width: 240px;
-        background: #0f1729;
+        top: 100%;
+        margin-top: 6px;
+        min-width: 220px;
+        background: var(--card);
         border: 1px solid var(--border);
         border-radius: 12px;
         box-shadow: var(--shadow);
         padding: 8px;
-        display: none;
-        z-index: 20;
+        z-index: 50;
       }
-      .menu-dropdown.open { display: block; }
-      .menu-dropdown a {
+      .menu-mobile-dd.open { display: block; }
+      .menu-mobile-dd a {
         display: block;
-        text-decoration: none;
+        padding: 8px 10px;
         color: var(--text);
-        padding: 9px 10px;
+        text-decoration: none;
         border-radius: 8px;
         font-size: 14px;
       }
-      .menu-dropdown a:hover { background: rgba(255,255,255,0.08); }
-      .menu-divider { border-top: 1px solid var(--border); margin: 6px 0; }
+      .menu-mobile-dd a:hover { background: var(--surface); }
 
-      .container { max-width: 980px; margin: 0 auto; padding: 30px 18px 36px; }
-      .hero {
-        background: linear-gradient(180deg, var(--panel), rgba(255, 255, 255, 0.03));
+      .content {
+        padding: 24px;
+        flex: 1;
+      }
+      .page-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 22px;
+      }
+      .page-head h1 {
+        margin: 0;
+        font-size: clamp(1.35rem, 2.4vw, 1.75rem);
+        letter-spacing: -0.02em;
+      }
+      .page-head .sub { margin: 6px 0 0; color: var(--muted); font-size: 14px; max-width: 520px; line-height: 1.45; }
+      .head-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+      .btn-primary {
+        background: var(--primary);
+        color: #fff;
+        border: none;
+        padding: 10px 18px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .btn-primary:hover { background: var(--primary-hover); }
+      .btn-secondary {
+        background: var(--card);
+        color: var(--text);
+        border: 1px solid var(--border);
+        padding: 10px 16px;
+        border-radius: 12px;
+        font-weight: 500;
+        font-size: 14px;
+        cursor: pointer;
+        text-decoration: none;
+      }
+      .btn-secondary:hover { border-color: var(--primary); color: var(--primary); }
+
+      .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
+        margin-bottom: 22px;
+      }
+      @media (max-width: 1100px) {
+        .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+      }
+      @media (max-width: 520px) {
+        .kpi-grid { grid-template-columns: 1fr; }
+      }
+      .kpi-card {
+        background: var(--card);
+        border-radius: var(--radius);
+        padding: 18px;
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow);
+      }
+      .kpi-card.featured {
+        background: linear-gradient(135deg, var(--primary), #15803d);
+        color: #fff;
+        border: none;
+      }
+      .kpi-card.featured .kpi-label { color: rgba(255,255,255,0.85); }
+      .kpi-card.featured .kpi-hint { color: rgba(255,255,255,0.75); }
+      .kpi-label { font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+      .kpi-value { font-size: 1.85rem; font-weight: 800; letter-spacing: -0.02em; }
+      .kpi-hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+      .section-title {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--muted);
+        margin: 0 0 12px;
+      }
+
+      .quick-row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
+        margin-bottom: 28px;
+      }
+      @media (max-width: 1000px) {
+        .quick-row {
+          grid-auto-flow: column;
+          grid-auto-columns: minmax(200px, 1fr);
+          overflow-x: auto;
+          scroll-snap-type: x mandatory;
+          padding-bottom: 6px;
+        }
+      }
+      .quick-card {
+        scroll-snap-align: start;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 18px;
+        text-decoration: none;
+        color: inherit;
+        box-shadow: var(--shadow);
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        min-height: 148px;
+        transition: transform 0.12s ease, border-color 0.12s;
+      }
+      .quick-card:hover {
+        transform: translateY(-2px);
+        border-color: rgba(22, 101, 52, 0.35);
+      }
+      .quick-card .emoji { font-size: 26px; }
+      .quick-card .qt { font-weight: 700; font-size: 15px; }
+      .quick-card .qd { font-size: 13px; color: var(--muted); line-height: 1.35; flex: 1; }
+      .quick-card .qc { font-size: 13px; color: var(--primary); font-weight: 600; }
+
+      .two-cols {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+        align-items: start;
+      }
+      @media (max-width: 900px) {
+        .two-cols { grid-template-columns: 1fr; }
+      }
+      .panel {
+        background: var(--card);
         border: 1px solid var(--border);
         border-radius: var(--radius);
         box-shadow: var(--shadow);
-        padding: 24px;
-        margin-bottom: 18px;
+        padding: 18px;
       }
-      .hero h1 { margin: 0 0 8px; font-size: clamp(1.35rem, 2.6vw, 2rem); }
-      .hero p { margin: 0; color: var(--muted); }
-
-      .section-title { margin: 14px 0 10px; font-size: 14px; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
-      .carousel {
-        display: grid;
-        grid-auto-flow: column;
-        grid-auto-columns: minmax(220px, 1fr);
-        gap: 12px;
-        overflow-x: auto;
-        scroll-snap-type: x mandatory;
-        padding-bottom: 6px;
+      .panel h2 {
+        margin: 0 0 4px;
+        font-size: 16px;
       }
-      .carousel::-webkit-scrollbar { height: 8px; }
-      .carousel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.25); border-radius: 99px; }
+      .panel .panel-sub { font-size: 13px; color: var(--muted); margin: 0 0 14px; }
+      .panel-footer {
+        margin-top: 12px;
+        font-size: 13px;
+      }
+      .panel-footer a { color: var(--primary); font-weight: 600; text-decoration: none; }
+      .panel-footer a:hover { text-decoration: underline; }
 
-      .card {
-        scroll-snap-align: start;
-        text-decoration: none;
-        color: inherit;
-        background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
-        border: 1px solid var(--border);
-        border-radius: 14px;
-        padding: 16px;
-        min-height: 150px;
+      .list { list-style: none; margin: 0; padding: 0; }
+      .list li {
         display: flex;
-        flex-direction: column;
-        gap: 10px;
-        transition: transform 120ms ease, border-color 120ms ease;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--border);
       }
-      .card:hover { transform: translateY(-2px); border-color: rgba(139, 92, 246, 0.75); }
-      .card .emoji { font-size: 24px; }
-      .card .title { font-weight: 700; font-size: 16px; }
-      .card .desc { font-size: 13px; color: var(--muted); line-height: 1.35; }
-      .card .cta { margin-top: auto; font-size: 13px; color: #c4b5fd; font-weight: 600; }
+      .list li:last-child { border-bottom: none; }
+      .list-date {
+        flex-shrink: 0;
+        width: 52px;
+        text-align: center;
+        background: var(--surface);
+        border-radius: 10px;
+        padding: 6px 4px;
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--primary);
+        line-height: 1.2;
+      }
+      .list-body { min-width: 0; flex: 1; }
+      .list-title { font-weight: 600; font-size: 14px; margin: 0 0 4px; }
+      .list-meta { font-size: 12px; color: var(--muted); }
+      .badge {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 600;
+      }
+      .badge-green { background: var(--accent-soft); color: var(--primary); }
+      .badge-yellow { background: var(--warn-bg); color: var(--warn-text); }
+      .badge-red { background: var(--danger-bg); color: var(--danger-text); }
+
+      .empty-inline { font-size: 13px; color: var(--muted); padding: 8px 0; }
+      .load-inline { font-size: 13px; color: var(--muted); }
+      .err-banner {
+        background: var(--danger-bg);
+        color: var(--danger-text);
+        padding: 10px 14px;
+        border-radius: var(--radius-sm);
+        margin-bottom: 16px;
+        font-size: 14px;
+        display: none;
+      }
+      .err-banner.show { display: block; }
+
+      @media (max-width: 960px) {
+        .layout { flex-direction: column; }
+        .sidebar { display: none; }
+        .menu-mobile { display: block; }
+        .search-wrap { display: none; }
+      }
     </style>
   </head>
   <body>
-    <header class="topbar">
-      <div class="brand">HablemosApp</div>
-      <div class="menu-wrap">
-        <button id="menuTrigger" class="btn-ghost" type="button" aria-haspopup="true" aria-expanded="false">Menú</button>
-        <nav id="menuDropdown" class="menu-dropdown" aria-label="Navegación principal">
-          <a href="dashboard.html">Dashboard</a>
-          <a href="index.html">Formulario Pensión</a>
-          <a href="clientes.html">Registro de Afiliados</a>
-          <a href="revisar-clientes.html">Listado de Clientes</a>
-          <a href="clientes-potenciales.html">Clientes Potenciales</a>
-          <a href="enlace-registro-publico.html">Enlace registro público</a>
-          <a href="recordatorios.html">Recordatorios</a>
-          <div class="menu-divider"></div>
-          <a href="#" id="btnCerrarSesion">Cerrar sesión</a>
-        </nav>
+    <div class="layout">
+      <aside class="sidebar" aria-label="Navegación">
+        <div class="logo-row">
+          <div class="logo-dot" aria-hidden="true"></div>
+          <span class="logo-text">HablemosApp</span>
+        </div>
+        <div class="nav-label">Menú</div>
+        <a href="dashboard.html" class="active">Dashboard</a>
+        <a href="index.html">Formulario Pensión</a>
+        <a href="clientes.html">Registro de Afiliados</a>
+        <a href="revisar-clientes.html">Listado de Clientes</a>
+        <a href="clientes-potenciales.html">Clientes Potenciales</a>
+        <a href="enlace-registro-publico.html">Enlace registro público</a>
+        <a href="recordatorios.html">Recordatorios</a>
+        <div class="sidebar-spacer"></div>
+        <button type="button" class="btn-logout" id="btnCerrarSesionSidebar">Cerrar sesión</button>
+      </aside>
+
+      <div class="main">
+        <header class="topbar">
+          <div class="menu-mobile">
+            <button type="button" class="menu-mobile-btn" id="menuMobileTrigger" aria-expanded="false">Menú</button>
+            <div class="menu-mobile-dd" id="menuMobileDd">
+              <a href="dashboard.html">Dashboard</a>
+              <a href="index.html">Formulario Pensión</a>
+              <a href="clientes.html">Registro de Afiliados</a>
+              <a href="revisar-clientes.html">Listado de Clientes</a>
+              <a href="clientes-potenciales.html">Clientes Potenciales</a>
+              <a href="enlace-registro-publico.html">Enlace registro público</a>
+              <a href="recordatorios.html">Recordatorios</a>
+            </div>
+          </div>
+          <div class="search-wrap">
+            <input type="search" placeholder="Buscar en la app…" id="dashSearch" autocomplete="off" />
+          </div>
+          <div class="user-pill">
+            <div class="user-avatar" id="userAvatar">?</div>
+            <div class="user-meta">
+              <div class="name" id="userDisplayName">Asesor</div>
+              <div class="email" id="userEmail">—</div>
+            </div>
+          </div>
+        </header>
+
+        <div class="content">
+          <div class="err-banner" id="dashError"></div>
+
+          <div class="page-head">
+            <div>
+              <h1>¡Bienvenido! ¿Qué quieres hacer hoy?</h1>
+              <p class="sub">Resumen de alertas y prospectos. Accede rápido a las tareas más habituales.</p>
+            </div>
+            <div class="head-actions">
+              <a class="btn-primary" href="clientes-potenciales.html">+ Nuevo prospecto</a>
+              <a class="btn-secondary" href="recordatorios.html">Ver todos los recordatorios</a>
+            </div>
+          </div>
+
+          <div class="kpi-grid" id="kpiGrid">
+            <div class="kpi-card featured">
+              <div class="kpi-label">Alertas próximas (7 días)</div>
+              <div class="kpi-value" id="kpiProx7">—</div>
+              <div class="kpi-hint">Recordatorios no enviados</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Pendientes hoy</div>
+              <div class="kpi-value" id="kpiHoy">—</div>
+              <div class="kpi-hint">Para enviar hoy</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Total prospectos</div>
+              <div class="kpi-value" id="kpiPotTotal">—</div>
+              <div class="kpi-hint">En tu cartera</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Requieren seguimiento</div>
+              <div class="kpi-value" id="kpiPotStale">—</div>
+              <div class="kpi-hint">Más de 7 días sin registrar</div>
+            </div>
+          </div>
+
+          <p class="section-title">Accesos principales</p>
+          <div class="quick-row" aria-label="Accesos rápidos">
+            <a class="quick-card" href="clientes-potenciales.html">
+              <span class="emoji" aria-hidden="true">🧲</span>
+              <span class="qt">Registrar a un prospecto</span>
+              <span class="qd">Crea o gestiona clientes potenciales y su seguimiento.</span>
+              <span class="qc">Ir a prospectos →</span>
+            </a>
+            <a class="quick-card" href="enlace-registro-publico.html">
+              <span class="emoji" aria-hidden="true">📤</span>
+              <span class="qt">Enviar formulario a clientes</span>
+              <span class="qd">Genera y comparte el enlace de registro con token de asesor.</span>
+              <span class="qc">Abrir enlace público →</span>
+            </a>
+            <a class="quick-card" href="revisar-clientes.html">
+              <span class="emoji" aria-hidden="true">👥</span>
+              <span class="qt">Ver listado de clientes</span>
+              <span class="qd">Clientes, potenciales y pensionados por pestañas.</span>
+              <span class="qc">Ir al listado →</span>
+            </a>
+            <a class="quick-card" href="recordatorios.html">
+              <span class="emoji" aria-hidden="true">⏰</span>
+              <span class="qt">Revisar recordatorios</span>
+              <span class="qd">Consulta alertas y pendientes programados.</span>
+              <span class="qc">Ver recordatorios →</span>
+            </a>
+          </div>
+
+          <div class="two-cols">
+            <section class="panel">
+              <h2>Próximas alertas</h2>
+              <p class="panel-sub">Recordatorios pendientes, ordenados por fecha.</p>
+              <ul class="list" id="listaAlertas"></ul>
+              <div class="load-inline" id="loadAlertas">Cargando…</div>
+              <div class="panel-footer"><a href="recordatorios.html">Ver listado completo</a></div>
+            </section>
+
+            <section class="panel">
+              <h2>Prospectos por antigüedad</h2>
+              <p class="panel-sub">
+                <span class="badge badge-green">Reciente</span>
+                &lt; 7 días ·
+                <span class="badge badge-yellow">Medio</span>
+                7–21 días ·
+                <span class="badge badge-red">Antiguo</span>
+                &gt; 21 días
+              </p>
+              <ul class="list" id="listaProspectos"></ul>
+              <div class="load-inline" id="loadProspectos">Cargando…</div>
+              <div class="panel-footer"><a href="clientes-potenciales.html">Gestionar prospectos</a></div>
+            </section>
+          </div>
+        </div>
       </div>
-    </header>
-
-    <main class="container">
-      <section class="hero">
-        <h1>¡Bienvenido! ¿Qué quieres hacer hoy?</h1>
-        <p>Selecciona una opción para continuar tu gestión comercial y previsional.</p>
-      </section>
-
-      <div class="section-title">Accesos principales</div>
-      <section class="carousel" aria-label="Menú principal">
-        <a class="card" href="clientes-potenciales.html">
-          <div class="emoji">🧲</div>
-          <div class="title">Registrar a un prospecto</div>
-          <div class="desc">Crea o gestiona clientes potenciales y su seguimiento.</div>
-          <div class="cta">Ir a prospectos</div>
-        </a>
-
-        <a class="card" href="enlace-registro-publico.html">
-          <div class="emoji">📤</div>
-          <div class="title">Enviar formulario a clientes</div>
-          <div class="desc">Genera y comparte el enlace de registro con token de asesor.</div>
-          <div class="cta">Abrir enlace público</div>
-        </a>
-
-        <a class="card" href="revisar-clientes.html">
-          <div class="emoji">👥</div>
-          <div class="title">Ver listado de clientes</div>
-          <div class="desc">Revisa clientes, potenciales y pensionados por pestañas.</div>
-          <div class="cta">Ir al listado</div>
-        </a>
-
-        <a class="card" href="recordatorios.html">
-          <div class="emoji">⏰</div>
-          <div class="title">Revisar Recordatorios</div>
-          <div class="desc">Consulta alertas y pendientes programados por fecha.</div>
-          <div class="cta">Ver recordatorios</div>
-        </a>
-      </section>
-    </main>
+    </div>
 
     <script src="supabase-config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -189,37 +544,245 @@
           window.installInactivityAutoLogout(supabase, { timeoutMs: window.SESSION_IDLE_TIMEOUT_MS, redirectTo: "login.html" });
         }
 
+        function showErr(msg) {
+          var el = document.getElementById("dashError");
+          if (!el) return;
+          el.textContent = msg;
+          el.classList.add("show");
+        }
+
+        function localISODate(d) {
+          var y = d.getFullYear();
+          var m = String(d.getMonth() + 1).padStart(2, "0");
+          var day = String(d.getDate()).padStart(2, "0");
+          return y + "-" + m + "-" + day;
+        }
+
+        function addDaysISO(isoStr, days) {
+          var p = String(isoStr || "").split("-");
+          if (p.length !== 3) return isoStr;
+          var dt = new Date(parseInt(p[0], 10), parseInt(p[1], 10) - 1, parseInt(p[2], 10));
+          dt.setDate(dt.getDate() + days);
+          return localISODate(dt);
+        }
+
+        function parseRecordatorioDate(iso) {
+          var m = String(iso || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+          if (!m) return null;
+          return new Date(parseInt(m[1], 10), parseInt(m[2], 10) - 1, parseInt(m[3], 10));
+        }
+
+        function fmtShortDate(iso) {
+          var d = parseRecordatorioDate(iso);
+          if (!d || isNaN(d.getTime())) return String(iso || "—");
+          return d.toLocaleDateString("es-CL", { day: "numeric", month: "short" });
+        }
+
+        function compareReminder(a, b) {
+          var fa = String(a.fecha || "");
+          var fb = String(b.fecha || "");
+          if (fa !== fb) return fa < fb ? -1 : 1;
+          var ha = String(a.hora || "00:00");
+          var hb = String(b.hora || "00:00");
+          return ha < hb ? -1 : ha > hb ? 1 : 0;
+        }
+
+        function daysSinceCreated(createdAt) {
+          if (!createdAt) return 0;
+          var t = new Date(createdAt).getTime();
+          if (isNaN(t)) return 0;
+          return Math.floor((Date.now() - t) / (86400000));
+        }
+
+        function tierPotencial(days) {
+          if (days < 7) return { key: "green", label: "Reciente", cls: "badge-green", order: 2 };
+          if (days <= 21) return { key: "yellow", label: "Medio", cls: "badge-yellow", order: 1 };
+          return { key: "red", label: "Antiguo", cls: "badge-red", order: 0 };
+        }
+
+        function signOut() {
+          supabase.auth.signOut().then(function () {
+            window.location.href = "login.html";
+          });
+        }
+
+        document.getElementById("btnCerrarSesionSidebar").addEventListener("click", signOut);
+
+        var mobTrigger = document.getElementById("menuMobileTrigger");
+        var mobDd = document.getElementById("menuMobileDd");
+        if (mobTrigger && mobDd) {
+          mobTrigger.addEventListener("click", function (e) {
+            e.stopPropagation();
+            var open = !mobDd.classList.contains("open");
+            mobDd.classList.toggle("open", open);
+            mobTrigger.setAttribute("aria-expanded", open ? "true" : "false");
+          });
+          document.addEventListener("click", function () {
+            mobDd.classList.remove("open");
+            mobTrigger.setAttribute("aria-expanded", "false");
+          });
+        }
+
+        var searchInput = document.getElementById("dashSearch");
+        if (searchInput) {
+          searchInput.addEventListener("keydown", function (e) {
+            if (e.key !== "Enter") return;
+            var q = (searchInput.value || "").trim().toLowerCase();
+            if (!q) return;
+            if (q.indexOf("prospect") !== -1 || q.indexOf("poten") !== -1) {
+              window.location.href = "clientes-potenciales.html";
+              return;
+            }
+            if (q.indexOf("record") !== -1 || q.indexOf("alert") !== -1) {
+              window.location.href = "recordatorios.html";
+              return;
+            }
+            if (q.indexOf("client") !== -1 || q.indexOf("list") !== -1) {
+              window.location.href = "revisar-clientes.html";
+              return;
+            }
+            if (q.indexOf("form") !== -1 || q.indexOf("pens") !== -1) {
+              window.location.href = "index.html";
+              return;
+            }
+            window.location.href = "revisar-clientes.html";
+          });
+        }
+
         supabase.auth.getSession().then(function (r) {
           if (!r || !r.data || !r.data.session) {
             window.location.replace("login.html");
+            return;
           }
-        });
 
-        var btn = document.getElementById("btnCerrarSesion");
-        var trigger = document.getElementById("menuTrigger");
-        var dropdown = document.getElementById("menuDropdown");
-        if (trigger && dropdown) {
-          trigger.addEventListener("click", function (e) {
-            e.stopPropagation();
-            var open = !dropdown.classList.contains("open");
-            dropdown.classList.toggle("open", open);
-            trigger.setAttribute("aria-expanded", open ? "true" : "false");
-          });
-          document.addEventListener("click", function () {
-            dropdown.classList.remove("open");
-            trigger.setAttribute("aria-expanded", "false");
-          });
-        }
-        if (btn) {
-          btn.addEventListener("click", function (e) {
-            e.preventDefault();
-            supabase.auth.signOut().then(function () {
-              window.location.href = "login.html";
+          var u = r.data.session.user;
+          var email = (u && u.email) || "";
+          var name =
+            (u && u.user_metadata && (u.user_metadata.full_name || u.user_metadata.name)) ||
+            (email ? email.split("@")[0] : "Asesor");
+          document.getElementById("userEmail").textContent = email || "—";
+          document.getElementById("userDisplayName").textContent = name;
+          var av = document.getElementById("userAvatar");
+          if (av) av.textContent = (name.charAt(0) || "?").toUpperCase();
+
+          var today = localISODate(new Date());
+          var weekEnd = addDaysISO(today, 6);
+
+          Promise.all([
+            supabase
+              .from("recordatorios")
+              .select("id, cliente_id, cliente_nombre, fecha, hora, mensaje, enviado")
+              .gte("fecha", today)
+              .order("fecha", { ascending: true })
+              .order("hora", { ascending: true }),
+            supabase.from("clientes_potenciales").select("id, nombre, telefono, created_at").order("created_at", { ascending: false }),
+          ]).then(function (results) {
+            var recRes = results[0];
+            var potRes = results[1];
+
+            if (recRes.error) showErr("Recordatorios: " + (recRes.error.message || "error"));
+            if (potRes.error) showErr((document.getElementById("dashError").textContent ? " · " : "") + "Prospectos: " + (potRes.error.message || "error"));
+
+            var reminders = (recRes.data || []).filter(function (x) {
+              var env = x.enviado === true || x.enviado === "true" || x.enviado === 1;
+              return !env;
             });
+
+            var prox7 = reminders.filter(function (x) {
+              return String(x.fecha || "") <= weekEnd;
+            });
+            document.getElementById("kpiProx7").textContent = String(prox7.length);
+            var hoyCount = reminders.filter(function (x) {
+              return String(x.fecha || "") === today;
+            }).length;
+            document.getElementById("kpiHoy").textContent = String(hoyCount);
+
+            reminders.sort(compareReminder);
+            var topRem = reminders.slice(0, 6);
+            var ulA = document.getElementById("listaAlertas");
+            var loadA = document.getElementById("loadAlertas");
+            loadA.style.display = "none";
+            ulA.innerHTML = "";
+            if (topRem.length === 0) {
+              ulA.innerHTML = '<li class="empty-inline">No hay alertas pendientes a partir de hoy.</li>';
+            } else {
+              topRem.forEach(function (r) {
+                var li = document.createElement("li");
+                var title = (r.cliente_nombre || "Recordatorio").trim();
+                var msg = (r.mensaje || "").trim();
+                if (msg.length > 72) msg = msg.slice(0, 70) + "…";
+                li.innerHTML =
+                  '<div class="list-date">' +
+                  fmtShortDate(r.fecha).replace(" ", "<br/>") +
+                  "</div>" +
+                  '<div class="list-body">' +
+                  '<p class="list-title">' +
+                  title +
+                  "</p>" +
+                  '<p class="list-meta">' +
+                  (r.hora ? r.hora + " · " : "") +
+                  (msg || "Sin mensaje") +
+                  "</p>" +
+                  "</div>";
+                ulA.appendChild(li);
+              });
+            }
+
+            var potList = potRes.data || [];
+            document.getElementById("kpiPotTotal").textContent = String(potList.length);
+            var withMeta = potList.map(function (p) {
+              var d = daysSinceCreated(p.created_at);
+              var t = tierPotencial(d);
+              return { raw: p, days: d, tier: t };
+            });
+            var stale = withMeta.filter(function (x) {
+              return x.days >= 7;
+            }).length;
+            document.getElementById("kpiPotStale").textContent = String(stale);
+
+            withMeta.sort(function (a, b) {
+              if (a.tier.order !== b.tier.order) return a.tier.order - b.tier.order;
+              return b.days - a.days;
+            });
+
+            var ulP = document.getElementById("listaProspectos");
+            var loadP = document.getElementById("loadProspectos");
+            loadP.style.display = "none";
+            ulP.innerHTML = "";
+            var topPot = withMeta.slice(0, 8);
+            if (topPot.length === 0) {
+              ulP.innerHTML = '<li class="empty-inline">Aún no hay prospectos registrados.</li>';
+            } else {
+              topPot.forEach(function (x) {
+                var p = x.raw;
+                var li = document.createElement("li");
+                var href = "ver-potencial.html?id=" + encodeURIComponent(p.id);
+                li.innerHTML =
+                  '<div class="list-body" style="flex:1">' +
+                  '<p class="list-title"><a href="' +
+                  href +
+                  '" style="color:inherit;text-decoration:none;font-weight:600">' +
+                  (p.nombre || "Sin nombre") +
+                  "</a></p>" +
+                  '<p class="list-meta">' +
+                  (p.telefono || "—") +
+                  " · hace " +
+                  x.days +
+                  " día" +
+                  (x.days === 1 ? "" : "s") +
+                  "</p>" +
+                  "</div>" +
+                  '<span class="badge ' +
+                  x.tier.cls +
+                  '">' +
+                  x.tier.label +
+                  "</span>";
+                ulP.appendChild(li);
+              });
+            }
           });
-        }
+        });
       })();
     </script>
   </body>
-  </html>
-
+</html>
