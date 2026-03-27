@@ -4,32 +4,29 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Recordatorios</title>
+    <link rel="stylesheet" href="app-shell.css" />
     <style>
-      :root {
-        --bg: #0b1220;
-        --panel: rgba(255, 255, 255, 0.06);
-        --text: rgba(255, 255, 255, 0.92);
-        --muted: rgba(255, 255, 255, 0.72);
-        --border: rgba(255, 255, 255, 0.14);
-        --accent: #8b5cf6;
-        --shadow: 0 16px 50px rgba(0, 0, 0, 0.45);
-        --radius: 16px;
+      .page {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 0 0 40px;
+        overflow-x: hidden;
       }
-      * { box-sizing: border-box; }
-      body {
+      header {
+        margin: 10px 0 18px;
+      }
+      h1 {
+        font-size: clamp(22px, 2.6vw, 32px);
+        letter-spacing: -0.02em;
         margin: 0;
-        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-        color: var(--text);
-        background: radial-gradient(1200px 700px at 20% 0%, rgba(139, 92, 246, 0.25), transparent 60%),
-          radial-gradient(900px 600px at 90% 20%, rgba(34, 197, 94, 0.18), transparent 55%), var(--bg);
-        min-height: 100vh;
       }
-      .page { max-width: 1100px; margin: 0 auto; padding: 28px 16px 60px; overflow-x: hidden; }
-      header { margin: 10px 0 18px; }
-      h1 { font-size: clamp(22px, 2.6vw, 32px); letter-spacing: -0.02em; margin: 0; }
-      .subtitle { margin: 8px 0 0; color: var(--muted); line-height: 1.4; }
+      .subtitle {
+        margin: 8px 0 0;
+        color: var(--muted);
+        line-height: 1.4;
+      }
       .panel {
-        background: linear-gradient(180deg, var(--panel), rgba(255, 255, 255, 0.03));
+        background: var(--card);
         border: 1px solid var(--border);
         border-radius: var(--radius);
         box-shadow: var(--shadow);
@@ -43,114 +40,193 @@
         text-decoration: none;
         font-size: 14px;
       }
-      a.back:hover { color: var(--text); }
-      table { width: 100%; max-width: 100%; border-collapse: collapse; }
-      th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); }
-      th { color: var(--muted); font-size: 12px; text-transform: uppercase; }
-      .msg-cell { max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-      .enviado-si { color: #86efac; }
-      .enviado-no { color: var(--muted); }
-      .nav-bar { display: flex; align-items: center; padding: 12px 16px; background: rgba(0,0,0,0.25); border-bottom: 1px solid var(--border); max-width: 1100px; margin: 0 auto; position: relative; }
-      .menu-trigger { display: flex; align-items: center; gap: 8px; padding: 8px 14px; background: rgba(255,255,255,0.08); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-size: 14px; font-weight: 500; cursor: pointer; outline: none; }
-      .menu-trigger:hover { background: rgba(255,255,255,0.12); }
-      .menu-trigger svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-      .menu-dropdown { display: none; position: absolute; top: 100%; left: 16px; margin-top: 4px; min-width: 200px; background: #0f1729; border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.4); padding: 6px; z-index: 100; }
-      .menu-dropdown.open { display: block; }
-      .menu-dropdown a { display: flex; align-items: center; gap: 10px; padding: 10px 14px; color: var(--muted); text-decoration: none; font-size: 14px; border-radius: 8px; transition: background 0.15s, color 0.15s; }
-      .menu-dropdown a:hover { background: rgba(255,255,255,0.08); color: var(--text); }
-      .menu-dropdown a.active { color: var(--accent); }
-      .menu-dropdown a .tab-icon { width: 16px; height: 16px; flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-      .menu-dropdown .menu-divider { height: 1px; background: var(--border); margin: 6px 0; }
-      .loading { color: var(--muted); padding: 20px; }
-      .error-msg { color: #ef4444; padding: 20px; }
-      .empty { color: var(--muted); padding: 20px; }
-      .hint-enviado { font-size: 12px; color: var(--muted); margin: 8px 0 12px; max-width: 560px; line-height: 1.45; }
-      .hint-enviado a { color: var(--accent); }
+      a.back:hover {
+        color: var(--primary);
+      }
+      table {
+        width: 100%;
+        max-width: 100%;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        padding: 10px 12px;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+      }
+      th {
+        color: var(--muted);
+        font-size: 12px;
+        text-transform: uppercase;
+      }
+      .msg-cell {
+        max-width: 280px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .enviado-si {
+        color: #0d9488;
+        font-weight: 600;
+      }
+      .enviado-no {
+        color: var(--muted);
+      }
+      .loading {
+        color: var(--muted);
+        padding: 20px;
+      }
+      .error-msg {
+        color: var(--danger-text, #b91c1c);
+        padding: 20px;
+      }
+      .empty {
+        color: var(--muted);
+        padding: 20px;
+      }
+      .hint-enviado {
+        font-size: 12px;
+        color: var(--muted);
+        margin: 8px 0 12px;
+        max-width: 560px;
+        line-height: 1.45;
+      }
+      .hint-enviado a {
+        color: var(--primary-mid);
+        font-weight: 600;
+      }
       .btn-borrar {
         padding: 6px 10px;
         font-size: 12px;
-        background: rgba(239, 68, 68, 0.2);
-        border: 1px solid rgba(239, 68, 68, 0.5);
+        background: var(--danger-bg);
+        border: 1px solid rgba(185, 28, 28, 0.35);
         border-radius: 8px;
-        color: #fca5a5;
+        color: var(--danger-text);
         cursor: pointer;
         white-space: nowrap;
       }
-      .btn-borrar:hover { background: rgba(239, 68, 68, 0.35); color: #fecaca; }
-      .btn-borrar:disabled { opacity: 0.5; cursor: not-allowed; }
+      .btn-borrar:hover {
+        background: #fecaca;
+      }
+      .btn-borrar:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
       @media (max-width: 640px) {
-        .page { padding: 20px 12px 40px; }
-        .th-tel, .th-created { display: none !important; }
-        .td-tel, .td-created { display: none !important; }
-        table { font-size: 14px; }
-        th, td { padding: 8px 6px; }
-        .msg-cell { max-width: 140px; }
+        .page {
+          padding-bottom: 24px;
+        }
+        .th-tel,
+        .th-created {
+          display: none !important;
+        }
+        .td-tel,
+        .td-created {
+          display: none !important;
+        }
+        table {
+          font-size: 14px;
+        }
+        th,
+        td {
+          padding: 8px 6px;
+        }
+        .msg-cell {
+          max-width: 140px;
+        }
       }
     </style>
   </head>
   <body>
-    <nav class="nav-bar" role="navigation">
-      <div class="menu-wrap">
-        <button type="button" class="menu-trigger" id="menuTrigger" aria-haspopup="true" aria-expanded="false">
-          <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-          Menú
-        </button>
-        <div class="menu-dropdown" id="menuDropdown">
-          <a href="index.html">Formulario Pensión</a>
-          <a href="clientes.html">Registro de Afiliados</a>
-          <a href="revisar-clientes.html">Listado de Clientes</a>
-          <a href="clientes-potenciales.html">Clientes Potenciales</a>
-          <a href="enlace-registro-publico.html">Enlace registro público</a>
-          <a href="recordatorios.html" class="active">Recordatorios</a>
-          <div class="menu-divider"></div>
-          <a href="#" id="btnCerrarSesion" title="Cerrar sesión"><svg class="tab-icon" viewBox="0 0 24 24"><rect x="4" y="4" width="10" height="16" rx="1"/><path d="M10 12h10M17 9l3 3-3 3"/></svg> Cerrar sesión</a>
+    <div class="layout">
+      <aside class="sidebar" aria-label="Navegación">
+        <div class="logo-row">
+          <div class="logo-dot" aria-hidden="true"></div>
+          <span class="logo-text">HablemosApp</span>
         </div>
-      </div>
-    </nav>
-    <script>
-      (function() {
-        var trigger = document.getElementById("menuTrigger");
-        var dropdown = document.getElementById("menuDropdown");
-        if (trigger && dropdown) {
-          trigger.addEventListener("click", function(e) { e.stopPropagation(); var open = dropdown.classList.toggle("open"); trigger.setAttribute("aria-expanded", open); });
-          document.addEventListener("click", function() { dropdown.classList.remove("open"); if (trigger) trigger.setAttribute("aria-expanded", "false"); });
-        }
-      })();
-    </script>
-    <div class="page">
-      <header>
-        <h1>Recordatorios</h1>
-        <p class="subtitle">Recordatorios programados que se envían por Telegram en la fecha y hora indicadas.</p>
-        <p class="hint-enviado">Los recordatorios se envían al chat configurado en <strong>TELEGRAM_CHAT_ID</strong>. Ver <a href="TELEGRAM.md" target="_blank" rel="noopener">TELEGRAM.md</a>.</p>
-        <a href="revisar-clientes.html" class="back">← Volver al listado de clientes</a>
-      </header>
+        <div class="nav-label">Menú</div>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="index.html">Formulario Pensión</a>
+        <a href="clientes.html">Registro de Afiliados</a>
+        <a href="revisar-clientes.html">Listado de Clientes</a>
+        <a href="clientes-potenciales.html">Clientes Potenciales</a>
+        <a href="enlace-registro-publico.html">Enlace registro público</a>
+        <a href="recordatorios.html" class="active">Recordatorios</a>
+        <div class="sidebar-spacer"></div>
+        <button type="button" class="btn-logout sidebar-auth-only" id="btnCerrarSesionSidebar">Cerrar sesión</button>
+        <a href="login.html" class="btn-logout sidebar-guest-only">Iniciar sesión</a>
+      </aside>
 
-      <div class="panel">
-        <div id="loading" class="loading">Cargando recordatorios…</div>
-        <div id="error" class="error-msg" style="display:none;"></div>
-        <div id="empty" class="empty" style="display:none;">No hay recordatorios.</div>
-        <table id="tabla" style="display:none;">
-          <thead>
-            <tr>
-              <th>Fecha</th>
-              <th>Hora</th>
-              <th>Cliente</th>
-              <th class="th-tel">Teléfono</th>
-              <th>Mensaje</th>
-              <th>Enviado</th>
-              <th class="th-created">Creado</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody id="tbody"></tbody>
-        </table>
+      <div class="main">
+        <header class="topbar">
+          <div class="menu-mobile">
+            <button type="button" class="menu-mobile-btn" id="menuMobileTrigger" aria-expanded="false">Menú</button>
+            <div class="menu-mobile-dd" id="menuMobileDd">
+              <a href="dashboard.html">Dashboard</a>
+              <a href="index.html">Formulario Pensión</a>
+              <a href="clientes.html">Registro de Afiliados</a>
+              <a href="revisar-clientes.html">Listado de Clientes</a>
+              <a href="clientes-potenciales.html">Clientes Potenciales</a>
+              <a href="enlace-registro-publico.html">Enlace registro público</a>
+              <a href="recordatorios.html" class="active">Recordatorios</a>
+            </div>
+          </div>
+          <div class="search-wrap">
+            <input type="search" placeholder="Buscar en la app…" id="appShellSearch" autocomplete="off" />
+          </div>
+          <div class="user-pill">
+            <div class="user-avatar" id="userAvatar">?</div>
+            <div class="user-meta">
+              <div class="name" id="userDisplayName">Asesor</div>
+              <div class="email" id="userEmail">—</div>
+            </div>
+          </div>
+        </header>
+
+        <div class="content">
+          <div class="page">
+            <header>
+              <h1>Recordatorios</h1>
+              <p class="subtitle">Recordatorios programados que se envían por Telegram en la fecha y hora indicadas.</p>
+              <p class="hint-enviado">
+                Los recordatorios se envían al chat configurado en <strong>TELEGRAM_CHAT_ID</strong>. Ver
+                <a href="TELEGRAM.md" target="_blank" rel="noopener">TELEGRAM.md</a>.
+              </p>
+              <a href="revisar-clientes.html" class="back">← Volver al listado de clientes</a>
+            </header>
+
+            <div class="panel">
+              <div id="loading" class="loading">Cargando recordatorios…</div>
+              <div id="error" class="error-msg" style="display: none"></div>
+              <div id="empty" class="empty" style="display: none">No hay recordatorios.</div>
+              <table id="tabla" style="display: none">
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Hora</th>
+                    <th>Cliente</th>
+                    <th class="th-tel">Teléfono</th>
+                    <th>Mensaje</th>
+                    <th>Enviado</th>
+                    <th class="th-created">Creado</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
     <script src="supabase-config.js"></script>
+    <script src="app-shell.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script>
       (function () {
+        if (typeof window.initAppShell === "function") window.initAppShell();
+        if (typeof window.initAppShellSearch === "function") window.initAppShellSearch();
         var url = window.SUPABASE_URL;
         var key = window.SUPABASE_ANON_KEY;
         if (!url || !key || url.indexOf("TU_PROYECTO") !== -1) {
@@ -158,6 +234,7 @@
           return;
         }
         var supabase = window.supabase.createClient(url, key);
+        if (typeof window.wireAppShellLogout === "function") window.wireAppShellLogout(supabase);
         if (typeof window.installInactivityAutoLogout === "function") {
           window.installInactivityAutoLogout(supabase, { timeoutMs: window.SESSION_IDLE_TIMEOUT_MS, redirectTo: "login.html" });
         }
@@ -168,23 +245,17 @@
             return;
           }
 
+          if (typeof window.applyAppShellUser === "function") window.applyAppShellUser(r.data.session.user);
+          if (typeof window.setAppShellGuest === "function") window.setAppShellGuest(false);
+
           var loadingEl = document.getElementById("loading");
           var errorEl = document.getElementById("error");
           var emptyEl = document.getElementById("empty");
           var tablaEl = document.getElementById("tabla");
           var tbody = document.getElementById("tbody");
 
-          var btnCerrar = document.getElementById("btnCerrarSesion");
-          if (btnCerrar) {
-            btnCerrar.addEventListener("click", function (e) {
-              e.preventDefault();
-              supabase.auth.signOut().then(function () { window.location.href = "login.html"; });
-            });
-          }
-
           function fmtDate(s) {
             if (!s) return "-";
-            // Para columnas tipo `date` (YYYY-MM-DD) evitamos el corrimiento por timezone.
             var m = String(s).match(/^(\d{4})-(\d{2})-(\d{2})$/);
             if (m) {
               var y = parseInt(m[1], 10);
@@ -231,9 +302,14 @@
                   var tr = document.createElement("tr");
                   var clienteCell = "-";
                   if (r.cliente_id) {
-                    clienteCell = '<a href="ver-cliente.html?id=' + encodeURIComponent(r.cliente_id) + '" style="color:var(--accent);">' + (r.cliente_nombre || "Ver cliente") + "</a>";
+                    clienteCell =
+                      '<a href="ver-cliente.html?id=' +
+                      encodeURIComponent(r.cliente_id) +
+                      '" style="color:var(--primary-mid);font-weight:600;">' +
+                      (r.cliente_nombre || "Ver cliente") +
+                      "</a>";
                   } else if (r.cliente_nombre) {
-                    clienteCell = (r.cliente_nombre || "-");
+                    clienteCell = r.cliente_nombre || "-";
                   }
                   var enviado = r.enviado === true || r.enviado === "true" || r.enviado === 1;
                   var enviadoClass = enviado ? "enviado-si" : "enviado-no";
@@ -241,14 +317,34 @@
                   var msg = (r.mensaje || "").trim();
                   var id = r.id;
                   tr.innerHTML =
-                    "<td>" + fmtDate(r.fecha) + "</td>" +
-                    "<td>" + (r.hora || "-") + "</td>" +
-                    "<td>" + clienteCell + "</td>" +
-                    '<td class="td-tel">' + (r.cliente_telefono || "-") + "</td>" +
-                    '<td class="msg-cell" title="' + (msg.replace(/"/g, "&quot;") || "") + '">' + (msg || "-") + "</td>" +
-                    '<td class="' + enviadoClass + '">' + enviadoText + "</td>" +
-                    '<td class="td-created">' + fmtDateTime(r.created_at) + "</td>" +
-                    '<td><button type="button" class="btn-borrar" data-id="' + id + '" title="Eliminar recordatorio">Borrar</button></td>';
+                    "<td>" +
+                    fmtDate(r.fecha) +
+                    "</td>" +
+                    "<td>" +
+                    (r.hora || "-") +
+                    "</td>" +
+                    "<td>" +
+                    clienteCell +
+                    "</td>" +
+                    '<td class="td-tel">' +
+                    (r.cliente_telefono || "-") +
+                    "</td>" +
+                    '<td class="msg-cell" title="' +
+                    (msg.replace(/"/g, "&quot;") || "") +
+                    '">' +
+                    (msg || "-") +
+                    "</td>" +
+                    '<td class="' +
+                    enviadoClass +
+                    '">' +
+                    enviadoText +
+                    "</td>" +
+                    '<td class="td-created">' +
+                    fmtDateTime(r.created_at) +
+                    "</td>" +
+                    '<td><button type="button" class="btn-borrar" data-id="' +
+                    id +
+                    '" title="Eliminar recordatorio">Borrar</button></td>';
                   tbody.appendChild(tr);
                 });
               });
@@ -261,20 +357,24 @@
             if (!id) return;
             if (!confirm("¿Eliminar este recordatorio?")) return;
             btn.disabled = true;
-            supabase.from("recordatorios").delete().eq("id", id).then(function (delRes) {
-              if (delRes.error) {
-                btn.disabled = false;
-                alert("Error al eliminar: " + (delRes.error.message || "Intenta de nuevo."));
-                return;
-              }
-              var row = btn.closest("tr");
-              if (row) row.remove();
-              var rest = tbody.querySelectorAll("tr");
-              if (rest.length === 0) {
-                tablaEl.style.display = "none";
-                emptyEl.style.display = "block";
-              }
-            });
+            supabase
+              .from("recordatorios")
+              .delete()
+              .eq("id", id)
+              .then(function (delRes) {
+                if (delRes.error) {
+                  btn.disabled = false;
+                  alert("Error al eliminar: " + (delRes.error.message || "Intenta de nuevo."));
+                  return;
+                }
+                var row = btn.closest("tr");
+                if (row) row.remove();
+                var rest = tbody.querySelectorAll("tr");
+                if (rest.length === 0) {
+                  tablaEl.style.display = "none";
+                  emptyEl.style.display = "block";
+                }
+              });
           });
 
           cargarLista();

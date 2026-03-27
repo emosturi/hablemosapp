@@ -4,27 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Ver cliente</title>
+    <link rel="stylesheet" href="app-shell.css" />
     <style>
-      :root {
-        --bg: #0b1220;
-        --panel: rgba(255, 255, 255, 0.06);
-        --text: rgba(255, 255, 255, 0.92);
-        --muted: rgba(255, 255, 255, 0.72);
-        --border: rgba(255, 255, 255, 0.14);
-        --accent: #8b5cf6;
-        --shadow: 0 16px 50px rgba(0, 0, 0, 0.45);
-        --radius: 16px;
+      .page {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 0 0 40px;
+        overflow-x: hidden;
       }
-      * { box-sizing: border-box; }
-      body {
-        margin: 0;
-        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-        color: var(--text);
-        background: radial-gradient(1200px 700px at 20% 0%, rgba(139, 92, 246, 0.25), transparent 60%),
-          radial-gradient(900px 600px at 90% 20%, rgba(34, 197, 94, 0.18), transparent 55%), var(--bg);
-        min-height: 100vh;
-      }
-      .page { max-width: 1100px; margin: 0 auto; padding: 28px 16px 60px; overflow-x: hidden; }
       header { margin: 10px 0 18px; }
       h1 { font-size: clamp(22px, 2.6vw, 28px); letter-spacing: -0.02em; margin: 0; }
       .subtitle { margin: 8px 0 0; color: var(--muted); font-size: 14px; }
@@ -35,12 +22,12 @@
         text-decoration: none;
         font-size: 14px;
       }
-      a.back:hover, a.btn:hover { color: var(--text); }
+      a.back:hover, a.btn:hover { color: var(--primary); }
       .header-actions { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 10px; }
       .btn {
         padding: 8px 14px;
         border-radius: 10px;
-        background: var(--accent);
+        background: var(--primary);
         color: #fff !important;
         border: none;
         cursor: pointer;
@@ -48,7 +35,7 @@
       }
       .btn:hover { opacity: 0.95; }
       .panel {
-        background: linear-gradient(180deg, var(--panel), rgba(255, 255, 255, 0.03));
+        background: var(--card);
         border: 1px solid var(--border);
         border-radius: var(--radius);
         box-shadow: var(--shadow);
@@ -58,7 +45,7 @@
       .section {
         border: 1px solid var(--border);
         border-radius: 14px;
-        background: rgba(0, 0, 0, 0.12);
+        background: var(--surface);
         padding: 14px;
         margin: 14px 0;
       }
@@ -68,72 +55,61 @@
       .item span { font-size: 14px; }
       .item.empty span { color: var(--muted); font-style: italic; }
       .loading, .error-msg { padding: 24px; color: var(--muted); }
-      .error-msg { color: #ef4444; }
-      .nav-bar { display: flex; padding: 12px 16px; background: rgba(0,0,0,0.25); border-bottom: 1px solid var(--border); max-width: 1100px; margin: 0 auto; position: relative; }
-      .menu-trigger { display: flex; align-items: center; gap: 8px; padding: 8px 14px; background: rgba(255,255,255,0.08); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-size: 14px; font-weight: 500; cursor: pointer; outline: none; }
-      .menu-trigger:hover { background: rgba(255,255,255,0.12); }
-      .menu-trigger svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-      .menu-dropdown { display: none; position: absolute; top: 100%; left: 16px; margin-top: 4px; min-width: 200px; background: #0f1729; border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.4); padding: 6px; z-index: 100; }
-      .menu-dropdown.open { display: block; }
-      .menu-dropdown a { display: flex; align-items: center; gap: 10px; padding: 10px 14px; color: var(--muted); text-decoration: none; font-size: 14px; border-radius: 8px; transition: background 0.15s, color 0.15s; }
-      .menu-dropdown a:hover { background: rgba(255,255,255,0.08); color: var(--text); }
-      .menu-dropdown a.active { color: var(--accent); }
-      .menu-dropdown a .tab-icon { width: 16px; height: 16px; flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-      .menu-dropdown .menu-divider { height: 1px; background: var(--border); margin: 6px 0; }
-      .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 200; align-items: center; justify-content: center; padding: 16px; }
+      .error-msg { color: var(--danger); }
+      .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(35, 47, 62, 0.55); z-index: 200; align-items: center; justify-content: center; padding: 16px; }
       .modal-overlay.open { display: flex; }
-      .modal { background: #0f1729; border: 1px solid var(--border); border-radius: var(--radius); max-width: 420px; width: 100%; padding: 24px; box-shadow: var(--shadow); }
+      .modal { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); max-width: 420px; width: 100%; padding: 24px; box-shadow: var(--shadow); }
       .modal h3 { margin: 0 0 16px; font-size: 18px; }
       .modal label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 4px; }
-      .modal input, .modal textarea, .modal select { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: rgba(0,0,0,0.2); color: var(--text); font-size: 14px; margin-bottom: 14px; font-family: inherit; }
+      .modal input, .modal textarea, .modal select { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text); font-size: 14px; margin-bottom: 14px; font-family: inherit; }
       .modal textarea { min-height: 80px; resize: vertical; }
       .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
       .modal-actions button { flex: 1; padding: 10px 16px; border-radius: 10px; font-size: 14px; font-weight: 500; cursor: pointer; border: none; }
-      .modal-actions .btn-primary { background: var(--accent); color: #fff; }
-      .modal-actions .btn-secondary { background: rgba(255,255,255,0.1); color: var(--text); }
+      .modal-actions .btn-primary { background: var(--primary); color: #fff; }
+      .modal-actions .btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
       .modal-actions button:disabled { opacity: 0.6; cursor: not-allowed; }
-      .modal-actions .btn-si { background: #22c55e; color: #fff; }
+      .modal-actions .btn-si { background: var(--primary-mid); color: #fff; }
       .modal-actions .btn-no { background: rgba(239, 68, 68, 0.85); color: #fff; }
       .modal-feedback { margin-top: 12px; font-size: 13px; }
       .modal-feedback.error { color: #ef4444; }
-      .modal-feedback.success { color: #22c55e; }
+      .modal-feedback.success { color: var(--primary-mid); }
       .checklist { margin: 0; padding: 0; list-style: none; }
       .checklist li { display: flex; align-items: flex-start; gap: 10px; padding: 10px 8px; border-radius: 10px; }
-      .checklist li:hover { background: rgba(255,255,255,0.04); }
-      .checklist input[type="checkbox"] { margin-top: 2px; width: 18px; height: 18px; accent-color: var(--accent); }
+      .checklist li:hover { background: rgba(0, 96, 108, 0.06); }
+      .checklist input[type="checkbox"] { margin-top: 2px; width: 18px; height: 18px; accent-color: var(--primary); }
       .checklist .checklist-title { font-weight: 700; letter-spacing: 0.01em; }
       .checklist .checklist-sub { color: var(--muted); font-size: 12px; margin-top: 2px; }
       .checklist .group-label { margin: 14px 0 8px; color: var(--muted); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; }
       .checklist .checklist-upload-row { margin-top: 8px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
       .checklist .checklist-upload-row input[type="file"] { max-width: 280px; margin-bottom: 0; font-size: 12px; padding: 6px 8px; }
       .checklist .checklist-file-meta { font-size: 12px; color: var(--muted); }
-      .checklist .checklist-file-link { font-size: 12px; color: var(--accent); text-decoration: none; }
+      .checklist .checklist-file-link { font-size: 12px; color: var(--primary-mid); font-weight: 600; text-decoration: none; }
       .checklist .checklist-file-link:hover { text-decoration: underline; }
       #modalChecklist { align-items: flex-start; overflow-y: auto; }
       #modalChecklist .modal { max-height: calc(100dvh - 32px); overflow-y: auto; margin: 8px 0; }
-      #modalChecklist .modal-actions { position: sticky; bottom: 0; background: #0f1729; padding-top: 10px; }
+      #modalChecklist .modal-actions { position: sticky; bottom: 0; background: var(--card); padding-top: 10px; border-top: 1px solid var(--border); }
       .timeline-hint { font-size: 13px; color: var(--muted); margin: 0 0 14px; line-height: 1.4; }
-      .timeline-controls { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; margin-bottom: 20px; padding: 12px; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid var(--border); }
+      .timeline-controls { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; margin-bottom: 20px; padding: 12px; background: var(--surface); border-radius: 12px; border: 1px solid var(--border); }
       .timeline-controls label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; width: 100%; }
-      .timeline-controls select { flex: 1; min-width: 0; width: 100%; max-width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); background: rgba(0,0,0,0.25); color: var(--text); font-size: 14px; }
-      .timeline-controls .btn-save-tramite { padding: 10px 18px; border-radius: 10px; border: none; background: var(--accent); color: #fff; font-weight: 600; cursor: pointer; font-size: 14px; }
+      .timeline-controls select { flex: 1; min-width: 0; width: 100%; max-width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); color: var(--text); font-size: 14px; }
+      .timeline-controls .btn-save-tramite { padding: 10px 18px; border-radius: 10px; border: none; background: var(--primary); color: #fff; font-weight: 600; cursor: pointer; font-size: 14px; }
       .timeline-controls .btn-save-tramite:disabled { opacity: 0.6; cursor: not-allowed; }
       #tramiteSaveMsg { font-size: 13px; width: 100%; }
-      #tramiteSaveMsg.ok { color: #22c55e; }
+      #tramiteSaveMsg.ok { color: var(--primary-mid); }
       #tramiteSaveMsg.err { color: #ef4444; }
       .timeline { list-style: none; margin: 0; padding: 0 0 0 8px; border-left: 3px solid var(--border); }
       .timeline li { position: relative; padding: 0 0 18px 22px; margin-left: 2px; }
       .timeline li:last-child { padding-bottom: 0; }
-      .timeline li::before { content: ""; position: absolute; left: -15px; top: 4px; width: 12px; height: 12px; border-radius: 50%; background: var(--border); border: 2px solid var(--bg); }
-      .timeline li.done::before { background: #22c55e; box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.35); }
-      .timeline li.current::before { background: var(--accent); box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.4); width: 14px; height: 14px; left: -16px; top: 3px; }
-      .timeline li.pending::before { background: rgba(255,255,255,0.15); }
+      .timeline li::before { content: ""; position: absolute; left: -15px; top: 4px; width: 12px; height: 12px; border-radius: 50%; background: var(--border); border: 2px solid var(--surface); }
+      .timeline li.done::before { background: var(--primary-mid); box-shadow: 0 0 0 2px rgba(0, 147, 145, 0.35); }
+      .timeline li.current::before { background: var(--primary); box-shadow: 0 0 0 3px rgba(0, 96, 108, 0.35); width: 14px; height: 14px; left: -16px; top: 3px; }
+      .timeline li.pending::before { background: rgba(0, 96, 108, 0.12); }
       .timeline li .etapa-titulo { font-size: 14px; font-weight: 600; margin: 0 0 4px; }
       .timeline li.pending .etapa-titulo { color: var(--muted); font-weight: 500; }
       .timeline li .etapa-fecha { font-size: 12px; color: var(--muted); margin: 0; }
-      .timeline li.current .etapa-titulo { color: var(--accent); }
+      .timeline li.current .etapa-titulo { color: var(--primary); }
       @media (max-width: 640px) {
-        .page { padding: 20px 12px 40px; }
+        .page { padding-bottom: 24px; }
         .timeline-controls { display: block; }
         .timeline-controls > div { width: 100% !important; min-width: 0 !important; }
         .timeline-controls .btn-save-tramite { width: 100%; margin-top: 10px; }
@@ -142,35 +118,53 @@
     </style>
   </head>
   <body>
-    <nav class="nav-bar" role="navigation">
-      <div class="menu-wrap">
-        <button type="button" class="menu-trigger" id="menuTrigger" aria-haspopup="true" aria-expanded="false">
-          <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-          Menú
-        </button>
-        <div class="menu-dropdown" id="menuDropdown">
-          <a href="index.html">Formulario Pensión</a>
-          <a href="clientes.html">Registro de Afiliados</a>
-          <a href="revisar-clientes.html" class="active">Listado de Clientes</a>
-          <a href="clientes-potenciales.html">Clientes Potenciales</a>
-          <a href="enlace-registro-publico.html">Enlace registro público</a>
-          <a href="recordatorios.html">Recordatorios</a>
-          <div class="menu-divider"></div>
-          <a href="#" id="btnCerrarSesion" title="Cerrar sesión"><svg class="tab-icon" viewBox="0 0 24 24"><rect x="4" y="4" width="10" height="16" rx="1"/><path d="M10 12h10M17 9l3 3-3 3"/></svg> Cerrar sesión</a>
+    <div class="layout">
+      <aside class="sidebar" aria-label="Navegación">
+        <div class="logo-row">
+          <div class="logo-dot" aria-hidden="true"></div>
+          <span class="logo-text">HablemosApp</span>
         </div>
-      </div>
-    </nav>
-    <script>
-      (function() {
-        var trigger = document.getElementById("menuTrigger");
-        var dropdown = document.getElementById("menuDropdown");
-        if (trigger && dropdown) {
-          trigger.addEventListener("click", function(e) { e.stopPropagation(); dropdown.classList.toggle("open"); trigger.setAttribute("aria-expanded", dropdown.classList.contains("open")); });
-          document.addEventListener("click", function() { dropdown.classList.remove("open"); trigger.setAttribute("aria-expanded", "false"); });
-        }
-      })();
-    </script>
-    <div class="page">
+        <div class="nav-label">Menú</div>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="index.html">Formulario Pensión</a>
+        <a href="clientes.html">Registro de Afiliados</a>
+        <a href="revisar-clientes.html" class="active">Listado de Clientes</a>
+        <a href="clientes-potenciales.html">Clientes Potenciales</a>
+        <a href="enlace-registro-publico.html">Enlace registro público</a>
+        <a href="recordatorios.html">Recordatorios</a>
+        <div class="sidebar-spacer"></div>
+        <button type="button" class="btn-logout sidebar-auth-only" id="btnCerrarSesionSidebar">Cerrar sesión</button>
+        <a href="login.html" class="btn-logout sidebar-guest-only">Iniciar sesión</a>
+      </aside>
+
+      <div class="main">
+        <header class="topbar">
+          <div class="menu-mobile">
+            <button type="button" class="menu-mobile-btn" id="menuMobileTrigger" aria-expanded="false">Menú</button>
+            <div class="menu-mobile-dd" id="menuMobileDd">
+              <a href="dashboard.html">Dashboard</a>
+              <a href="index.html">Formulario Pensión</a>
+              <a href="clientes.html">Registro de Afiliados</a>
+              <a href="revisar-clientes.html" class="active">Listado de Clientes</a>
+              <a href="clientes-potenciales.html">Clientes Potenciales</a>
+              <a href="enlace-registro-publico.html">Enlace registro público</a>
+              <a href="recordatorios.html">Recordatorios</a>
+            </div>
+          </div>
+          <div class="search-wrap">
+            <input type="search" placeholder="Buscar en la app…" id="appShellSearch" autocomplete="off" />
+          </div>
+          <div class="user-pill">
+            <div class="user-avatar" id="userAvatar">?</div>
+            <div class="user-meta">
+              <div class="name" id="userDisplayName">Asesor</div>
+              <div class="email" id="userEmail">—</div>
+            </div>
+          </div>
+        </header>
+
+        <div class="content">
+          <div class="page">
       <a href="revisar-clientes.html" class="back">← Volver al listado</a>
       <header>
         <h1 id="titulo">Ver cliente</h1>
@@ -186,6 +180,9 @@
       <div id="loading" class="loading">Cargando datos del cliente…</div>
       <div id="error" class="error-msg" style="display:none;"></div>
       <div id="contenido" class="panel" style="display:none;"></div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="modal-overlay" id="modalActivarTramite" role="dialog" aria-labelledby="modalActivarTramiteTitulo" aria-modal="true">
@@ -293,9 +290,12 @@
     </div>
 
     <script src="supabase-config.js"></script>
+    <script src="app-shell.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script>
       (function () {
+        if (typeof window.initAppShell === "function") window.initAppShell();
+        if (typeof window.initAppShellSearch === "function") window.initAppShellSearch();
         var params = new URLSearchParams(window.location.search);
         var id = params.get("id");
 
@@ -306,17 +306,9 @@
           return;
         }
         var supabase = window.supabase.createClient(url, key);
+        if (typeof window.wireAppShellLogout === "function") window.wireAppShellLogout(supabase);
         if (typeof window.installInactivityAutoLogout === "function") {
           window.installInactivityAutoLogout(supabase, { timeoutMs: window.SESSION_IDLE_TIMEOUT_MS, redirectTo: "login.html" });
-        }
-
-        var btnCerrarNav = document.getElementById("btnCerrarSesion");
-        if (btnCerrarNav) {
-          btnCerrarNav.addEventListener("click", function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            supabase.auth.signOut().then(function () { window.location.href = "login.html"; });
-          });
         }
 
         if (!id) {
@@ -514,6 +506,9 @@
             window.location.replace("login.html");
             return;
           }
+
+          if (typeof window.applyAppShellUser === "function") window.applyAppShellUser(r.data.session.user);
+          if (typeof window.setAppShellGuest === "function") window.setAppShellGuest(false);
 
           currentSessionUserId = r.data.session.user.id;
 

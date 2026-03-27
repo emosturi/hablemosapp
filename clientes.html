@@ -4,36 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Registro de Afiliados</title>
+    <link rel="stylesheet" href="app-shell.css" />
     <style>
-      :root {
-        --bg: #0b1220;
-        --panel: rgba(255, 255, 255, 0.06);
-        --text: rgba(255, 255, 255, 0.92);
-        --muted: rgba(255, 255, 255, 0.72);
-        --border: rgba(255, 255, 255, 0.14);
-        --accent: #8b5cf6;
-        --danger: #ef4444;
-        --shadow: 0 16px 50px rgba(0, 0, 0, 0.45);
-        --radius: 16px;
-      }
-
-      * { box-sizing: border-box; }
-
-      body {
-        margin: 0;
-        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell,
-          Noto Sans, Helvetica Neue, Arial, sans-serif;
-        color: var(--text);
-        background: radial-gradient(1200px 700px at 20% 0%, rgba(139, 92, 246, 0.25), transparent 60%),
-          radial-gradient(900px 600px at 90% 20%, rgba(34, 197, 94, 0.18), transparent 55%),
-          var(--bg);
-        min-height: 100vh;
-      }
-
       .page {
         max-width: 1100px;
         margin: 0 auto;
-        padding: 28px 16px 60px;
+        padding: 0 0 40px;
         overflow-x: hidden;
       }
 
@@ -42,7 +18,7 @@
       .subtitle { margin: 8px 0 0; color: var(--muted); line-height: 1.4; }
 
       .panel {
-        background: linear-gradient(180deg, var(--panel), rgba(255, 255, 255, 0.03));
+        background: var(--card);
         border: 1px solid var(--border);
         border-radius: var(--radius);
         box-shadow: var(--shadow);
@@ -54,7 +30,7 @@
       .section {
         border: 1px solid var(--border);
         border-radius: 14px;
-        background: rgba(0, 0, 0, 0.12);
+        background: var(--surface);
         padding: 14px;
         margin: 14px 0;
       }
@@ -101,16 +77,16 @@
         .col-3 { grid-column: span 3; }
       }
       @media (max-width: 640px) {
-        .page { padding: 20px 12px 40px; }
+        .page { padding-bottom: 24px; }
       }
 
-      label { font-size: 13px; color: rgba(255, 255, 255, 0.86); }
-      .req { color: rgba(255, 255, 255, 0.7); font-weight: 500; margin-left: 6px; font-size: 12px; }
+      label { font-size: 13px; color: var(--text); opacity: 0.9; }
+      .req { color: var(--muted); font-weight: 500; margin-left: 6px; font-size: 12px; }
 
       input, select, textarea {
         width: 100%;
-        background: rgba(255, 255, 255, 0.06);
-        border: 1px solid rgba(255, 255, 255, 0.16);
+        background: var(--surface);
+        border: 1px solid var(--border);
         border-radius: 12px;
         color: var(--text);
         padding: 10px 12px;
@@ -121,11 +97,11 @@
       textarea { min-height: 84px; resize: vertical; }
 
       input:focus, select:focus, textarea:focus {
-        border-color: rgba(139, 92, 246, 0.8);
-        box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.18);
+        border-color: var(--primary-mid);
+        box-shadow: 0 0 0 4px var(--accent-soft);
       }
 
-      select option { background: #0b1220; color: var(--text); }
+      select option { background: var(--card); color: var(--text); }
 
       .radio-row {
         display: flex;
@@ -134,8 +110,8 @@
         align-items: center;
         padding: 10px 12px;
         border-radius: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.16);
-        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--border);
+        background: var(--surface);
       }
 
       .radio-pill {
@@ -165,11 +141,11 @@
         font-size: 14px;
         font-weight: 600;
         cursor: pointer;
-        background: var(--accent);
+        background: var(--primary-mid);
         color: #fff;
       }
       button:hover { opacity: 0.95; }
-      button[type="submit"] { background: #22c55e; }
+      button[type="submit"] { background: var(--primary); }
       a.back {
         display: inline-block;
         margin-bottom: 16px;
@@ -177,38 +153,16 @@
         text-decoration: none;
         font-size: 14px;
       }
-      a.back:hover { color: var(--text); }
+      a.back:hover { color: var(--primary); }
       .status { margin-top: 12px; font-size: 14px; color: var(--muted); }
-      .nav-bar { display: flex; align-items: center; justify-content: flex-end; padding: 12px 16px; background: rgba(0,0,0,0.25); border-bottom: 1px solid var(--border); max-width: 1100px; margin: 0 auto; position: relative; }
-      .nav-bar.has-menu { justify-content: flex-start; }
-      .login-btn {
-        display: flex; align-items: center; justify-content: center;
-        width: 36px; height: 36px;
-        background: rgba(255,255,255,0.08); border: 1px solid var(--border); border-radius: 10px;
-        color: var(--muted); text-decoration: none;
-        transition: background 0.15s, color 0.15s;
-      }
-      .login-btn:hover { background: rgba(255,255,255,0.12); color: var(--text); }
-      .login-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-      .menu-trigger { display: flex; align-items: center; gap: 8px; padding: 8px 14px; background: rgba(255,255,255,0.08); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-size: 14px; font-weight: 500; cursor: pointer; outline: none; }
-      .menu-trigger:hover { background: rgba(255,255,255,0.12); }
-      .menu-trigger svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-      .menu-wrap { position: relative; }
-      .menu-dropdown { display: none; position: absolute; top: 100%; left: 0; margin-top: 4px; min-width: 200px; background: #0f1729; border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.4); padding: 6px; z-index: 100; }
-      .menu-dropdown.open { display: block; }
-      .menu-dropdown a { display: flex; align-items: center; gap: 10px; padding: 10px 14px; color: var(--muted); text-decoration: none; font-size: 14px; border-radius: 8px; transition: background 0.15s, color 0.15s; }
-      .menu-dropdown a:hover { background: rgba(255,255,255,0.08); color: var(--text); }
-      .menu-dropdown a.active { color: var(--accent); }
-      .menu-dropdown a .tab-icon { width: 16px; height: 16px; flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-      .menu-dropdown .menu-divider { height: 1px; background: var(--border); margin: 6px 0; }
       .registro-publico-banner {
         display: none;
         margin: 0 0 16px;
         padding: 12px 14px;
         border-radius: 12px;
-        border: 1px solid rgba(34, 197, 94, 0.35);
-        background: rgba(34, 197, 94, 0.1);
-        color: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(0, 147, 145, 0.45);
+        background: var(--accent-soft);
+        color: var(--text);
         font-size: 14px;
         line-height: 1.45;
       }
@@ -217,14 +171,57 @@
         padding: 22px 18px;
         line-height: 1.5;
       }
-      .need-invite-block a { color: var(--accent); }
+      .need-invite-block a { color: var(--primary-mid); font-weight: 600; }
     </style>
   </head>
   <body>
-    <nav id="navBar" class="nav-bar" role="navigation">
-      <a href="login.html" class="login-btn" title="Inicio de sesión"><svg viewBox="0 0 24 24"><rect x="10" y="4" width="10" height="16" rx="1"/><path d="M14 12H4M11 9l-3 3 3 3"/></svg></a>
-    </nav>
-    <div class="page">
+    <div class="layout">
+      <aside class="sidebar" aria-label="Navegación">
+        <div class="logo-row">
+          <div class="logo-dot" aria-hidden="true"></div>
+          <span class="logo-text">HablemosApp</span>
+        </div>
+        <div class="nav-label">Menú</div>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="index.html">Formulario Pensión</a>
+        <a href="clientes.html" class="active">Registro de Afiliados</a>
+        <a href="revisar-clientes.html">Listado de Clientes</a>
+        <a href="clientes-potenciales.html">Clientes Potenciales</a>
+        <a href="enlace-registro-publico.html">Enlace registro público</a>
+        <a href="recordatorios.html">Recordatorios</a>
+        <div class="sidebar-spacer"></div>
+        <button type="button" class="btn-logout sidebar-auth-only" id="btnCerrarSesionSidebar">Cerrar sesión</button>
+        <a href="login.html" class="btn-logout sidebar-guest-only">Iniciar sesión</a>
+      </aside>
+
+      <div class="main">
+        <header class="topbar">
+          <div class="menu-mobile">
+            <button type="button" class="menu-mobile-btn" id="menuMobileTrigger" aria-expanded="false">Menú</button>
+            <div class="menu-mobile-dd" id="menuMobileDd">
+              <a href="dashboard.html">Dashboard</a>
+              <a href="index.html">Formulario Pensión</a>
+              <a href="clientes.html" class="active">Registro de Afiliados</a>
+              <a href="revisar-clientes.html">Listado de Clientes</a>
+              <a href="clientes-potenciales.html">Clientes Potenciales</a>
+              <a href="enlace-registro-publico.html">Enlace registro público</a>
+              <a href="recordatorios.html">Recordatorios</a>
+            </div>
+          </div>
+          <div class="search-wrap">
+            <input type="search" placeholder="Buscar en la app…" id="appShellSearch" autocomplete="off" />
+          </div>
+          <div class="user-pill">
+            <div class="user-avatar" id="userAvatar">?</div>
+            <div class="user-meta">
+              <div class="name" id="userDisplayName">Asesor</div>
+              <div class="email" id="userEmail">—</div>
+            </div>
+          </div>
+        </header>
+
+        <div class="content">
+          <div class="page">
       <header>
         <h1>Registro de Afiliados</h1>
         <p class="subtitle">Ingrese sus datos personales. Los campos con * son obligatorios.</p>
@@ -649,32 +646,31 @@
           </div>
         </form>
       </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <script src="supabase-config.js"></script>
+    <script src="app-shell.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script>
       (function () {
-        var url = window.SUPABASE_URL, key = window.SUPABASE_ANON_KEY;
-        if (url && key && url.indexOf("TU_PROYECTO") === -1) {
-          var nav = document.getElementById("navBar");
-          if (nav) {
-            window.supabase.createClient(url, key).auth.getSession().then(function (r) {
-              if (r.data.session) {
-                nav.classList.add("has-menu");
-                nav.innerHTML = '<div class="menu-wrap"><button type="button" class="menu-trigger" id="menuTrigger" aria-haspopup="true" aria-expanded="false"><svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg> Menú</button><div class="menu-dropdown" id="menuDropdown"><a href="index.html">Formulario Pensión</a><a href="clientes.html" class="active">Registro de Afiliados</a><a href="revisar-clientes.html">Listado de Clientes</a><a href="clientes-potenciales.html">Clientes Potenciales</a><a href="enlace-registro-publico.html">Enlace registro público</a><a href="recordatorios.html">Recordatorios</a><div class="menu-divider"></div><a href="#" id="btnCerrarSesion" title="Cerrar sesión"><svg class="tab-icon" viewBox="0 0 24 24"><rect x="4" y="4" width="10" height="16" rx="1"/><path d="M10 12h10M17 9l3 3-3 3"/></svg> Cerrar sesión</a></div></div>';
-                var trigger = document.getElementById("menuTrigger");
-                var dropdown = document.getElementById("menuDropdown");
-                if (trigger && dropdown) {
-                  trigger.addEventListener("click", function(e) { e.stopPropagation(); dropdown.classList.toggle("open"); trigger.setAttribute("aria-expanded", dropdown.classList.contains("open")); });
-                  document.addEventListener("click", function() { dropdown.classList.remove("open"); trigger.setAttribute("aria-expanded", "false"); });
-                }
-                var btn = document.getElementById("btnCerrarSesion");
-                if (btn) btn.addEventListener("click", function (e) { e.preventDefault(); window.supabase.createClient(url, key).auth.signOut().then(function () { window.location.href = "login.html"; }); });
-              }
-            });
+        if (typeof window.initAppShell === "function") window.initAppShell();
+        if (typeof window.initAppShellSearch === "function") window.initAppShellSearch();
+        var url = window.SUPABASE_URL,
+          key = window.SUPABASE_ANON_KEY;
+        if (!url || !key || url.indexOf("TU_PROYECTO") !== -1) return;
+        var supaGuest = window.supabase.createClient(url, key);
+        if (typeof window.wireAppShellLogout === "function") window.wireAppShellLogout(supaGuest);
+        supaGuest.auth.getSession().then(function (r) {
+          if (r.data && r.data.session) {
+            if (typeof window.applyAppShellUser === "function") window.applyAppShellUser(r.data.session.user);
+            if (typeof window.setAppShellGuest === "function") window.setAppShellGuest(false);
+          } else {
+            if (typeof window.setAppShellGuest === "function") window.setAppShellGuest(true);
           }
-        }
+        });
       })();
       // Formato canónico para BD: solo dígitos y K (evita duplicados por distinto formato de RUT).
       function rutToCanonical(rut) {
