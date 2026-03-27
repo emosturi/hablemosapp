@@ -1629,12 +1629,7 @@
         const fechaHoy = fechaHoyHablado();
 
         const tablaAntecedentesCorto = buildTablaSoloSi(antecedentesItems, antecedentes, antecedentesMandateLabels);
-        let tablaAutorizacionesCorto = buildTablaSoloSi(autorizacionesItems, autorizaciones, autorizacionesMandateLabels);
-        const filaTerminarTramite = `<tr><td>${autorizacionesMandateLabels.terminarTramite}</td><td class="col-respuesta"><span style="white-space:nowrap">${(autorizaciones.terminarTramite === "Sí" ? "Sí" : "No")}</span></td></tr>\n`;
-        tablaAutorizacionesCorto = filaTerminarTramite + tablaAutorizacionesCorto.replace(
-          /<tr><td>Poner fín al trámite de Pensión<\/td><td class="col-respuesta"><span style="white-space:nowrap">Sí<\/span><\/td><\/tr>\n?/g,
-          ""
-        );
+        const tablaAutorizacionesCorto = buildTablaSoloSi(autorizacionesItems, autorizaciones, autorizacionesMandateLabels);
         const tablaCertificadosCorto = buildTablaSoloSi(certificadosItems, certificados, certificadosMandateLabels);
 
         const html = `
