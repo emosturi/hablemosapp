@@ -495,7 +495,7 @@
                 inputPassword.focus();
                 return;
               }
-              window.location.href = "index.html";
+              window.location.href = "dashboard.html";
             })
             .catch(function (err) {
               btnLogin.disabled = false;
@@ -586,7 +586,7 @@
               errorRegisterGeneral.textContent = "";
 
               if (result.data && result.data.session) {
-                window.location.href = "index.html";
+                window.location.href = "dashboard.html";
                 return;
               }
 
