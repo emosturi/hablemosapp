@@ -8,19 +8,48 @@
     return document.getElementById(id);
   }
 
+  function closeMobileMenu() {
+    var t = qs("menuMobileTrigger");
+    var d = qs("menuMobileDd");
+    if (d) d.classList.remove("open");
+    if (t) t.setAttribute("aria-expanded", "false");
+  }
+
+  function closeUserMenu() {
+    var ut = qs("userMenuTrigger");
+    var ud = qs("userMenuDd");
+    if (ud) ud.classList.remove("open");
+    if (ut) ut.setAttribute("aria-expanded", "false");
+  }
+
   window.initAppShell = function () {
     var t = qs("menuMobileTrigger");
     var d = qs("menuMobileDd");
-    if (!t || !d) return;
-    t.addEventListener("click", function (e) {
-      e.stopPropagation();
-      var open = !d.classList.contains("open");
-      d.classList.toggle("open", open);
-      t.setAttribute("aria-expanded", open ? "true" : "false");
-    });
+    if (t && d) {
+      t.addEventListener("click", function (e) {
+        e.stopPropagation();
+        closeUserMenu();
+        var open = !d.classList.contains("open");
+        d.classList.toggle("open", open);
+        t.setAttribute("aria-expanded", open ? "true" : "false");
+      });
+    }
+
+    var ut = qs("userMenuTrigger");
+    var ud = qs("userMenuDd");
+    if (ut && ud) {
+      ut.addEventListener("click", function (e) {
+        e.stopPropagation();
+        closeMobileMenu();
+        var open = !ud.classList.contains("open");
+        ud.classList.toggle("open", open);
+        ut.setAttribute("aria-expanded", open ? "true" : "false");
+      });
+    }
+
     document.addEventListener("click", function () {
-      d.classList.remove("open");
-      t.setAttribute("aria-expanded", "false");
+      closeMobileMenu();
+      closeUserMenu();
     });
   };
 
@@ -44,9 +73,10 @@
   };
 
   window.wireAppShellLogout = function (supabase) {
-    var btn = qs("btnCerrarSesionSidebar");
+    var btn = qs("btnCerrarSesionMenu");
     if (!btn || !supabase) return;
-    btn.addEventListener("click", function () {
+    btn.addEventListener("click", function (e) {
+      e.stopPropagation();
       supabase.auth.signOut().then(function () {
         window.location.href = "login.html";
       });
