@@ -95,6 +95,10 @@
         window.location.href = "clientes-potenciales.html";
         return;
       }
+      if (q.indexOf("reserv") !== -1 && (q.indexOf("agenda") !== -1 || q.indexOf("llamad") !== -1)) {
+        window.location.href = "mi-agenda-llamadas.html";
+        return;
+      }
       if (q.indexOf("agenda") !== -1 || q.indexOf("dispon") !== -1 || q.indexOf("llamad") !== -1) {
         window.location.href = "disponibilidad-asesor.html";
         return;
