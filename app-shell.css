@@ -78,6 +78,35 @@ body {
   display: none;
 }
 
+/* Registro público con ?ref= (clientes): solo el formulario, sin shell de asesores */
+.layout.is-registro-publico-afiliado {
+  display: block;
+}
+
+.layout.is-registro-publico-afiliado .sidebar,
+.layout.is-registro-publico-afiliado > .main > header.topbar {
+  display: none !important;
+}
+
+.layout.is-registro-publico-afiliado .main {
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.btn-theme-floating-registro {
+  display: none;
+  position: fixed;
+  bottom: 22px;
+  right: 22px;
+  z-index: 100;
+  box-shadow: var(--shadow);
+}
+
+.layout.is-registro-publico-afiliado .btn-theme-floating-registro {
+  display: flex;
+}
+
 .sidebar {
   width: 258px;
   flex-shrink: 0;

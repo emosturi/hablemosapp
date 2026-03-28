@@ -42,18 +42,33 @@
     btn.setAttribute("aria-label", label);
   }
 
+  function themeToggleButtons() {
+    var list = [];
+    var a = document.getElementById("btnThemeToggle");
+    var b = document.getElementById("btnThemeTogglePublic");
+    if (a) list.push(a);
+    if (b) list.push(b);
+    return list;
+  }
+
+  function syncAllThemeButtons() {
+    themeToggleButtons().forEach(syncButton);
+  }
+
   function initThemeToggle() {
-    var btn = document.getElementById("btnThemeToggle");
-    if (!btn || btn.getAttribute("data-theme-wired") === "1") return;
-    btn.setAttribute("data-theme-wired", "1");
-    syncButton(btn);
-    btn.addEventListener("click", function () {
-      toggle();
+    themeToggleButtons().forEach(function (btn) {
+      if (btn.getAttribute("data-theme-wired") === "1") return;
+      btn.setAttribute("data-theme-wired", "1");
       syncButton(btn);
+      btn.addEventListener("click", function () {
+        toggle();
+        syncAllThemeButtons();
+      });
     });
-    window.addEventListener("hablemosapp-themechange", function () {
-      syncButton(btn);
-    });
+    if (!window.__hablemosThemeGlobalSync) {
+      window.__hablemosThemeGlobalSync = true;
+      window.addEventListener("hablemosapp-themechange", syncAllThemeButtons);
+    }
   }
 
   window.hablemosappTheme = { get: get, set: set, toggle: toggle, init: initThemeToggle };
