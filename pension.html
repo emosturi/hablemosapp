@@ -2238,6 +2238,19 @@
           row.solicitud_beneficiarios = [];
         }
 
+        var benefList = row.solicitud_beneficiarios;
+        if (benefList && benefList.length) {
+          for (var bi = 0; bi < benefList.length; bi++) {
+            var ben = benefList[bi];
+            var par = String(ben.parentesco || "").toLowerCase();
+            if (par === "cónyuge" || par === "conyuge" || par.indexOf("conviviente") !== -1) {
+              row.conyuge_fecha_matrimonio = ben.fecha_matrimonio_union_civil || null;
+              row.conyuge_lugar_matrimonio = ben.ciudad_matrimonio_union_civil || null;
+              break;
+            }
+          }
+        }
+
         return row;
       }
 
@@ -3200,8 +3213,21 @@
                       }
                     }
                     var fechaMat = "";
-                    if (c.conyuge_fecha_matrimonio && typeof c.conyuge_fecha_matrimonio === "string") {
-                      var isoMat = c.conyuge_fecha_matrimonio.split("T")[0];
+                    var isoMatOrigen = c.conyuge_fecha_matrimonio;
+                    var lugarMatOrigen = c.conyuge_lugar_matrimonio;
+                    if ((!isoMatOrigen || !lugarMatOrigen) && c.solicitud_beneficiarios && Array.isArray(c.solicitud_beneficiarios)) {
+                      for (var ib = 0; ib < c.solicitud_beneficiarios.length; ib++) {
+                        var bb = c.solicitud_beneficiarios[ib];
+                        var pb = String(bb.parentesco || "").toLowerCase();
+                        if (pb === "cónyuge" || pb === "conyuge" || pb.indexOf("conviviente") !== -1) {
+                          if (!isoMatOrigen) isoMatOrigen = bb.fecha_matrimonio_union_civil;
+                          if (!lugarMatOrigen) lugarMatOrigen = bb.ciudad_matrimonio_union_civil;
+                          break;
+                        }
+                      }
+                    }
+                    if (isoMatOrigen && typeof isoMatOrigen === "string") {
+                      var isoMat = isoMatOrigen.split("T")[0];
                       if (isoMat && isoMat.match(/^\d{4}-\d{2}-\d{2}$/)) {
                         var pm = isoMat.split("-");
                         fechaMat = pm[2] + "-" + pm[1] + "-" + pm[0];
@@ -3219,7 +3245,7 @@
                       parentesco: parentescoConyuge,
                       fechaNacimiento: fechaConyuge,
                       fechaMatrimonioUnionCivil: fechaMat,
-                      ciudadMatrimonioUnionCivil: c.conyuge_lugar_matrimonio || "",
+                      ciudadMatrimonioUnionCivil: lugarMatOrigen || "",
                       esInvalido: "No",
                       observaciones: ""
                     });

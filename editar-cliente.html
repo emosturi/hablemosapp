@@ -229,6 +229,9 @@
       <header>
         <h1>Editar cliente</h1>
         <p class="subtitle">Modifica los datos del cliente. Campos con * son obligatorios.</p>
+        <p class="subtitle" style="margin-top: 8px">
+          Datos de empleador, cuenta bancaria y fecha o lugar de matrimonio/unión civil se actualizan en la <strong>solicitud de pensión</strong> (mandato), no aquí.
+        </p>
       </header>
 
       <div class="panel">
@@ -419,21 +422,9 @@
                 </div>
                 <div class="error" data-error-for="conyuge_fechaNac"></div>
               </div>
-              <div class="field col-4">
-                <label for="conyuge_fechaMatrimonio">Fecha de matrimonio <span class="req">*</span></label>
-                <div class="date-group">
-                  <select id="conyuge_fechaMatrimonio_dia"><option value="" selected disabled>Día</option></select>
-                  <select id="conyuge_fechaMatrimonio_mes"><option value="" selected disabled>Mes</option></select>
-                  <select id="conyuge_fechaMatrimonio_anio"><option value="" selected disabled>Año</option></select>
-                  <input type="hidden" id="conyuge_fechaMatrimonio" name="conyuge.fechaMatrimonio" />
-                </div>
-                <div class="error" data-error-for="conyuge_fechaMatrimonio"></div>
-              </div>
-              <div class="field col-6">
-                <label for="conyuge_lugarMatrimonio">Lugar de matrimonio <span class="req">*</span></label>
-                <input id="conyuge_lugarMatrimonio" name="conyuge.lugarMatrimonio" />
-                <div class="error" data-error-for="conyuge_lugarMatrimonio"></div>
-              </div>
+              <p class="hint" style="grid-column: 1 / -1; margin: 0">
+                La fecha y el lugar de matrimonio o unión civil se completan en la <strong>solicitud de pensión</strong>, no en esta ficha.
+              </p>
             </div>
           </div>
 
@@ -473,79 +464,9 @@
             </div>
           </div>
 
-          <!-- Datos empleador -->
-          <div class="section" aria-labelledby="empleadorTitle">
-            <div class="section-title">
-              <h2 id="empleadorTitle">Datos empleador</h2>
-            </div>
-            <div class="grid">
-              <div class="field col-6">
-                <label for="empleador_razonSocial">Razón Social</label>
-                <input id="empleador_razonSocial" name="empleador.razonSocial" />
-              </div>
-              <div class="field col-4">
-                <label for="empleador_rut">RUT</label>
-                <input id="empleador_rut" name="empleador.rut" class="rut-input" placeholder="12.345.678-5" />
-              </div>
-              <div class="field col-6">
-                <label for="empleador_direccion">Dirección</label>
-                <input id="empleador_direccion" name="empleador.direccion" />
-              </div>
-              <div class="field col-3">
-                <label for="empleador_telefono">Teléfono</label>
-                <input id="empleador_telefono" name="empleador.telefono" inputmode="tel" />
-              </div>
-              <div class="field col-3">
-                <label for="empleador_email">Email</label>
-                <input id="empleador_email" name="empleador.email" inputmode="email" />
-              </div>
-            </div>
-          </div>
-
-          <!-- Datos bancarios (colapsable y opcional) -->
-          <div class="section collapsible collapsed" aria-labelledby="bancoTitle">
-            <div class="section-title" role="button" tabindex="0" aria-expanded="false">
-              <span class="toggle-icon" aria-hidden="true">▼</span>
-              <h2 id="bancoTitle">Datos bancarios</h2>
-              <span class="hint">Opcional</span>
-            </div>
-            <div class="section-body">
-            <div class="grid">
-              <div class="field col-4">
-                <label for="banco_nombre">Banco</label>
-                <select id="banco_nombre" name="banco.banco">
-                  <option value="">Selecciona…</option>
-                  <option value="Banco de Chile">Banco de Chile</option>
-                  <option value="Banco Estado">Banco Estado</option>
-                  <option value="Banco Santander">Banco Santander</option>
-                  <option value="Scotiabank">Scotiabank</option>
-                  <option value="BCI">BCI</option>
-                  <option value="Banco Itaú">Banco Itaú</option>
-                  <option value="Banco Security">Banco Security</option>
-                  <option value="Banco Falabella">Banco Falabella</option>
-                  <option value="Banco Ripley">Banco Ripley</option>
-                  <option value="Banco Consorcio">Banco Consorcio</option>
-                  <option value="Banco Penta">Banco Penta</option>
-                  <option value="Banco Bice">Banco Bice</option>
-                  <option value="Coopeuch">Coopeuch</option>
-                </select>
-              </div>
-              <div class="field col-4">
-                <label for="banco_tipo">Tipo de cuenta</label>
-                <select id="banco_tipo" name="banco.tipoCuenta">
-                  <option value="">Selecciona…</option>
-                  <option value="Cuenta corriente">Cuenta corriente</option>
-                  <option value="Cuenta vista/Cuenta RUT">Cuenta vista/Cuenta RUT</option>
-                  <option value="Cuenta de ahorro">Cuenta de ahorro</option>
-                </select>
-              </div>
-              <div class="field col-4">
-                <label for="banco_numero">Número de cuenta</label>
-                <input id="banco_numero" name="banco.numeroCuenta" inputmode="numeric" />
-              </div>
-            </div>
-            </div>
-          </div>
+          <p class="hint" style="margin: 0 0 14px">
+            Datos de <strong>empleador</strong> y <strong>cuenta bancaria</strong> se completan en la solicitud de pensión (formulario de mandato).
+          </p>
 
           <!-- Solicitud de pensión (colapsable y opcional, sin mandatario) -->
           <div class="section collapsible collapsed" aria-labelledby="solicitudTitle">
@@ -952,6 +873,7 @@
         var p = new URLSearchParams(window.location.search);
         return p.get("id");
       })();
+      var clienteDbSnapshot = null;
       if (!clientId) {
         setStatus("Falta el ID del cliente. Vuelve al listado.");
         form.querySelector("button[type=submit]").disabled = true;
@@ -991,9 +913,7 @@
             "conyuge_apMaterno",
             "conyuge_nacionalidad",
             "conyuge_rut",
-            "conyuge_fechaNac",
-            "conyuge_fechaMatrimonio",
-            "conyuge_lugarMatrimonio"
+            "conyuge_fechaNac"
           ];
           reqIds.forEach(function(id) {
             var el = document.getElementById(id);
@@ -1045,20 +965,6 @@
         conyugeDia.addEventListener("change", updateConyugeFecha);
         conyugeMes.addEventListener("change", updateConyugeFecha);
         conyugeAnio.addEventListener("change", updateConyugeFecha);
-      }
-      var matDia = document.getElementById("conyuge_fechaMatrimonio_dia");
-      var matMes = document.getElementById("conyuge_fechaMatrimonio_mes");
-      var matAnio = document.getElementById("conyuge_fechaMatrimonio_anio");
-      var matHidden = document.getElementById("conyuge_fechaMatrimonio");
-      if (matDia && matMes && matAnio && matHidden) {
-        llenarSelectFecha(matDia, matMes, matAnio, 1900);
-        function updateMat() {
-          var d = matDia.value, m = matMes.value, y = matAnio.value;
-          matHidden.value = (d && m && y) ? d + "-" + m + "-" + y : "";
-        }
-        matDia.addEventListener("change", updateMat);
-        matMes.addEventListener("change", updateMat);
-        matAnio.addEventListener("change", updateMat);
       }
 
       function crearHijoBlock(index) {
@@ -1112,6 +1018,7 @@
         if (hiddenEl) hiddenEl.value = d + "-" + m + "-" + y;
       }
       function populateFormFromClient(c) {
+        clienteDbSnapshot = c;
         document.getElementById("cliente_nombres").value = c.nombres || "";
         document.getElementById("cliente_apPaterno").value = c.apellido_paterno || "";
         document.getElementById("cliente_apMaterno").value = c.apellido_materno || "";
@@ -1143,8 +1050,6 @@
         if (c.conyuge_nacionalidad) setFormFromObject(form, { conyuge: { nacionalidad: c.conyuge_nacionalidad } });
         document.getElementById("conyuge_rut").value = normalizeRut(c.conyuge_rut) || (c.conyuge_rut || "");
         setFechaFromIso(conyugeDia, conyugeMes, conyugeAnio, conyugeHidden, c.conyuge_fecha_nacimiento);
-        setFechaFromIso(matDia, matMes, matAnio, matHidden, c.conyuge_fecha_matrimonio);
-        document.getElementById("conyuge_lugarMatrimonio").value = c.conyuge_lugar_matrimonio || "";
         if (c.conyuge_sexo) setFormFromObject(form, { conyuge: { sexo: c.conyuge_sexo } });
         var radioSi = form.querySelector("input[name='tieneHijosMenores24'][value='Sí']");
         var radioNo = form.querySelector("input[name='tieneHijosMenores24'][value='No']");
@@ -1172,14 +1077,6 @@
           }
         });
         if (sectionHijosBloque) sectionHijosBloque.classList.toggle("section-hidden", !c.tiene_hijos_menores_24);
-        document.getElementById("empleador_razonSocial").value = c.empleador_razon_social || "";
-        document.getElementById("empleador_rut").value = normalizeRut(c.empleador_rut) || (c.empleador_rut || "");
-        document.getElementById("empleador_direccion").value = c.empleador_direccion || "";
-        document.getElementById("empleador_telefono").value = c.empleador_telefono || "";
-        document.getElementById("empleador_email").value = c.empleador_email || "";
-        document.getElementById("banco_nombre").value = c.banco || "";
-        document.getElementById("banco_tipo").value = c.tipo_cuenta || "";
-        document.getElementById("banco_numero").value = c.numero_cuenta || "";
 
         // Solicitud de pensión (si existe)
         if (c.solicitud_tipo_pension) {
@@ -1306,7 +1203,6 @@
             if (!requireText("conyuge_apPaterno", "Ingrese apellido paterno")) return;
             if (!requireText("conyuge_apMaterno", "Ingrese apellido materno")) return;
             if (!requireText("conyuge_nacionalidad", "Ingrese nacionalidad")) return;
-            if (!requireText("conyuge_lugarMatrimonio", "Ingrese lugar de matrimonio/unión civil")) return;
 
           if (!rutIsValid(document.getElementById("conyuge_rut").value || "")) {
             setError(form, "conyuge_rut", "RUT inválido");
@@ -1314,10 +1210,6 @@
           }
           if (!co.fechaNacimiento || !/^\d{2}-\d{2}-\d{4}$/.test(co.fechaNacimiento)) {
             setError(form, "conyuge_fechaNac", "Seleccione una fecha válida");
-            return;
-          }
-          if (!co.fechaMatrimonio || !/^\d{2}-\d{2}-\d{4}$/.test(co.fechaMatrimonio)) {
-            setError(form, "conyuge_fechaMatrimonio", "Seleccione una fecha válida");
             return;
           }
           var sexoCony = form.querySelector("input[name='conyuge.sexo']:checked");
@@ -1331,8 +1223,6 @@
           row.conyuge_apellido_materno = (co.apellidoMaterno || "").trim() || null;
           row.conyuge_rut = (rutToCanonical(co.rut) || null);
           row.conyuge_fecha_nacimiento = toIsoDate(co.fechaNacimiento);
-          row.conyuge_fecha_matrimonio = toIsoDate(co.fechaMatrimonio);
-          row.conyuge_lugar_matrimonio = (co.lugarMatrimonio || "").trim() || null;
           row.conyuge_nacionalidad = (co.nacionalidad || "").trim() || null;
           row.conyuge_sexo = (co.sexo || "").trim() || null;
         }
@@ -1346,8 +1236,10 @@
             var nombres = (form.querySelector("input[name='hijo_" + i + "_nombres']") || {}).value;
             var apP = (form.querySelector("input[name='hijo_" + i + "_apellidoPaterno']") || {}).value;
             var apM = (form.querySelector("input[name='hijo_" + i + "_apellidoMaterno']") || {}).value;
+            var nac = (form.querySelector("input[name='hijo_" + i + "_nacionalidad']") || {}).value;
             var rut = (form.querySelector("input[name='hijo_" + i + "_rut']") || {}).value;
-          var dia = (form.querySelector("select[name='hijo_" + i + "_dia']") || {}).value;
+            var sexo = (form.querySelector("select[name='hijo_" + i + "_sexo']") || {}).value;
+            var dia = (form.querySelector("select[name='hijo_" + i + "_dia']") || {}).value;
             var mes = (form.querySelector("select[name='hijo_" + i + "_mes']") || {}).value;
             var anio = (form.querySelector("select[name='hijo_" + i + "_anio']") || {}).value;
             var fNac = (dia && mes && anio) ? anio + "-" + mes + "-" + dia : null;
@@ -1356,23 +1248,13 @@
               apellido_paterno: (apP || "").trim() || null,
               apellido_materno: (apM || "").trim() || null,
               rut: (rutToCanonical(rut) || null),
-              fecha_nacimiento: fNac
+              fecha_nacimiento: fNac,
+              nacionalidad: (nac || "").trim() || null,
+              sexo: (sexo || "").trim() || null
             });
           }
         }
         row.hijos = hijosArr;
-
-        var emp = data.empleador || {};
-        row.empleador_razon_social = (emp.razonSocial || "").trim() || null;
-        row.empleador_rut = (rutToCanonical(emp.rut) || null);
-        row.empleador_direccion = (emp.direccion || "").trim() || null;
-        row.empleador_telefono = (emp.telefono || "").trim() || null;
-        row.empleador_email = (emp.email || "").trim() || null;
-
-        var bancoData = data.banco || {};
-        row.banco = (bancoData.banco || "").trim() || null;
-        row.tipo_cuenta = (bancoData.tipoCuenta || "").trim() || null;
-        row.numero_cuenta = (bancoData.numeroCuenta || "").trim() || null;
 
         // Secciones del formulario de solicitud de pensión (sin mandatario)
         row.solicitud_tipo_pension = (solicitud.tipoPension || "").trim() || null;
@@ -1380,7 +1262,58 @@
           ? ((solicitud.cambioModalidadTramite || "").trim() === "Sí")
           : null;
         row.solicitud_numero_beneficiarios = inferNumeroBeneficiarios();
-        row.solicitud_beneficiarios = [];
+        function conyugeMatrimonioDesdeSnapshot(snap) {
+          var f = null;
+          var lug = null;
+          if (snap && snap.solicitud_beneficiarios && Array.isArray(snap.solicitud_beneficiarios)) {
+            for (var ii = 0; ii < snap.solicitud_beneficiarios.length; ii++) {
+              var bx = snap.solicitud_beneficiarios[ii];
+              var px = String(bx.parentesco || "").toLowerCase();
+              if (px === "cónyuge" || px === "conyuge" || px.indexOf("conviviente") !== -1) {
+                f = bx.fecha_matrimonio_union_civil || null;
+                lug = bx.ciudad_matrimonio_union_civil || null;
+                break;
+              }
+            }
+          }
+          if (snap) {
+            if (!f && snap.conyuge_fecha_matrimonio) f = snap.conyuge_fecha_matrimonio;
+            if (!lug && snap.conyuge_lugar_matrimonio) lug = snap.conyuge_lugar_matrimonio;
+          }
+          return { fecha: f, lugar: lug };
+        }
+        var matPreservar = conyugeMatrimonioDesdeSnapshot(clienteDbSnapshot);
+        var solicitudBenef = [];
+        if (showConyuge && (co.nombres || co.apellidoPaterno || co.apellidoMaterno || co.rut)) {
+          var parentescoConyuge = (c.estadoCivil || "").toLowerCase().indexOf("conviviente") !== -1 ? "Conviviente civil" : "Cónyuge";
+          solicitudBenef.push({
+            nombres: (co.nombres || "").trim() || null,
+            apellido_paterno: (co.apellidoPaterno || "").trim() || null,
+            apellido_materno: (co.apellidoMaterno || "").trim() || null,
+            rut: (rutToCanonical(co.rut) || null),
+            fecha_nacimiento: toIsoDate(co.fechaNacimiento) || null,
+            parentesco: parentescoConyuge,
+            sexo: (co.sexo || "").trim() || null,
+            fecha_matrimonio_union_civil: matPreservar.fecha,
+            ciudad_matrimonio_union_civil: matPreservar.lugar,
+            observaciones: null
+          });
+        }
+        hijosArr.forEach(function (h) {
+          solicitudBenef.push({
+            nombres: h.nombres,
+            apellido_paterno: h.apellido_paterno,
+            apellido_materno: h.apellido_materno,
+            rut: h.rut,
+            fecha_nacimiento: h.fecha_nacimiento,
+            parentesco: "Hijo/a",
+            sexo: h.sexo,
+            fecha_matrimonio_union_civil: null,
+            ciudad_matrimonio_union_civil: null,
+            observaciones: null
+          });
+        });
+        row.solicitud_beneficiarios = solicitudBenef;
         if ((antecedentes.destinareApv || "").trim() === "Sí") {
           if (!String(antecedentes.apvNombreInstitucion || "").trim()) {
             setError(form, "antecedentes.apvDetalle", "Indica la institución APV.");
@@ -1415,9 +1348,11 @@
         }
 
         row.solicitud_antecedentes = antecedentes || {};
-        // Inferir ingresarDatosCuentaBancaria desde Datos bancarios
-        var autOut = (autorizaciones && typeof autorizaciones === "object") ? autorizaciones : {};
-        autOut.ingresarDatosCuentaBancaria = (row.banco || row.tipo_cuenta || row.numero_cuenta) ? "Sí" : "No";
+        var baseAut = (clienteDbSnapshot && clienteDbSnapshot.solicitud_autorizaciones && typeof clienteDbSnapshot.solicitud_autorizaciones === "object")
+          ? clienteDbSnapshot.solicitud_autorizaciones : {};
+        var autOut = Object.assign({}, baseAut, (autorizaciones && typeof autorizaciones === "object") ? autorizaciones : {});
+        var tieneCuentaBd = clienteDbSnapshot && String(clienteDbSnapshot.banco || clienteDbSnapshot.tipo_cuenta || clienteDbSnapshot.numero_cuenta || "").trim();
+        if (tieneCuentaBd) autOut.ingresarDatosCuentaBancaria = "Sí";
         row.solicitud_autorizaciones = autOut;
         row.solicitud_certificados = certificados || {};
 
