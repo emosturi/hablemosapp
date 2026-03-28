@@ -665,20 +665,31 @@
             html += item("AFP", c.afp) + item("Previsión de salud", c.institucion_salud);
             html += "</div></div>";
 
+            function textoEsInvalido(v) {
+              if (v === true) return "Sí";
+              if (v === false) return "No";
+              var s = String(v || "").trim();
+              if (!s) return "";
+              var x = s.toLowerCase();
+              if (x === "sí" || x === "si") return "Sí";
+              if (x === "no") return "No";
+              return s;
+            }
             function matrimonioConyugeDesdeBeneficiarios(cli) {
               var fb = cli.solicitud_beneficiarios;
-              if (!fb || !Array.isArray(fb)) return { fecha: null, lugar: null };
+              if (!fb || !Array.isArray(fb)) return { fecha: null, lugar: null, es_invalido: null };
               for (var i = 0; i < fb.length; i++) {
                 var b = fb[i];
                 var p = String(b.parentesco || "").toLowerCase();
                 if (p === "cónyuge" || p === "conyuge" || p.indexOf("conviviente") !== -1) {
                   return {
                     fecha: b.fecha_matrimonio_union_civil || null,
-                    lugar: b.ciudad_matrimonio_union_civil || null
+                    lugar: b.ciudad_matrimonio_union_civil || null,
+                    es_invalido: b.es_invalido != null ? b.es_invalido : b.esInvalido
                   };
                 }
               }
-              return { fecha: null, lugar: null };
+              return { fecha: null, lugar: null, es_invalido: null };
             }
             var matDesdeBenef = matrimonioConyugeDesdeBeneficiarios(c);
             var fechaMatDisplay = c.conyuge_fecha_matrimonio || matDesdeBenef.fecha;
@@ -688,6 +699,7 @@
               html += item("Nombres", c.conyuge_nombres) + item("Apellido Paterno", c.conyuge_apellido_paterno) + item("Apellido Materno", c.conyuge_apellido_materno);
               html += item("Nacionalidad", c.conyuge_nacionalidad) + item("Sexo", c.conyuge_sexo) + item("RUT", c.conyuge_rut ? formatRutDisplay(c.conyuge_rut) : c.conyuge_rut);
               html += item("Fecha nacimiento", fmtDate(c.conyuge_fecha_nacimiento)) + item("Fecha matrimonio", fmtDate(fechaMatDisplay)) + item("Lugar matrimonio", lugarMatDisplay);
+              html += item("Inválido", textoEsInvalido(matDesdeBenef.es_invalido));
               html += "</div></div>";
             }
 
@@ -697,6 +709,7 @@
                 html += '<div class="grid" style="margin-bottom:10px;">';
                 html += item("Hijo " + (i + 1) + " - Nombres", h.nombres) + item("Apellido Paterno", h.apellido_paterno) + item("Apellido Materno", h.apellido_materno);
                 html += item("Nacionalidad", h.nacionalidad) + item("Sexo", h.sexo) + item("RUT", h.rut ? formatRutDisplay(h.rut) : h.rut) + item("Fecha nacimiento", fmtDate(h.fecha_nacimiento));
+                html += item("Inválido", textoEsInvalido(h.es_invalido != null ? h.es_invalido : h.esInvalido));
                 html += "</div>";
               });
               html += "</div>";

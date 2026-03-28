@@ -1726,7 +1726,7 @@
         <td>${aMayus(b.parentesco)}</td>
         <td>${aMayus(b.fechaNacimiento)}</td>
         <td class="col-rut">${aMayus(b.rut)}</td>
-        <td>${aMayus(b.esInvalido)}</td>
+        <td>${aMayus(b.esInvalido != null && b.esInvalido !== "" ? b.esInvalido : b.es_invalido)}</td>
         </tr>
         `;
           });
@@ -2221,6 +2221,9 @@
           const lista = Object.values(beneficiariosData);
           row.solicitud_beneficiarios = lista.map(function (b) {
             const f = (b.fechaNacimiento && parseDDMMYYYY(b.fechaNacimiento)) ? parseDDMMYYYY(b.fechaNacimiento).iso : null;
+            var invRaw = (b.esInvalido != null ? b.esInvalido : b.es_invalido);
+            var invStr = (invRaw === true || String(invRaw).toLowerCase() === "sí" || String(invRaw).toLowerCase() === "si") ? "Sí"
+              : (invRaw === false || String(invRaw).toLowerCase() === "no") ? "No" : null;
             return {
               nombres: (b.nombres || "").trim() || null,
               apellido_paterno: (b.apellidoPaterno || "").trim() || null,
@@ -2231,6 +2234,7 @@
               sexo: (b.sexo || "").trim() || null,
               fecha_matrimonio_union_civil: (b.fechaMatrimonioUnionCivil && parseDDMMYYYY(b.fechaMatrimonioUnionCivil)) ? parseDDMMYYYY(b.fechaMatrimonioUnionCivil).iso : null,
               ciudad_matrimonio_union_civil: (b.ciudadMatrimonioUnionCivil || "").trim() || null,
+              es_invalido: invStr,
               observaciones: (b.observaciones || "").trim() || null,
             };
           });
@@ -3199,6 +3203,15 @@
                 // Autorrellenar beneficiarios en base a cónyuge/conviviente e hijos menores de 24 años.
                 // Si el cliente es casado o conviviente civil, desplegar al menos un beneficiario (cónyuge) aunque no haya datos en BD.
                 try {
+                  function benefEsInvalidoSiNo(v) {
+                    if (v === true) return "Sí";
+                    if (v === false) return "No";
+                    var s = String(v || "").trim();
+                    var x = s.toLowerCase();
+                    if (x === "sí" || x === "si") return "Sí";
+                    if (x === "no") return "No";
+                    return "No";
+                  }
                   var beneficiarios = [];
                   var estadoCivilStr = (c.estado_civil || "").toLowerCase();
                   var esCasadoOConviviente = estadoCivilStr.indexOf("casado") !== -1 || estadoCivilStr.indexOf("conviviente") !== -1;
@@ -3215,13 +3228,18 @@
                     var fechaMat = "";
                     var isoMatOrigen = c.conyuge_fecha_matrimonio;
                     var lugarMatOrigen = c.conyuge_lugar_matrimonio;
-                    if ((!isoMatOrigen || !lugarMatOrigen) && c.solicitud_beneficiarios && Array.isArray(c.solicitud_beneficiarios)) {
+                    var esInvCony = "No";
+                    if (c.solicitud_beneficiarios && Array.isArray(c.solicitud_beneficiarios)) {
                       for (var ib = 0; ib < c.solicitud_beneficiarios.length; ib++) {
                         var bb = c.solicitud_beneficiarios[ib];
                         var pb = String(bb.parentesco || "").toLowerCase();
                         if (pb === "cónyuge" || pb === "conyuge" || pb.indexOf("conviviente") !== -1) {
                           if (!isoMatOrigen) isoMatOrigen = bb.fecha_matrimonio_union_civil;
                           if (!lugarMatOrigen) lugarMatOrigen = bb.ciudad_matrimonio_union_civil;
+                          var rawInvC = bb.es_invalido != null ? bb.es_invalido : bb.esInvalido;
+                          if (rawInvC !== undefined && rawInvC !== null && String(rawInvC).trim() !== "") {
+                            esInvCony = benefEsInvalidoSiNo(rawInvC);
+                          }
                           break;
                         }
                       }
@@ -3246,7 +3264,7 @@
                       fechaNacimiento: fechaConyuge,
                       fechaMatrimonioUnionCivil: fechaMat,
                       ciudadMatrimonioUnionCivil: lugarMatOrigen || "",
-                      esInvalido: "No",
+                      esInvalido: esInvCony,
                       observaciones: ""
                     });
                   } else if (esCasadoOConviviente) {
@@ -3288,7 +3306,7 @@
                         fechaNacimiento: fechaHijo,
                         fechaMatrimonioUnionCivil: "",
                         ciudadMatrimonioUnionCivil: "",
-                        esInvalido: "No",
+                        esInvalido: benefEsInvalidoSiNo(h.es_invalido != null ? h.es_invalido : h.esInvalido),
                         observaciones: ""
                       });
                     });

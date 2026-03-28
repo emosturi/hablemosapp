@@ -447,6 +447,20 @@
                 </div>
                 <div class="error" data-error-for="conyuge_fechaNac"></div>
               </div>
+              <div class="field col-12">
+                <label>¿El cónyuge o conviviente civil es inválido? <span class="req">*</span></label>
+                <div class="radio-row" role="group" aria-label="Cónyuge inválido">
+                  <label class="radio-pill">
+                    <input type="radio" name="conyuge.esInvalido" value="Sí" />
+                    Sí
+                  </label>
+                  <label class="radio-pill">
+                    <input type="radio" name="conyuge.esInvalido" value="No" />
+                    No
+                  </label>
+                </div>
+                <div class="error" data-error-for="conyuge_esInvalido"></div>
+              </div>
               <p class="hint" style="grid-column: 1 / -1; margin: 0">
                 La fecha y el lugar de matrimonio o unión civil se completan en la <strong>solicitud de pensión</strong>, no en este registro.
               </p>
@@ -918,6 +932,11 @@
             if (visible) r.setAttribute("required", "true");
             else r.removeAttribute("required");
           });
+          var invRadios = form.querySelectorAll('input[name="conyuge.esInvalido"]');
+          invRadios.forEach(function(r) {
+            if (visible) r.setAttribute("required", "required");
+            else r.removeAttribute("required");
+          });
         }
         estadoCivilSel.addEventListener("change", toggleConyuge);
         toggleConyuge();
@@ -960,6 +979,11 @@
           '<div class="field col-4"><label>Nacionalidad</label><input name="hijo_' + index + '_nacionalidad" placeholder="Ej. Chilena" /></div>' +
           '<div class="field col-4"><label>RUT</label><input name="hijo_' + index + '_rut" class="rut-input" placeholder="12.345.678-5" /></div>' +
           '<div class="field col-4"><label>Sexo</label><select name="hijo_' + index + '_sexo"><option value="">Selecciona…</option><option>Masculino</option><option>Femenino</option></select></div>' +
+          '<div class="field col-12"><label>¿Es inválido? <span class="req">*</span></label>' +
+          '<div class="radio-row" role="group" aria-label="Hijo inválido ' + (index + 1) + '">' +
+          '<label class="radio-pill"><input type="radio" name="hijo_' + index + '_esInvalido" value="Sí" /> Sí</label>' +
+          '<label class="radio-pill"><input type="radio" name="hijo_' + index + '_esInvalido" value="No" /> No</label>' +
+          '</div><div class="error" data-error-for="hijo_' + index + '_esInvalido"></div></div>' +
           '<div class="field col-4"><label>Fecha nacimiento</label>' +
           '<div class="date-group">' +
           '<select name="hijo_' + index + '_dia"><option value="">Día</option></select>' +
@@ -1145,6 +1169,11 @@
             setError(form, "conyuge_sexo", "Seleccione sexo");
             return;
           }
+          var invCony = form.querySelector("input[name='conyuge.esInvalido']:checked");
+          if (!invCony) {
+            setError(form, "conyuge_esInvalido", "Indique si el cónyuge o conviviente es inválido");
+            return;
+          }
 
           row.conyuge_nombres = (co.nombres || "").trim() || null;
           row.conyuge_apellido_paterno = (co.apellidoPaterno || "").trim() || null;
@@ -1171,6 +1200,11 @@
             var mes = (form.querySelector("select[name='hijo_" + i + "_mes']") || {}).value;
             var anio = (form.querySelector("select[name='hijo_" + i + "_anio']") || {}).value;
             var fNac = (dia && mes && anio) ? anio + "-" + mes + "-" + dia : null;
+            var invHijo = form.querySelector("input[name='hijo_" + i + "_esInvalido']:checked");
+            if (!invHijo) {
+              setError(form, "hijo_" + i + "_esInvalido", "Indique si el hijo o la hija es inválido/a");
+              return;
+            }
             hijosArr.push({
               nombres: (nombres || "").trim() || null,
               apellido_paterno: (apP || "").trim() || null,
@@ -1178,7 +1212,8 @@
               rut: (rutToCanonical(rut) || null),
               fecha_nacimiento: fNac,
               nacionalidad: (nac || "").trim() || null,
-              sexo: (sexo || "").trim() || null
+              sexo: (sexo || "").trim() || null,
+              es_invalido: invHijo.value
             });
           }
         }
@@ -1205,6 +1240,7 @@
             sexo: (co.sexo || "").trim() || null,
             fecha_matrimonio_union_civil: null,
             ciudad_matrimonio_union_civil: null,
+            es_invalido: (co.esInvalido || "").trim() || null,
             observaciones: null
           });
         }
@@ -1219,6 +1255,7 @@
             sexo: h.sexo,
             fecha_matrimonio_union_civil: null,
             ciudad_matrimonio_union_civil: null,
+            es_invalido: h.es_invalido || null,
             observaciones: null
           });
         });
