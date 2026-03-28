@@ -1,0 +1,3389 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Formulario Solicitud de Pensión</title>
+    <link rel="stylesheet" href="app-shell.css" />
+    <script src="theme-init.js"></script>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      .page {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 0 0 40px;
+        overflow-x: hidden;
+      }
+
+      header {
+        margin: 10px 0 18px;
+        display: grid;
+        gap: 6px;
+      }
+
+      h1 {
+        font-size: clamp(22px, 2.6vw, 32px);
+        letter-spacing: -0.02em;
+        margin: 0;
+      }
+
+      .subtitle {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.4;
+      }
+
+      .panel {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+
+      form {
+        padding: 18px;
+      }
+
+      .section {
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: var(--surface);
+        padding: 14px;
+        margin: 14px 0;
+      }
+
+      .section > .section-title {
+        display: flex;
+        gap: 10px;
+        align-items: baseline;
+        justify-content: space-between;
+        margin: 0 0 10px;
+      }
+
+      h2 {
+        font-size: 16px;
+        margin: 0;
+        letter-spacing: 0.02em;
+      }
+
+      .hint {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .section.collapsible > .section-title {
+        cursor: pointer;
+        user-select: none;
+      }
+      .section.collapsible > .section-title:hover {
+        opacity: 0.9;
+      }
+      .section.collapsible .toggle-icon {
+        display: inline-block;
+        transition: transform 0.2s ease;
+        font-size: 0.75em;
+      }
+      .section.collapsible.collapsed .toggle-icon {
+        transform: rotate(-90deg);
+      }
+      .section.collapsible.collapsed > .section-body {
+        display: none;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        gap: 10px;
+      }
+
+      .field {
+        grid-column: span 12;
+        display: grid;
+        gap: 6px;
+      }
+
+      .col-6 {
+        grid-column: span 12;
+      }
+      .col-4 {
+        grid-column: span 12;
+      }
+      .col-3 {
+        grid-column: span 12;
+      }
+      .col-12 {
+        grid-column: span 12;
+      }
+
+      .date-group {
+        display: flex;
+        gap: 6px;
+      }
+
+      .date-group select {
+        flex: 1;
+      }
+
+      @media (min-width: 768px) {
+        .col-6 {
+          grid-column: span 6;
+        }
+        .col-4 {
+          grid-column: span 4;
+        }
+        .col-3 {
+          grid-column: span 3;
+        }
+      }
+      @media (max-width: 640px) {
+        .page { padding-bottom: 24px; }
+      }
+
+      label {
+        font-size: 13px;
+        color: var(--text);
+        opacity: 0.9;
+      }
+
+      .req {
+        color: var(--muted);
+        font-weight: 500;
+        margin-left: 6px;
+        font-size: 12px;
+      }
+
+      input,
+      select,
+      textarea {
+        width: 100%;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        color: var(--text);
+        padding: 10px 12px;
+        outline: none;
+        transition: border-color 120ms ease, background 120ms ease, box-shadow 120ms ease;
+      }
+
+      textarea {
+        min-height: 84px;
+        resize: vertical;
+      }
+
+      input:focus,
+      select:focus,
+      textarea:focus {
+        border-color: var(--primary-mid);
+        box-shadow: 0 0 0 4px var(--accent-soft);
+      }
+
+      select option {
+        background: var(--card);
+        color: var(--text);
+      }
+
+      .radio-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+      }
+
+      .radio-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 10px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: var(--card);
+      }
+
+      .radio-pill input {
+        width: auto;
+      }
+
+      .error {
+        color: rgba(239, 68, 68, 0.95);
+        font-size: 12px;
+        min-height: 16px;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 14px;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .btns {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      button {
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text);
+        padding: 10px 12px;
+        border-radius: 12px;
+        cursor: pointer;
+        font-weight: 650;
+        letter-spacing: 0.01em;
+        transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
+      }
+
+      button:hover {
+        border-color: var(--primary-mid);
+        transform: translateY(-1px);
+      }
+
+      button:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .primary {
+        border-color: var(--primary-mid);
+        background: linear-gradient(180deg, rgba(0, 96, 108, 0.2), rgba(0, 147, 145, 0.12));
+        color: var(--primary);
+      }
+
+      .ok {
+        border-color: var(--primary-mid);
+        background: var(--accent-soft);
+        color: var(--primary);
+      }
+
+      .danger {
+        border-color: rgba(239, 68, 68, 0.55);
+        background: linear-gradient(180deg, rgba(239, 68, 68, 0.26), rgba(239, 68, 68, 0.1));
+      }
+
+      .status {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .output {
+        margin-top: 14px;
+        padding: 14px;
+        border-radius: 14px;
+        border: 1px dashed var(--border);
+        background: var(--surface);
+      }
+
+      pre {
+        margin: 0;
+        overflow: auto;
+        max-height: 340px;
+        padding: 12px;
+        border-radius: 12px;
+        background: var(--card);
+        border: 1px solid var(--border);
+      }
+    </style>
+    <script src="https://unpkg.com/pizzip@3.1.5/dist/pizzip.min.js"></script>
+    <script src="https://unpkg.com/docxtemplater@3.44.0/build/docxtemplater.js"></script>
+    <script src="https://unpkg.com/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar" aria-label="Navegación">
+        <div class="logo-row">
+          <div class="logo-dot" aria-hidden="true"></div>
+          <span class="logo-text">HablemosApp</span>
+        </div>
+        <div class="nav-label">Menú</div>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="pension.html" class="active">Formulario Pensión</a>
+        <a href="clientes.html">Registro de Afiliados</a>
+        <a href="revisar-clientes.html">Listado de Clientes</a>
+        <a href="clientes-potenciales.html">Clientes Potenciales</a>
+        <a href="enlace-registro-publico.html">Enlace registro público</a>
+        <a href="recordatorios.html">Recordatorios</a>
+        <a href="login.html" class="btn-logout sidebar-guest-only">Iniciar sesión</a>
+      </aside>
+
+      <div class="main">
+        <header class="topbar">
+          <div class="menu-mobile">
+            <button type="button" class="menu-mobile-btn" id="menuMobileTrigger" aria-expanded="false">Menú</button>
+            <div class="menu-mobile-dd" id="menuMobileDd">
+              <a href="dashboard.html">Dashboard</a>
+              <a href="pension.html" class="active">Formulario Pensión</a>
+              <a href="clientes.html">Registro de Afiliados</a>
+              <a href="revisar-clientes.html">Listado de Clientes</a>
+              <a href="clientes-potenciales.html">Clientes Potenciales</a>
+              <a href="enlace-registro-publico.html">Enlace registro público</a>
+              <a href="recordatorios.html">Recordatorios</a>
+            </div>
+          </div>
+          <div class="search-wrap">
+            <input type="search" placeholder="Buscar en la app…" id="appShellSearch" autocomplete="off" />
+          </div>
+          <button type="button" class="btn-theme-toggle" id="btnThemeToggle" title="Modo oscuro" aria-label="Modo oscuro" aria-pressed="false">
+            <svg class="theme-icon-moon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
+            <svg class="theme-icon-sun" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="5" /><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" /></svg>
+          </button>
+          <div class="user-menu-wrap sidebar-auth-only">
+            <button type="button" class="user-menu-trigger" id="userMenuTrigger" aria-expanded="false" aria-haspopup="true">
+              <div class="user-avatar" id="userAvatar">?</div>
+              <div class="user-meta">
+                <div class="name" id="userDisplayName">Asesor</div>
+                <div class="email" id="userEmail">—</div>
+              </div>
+            </button>
+            <div class="user-menu-dd" id="userMenuDd" role="menu">
+              <button type="button" class="user-menu-item user-menu-logout" id="btnCerrarSesionMenu" role="menuitem">Cerrar sesión</button>
+            </div>
+          </div>
+        </header>
+
+        <div class="content">
+          <div class="page">
+      <header>
+        <h1>Formulario de Solicitud de Pensión</h1>
+        <p class="subtitle">
+          Completa los datos. Al enviar, se validará el RUT y la fecha (DD-MM-YYYY).
+        </p>
+      </header>
+
+      <div class="panel">
+        <form id="pensionForm" novalidate>
+          <div class="section" aria-labelledby="mandanteTitle">
+            <div class="section-title">
+              <h2 id="mandanteTitle">Mandante</h2>
+              <span class="hint">Campos con * son obligatorios</span>
+            </div>
+
+            <div class="grid">
+              <div class="field col-12">
+                <label>Tipo de Pensión <span class="req">*</span></label>
+                <div class="radio-row" role="group" aria-label="Tipo de Pensión">
+                  <label class="radio-pill">
+                    <input
+                      type="radio"
+                      name="mandante.tipoPension"
+                      value="Pensión de Vejez por edad"
+                      required
+                    />
+                    Pensión de Vejez por edad
+                  </label>
+                  <label class="radio-pill">
+                    <input
+                      type="radio"
+                      name="mandante.tipoPension"
+                      value="Pensión de Vejez anticipada"
+                      required
+                    />
+                    Pensión de Vejez anticipada
+                  </label>
+                  <label class="radio-pill">
+                    <input
+                      type="radio"
+                      name="mandante.tipoPension"
+                      value="Pensión de invalidez"
+                      required
+                    />
+                    Pensión de invalidez
+                  </label>
+                  <label class="radio-pill">
+                    <input
+                      type="radio"
+                      name="mandante.tipoPension"
+                      value="Pensión de sobrevivencia"
+                      required
+                    />
+                    Pensión de sobrevivencia
+                  </label>
+                </div>
+                <div class="error" data-error-for="mandante.tipoPension"></div>
+              </div>
+
+              <div class="field col-12">
+                <label>Es un trámite de cambio de modalidad? <span class="req">*</span></label>
+                <div class="radio-row" role="group" aria-label="Trámite de cambio de modalidad">
+                  <label class="radio-pill">
+                    <input type="radio" name="mandante.cambioModalidadTramite" value="Sí" required />
+                    Sí
+                  </label>
+                  <label class="radio-pill">
+                    <input type="radio" name="mandante.cambioModalidadTramite" value="No" required />
+                    No
+                  </label>
+                </div>
+                <div class="error" data-error-for="mandante.cambioModalidadTramite"></div>
+              </div>
+
+              <div class="field col-4">
+                <label for="mandante_rut">RUT <span class="req">*</span></label>
+                <input
+                  id="mandante_rut"
+                  name="mandante.rut"
+                  class="rut-input"
+                  required
+                  inputmode="text"
+                  autocomplete="off"
+                  placeholder="12.345.678-5"
+                />
+                <div class="error" data-error-for="mandante_rut"></div>
+              </div>
+
+              <div class="field col-4">
+                <label for="mandante_nacionalidad">Nacionalidad <span class="req">*</span></label>
+                <input
+                  id="mandante_nacionalidad"
+                  name="mandante.nacionalidad"
+                  required
+                  autocomplete="country-name"
+                />
+                <div class="error" data-error-for="mandante_nacionalidad"></div>
+              </div>
+
+              <div class="field col-4">
+                <label>Sexo <span class="req">*</span></label>
+                <div class="radio-row" role="group" aria-label="Sexo">
+                  <label class="radio-pill">
+                    <input type="radio" name="mandante.sexo" value="Masculino" required />
+                    Masculino
+                  </label>
+                  <label class="radio-pill">
+                    <input type="radio" name="mandante.sexo" value="Femenino" required />
+                    Femenino
+                  </label>
+                </div>
+                <div class="error" data-error-for="mandante.sexo"></div>
+              </div>
+
+              <div class="field col-4">
+                <label for="mandante_nombres">Nombres <span class="req">*</span></label>
+                <input id="mandante_nombres" name="mandante.nombres" required />
+                <div class="error" data-error-for="mandante_nombres"></div>
+              </div>
+
+              <div class="field col-4">
+                <label for="mandante_apPaterno">Apellido Paterno <span class="req">*</span></label>
+                <input id="mandante_apPaterno" name="mandante.apellidoPaterno" required />
+                <div class="error" data-error-for="mandante_apPaterno"></div>
+              </div>
+
+              <div class="field col-4">
+                <label for="mandante_apMaterno">Apellido Materno <span class="req">*</span></label>
+                <input id="mandante_apMaterno" name="mandante.apellidoMaterno" required />
+                <div class="error" data-error-for="mandante_apMaterno"></div>
+              </div>
+
+              <div class="field col-6">
+                <label for="mandante_domicilio">Domicilio <span class="req">*</span></label>
+                <textarea id="mandante_domicilio" name="mandante.domicilio" required></textarea>
+                <div class="error" data-error-for="mandante_domicilio"></div>
+              </div>
+
+              <div class="field col-3">
+                <label for="mandante_comuna">Comuna <span class="req">*</span></label>
+                <input id="mandante_comuna" name="mandante.comuna" required />
+                <div class="error" data-error-for="mandante_comuna"></div>
+              </div>
+
+              <div class="field col-3">
+                <label for="mandante_ciudad">Ciudad <span class="req">*</span></label>
+                <input id="mandante_ciudad" name="mandante.ciudad" required />
+                <div class="error" data-error-for="mandante_ciudad"></div>
+              </div>
+
+              <div class="field col-4">
+                <label for="mandante_fechaNac">Fecha Nacimiento <span class="req">*</span></label>
+                <div class="date-group">
+                  <select id="mandante_fechaNac_dia">
+                    <option value="" selected disabled>Día</option>
+                  </select>
+                  <select id="mandante_fechaNac_mes">
+                    <option value="" selected disabled>Mes</option>
+                  </select>
+                  <select id="mandante_fechaNac_anio">
+                    <option value="" selected disabled>Año</option>
+                  </select>
+                  <input
+                    type="hidden"
+                    id="mandante_fechaNac"
+                    name="mandante.fechaNacimiento"
+                    required
+                  />
+                </div>
+                <div class="error" data-error-for="mandante_fechaNac"></div>
+              </div>
+
+              <div class="field col-4">
+                <label for="mandante_estadoCivil">Estado Civil <span class="req">*</span></label>
+                <select id="mandante_estadoCivil" name="mandante.estadoCivil" required>
+                  <option value="" selected disabled>Selecciona…</option>
+                  <option>Soltero/a</option>
+                  <option>Casado/a</option>
+                  <option>Conviviente Civil</option>
+                  <option>Divorciado/a</option>
+                  <option>Viudo/a</option>
+                  <option>Separado/a</option>
+                  <option>Otro</option>
+                </select>
+                <div class="error" data-error-for="mandante_estadoCivil"></div>
+              </div>
+
+              <div class="field col-4">
+                <label for="mandante_profesion">Profesión u Oficio <span class="req">*</span></label>
+                <input id="mandante_profesion" name="mandante.profesionUOficio" required />
+                <div class="error" data-error-for="mandante_profesion"></div>
+              </div>
+
+              <div class="field col-4">
+                <label for="mandante_telefono">Teléfono <span class="req">*</span></label>
+                <input
+                  id="mandante_telefono"
+                  name="mandante.telefono"
+                  required
+                  inputmode="tel"
+                  autocomplete="tel"
+                  placeholder="+56 9 1234 5678"
+                />
+                <div class="error" data-error-for="mandante_telefono"></div>
+              </div>
+
+              <div class="field col-4">
+                <label for="mandante_email">Email (Opcional)</label>
+                <input id="mandante_email" name="mandante.email" inputmode="email" autocomplete="email" />
+                <div class="error" data-error-for="mandante_email"></div>
+              </div>
+
+              <div class="field col-4">
+                <label for="mandante_afp">AFP <span class="req">*</span></label>
+                <select id="mandante_afp" name="mandante.afp" required>
+                  <option value="" selected disabled>Selecciona…</option>
+                  <option>AFP Capital</option>
+                  <option>AFP Cuprum</option>
+                  <option>AFP Habitat</option>
+                  <option>AFP Modelo</option>
+                  <option>AFP PlanVital</option>
+                  <option>AFP Provida</option>
+                  <option>AFP Uno</option>
+                </select>
+                <div class="error" data-error-for="mandante_afp"></div>
+              </div>
+
+              <div class="field col-6">
+                <label for="mandante_salud">Institución de Salud <span class="req">*</span></label>
+                <select id="mandante_salud" name="mandante.institucionSalud" required>
+                  <option value="" selected disabled>Selecciona…</option>
+                  <option>FONASA</option>
+                  <option>Isapre Banmédica</option>
+                  <option>Isapre Colmena</option>
+                  <option>Isapre Consalud</option>
+                  <option>Isapre Cruz Blanca</option>
+                  <option>Isapre Nueva Masvida</option>
+                  <option>Isapre Vida Tres</option>
+                  <option>Isapre Esencial</option>
+                </select>
+                <div class="error" data-error-for="mandante_salud"></div>
+              </div>
+
+              <div class="field col-6">
+                <label for="mandante_benef">N° de Beneficiarios <span class="req">*</span></label>
+                <input
+                  id="mandante_benef"
+                  name="mandante.numeroBeneficiarios"
+                  type="number"
+                  min="0"
+                  step="1"
+                  required
+                  inputmode="numeric"
+                />
+                <div class="error" data-error-for="mandante_benef"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section" id="beneficiariosSection" style="display:none">
+            <div class="section-title">
+              <h2>Datos de Beneficiarios</h2>
+              <span class="hint">Completa los datos de cada beneficiario</span>
+            </div>
+          
+            <div id="beneficiariosContainer"></div>
+          </div>
+
+          <div class="section collapsible collapsed" aria-labelledby="mandatarioTitle">
+            <div class="section-title" role="button" tabindex="0" aria-expanded="false">
+              <span class="toggle-icon" aria-hidden="true">▼</span>
+              <h2 id="mandatarioTitle">Mandatario</h2>
+              <span class="hint">Completa los datos del mandatario</span>
+            </div>
+
+            <div class="section-body">
+              <div class="grid">
+              <div class="field col-4">
+                <label for="mandatario_rut">RUT <span class="req">*</span></label>
+                <input
+                  id="mandatario_rut"
+                  name="mandatario.rut"
+                  class="rut-input"
+                  required
+                  inputmode="text"
+                  autocomplete="off"
+                  placeholder="12.345.678-5"
+                  value="9.526.153-1"
+                />
+                <div class="error" data-error-for="mandatario_rut"></div>
+              </div>
+
+              <div class="field col-4">
+                <label for="mandatario_nacionalidad">Nacionalidad <span class="req">*</span></label>
+                <input id="mandatario_nacionalidad" name="mandatario.nacionalidad" required value="CHILENA" />
+                <div class="error" data-error-for="mandatario_nacionalidad"></div>
+              </div>
+
+              <div class="field col-4">
+                <label for="mandatario_registro">N° Registro de Asesor Previsional (Opcional)</label>
+                <input id="mandatario_registro" name="mandatario.numeroRegistroAsesorPrevisional" value="1026" />
+                <div class="error" data-error-for="mandatario_registro"></div>
+              </div>
+
+              <div class="field col-4">
+                <label for="mandatario_nombres">Nombres <span class="req">*</span></label>
+                <input id="mandatario_nombres" name="mandatario.nombres" required value="ROSE MARIE" />
+                <div class="error" data-error-for="mandatario_nombres"></div>
+              </div>
+
+              <div class="field col-4">
+                <label for="mandatario_apPaterno">Apellido Paterno <span class="req">*</span></label>
+                <input id="mandatario_apPaterno" name="mandatario.apellidoPaterno" required value="ALBISTUR" />
+                <div class="error" data-error-for="mandatario_apPaterno"></div>
+              </div>
+
+              <div class="field col-4">
+                <label for="mandatario_apMaterno">Apellido Materno <span class="req">*</span></label>
+                <input id="mandatario_apMaterno" name="mandatario.apellidoMaterno" required value="BARROS" />
+                <div class="error" data-error-for="mandatario_apMaterno"></div>
+              </div>
+
+              <div class="field col-6">
+                <label for="mandatario_domicilio">Domicilio <span class="req">*</span></label>
+                <textarea id="mandatario_domicilio" name="mandatario.domicilio" required>13 NORTE 853 OFICINA 803, EDIFICIO BOULEVARD</textarea>
+                <div class="error" data-error-for="mandatario_domicilio"></div>
+              </div>
+
+              <div class="field col-3">
+                <label for="mandatario_comuna">Comuna <span class="req">*</span></label>
+                <input id="mandatario_comuna" name="mandatario.comuna" required value="VIÑA DEL MAR" />
+                <div class="error" data-error-for="mandatario_comuna"></div>
+              </div>
+
+              <div class="field col-3">
+                <label for="mandatario_ciudad">Ciudad <span class="req">*</span></label>
+                <input id="mandatario_ciudad" name="mandatario.ciudad" required value="VIÑA DEL MAR" />
+                <div class="error" data-error-for="mandatario_ciudad"></div>
+              </div>
+
+              <div class="field col-6">
+                <label for="mandatario_telefono">Teléfono <span class="req">*</span></label>
+                <input
+                  id="mandatario_telefono"
+                  name="mandatario.telefono"
+                  required
+                  inputmode="tel"
+                  autocomplete="tel"
+                  placeholder="+56 9 1234 5678"
+                  value="+56995399068"
+                />
+                <div class="error" data-error-for="mandatario_telefono"></div>
+              </div>
+
+              <div class="field col-6">
+                <label for="mandatario_email">Email (Opcional)</label>
+                <input id="mandatario_email" name="mandatario.email" inputmode="email" autocomplete="email" value="ALBISTUR.AP@GMAIL.COM" />
+                <div class="error" data-error-for="mandatario_email"></div>
+              </div>
+            </div>
+            </div>
+          </div>
+
+          <div class="section collapsible collapsed" aria-labelledby="antecedentesTitle">
+            <div class="section-title" role="button" tabindex="0" aria-expanded="false">
+              <span class="toggle-icon" aria-hidden="true">▼</span>
+              <h2 id="antecedentesTitle">Antecedentes</h2>
+              <span class="hint">Marca Sí o No en cada opción</span>
+            </div>
+            <div class="section-body">
+              <div id="antecedentesQuestions" class="grid"></div>
+            </div>
+          </div>
+
+          <div class="section collapsible collapsed" aria-labelledby="autorizacionesTitle">
+            <div class="section-title" role="button" tabindex="0" aria-expanded="false">
+              <span class="toggle-icon" aria-hidden="true">▼</span>
+              <h2 id="autorizacionesTitle">Autorizaciones</h2>
+              <span class="hint">Marca Sí o No en cada autorización</span>
+            </div>
+            <div class="section-body">
+              <div class="grid">
+                <div id="autorizacionesQuestions" class="col-12"></div>
+
+                <div id="cuentaBancariaField" class="grid col-12" style="display:none">
+                <div class="field col-4">
+                  <label for="cuenta_banco">Banco</label>
+                  <select id="cuenta_banco" name="autorizaciones.banco">
+                    <option value="" selected disabled>Selecciona…</option>
+                    <option>Banco de Chile</option>
+                    <option>Banco Santander Chile</option>
+                    <option>BCI</option>
+                    <option>Scotiabank Chile</option>
+                    <option>BancoEstado</option>
+                    <option>Banco Itaú Chile</option>
+                    <option>Banco BICE</option>
+                    <option>Banco Falabella</option>
+                    <option>Banco Ripley</option>
+                    <option>Banco Consorcio</option>
+                  </select>
+                  <div class="error" data-error-for="cuenta_banco"></div>
+                </div>
+                <div class="field col-4">
+                  <label for="cuenta_tipo">Tipo de cuenta</label>
+                  <select id="cuenta_tipo" name="autorizaciones.tipoCuenta">
+                    <option value="" selected disabled>Selecciona…</option>
+                    <option>Cuenta Corriente</option>
+                    <option>Cuenta de Ahorro</option>
+                    <option>Cuenta Vista/Cuenta RUT</option>
+                  </select>
+                  <div class="error" data-error-for="cuenta_tipo"></div>
+                </div>
+                <div class="field col-4">
+                  <label for="cuenta_bancaria">Número de cuenta</label>
+                  <input
+                    id="cuenta_bancaria"
+                    name="autorizaciones.numeroCuenta"
+                    type="text"
+                    placeholder="Ej: 12345678-9"
+                    inputmode="numeric"
+                  />
+                  <div class="error" data-error-for="cuenta_bancaria"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          </div>
+
+          <div class="section collapsible collapsed" aria-labelledby="certificadosTitle">
+            <div class="section-title" role="button" tabindex="0" aria-expanded="false">
+              <span class="toggle-icon" aria-hidden="true">▼</span>
+              <h2 id="certificadosTitle">Certificados</h2>
+              <span class="hint">Marca Sí o No en cada certificado a retirar</span>
+            </div>
+            <div class="section-body">
+              <div id="certificadosQuestions" class="grid"></div>
+            </div>
+          </div>
+
+          <div class="section collapsible collapsed" aria-labelledby="empleadorTitle">
+            <div class="section-title" role="button" tabindex="0" aria-expanded="false">
+              <span class="toggle-icon" aria-hidden="true">▼</span>
+              <h2 id="empleadorTitle">Empleador (Opcional)</h2>
+              <span class="hint">Completar solo si corresponde</span>
+            </div>
+            <div class="section-body">
+              <div class="grid">
+              <div class="field col-4">
+                <label for="empleador_rut">RUT</label>
+                <input id="empleador_rut" name="empleador.rut" class="rut-input" inputmode="text" placeholder="12.345.678-5" />
+                <div class="error" data-error-for="empleador_rut"></div>
+              </div>
+              <div class="field col-4">
+                <label for="empleador_telefono">Teléfono</label>
+                <input id="empleador_telefono" name="empleador.telefono" inputmode="tel" />
+                <div class="error" data-error-for="empleador_telefono"></div>
+              </div>
+              <div class="field col-4">
+                <label for="empleador_email">Email</label>
+                <input id="empleador_email" name="empleador.email" inputmode="email" />
+                <div class="error" data-error-for="empleador_email"></div>
+              </div>
+              <div class="field col-12">
+                <label for="empleador_nombre">Nombre o Razón social</label>
+                <input id="empleador_nombre" name="empleador.nombreORazonSocial" />
+                <div class="error" data-error-for="empleador_nombre"></div>
+              </div>
+              <div class="field col-12">
+                <label for="empleador_domicilio">Dirección</label>
+                <textarea id="empleador_domicilio" name="empleador.domicilio" rows="2"></textarea>
+                <div class="error" data-error-for="empleador_domicilio"></div>
+              </div>
+            </div>
+            </div>
+          </div>
+
+          <div class="actions">
+            <div class="btns">
+              <button type="button" id="btnGuardarBD">Guardar en BD</button>
+              <button type="button" id="btnMandatoSimple">Generar Mandato</button>
+              <button type="button" id="btnMandatoCorto">Generar Mandato Corto</button>
+              <button type="button" id="btnContrato">Generar Contrato</button>
+              <button type="button" id="btnLimpiar" class="danger">Limpiar</button>
+            </div>
+            <div id="status" class="status" aria-live="polite"></div>
+          </div>
+
+          <div class="output" id="output" hidden>
+            <h2 style="margin: 0 0 10px">Salida (JSON)</h2>
+            <pre id="jsonPreview"></pre>
+          </div>
+        </form>
+      </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="supabase-config.js"></script>
+    <script src="app-shell.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script>
+      (function () {
+        if (typeof window.initAppShell === "function") window.initAppShell();
+        if (typeof window.initAppShellSearch === "function") window.initAppShellSearch();
+        var url = window.SUPABASE_URL;
+        var key = window.SUPABASE_ANON_KEY;
+        if (!url || !key || url.indexOf("TU_PROYECTO") !== -1) {
+          window.location.replace("login.html");
+          return;
+        }
+        var supabase = window.supabase.createClient(url, key);
+        if (typeof window.wireAppShellLogout === "function") window.wireAppShellLogout(supabase);
+        if (typeof window.installInactivityAutoLogout === "function") {
+          window.installInactivityAutoLogout(supabase, { timeoutMs: window.SESSION_IDLE_TIMEOUT_MS, redirectTo: "login.html" });
+        }
+        supabase.auth.getSession().then(function (r) {
+          if (!r || !r.data || !r.data.session) {
+            window.location.replace("login.html");
+            return;
+          }
+          if (typeof window.applyAppShellUser === "function") window.applyAppShellUser(r.data.session.user);
+          if (typeof window.setAppShellGuest === "function") window.setAppShellGuest(false);
+        });
+      })();
+    </script>
+
+    <script>
+      const STORAGE_KEY = "hablemosapp_pension_form_v1";
+
+      const antecedentesItems = [
+        { key: "deseoPensionPreliminar", label: "Deseo pensión preliminar" },
+        { key: "deseoPagoRetroactivo", label: "¿Desea pago retroactivo?" },
+        { key: "poseeBonoReconocimiento", label: "¿Posee bono de reconocimiento?" },
+        { key: "solicitarPgu", label: "Solicitar Pensión Garantizada Universal?" },
+        { key: "solicitarAporteSolidarioInvalidez", label: "Solicitar aporte solidario de invalidez? (si corresponde)" },
+        { key: "reciboPensionAntiguoSistema", label: "Recibo pensión antiguo sistema" },
+        { key: "reciboPensionInvalidezEsteSistema", label: "Recibo pensión invalidez de este Sistema" },
+        { key: "ajustePensionMinima", label: "Deseo que mi pensión se ajuste a la pensión mínima" },
+        { key: "ajustePensionBasicaSolidaria", label: "Deseo que mi pensión se ajuste a la pensión básica solidaria" },
+        { key: "afectoEstatutoAdministrativo", label: "Estoy afecto al Estatuto Administrativo..." },
+        { key: "destinareApv", label: "Destinaré Ahorro Previsional Voluntario al financiamiento de mi pensión" },
+        { key: "destinareApvc", label: "Destinaré Ahorro Previsional Voluntario Colectivo al financiamiento de mi pensión" },
+        { key: "traspasareCtaAhorroVoluntario", label: "Traspasaré fondos desde mi Cuenta de Ahorro Voluntario para el financiamiento de mi pensión" },
+        { key: "poseoDepositosConvenidos", label: "Poseo depósitos convenidos" },
+        { key: "traspasareCesantia", label: "Traspasaré fondos desde mi Cuenta Individual de Cesantía" },
+        { key: "cotizacionesOtroPais", label: "Tengo cotizaciones en otro país" },
+        { key: "residenciaOtroPais", label: "Tengo períodos de residencia en otro país" },
+        { key: "cambioTipoFondo", label: "Deseo cambiar de Tipo de Fondo" },
+        { key: "listadoPublico", label: "Deseo que mis datos personales aparezcan en un LISTADO PÚBLICO DE INFORMACIÓN" },
+      ];
+
+      const autorizacionesItems = [
+        { key: "terminarTramite", label: "Terminar trámite?" },
+        { key: "suscribirBonoReconocimiento", label: "Suscribir solicitud de Bono de Reconocimiento" },
+        { key: "solicitarInfoEstadoTramite", label: "Solicitar información respecto del estado del trámite de pensión" },
+        { key: "retirarCertificadoSaldo", label: "Retirar en la AFP el Certificado de Saldo" },
+        { key: "suscribirDestinoCotizacionesVoluntarias", label: 'Suscribir formulario "Destino de Cotizaciones Voluntarias"' },
+        {
+          key: "suscribirTransferenciaAhorroVoluntario",
+          label: 'Suscribir formulario "Transferencia de Fondos desde la Cuentas de Ahorro Voluntario"',
+        },
+        {
+          key: "suscribirSeleccionAlternativasApv",
+          label: 'Suscribir formulario "Selección de Alternativas de Ahorro Previsional Voluntario"',
+        },
+        { key: "suscribirCambioModalidadPension", label: "Suscribir solicitud de cambio de modalidad de pensión" },
+        { key: "suscribirCalculoExcedente", label: "Suscribir solicitud de cálculo de excedente de libre disposición" },
+        {
+          key: "suscribirMantenerValorNominal",
+          label: "Suscribir opción por mantener el valor nominal del saldo destinado a pensión",
+        },
+        { key: "retirarDuplicadoScompOriginal", label: "Retirar duplicado de SCOMP original?" },
+        { key: "ingresarDatosCuentaBancaria", label: "Ingresar datos de mi cuenta bancaria?" },
+        {
+          key: "obtenerInfoPagoPensionYTraspaso",
+          label: "Obtener información verbal o escrita del pago de mi pensión y traspaso de fondos?",
+        },
+        {
+          key: "firmarExencionCotizarEdadLegal",
+          label: "Firmar exención de cotizar por cumplimiento de edad legal al inicio de mi trámite.",
+        },
+        {
+          key: "realizarReclamosTramite",
+          label: "Realizar requerimientos y reclamos del trámite y todo lo relacionado con este",
+        },
+      ];
+
+      const certificadosItems = [
+        { key: "historicoCotizaciones", label: "Histórico de cotizaciones" },
+        { key: "antecedentePrevisional", label: "Antecedente previsional" },
+        { key: "certificadoTrabajoPesado", label: "Certificado de trabajo pesado" },
+        { key: "certificadoVacacionesProgresivas", label: "Certificado de vacaciones progresivas" },
+        { key: "certificadoEstadoCuentas", label: "Certificado de estado de cuentas" },
+        { key: "certificadoCalidadPensionado", label: "Certificado de calidad de pensionado" },
+      ];
+
+      // Etiquetas exactas del mandato (mismo texto que en el .doc completo)
+      const antecedentesMandateLabels = {
+        deseoPensionPreliminar: "Deseo pensión preliminar",
+        deseoPagoRetroactivo: "Deseo pago retroactivo",
+        poseeBonoReconocimiento: "Poseo bono de reconocimiento",
+        solicitarPgu: "Solicitar Pensión Garantizada Universal",
+        solicitarAporteSolidarioInvalidez: "Solicitar aporte solidario de invalidez (si corresponde)",
+        reciboPensionAntiguoSistema: "Recibo pensión antiguo sistema",
+        reciboPensionInvalidezEsteSistema: "Recibo pensión invalidez de este sistema",
+        ajustePensionMinima: "Deseo que mi pensión se ajuste a la pensión mínima",
+        ajustePensionBasicaSolidaria: "Deseo que mi pensión se ajuste a la pensión básica solidaria",
+        afectoEstatutoAdministrativo: "Estoy afecto al Estatuto Administrativo",
+        destinareApv: "Destinaré Ahorro Previsional Voluntario al financiamiento de mi pensión",
+        destinareApvc: "Destinaré Ahorro Previsional Voluntario Colectivo al financiamiento de mi pensión",
+        traspasareCtaAhorroVoluntario: "Traspasaré fondos desde mi Cuenta de Ahorro Voluntario para financiar mi pensión",
+        poseoDepositosConvenidos: "Poseo depósitos convenidos",
+        traspasareCesantia: "Traspasaré fondos desde mi Cuenta Individual de Cesantía",
+        cotizacionesOtroPais: "Tengo cotizaciones en otro país",
+        residenciaOtroPais: "Tengo períodos de residencia en otro país",
+        cambioTipoFondo: "Deseo cambiar de Tipo de Fondo",
+        listadoPublico: "Deseo que mis datos personales aparezcan en un listado público de información",
+      };
+      const autorizacionesMandateLabels = {
+        terminarTramite: "Poner fín al trámite de Pensión",
+        suscribirBonoReconocimiento: "Suscribir solicitud de Bono de Reconocimiento",
+        solicitarInfoEstadoTramite: "Solicitar información respecto del estado del trámite de pensión",
+        retirarCertificadoSaldo: "Retirar en la AFP el Certificado de Saldo",
+        suscribirDestinoCotizacionesVoluntarias: 'Suscribir formulario "Destino de Cotizaciones Voluntarias"',
+        suscribirTransferenciaAhorroVoluntario: 'Suscribir formulario "Transferencia de Fondos desde la Cuenta de Ahorro Voluntario"',
+        suscribirSeleccionAlternativasApv: 'Suscribir formulario "Selección de Alternativas de Ahorro Previsional Voluntario"',
+        suscribirCambioModalidadPension: "Suscribir solicitud de cambio de modalidad de pensión",
+        suscribirCalculoExcedente: "Suscribir solicitud de cálculo de excedente de libre disposición",
+        suscribirMantenerValorNominal: "Suscribir opción por mantener el valor nominal del saldo destinado a pensión",
+        retirarDuplicadoScompOriginal: "Retirar duplicado de SCOMP original",
+        ingresarDatosCuentaBancaria: "Ingresar datos de mi cuenta bancaria",
+        obtenerInfoPagoPensionYTraspaso: "Obtener información verbal o escrita del pago de mi pensión y traspaso de fondos",
+        firmarExencionCotizarEdadLegal: "Firmar exención de cotizar por cumplimiento de edad legal al inicio de mi trámite",
+        realizarReclamosTramite: "Realizar requerimientos y reclamos del trámite y todo lo relacionado con este",
+      };
+      const certificadosMandateLabels = {
+        historicoCotizaciones: "Certificado histórico de cotizaciones",
+        antecedentePrevisional: "Certificado de antecedente previsional",
+        certificadoTrabajoPesado: "Certificado de trabajo pesado",
+        certificadoVacacionesProgresivas: "Certificado de vacaciones progresivas",
+        certificadoEstadoCuentas: "Certificado de estado de cuentas",
+        certificadoCalidadPensionado: "Certificado de calidad de pensionado",
+      };
+
+      // Genera filas de tabla solo para ítems con valor "Sí" (para mandato corto).
+      function buildTablaSoloSi(items, dataObj, labelsMap) {
+        if (!dataObj || typeof dataObj !== "object") return "";
+        let html = "";
+        items.forEach(function (item) {
+          if (dataObj[item.key] === "Sí") {
+            const label = (labelsMap && labelsMap[item.key]) || item.label;
+            html += `<tr><td>${label}</td><td class="col-respuesta"><span style="white-space:nowrap">Sí</span></td></tr>\n`;
+            if (item.key === "destinareApv") html += htmlFilasDetalleApvMandato(dataObj);
+            if (item.key === "destinareApvc") html += htmlFilasDetalleApvcMandato(dataObj);
+          }
+        });
+        return html;
+      }
+
+      // Detalle APV / APVC bajo las filas del mandato (texto plano para plantilla Word/HTML).
+      function htmlFilasDetalleApvMandato(antecedentes) {
+        const a = antecedentes || {};
+        if (a.destinareApv !== "Sí") return "";
+        const inst = a.apvNombreInstitucion != null ? String(a.apvNombreInstitucion) : "";
+        const pct = a.apvPorcentajeTraspaso != null && String(a.apvPorcentajeTraspaso).trim() !== "" ? String(a.apvPorcentajeTraspaso) : "";
+        return `<tr><td>Nombre Institución APV:</td><td class="col-respuesta"><span style="white-space:nowrap">${inst}</span></td></tr>\n<tr><td>Porcentaje de APV a traspasar:</td><td class="col-respuesta"><span style="white-space:nowrap">${pct}</span></td></tr>\n`;
+      }
+      function htmlFilasDetalleApvcMandato(antecedentes) {
+        const a = antecedentes || {};
+        if (a.destinareApvc !== "Sí") return "";
+        const inst = a.apvcNombreInstitucion != null ? String(a.apvcNombreInstitucion) : "";
+        const pct = a.apvcPorcentajeTraspaso != null && String(a.apvcPorcentajeTraspaso).trim() !== "" ? String(a.apvcPorcentajeTraspaso) : "";
+        return `<tr><td>Nombre Institución APVC:</td><td class="col-respuesta"><span style="white-space:nowrap">${inst}</span></td></tr>\n<tr><td>Porcentaje de APVC a traspasar:</td><td class="col-respuesta"><span style="white-space:nowrap">${pct}</span></td></tr>\n`;
+      }
+
+      const MESES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+
+      // Convierte una fecha en formato DD-MM-YYYY a un texto hablado en español.
+      function fechaAHablado(str) {
+        if (!str || typeof str !== "string") return "";
+        const m = String(str).trim().match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
+        if (!m) return str;
+        const dd = parseInt(m[1], 10);
+        const mm = parseInt(m[2], 10);
+        if (mm < 1 || mm > 12) return str;
+        return `${dd} de ${MESES[mm - 1]} del ${m[3]}`;
+      }
+
+      // Obtiene la fecha actual en texto hablado en español.
+      function fechaHoyHablado() {
+        const d = new Date();
+        return `${d.getDate()} de ${MESES[d.getMonth()]} del ${d.getFullYear()}`;
+      }
+
+      // Convierte cualquier valor a string en mayúsculas para mandato y contrato.
+      function aMayus(s) {
+        return String(s ?? "").toUpperCase();
+      }
+
+      // En móvil algunos visores rechazan .doc generado desde HTML.
+      // Por compatibilidad, descargamos .html en móvil y .doc en escritorio.
+      function descargarDocumentoWordCompat(html, baseName) {
+        const ua = navigator.userAgent || "";
+        const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
+        const ext = isMobile ? "html" : "doc";
+        const mime = isMobile ? "text/html;charset=utf-8" : "application/msword";
+        const blob = new Blob(["\ufeff", html], { type: mime });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${baseName}.${ext}`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+
+      // Rellena selectores de día, mes y año con rangos válidos.
+      function llenarSelectFecha(diaSel, mesSel, anioSel, minYear = 1900, maxYear = new Date().getFullYear()) {
+        if (diaSel) {
+          for (let d = 1; d <= 31; d++) {
+            const opt = document.createElement("option");
+            opt.value = String(d).padStart(2, "0");
+            opt.textContent = String(d);
+            diaSel.appendChild(opt);
+          }
+        }
+        if (mesSel) {
+          for (let m = 1; m <= 12; m++) {
+            const opt = document.createElement("option");
+            opt.value = String(m).padStart(2, "0");
+            opt.textContent = String(m);
+            mesSel.appendChild(opt);
+          }
+        }
+        if (anioSel) {
+          for (let y = maxYear; y >= minYear; y--) {
+            const opt = document.createElement("option");
+            opt.value = String(y);
+            opt.textContent = String(y);
+            anioSel.appendChild(opt);
+          }
+        }
+      }
+
+      // Genera el HTML del mandato y lo descarga como archivo .doc.
+      function generarMandatoSimple(data){
+        console.log("Datos recibidos: ",data);
+        let beneficiarios = "";
+        
+        if(data.beneficiarios){
+
+        const lista = Object.values(data.beneficiarios);
+
+        lista.forEach(b => {
+        const nombreCompleto = [b.nombres, b.apellidoPaterno, b.apellidoMaterno].filter(Boolean).join(" ");
+        let obs = "";
+        if ((b.ciudadMatrimonioUnionCivil || "").trim() || (b.fechaMatrimonioUnionCivil || "").trim()) {
+          obs = "CIRCUNSCRIPCION " + (b.ciudadMatrimonioUnionCivil || "").trim() + ", " + (b.fechaMatrimonioUnionCivil || "").trim();
+        }
+        if ((b.observaciones || "").trim()) obs += (obs ? " " : "") + (b.observaciones || "").trim();
+        beneficiarios += `
+        <tr>
+        <td>${aMayus(nombreCompleto)}</td>
+        <td>${aMayus(b.sexo)}</td>
+        <td class="col-rut">${aMayus(b.rut)}</td>
+        <td>${aMayus(b.fechaNacimiento)}</td>
+        <td>${aMayus(b.parentesco)}</td>
+        <td>${aMayus(obs)}</td>
+        </tr>
+        `;
+        });
+
+        }
+        const empleador = data.empleador || {};
+        const mandante = data.mandante || {};
+        const mandatario = data.mandatario || {};
+        const antecedentes = data.antecedentes || {};
+        const autorizaciones = data.autorizaciones || {};
+        const certificados = data.certificados || {};
+
+        const nombreMandante =
+        `${mandante.nombres || ""} ${mandante.apellidoPaterno || ""} ${mandante.apellidoMaterno || ""}`;
+
+        const nombreMandatario =
+        `${mandatario.nombres || ""} ${mandatario.apellidoPaterno || ""} ${mandatario.apellidoMaterno || ""}`;
+
+        const fechaHoy = fechaHoyHablado();
+
+        const html = `
+        <html>
+        <head>
+        <meta charset="utf-8">
+        <style>
+
+        body{
+        font-family:Arial;
+        font-size:12pt;
+        line-height:1.5;
+        margin:15px 12px;
+        }
+
+        p{
+        text-align:justify;
+        }
+
+        table{
+        border-collapse:collapse;
+        width:100%;
+        margin-top:10px;
+        font-size:9pt;
+        }
+
+        td,th{
+        border:1px solid black;
+        padding:4px;
+        font-size:9pt;
+        }
+        .col-rut{
+        white-space:nowrap;
+        width:1%;
+        min-width:7em;
+        }
+        .col-respuesta{
+        min-width:8em;
+        width:8em;
+        white-space:nowrap;
+        word-break:keep-all;
+        }
+
+        h2,h3{
+        margin-top:20px;
+        page-break-after:avoid;
+        }
+        h2{
+        text-transform:uppercase;
+        text-align:center;
+        }
+        .empleador-datos{
+        text-align:left;
+        }
+        .firmas{
+        margin-top:40px;
+        overflow:hidden;
+        width:100%;
+        }
+        .firma-izq{
+        float:left;
+        width:45%;
+        text-align:center;
+        }
+        .firma-der{
+        float:right;
+        width:45%;
+        text-align:center;
+        }
+        .tabla-firmas td{
+        border:none;
+        width:50%;
+        text-align:center;
+        vertical-align:top;
+        padding:0 20px;
+        }
+
+        </style>
+        </head>
+
+        <body>
+
+        <h2>MANDATO PARA INICIAR TRÁMITE DE ${aMayus(mandante.tipoPension)}</h2>
+        <h3 style="text-align:center">${aMayus(mandante.tipoPension)}</h3>
+
+        <p>
+        Con fecha ${fechaHoy} y por medio del siguiente instrumento, yo 
+        <b>${aMayus(nombreMandante)}</b>,
+        RUT <b>${aMayus(mandante.rut)}</b>,
+        de nacionalidad <b>${aMayus(mandante.nacionalidad)}</b>,
+        de sexo <b>${aMayus(mandante.sexo)}</b>,
+        nacido el <b>${fechaAHablado(mandante.fechaNacimiento)}</b>,
+        estado civil <b>${aMayus(mandante.estadoCivil)}</b>,
+        de profesión u oficio <b>${aMayus(mandante.profesionUOficio)}</b>,
+        domiciliado en <b>${aMayus(mandante.domicilio)}</b>,
+        comuna de <b>${aMayus(mandante.comuna)}</b>,
+        ciudad de <b>${aMayus(mandante.ciudad)}</b>,
+        teléfono <b>${aMayus(mandante.telefono)}</b>,
+        correo electrónico <b>${aMayus(mandante.email)}</b>,
+        he incorporado a la institución de salud
+        <b>${aMayus(mandante.institucionSalud)}</b>
+        confiero poder a 
+        <b>${aMayus(nombreMandatario)}</b>,
+        RUT <b>${aMayus(mandatario.rut)}</b>,
+        domiciliado en <b>${aMayus(mandatario.domicilio)}</b>,
+        comuna de <b>${aMayus(mandatario.comuna)}</b>,
+        ciudad de <b>${aMayus(mandatario.ciudad)}</b>,
+        teléfono <b>${aMayus(mandatario.telefono)}</b>,
+        correo electrónico <b>${aMayus(mandatario.email)}</b>,
+        para que en mi nombre suscriba en <b>${aMayus(mandante.afp)}</b>, una solicitud de <b>${aMayus(mandante.tipoPension)}</b>.
+        </p>
+
+        ${(empleador.nombreORazonSocial || empleador.rut || empleador.domicilio || empleador.email || empleador.telefono) ? `
+        <p class="empleador-datos">
+        <br/>
+        Asimismo, expongo que a la fecha, los datos de mi empleador son los siguientes:   
+        <br/>
+        <br/>Razón social: ${aMayus(empleador.nombreORazonSocial)}
+        <br/>Rut: ${aMayus(empleador.rut)}
+        <br/>Dirección: ${aMayus(empleador.domicilio)}
+        <br/>Correo electrónico: ${aMayus(empleador.email)}
+        <br/>Telefono: ${aMayus(empleador.telefono)}
+        </p>
+        ` : ''}
+
+        
+        <p>
+        Para efectos de la suscripción de la pensión antes mencionada, declaro conocer que tienen la calidad de beneficiarios de pensión de sobrevivencia: el cónyuge, los hijos, la madre o padre de hijos de filiación no matrimonial y, a falta de todos los anteriores, los padres. En consecuencia, efectúo la siguiente declaración de beneficiarios:
+        </p> 
+        ${parseInt(mandante.numeroBeneficiarios || 0, 10) > 0 ? `
+        
+          
+    
+        
+        <h3>Beneficiarios</h3>
+
+        <table border="1" style="border-collapse:collapse;width:100%;">
+
+        <tr>
+        <th>Nombre Completo</th>
+        <th>Sexo</th>
+        <th class="col-rut">Rut</th>
+        <th>Fecha de Nac.</th>
+        <th>Parentesco</th>
+        <th>Observaciones</th>
+        </tr>
+
+        ${beneficiarios}
+
+        </table>
+        
+        <br/>
+        ` : ''}
+        <p>
+        Por otra parte, señalo los siguientes antecedentes 
+        que el mandatario deberá considerar para suscribir 
+        en mi nombre en la solicitud 
+        de ${aMayus(mandante.tipoPension)}
+        </p>
+
+        <h3>Antecedentes</h3>
+
+        <table border="1" style="border-collapse:collapse;width:100%;">
+
+        <tr>
+        <td>Deseo pensión preliminar</td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${antecedentes.deseoPensionPreliminar === "Sí" ? "Sí" : "No"}</span></td>
+        </tr>
+
+        <tr>
+        <td>¿Desea pago retroactivo?</td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${antecedentes.deseoPagoRetroactivo === "Sí" ? "Sí" : "No"}</span></td>
+        </tr>
+
+        <tr>
+        <td>Solicitar Pensión Garantizada Universal</td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${antecedentes.solicitarPgu === "Sí" ? "Sí" : "No"}</span></td>
+        </tr>
+
+        <tr>
+        <td>Solicitar aporte solidario de invalidez (si corresponde)</td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${antecedentes.solicitarAporteSolidarioInvalidez === "Sí" ? "Sí" : "No"}</span></td>
+        </tr>
+
+        <tr>
+        <td>Recibo pensión antiguo sistema</td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${antecedentes.reciboPensionAntiguoSistema === "Sí" ? "Sí" : "No"}</span></td>
+        </tr>
+
+        <tr>
+        <td>Recibo pensión invalidez de este sistema</td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${antecedentes.reciboPensionInvalidezEsteSistema === "Sí" ? "Sí" : "No"}</span></td>
+        </tr>
+
+        <tr>
+        <td>Deseo que mi pensión se ajuste a la pensión mínima</td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${antecedentes.ajustePensionMinima === "Sí" ? "Sí" : "No"}</span></td>
+        </tr>
+
+        <tr>
+        <td>Deseo que mi pensión se ajuste a la pensión básica solidaria</td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${antecedentes.ajustePensionBasicaSolidaria === "Sí" ? "Sí" : "No"}</span></td>
+        </tr>
+
+        <tr>
+        <td>Estoy afecto al Estatuto Administrativo</td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${antecedentes.afectoEstatutoAdministrativo === "Sí" ? "Sí" : "No"}</span></td>
+        </tr>
+
+        <tr>
+        <td>Destinaré Ahorro Previsional Voluntario al financiamiento de mi pensión</td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${antecedentes.destinareApv === "Sí" ? "Sí" : "No"}</span></td>
+        </tr>
+        ${htmlFilasDetalleApvMandato(antecedentes)}
+
+        <tr>
+        <td>Destinaré Ahorro Previsional Voluntario Colectivo al financiamiento de mi pensión</td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${antecedentes.destinareApvc === "Sí" ? "Sí" : "No"}</span></td>
+        </tr>
+        ${htmlFilasDetalleApvcMandato(antecedentes)}
+
+        <tr>
+        <td>Traspasaré fondos desde mi Cuenta de Ahorro Voluntario para financiar mi pensión</td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${antecedentes.traspasareCtaAhorroVoluntario === "Sí" ? "Sí" : "No"}</span></td>
+        </tr>
+
+        <tr>
+        <td>Poseo depósitos convenidos</td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${antecedentes.poseoDepositosConvenidos === "Sí" ? "Sí" : "No"}</span></td>
+        </tr>
+
+        <tr>
+        <td>Traspasaré fondos desde mi Cuenta Individual de Cesantía</td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${antecedentes.traspasareCesantia === "Sí" ? "Sí" : "No"}</span></td>
+        </tr>
+
+        <tr>
+        <td>Tengo cotizaciones en otro país</td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${antecedentes.cotizacionesOtroPais === "Sí" ? "Sí" : "No"}</span></td>
+        </tr>
+
+        <tr>
+        <td>Tengo períodos de residencia en otro país</td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${antecedentes.residenciaOtroPais === "Sí" ? "Sí" : "No"}</span></td>
+        </tr>
+
+        <tr>
+        <td>Deseo cambiar de Tipo de Fondo</td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${antecedentes.cambioTipoFondo === "Sí" ? "Sí" : "No"}</span></td>
+        </tr>
+
+        <tr>
+        <td>Deseo que mis datos personales aparezcan en un listado público de información</td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${antecedentes.listadoPublico === "Sí" ? "Sí" : "No"}</span></td>
+        </tr>
+
+        </table>
+      
+        <br/>
+        <p>
+        Asimismo, autorizo al mandatario para:  
+        </p>
+
+        <h3>Autorizaciones</h3>
+
+        <table border="1" style="border-collapse:collapse;width:100%;">
+
+        <tr>
+        <td>Poner fín al trámite de Pensión</td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${(autorizaciones.terminarTramite === "Sí" ? "Sí" : "No")}</span></td>
+        </tr>
+
+        <tr>
+        <td>Suscribir solicitud de Bono de Reconocimiento</td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${autorizaciones.suscribirBonoReconocimiento === "Sí" ? "Sí" : "No"}</span></td>
+        </tr>
+
+        <tr>
+        <td>Solicitar información respecto del estado del trámite de pensión</td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${autorizaciones.solicitarInfoEstadoTramite === "Sí" ? "Sí" : "No"}</span></td>
+        </tr>
+
+        <tr>
+        <td>Retirar en la AFP el Certificado de Saldo</td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${autorizaciones.retirarCertificadoSaldo === "Sí" ? "Sí" : "No"}</span></td>
+        </tr>
+
+        <tr>
+        <td>Suscribir formulario "Destino de Cotizaciones Voluntarias"</td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${autorizaciones.suscribirDestinoCotizacionesVoluntarias === "Sí" ? "Sí" : "No"}</span></td>
+        </tr>
+
+        <tr>
+        <td>Suscribir formulario "Transferencia de Fondos desde la Cuenta de Ahorro Voluntario"</td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${autorizaciones.suscribirTransferenciaAhorroVoluntario === "Sí" ? "Sí" : "No"}</span></td>
+        </tr>
+
+        <tr>
+        <td>Suscribir formulario "Selección de Alternativas de Ahorro Previsional Voluntario"</td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${autorizaciones.suscribirSeleccionAlternativasApv === "Sí" ? "Sí" : "No"}</span></td>
+        </tr>
+
+        <tr>
+        <td>Suscribir solicitud de cambio de modalidad de pensión</td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${autorizaciones.suscribirCambioModalidadPension === "Sí" ? "Sí" : "No"}</span></td>
+        </tr>
+
+        <tr>
+        <td>Suscribir solicitud de cálculo de excedente de libre disposición</td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${autorizaciones.suscribirCalculoExcedente === "Sí" ? "Sí" : "No"}</span></td>
+        </tr>
+
+        <tr>
+        <td>Suscribir opción por mantener el valor nominal del saldo destinado a pensión</td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${autorizaciones.suscribirMantenerValorNominal === "Sí" ? "Sí" : "No"}</span></td>
+        </tr>
+
+        <tr>
+        <td>Retirar duplicado de SCOMP original</td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${autorizaciones.retirarDuplicadoScompOriginal === "Sí" ? "Sí" : "No"}</span></td>
+        </tr>
+
+        <tr>
+        <td>Ingresar datos de mi cuenta bancaria</td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${autorizaciones.ingresarDatosCuentaBancaria === "Sí" ? "Sí" : "No"}</span></td>
+        </tr>
+
+        <tr>
+        <td>Obtener información verbal o escrita del pago de mi pensión y traspaso de fondos</td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${autorizaciones.obtenerInfoPagoPensionYTraspaso === "Sí" ? "Sí" : "No"}</span></td>
+        </tr>
+
+        <tr>
+        <td>Firmar exención de cotizar por cumplimiento de edad legal al inicio de mi trámite</td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${autorizaciones.firmarExencionCotizarEdadLegal === "Sí" ? "Sí" : "No"}</span></td>
+        </tr>
+
+        <tr>
+        <td>Realizar requerimientos y reclamos del trámite y todo lo relacionado con este</td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${autorizaciones.realizarReclamosTramite === "Sí" ? "Sí" : "No"}</span></td>
+        </tr>
+
+        <tr>
+        <td>Certificado histórico de cotizaciones</td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${certificados.historicoCotizaciones === "Sí" ? "Sí" : "No"}</span></td>
+        </tr>
+
+        <tr>
+        <td>Certificado de antecedente previsional</td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${certificados.antecedentePrevisional === "Sí" ? "Sí" : "No"}</span></td>
+        </tr>
+
+        <tr>
+        <td>Certificado de trabajo pesado</td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${certificados.certificadoTrabajoPesado === "Sí" ? "Sí" : "No"}</span></td>
+        </tr>
+
+        <tr>
+        <td>Certificado de vacaciones progresivas</td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${certificados.certificadoVacacionesProgresivas === "Sí" ? "Sí" : "No"}</span></td>
+        </tr>
+
+        <tr>
+        <td>Certificado de estado de cuentas</td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${certificados.certificadoEstadoCuentas === "Sí" ? "Sí" : "No"}</span></td>
+        </tr>
+
+        <tr>
+        <td>Certificado de calidad de pensionado</td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${certificados.certificadoCalidadPensionado === "Sí" ? "Sí" : "No"}</span></td>
+        </tr>
+
+        </table>
+        <br>
+
+        ${(autorizaciones.banco || autorizaciones.tipoCuenta || autorizaciones.numeroCuenta) ? `
+        <h3>Datos de cuenta bancaria</h3>
+        <table border="1" style="border-collapse:collapse;width:100%;">
+        <tr>
+        <td>Banco</td>
+        <td>${aMayus(autorizaciones.banco || "")}</td>
+        </tr>
+        <tr>
+        <td>Tipo de cuenta</td>
+        <td>${aMayus(autorizaciones.tipoCuenta || "")}</td>
+        </tr>
+        <tr>
+        <td>Número de cuenta</td>
+        <td>${aMayus(autorizaciones.numeroCuenta || "")}</td>
+        </tr>
+        </table>
+        <br>
+        ` : ''}
+        <p>
+        Otorgo el presente mandato para los únicos 
+        fines antes señalados y se entiende revocado 
+        por otro de fecha posterior o por término de 
+        la gestión encomendada.
+        </p>
+        <p>
+        Finalmente, declaro conocer que el trámite de pensión 
+        es gratuito, sin perjuicio de que puedo contratar 
+        voluntariamente una asesoría previsional para dicho trámite.    
+        </p>
+
+        <br><br><br><br><br><br>
+
+        <table class="tabla-firmas" border="0" cellpadding="0" cellspacing="0" style="margin-top:40px;width:100%;">
+        <tr>
+        <td>
+        <p>______________________________</p>
+        <p>Firma Cliente</p>
+        <p><b>${aMayus(nombreMandante)}</b></p>
+        <p>RUT: <b>${aMayus(mandante.rut)}</b></p>
+        </td>
+        <td>
+        <p>______________________________</p>
+        <p>Firma Asesor Previsional</p>
+        <p><b>${aMayus(nombreMandatario)}</b></p>
+        <p>RUT: <b>${aMayus(mandatario.rut)}</b></p>
+        </td>
+        </tr>
+        </table>
+
+        </body>
+        </html>
+        `;
+
+        descargarDocumentoWordCompat(html, "mandato");
+
+      }
+
+      // Genera el mandato corto: mismo contenido que el mandato completo pero en Antecedentes,
+      // Autorizaciones y Certificados solo se listan las opciones marcadas con "Sí" en el formulario.
+      function generarMandatoCorto(data) {
+        const mandante = data.mandante || {};
+        const mandatario = data.mandatario || {};
+        const antecedentes = data.antecedentes || {};
+        const autorizaciones = data.autorizaciones || {};
+        const certificados = data.certificados || {};
+
+        const nombreMandante =
+          `${mandante.nombres || ""} ${mandante.apellidoPaterno || ""} ${mandante.apellidoMaterno || ""}`;
+        const nombreMandatario =
+          `${mandatario.nombres || ""} ${mandatario.apellidoPaterno || ""} ${mandatario.apellidoMaterno || ""}`;
+        const fechaHoy = fechaHoyHablado();
+
+        const tablaAntecedentesCorto = buildTablaSoloSi(antecedentesItems, antecedentes, antecedentesMandateLabels);
+        const tablaAutorizacionesCorto = buildTablaSoloSi(autorizacionesItems, autorizaciones, autorizacionesMandateLabels);
+        const tablaCertificadosCorto = buildTablaSoloSi(certificadosItems, certificados, certificadosMandateLabels);
+
+        const html = `
+        <html>
+        <head>
+        <meta charset="utf-8">
+        <style>
+        body{ font-family:Arial; font-size:12pt; line-height:1.5; margin:15px 12px; }
+        p{ text-align:justify; }
+        table{ border-collapse:collapse; width:100%; margin-top:10px; font-size:9pt; }
+        td,th{ border:1px solid black; padding:4px; font-size:9pt; }
+        .col-rut{ white-space:nowrap; width:1%; min-width:7em; }
+        .col-respuesta{ min-width:8em; width:8em; white-space:nowrap; word-break:keep-all; }
+        h2,h3{ margin-top:20px; page-break-after:avoid; }
+        h2{ text-transform:uppercase; text-align:center; }
+        .empleador-datos{ text-align:left; }
+        .firmas{ margin-top:40px; overflow:hidden; width:100%; }
+        .firma-izq{ float:left; width:45%; text-align:center; }
+        .firma-der{ float:right; width:45%; text-align:center; }
+        .tabla-firmas td{ border:none; width:50%; text-align:center; vertical-align:top; padding:0 20px; }
+        </style>
+        </head>
+        <body>
+
+        <h2>MANDATO PARA  ${aMayus(mandante.cambioModalidadTramite === "Sí" ? "INICIAR TRÁMITE DE CAMBIO DE MODALIDAD" : "RETIRAR CERTIFICADO DE SALDO")} DE ${aMayus(mandante.tipoPension)}</h2>
+
+        <p>
+        Con fecha ${fechaHoy} y por medio del siguiente instrumento, yo 
+        <b>${aMayus(nombreMandante)}</b>,
+        RUT <b>${aMayus(mandante.rut)}</b>,
+        de nacionalidad <b>${aMayus(mandante.nacionalidad)}</b>,
+        de sexo <b>${aMayus(mandante.sexo)}</b>,
+        nacido el <b>${fechaAHablado(mandante.fechaNacimiento)}</b>,
+        estado civil <b>${aMayus(mandante.estadoCivil)}</b>,
+        de profesión u oficio <b>${aMayus(mandante.profesionUOficio)}</b>,
+        domiciliado en <b>${aMayus(mandante.domicilio)}</b>,
+        comuna de <b>${aMayus(mandante.comuna)}</b>,
+        ciudad de <b>${aMayus(mandante.ciudad)}</b>,
+        teléfono <b>${aMayus(mandante.telefono)}</b>,
+        correo electrónico <b>${aMayus(mandante.email)}</b>,
+        he incorporado a la institución de salud
+        <b>${aMayus(mandante.institucionSalud)}</b>
+        confiero poder a 
+        <b>${aMayus(nombreMandatario)}</b>,
+        RUT <b>${aMayus(mandatario.rut)}</b>,
+        domiciliado en <b>${aMayus(mandatario.domicilio)}</b>,
+        comuna de <b>${aMayus(mandatario.comuna)}</b>,
+        ciudad de <b>${aMayus(mandatario.ciudad)}</b>,
+        teléfono <b>${aMayus(mandatario.telefono)}</b>,
+        correo electrónico <b>${aMayus(mandatario.email)}</b>,
+        para que en mi nombre y en representación efectúe en <b>${aMayus(mandante.afp)}</b> lo siguiente:
+        </p>
+
+       
+
+        ${tablaAntecedentesCorto ? `
+        <p>
+        Por otra parte, señalo los siguientes antecedentes 
+        que el mandatario deberá considerar para suscribir 
+        en mi nombre en la solicitud 
+        de ${aMayus(mandante.tipoPension)}
+        </p>
+        <h3>Antecedentes</h3>
+        <table border="1" style="border-collapse:collapse;width:100%;">
+        ${tablaAntecedentesCorto}
+        </table>
+        <br/>
+        ` : ''}
+
+        ${(tablaAutorizacionesCorto || tablaCertificadosCorto) ? `
+        
+        <h3>Autorizaciones</h3>
+        <table border="1" style="border-collapse:collapse;width:100%;">
+        ${(tablaAutorizacionesCorto || "") + (tablaCertificadosCorto || "")}
+        </table>
+        <br>
+        ` : ''}
+
+        <br><br><br><br><br><br>
+
+        <table class="tabla-firmas" border="0" cellpadding="0" cellspacing="0" style="margin-top:40px;width:100%;">
+        <tr>
+        <td>
+        <p>______________________________</p>
+        <p>Firma Cliente</p>
+        <p><b>${aMayus(nombreMandante)}</b></p>
+        <p>RUT: <b>${aMayus(mandante.rut)}</b></p>
+        </td>
+        <td>
+        <p>______________________________</p>
+        <p>Firma Asesor Previsional</p>
+        <p><b>${aMayus(nombreMandatario)}</b></p>
+        <p>RUT: <b>${aMayus(mandatario.rut)}</b></p>
+        </td>
+        </tr>
+        </table>
+
+        </body>
+        </html>
+        `;
+
+        descargarDocumentoWordCompat(html, "mandato_corto");
+      }
+
+      // Genera el contrato de prestación de servicios de asesoría y lo descarga como archivo .doc.
+      function generarContrato(data){
+        const mandante = data.mandante || {};
+        const mandatario = data.mandatario || {};
+        const empleador = data.empleador || {};
+        const beneficiariosData = data.beneficiarios || {};
+
+        const nombreCompletoMandante =
+          `${mandante.nombres || ""} ${mandante.apellidoPaterno || ""} ${mandante.apellidoMaterno || ""}`.trim();
+        const nombreCompletoMandatario =
+          `${mandatario.nombres || ""} ${mandatario.apellidoPaterno || ""} ${mandatario.apellidoMaterno || ""}`.trim();
+
+        const fechaActualTexto = fechaHoyHablado();
+        const ciudad = mandante.ciudad || "";
+        const nombreTramite = mandante.tipoPension || "";
+        const esCambioModalidad = (mandante.cambioModalidadTramite || "").trim() === "Sí";
+
+        // Número de contrato: registro asesor + número secuencial (asignado por RUT del mandante al pulsar Generar Contrato)
+        const numeroSecuencial = data.numeroContratoSecuencial ?? "NNN";
+        const numeroContrato = data.numeroContrato || `${mandatario.numeroRegistroAsesorPrevisional || ""}-${numeroSecuencial}`;
+
+        let filasBeneficiarios = "";
+        if (beneficiariosData && typeof beneficiariosData === "object") {
+          const lista = Object.values(beneficiariosData);
+          lista.forEach((b) => {
+            const nombreBenef =
+              `${b.nombres || ""} ${b.apellidoPaterno || ""} ${b.apellidoMaterno || ""}`.trim();
+            filasBeneficiarios += `
+        <tr>
+        <td>${aMayus(nombreBenef)}</td>
+        <td>${aMayus(b.parentesco)}</td>
+        <td>${aMayus(b.fechaNacimiento)}</td>
+        <td class="col-rut">${aMayus(b.rut)}</td>
+        <td>${aMayus(b.esInvalido)}</td>
+        </tr>
+        `;
+          });
+        }
+
+        // Datos de la póliza (en el futuro vendrán de un formulario distinto para actualizarse anualmente)
+        const poliza = data.poliza || {
+          registroPoliza: "1.2013.0970",
+          compania: "COMPAÑÍA DE SEGUROS GENERALES SURAMERICANA S.A.",
+          numeroPoliza: "9148151",
+          fechaContrato: "23/09/2025",
+          fechaInicio: "01/10/2025",
+          fechaVencimiento: "30/09/2026",
+        };
+
+        const html = `
+        <html>
+        <head>
+        <meta charset="utf-8">
+        <style>
+        body{
+          font-family:Arial;
+          font-size:11pt;
+          line-height:1.4;
+          margin:15px 12px;
+        }
+        h1{
+          font-size:14pt;
+          text-align:center;
+          text-transform:uppercase;
+          page-break-after:avoid;
+        }
+        h2{
+          font-size:12pt;
+          margin-top:18px;
+          text-transform:uppercase;
+          page-break-after:avoid;
+        }
+        p{
+          text-align:justify;
+        }
+        table{
+          border-collapse:collapse;
+          width:100%;
+          margin-top:8px;
+          font-size:9pt;
+        }
+        td,th{
+          border:1px solid #000;
+          padding:4px;
+          font-size:9pt;
+        }
+        .col-rut{
+          white-space:nowrap;
+          width:1%;
+          min-width:8em;
+        }
+        .firmas{
+          margin-top:40px;
+          overflow:hidden;
+          width:100%;
+        }
+        .firma-izq{
+          float:left;
+          width:45%;
+          text-align:center;
+        }
+        .firma-der{
+          float:right;
+          width:45%;
+          text-align:center;
+        }
+        .tabla-firmas td{
+          border:none;
+          width:50%;
+          text-align:center;
+          vertical-align:top;
+          padding:0 20px;
+        }
+        </style>
+        </head>
+        <body>
+
+        <h1>CONTRATO DE PRESTACIÓN DE SERVICIOS DE ASESORÍA PARA<br/>
+        PENSIONARSE O CAMBIAR MODALIDAD DE PENSIÓN Nº <b>${numeroContrato}</b></h1>
+
+        <h2>INDIVIDUALIZACIÓN DE LAS PARTES</h2>
+
+        <p>
+        En la Ciudad de <b>${aMayus(ciudad)}</b> a <b>${fechaActualTexto}</b>, suscriben el presente contrato, por una parte,
+        don <b>${aMayus(nombreCompletoMandante)}</b>, Rut <b>${aMayus(mandante.rut)}</b>, nacido el <b>${fechaAHablado(mandante.fechaNacimiento)}</b>,
+        estado civil <b>${aMayus(mandante.estadoCivil)}</b>, profesión u oficio <b>${aMayus(mandante.profesionUOficio)}</b>,
+        domiciliado en <b>${aMayus(mandante.domicilio)}</b>, comuna de <b>${aMayus(mandante.comuna)}</b> ciudad de <b>${aMayus(mandante.ciudad)}</b>,
+        celular <b>${aMayus(mandante.telefono)}</b>, correo electrónico <b>${aMayus(mandante.email)}</b>,
+        afiliado a la <b>${aMayus(mandante.afp)}</b>, Sistema de Salud <b>${aMayus(mandante.institucionSalud)}</b>;
+        por otra parte, <b>${aMayus(nombreCompletoMandatario)}</b>, Rut <b>${aMayus(mandatario.rut)}</b>,
+        Profesión <b>${aMayus(mandatario.profesionUOficio)}</b>, inscrito en el Registro de Asesores Previsionales de la
+        Superintendencia de Pensiones con el N° <b>${aMayus(mandatario.numeroRegistroAsesorPrevisional)}</b>,
+        domiciliado en <b>${aMayus(mandatario.domicilio)}</b>, comuna de <b>${aMayus(mandatario.comuna)}</b> ciudad de <b>${aMayus(mandatario.ciudad)}</b>,
+        celular <b>${aMayus(mandatario.telefono)}</b> e-mail: <b>${aMayus(mandatario.email)}</b>, en adelante el “ASESOR PREVISIONAL”.
+        Las partes acuerdan el siguiente contrato de asesoría para realizar trámite de <b>${aMayus(esCambioModalidad ? "cambio de modalidad para " + nombreTramite : nombreTramite)}</b>.
+        </p>
+
+        <h2>ANTECEDENTES DEL GRUPO FAMILIAR CON DERECHO A PENSIÓN</h2>
+
+        
+
+        ${filasBeneficiarios ? `
+        <p>
+        El Afiliado declara que la composición de su grupo familiar con derecho a pensión es:
+        </p>
+        <table>
+        <tr>
+          <th>Nombre completo</th>
+          <th>Parentesco</th>
+          <th>Fecha de nac.</th>
+          <th class="col-rut">Rut</th>
+          <th>Inválido</th>
+        </tr>
+        ${filasBeneficiarios}
+        </table>
+        ` : `<p><b>Sin beneficiarios legales</b></p>`}
+
+        <h2>NATURALEZA U OBJETO DEL CONTRATO</h2>
+
+        <p>
+        El presente contrato de asesoría previsional, tiene por objeto otorgar información a los afiliados y
+        beneficiarios del Sistema de Pensiones, considerando de manera integral todos los aspectos que dicen
+        relación con su situación particular y que fueren necesarios para adoptar decisiones informadas, de acuerdo
+        a sus necesidades e intereses en relación con las prestaciones y beneficios que contempla el D.L. N° 3.500.
+        Dicha asesoría podrá comprender además la intermediación de Seguros Previsionales.
+        </p>
+
+        <p>
+        Si el afiliado confiere Mandato o Poder Especial al Asesor Previsional o a la Entidad de Asesoría Previsional,
+        aquel deberá formar parte del Contrato como anexo del mismo y deberá cumplir con las normas que para tal
+        efecto fije la Superintendencia de Pensiones, debiendo estipularse en forma detallada los trámites,
+        atribuciones y facultades que el mandante otorga al mandatario para la ejecución del encargo específico que
+        se le encomiende, debiendo entenderse que aquellas facultades que no fueron incluidas no han sido conferidas.
+        En consecuencia, el mandatario sólo podrá realizar aquellas gestiones para las cuales se le otorgó un poder
+        especial. En ningún caso, el poder podrá extenderse a la facultad de seleccionar modalidad de pensión o
+        percibir beneficios.
+        </p>
+
+        <h2>OBLIGACIONES DE LAS ENTIDADES DE ASESORÍA PREVISIONAL O DEL ASESOR PREVISIONAL</h2>
+
+        <p>
+        - Otorgar información, asesorar y orientar al afiliado o sus beneficiarios, según corresponda, considerando
+        de manera integral todos los aspectos que digan relación con su situación particular y que fueren necesarias
+        para que adopten decisiones informadas de acuerdo a sus necesidades e intereses, en relación con las
+        prestaciones y beneficios que contempla el D.L N° 3.500.
+        </p>
+
+        <p>
+        - Asesorar en la selección de modalidad de pensión, informando acerca de los procedimientos y funcionamiento
+        del Sistema de Consultas y Ofertas de Montos de Pensión, enviar y transmitir las consultas de montos de
+        pensión requeridas por los consultantes y asistirle en todas las gestiones que corresponda efectuar una vez
+        evacuadas las ofertas de pensión por el Sistema, ya sea en casos de aceptación de alguna de las ofertas
+        contenida en el Certificado de Ofertas, la participación en el sistema de remate electrónico de pensión,
+        el ingreso dentro de los plazos correspondientes de una nueva consulta en el Sistema, o bien la posibilidad
+        de desistirse de contratar conforme a las ofertas recibidas.
+        </p>
+
+        <p>
+        - En caso de que el afiliado o sus beneficiarios cumplan los requisitos para pensionarse, o se trate de un
+        pensionado bajo la modalidad de retiro programado, la asesoría deberá informar en especial sobre la forma
+        de hacer efectiva su pensión según las modalidades previstas en el artículo 61 del D.L. 3.500, sus
+        características y demás beneficios a que pudieren acceder según el caso, con una estimación de sus montos.
+        </p>
+
+        <p>
+        - Analizar y verificar la situación previsional tanto del pensionable como de sus beneficiarios legales.
+        El asesor deberá obtener o requerir del cliente los antecedentes que permitan establecer o verificar la
+        existencia o no de beneficiarios con derecho a pensión de sobrevivencia, a fin de evitar se incurra en la
+        conducta descrita en el artículo 13 del D.L. 3.500, de 1980.
+        </p>
+
+        <p>
+        - En caso de que el solicitante cumpliera con los requisitos legales para obtener pensión de invalidez,
+        deberá informarse el derecho que le asiste para acceder a dicha pensión con la misma compañía de seguros
+        obligada a efectuar el pago del aporte adicional en conformidad al artículo 60 del D.L. Nº 3.500, aun cuando
+        ésta no hubiera presentado una oferta de pensión, e informarle el plazo del cual dispone para ejercer dicha
+        opción.
+        </p>
+
+        <h2>PÓLIZAS O BOLETA DE GARANTÍA BANCARIA COMPROMETIDAS</h2>
+
+        <p>
+        Para responder del correcto y cabal cumplimiento de todas las obligaciones emanadas de la actividad, el
+        Asesor Previsional está cubierto por la Póliza de Responsabilidad Civil Profesional para Asesores
+        Previsionales o Entidades de Asesoría Previsional bajo el registro de póliza <b>${aMayus(poliza.registroPoliza)}</b> de la C.M.F.,
+        emitida por la <b>${aMayus(poliza.compania)}</b>. Póliza N° <b>${aMayus(poliza.numeroPoliza)}</b> contratada el <b>${aMayus(poliza.fechaContrato)}</b>,
+        con fecha de vigencia a partir del <b>${aMayus(poliza.fechaInicio)}</b> y vencimiento el <b>${aMayus(poliza.fechaVencimiento)}</b>.
+        </p>
+
+        <h2>VIGENCIA DEL CONTRATO</h2>
+
+        <p>
+        Se entenderá terminada la vigencia de este contrato si el afiliado o beneficiario selecciona modalidad de
+        pensión o se desistiese de pensionarse.
+        </p>
+
+        <h2>HONORARIOS</h2>
+
+        <p>
+        Los honorarios brutos de Asesores Previsionales en Chile se ajustan al DL 3500 (art. 61bis  y art. 179).
+        </p>
+
+        <p>
+        Primera asesoría (selección de modalidad de pensión):
+        1,5% del saldo destinado a la modalidad de pensión, con tope de 60 UF en el caso de Renta Vitalicia y
+        1,2% del saldo destinado a la modalidad de pensión, con tope de 36 UF en caso de Retiro Programado.
+        </p>
+
+        <p>
+        Segunda asesoría (cambio de modalidad de pensión): saldo remanente con tope de 24 UF.
+        </p>
+
+        <p>
+        Además, se establece que el pago de los honorarios estarán sujetos a la prestación efectiva de la asesoría
+        y que estos honorarios o comisión se cobrará en términos brutos, es decir, el monto siempre deberá incluir
+        el impuesto al que está obligado el Asesor Previsional y dicho monto será cancelado por la entidad en la cual
+        decida quedar pensionado.
+        </p>
+
+        <h2>DERECHO A LA INFORMACIÓN</h2>
+
+        <p>
+        El contratante podrá requerir, en cualquier momento, información escrita respecto de las gestiones
+        realizadas durante el curso de la asesoría. Asimismo, el asesor se compromete a la entrega de un Informe
+        Final, en el cual explicitará la recomendación o sugerencia entregada, indicando los antecedentes, escenarios
+        o los considerandos que sirvieron de base para la recomendación. Este informe final deberá explicitar
+        claramente la fecha en que se extendió y las firmas de las partes, las que podrán ser electrónicas.
+        </p>
+
+        <h2>VOLUNTARIEDAD DEL CONTRATO DE ASESORÍA PREVISIONAL</h2>
+
+        <p>
+        El presente Contrato se suscribe libre y voluntariamente, toda vez que para ejercer derechos previsionales
+        no es requisito la contratación de Asesoría Previsional. La recomendación escrita que se otorgue por el
+        Asesor Previsional o por la Entidad de Asesoría Previsional, esto es por medio del informe final, no es
+        obligatoria para el afiliado o sus beneficiarios, pudiendo éstos optar por cualquier alternativa que les
+        parezca conveniente.
+        </p>
+
+        <p>
+        Cualquier disposición de este contrato que pudiere constituir una limitación a la libertad contractual y al
+        derecho del afiliado a elegir AFP, tipo de fondo, cuándo pensionarse, la modalidad de pensión y la entidad
+        que otorgue su pensión se tendrá por no escrita.
+        </p>
+
+        <h2>PRIVACIDAD DE LA INFORMACIÓN</h2>
+
+        <p>
+        El Asesor o la Entidad de Asesoría se obliga a resguardar la privacidad de toda la información a la que
+        acceda producto del contrato.
+        </p>
+
+        <h2>INDEPENDENCIA DEL ASESOR PREVISIONAL O DE LA ENTIDAD DE ASESORÍA PREVISIONAL</h2>
+
+        <p>
+        El Asesor Previsional, los directores, socios, accionistas, ejecutivos principales, gerentes, apoderados o
+        dependientes de una Entidad de Asesoría Previsional, declaran no ser directores, accionistas, ejecutivos
+        principales, gerentes, apoderados o dependientes de una AFP, Compañías de Seguros, Sociedad Administradora
+        de Fondos de Cesantía, Aseguradora, Reaseguradora, Liquidadora de Siniestros o Entidades que conformen el
+        grupo empresarial de esas sociedades. Asimismo, se comprometen a otorgar la Asesoría Previsional con absoluta
+        independencia, no pudiendo condicionarla a otros productos o servicios propios o de una relacionada.
+        </p>
+
+        <h2>PROHIBICIONES</h2>
+
+        <p>
+        Se encuentra prohibido limitar en forma alguna la libre elección del contratante respecto de tomar o no la
+        recomendación del Asesor. El asesor o entidad de asesoría no podrá entregar al contratante incentivos o
+        beneficios adicionales al objetivo de la asesoría.
+        </p>
+
+        <h2>TÉRMINO DEL CONTRATO</h2>
+
+        <p>
+        El afiliado podrá poner término en cualquier momento al presente contrato, sin que se establezca el pago de
+        una multa o algún otro tipo de penalización por dicha terminación, bastando para ello la comunicación de
+        esta decisión por escrito al Asesor o a la Entidad de Asesoría Previsional, la que deberá remitirse por
+        escrito al domicilio o correo electrónico de éste que figura en el Contrato. El Asesor o la Entidad de
+        Asesoría Previsional podrán poner término al contrato de igual forma, debiendo siempre remitir la comunicación
+        escrita al domicilio del afiliado vía correo certificado. Con todo, se entenderá terminada la vigencia del
+        contrato transcurrido el plazo de 3 días contado desde el envío de dicha comunicación.
+        </p>
+
+        <p>
+        El presente contrato de Asesoría Previsional se firma en dos ejemplares quedando un ejemplar en poder de
+        cada una de las partes.
+        </p>
+
+        <br/><br/><br/><br/><br/><br/>
+
+        <table class="tabla-firmas" border="0" cellpadding="0" cellspacing="0" style="margin-top:40px;width:100%;">
+        <tr>
+        <td>
+        <p>______________________________</p>
+        <p>Firma Cliente</p>
+        <p><b>${aMayus(nombreCompletoMandante)}</b></p>
+        <p>RUT: <b>${aMayus(mandante.rut)}</b></p>
+        </td>
+        <td>
+        <p>______________________________</p>
+        <p>Firma Asesor Previsional</p>
+        <p><b>${aMayus(nombreCompletoMandatario) || "ROSE MARIE ALBISTUR BARROS"}</b></p>
+        <p>RUT: <b>${aMayus(mandatario.rut) || "9.526.153-1"}</b></p>
+        </td>
+        </tr>
+        </table>
+
+        </body>
+        </html>
+        `;
+
+        descargarDocumentoWordCompat(html, "contrato_asesoria");
+      }
+
+      // Crea nodos de DOM de forma compacta (helper para construir el formulario).
+      function el(tag, attrs = {}, children = []) {
+        const node = document.createElement(tag);
+        for (const [k, v] of Object.entries(attrs)) {
+          if (k === "class") node.className = v;
+          else if (k.startsWith("on") && typeof v === "function") node.addEventListener(k.slice(2), v);
+          else if (v === false || v === null || v === undefined) continue;
+          else node.setAttribute(k, String(v));
+        }
+        for (const child of Array.isArray(children) ? children : [children]) {
+          node.append(child instanceof Node ? child : document.createTextNode(String(child)));
+        }
+        return node;
+      }
+
+      function marcar(valor){
+        return {
+          si: valor ? "X" : "X",
+          no: valor ? "X" : "",
+        };
+      }
+
+      function renderYesNo(container, groupName, items) {
+        container.innerHTML = "";
+        for (const item of items) {
+          const name = `${groupName}.${item.key}`;
+          const field = el("div", { class: "field col-12" }, [
+            el("label", {}, `${item.label} `),
+            el("div", { class: "radio-row", role: "group", "aria-label": item.label }, [
+              el("label", { class: "radio-pill" }, [
+                el("input", { type: "radio", name, value: "Sí", required: "true" }),
+                "Sí",
+              ]),
+              el("label", { class: "radio-pill" }, [
+                el("input", { type: "radio", name, value: "No", required: "true" }),
+                "No",
+              ]),
+            ]),
+            el("div", { class: "error", "data-error-for": name }),
+          ]);
+          container.append(field);
+        }
+      }
+
+      // Formato canónico de RUT para BD: solo dígitos y K (ej. 123456785). Evita duplicados por formato distinto.
+      function rutToCanonical(rut) {
+        if (!rut) return "";
+        return String(rut).trim().toUpperCase().replace(/[^0-9K]/g, "");
+      }
+
+      // Normaliza un RUT (quita caracteres inválidos y aplica puntos y guion).
+      function normalizeRut(raw) {
+        if (!raw) return "";
+        let s = String(raw).trim().toUpperCase();
+        s = s.replace(/[^0-9K]/g, "");
+        if (s.length < 2) return s;
+        const body = s.slice(0, -1);
+        const dv = s.slice(-1);
+        const bodyWithDots = body
+          .split("")
+          .reverse()
+          .join("")
+          .replace(/(\d{3})(?=\d)/g, "$1.")
+          .split("")
+          .reverse()
+          .join("");
+        return `${bodyWithDots}-${dv}`;
+      }
+
+      // Obtiene o asigna número secuencial de contrato por RUT del mandante (Supabase).
+      // Si el mandante ya tiene número asignado, se reutiliza (no se incrementa al regenerar).
+      // Si no tiene, se toma el siguiente disponible y se guarda en la BD.
+      async function getOrAssignNumeroContrato(supabaseClient, data) {
+        const mandante = data && data.mandante;
+        const rutRaw = mandante && mandante.rut;
+        const rutKey = String(rutRaw || "").toUpperCase().replace(/[^0-9K]/g, "");
+        if (!rutKey || rutKey.length < 2) return "NNN";
+
+        const sess = await supabaseClient.auth.getSession();
+        const userId = sess && sess.data && sess.data.session && sess.data.session.user && sess.data.session.user.id;
+        if (!userId) return "NNN";
+
+        var res = await supabaseClient
+          .from("numeros_contrato")
+          .select("numero_secuencial")
+          .eq("user_id", userId)
+          .eq("rut_mandante", rutKey)
+          .maybeSingle();
+        if (res.data && res.data.numero_secuencial != null) return res.data.numero_secuencial;
+
+        var maxRes = await supabaseClient
+          .from("numeros_contrato")
+          .select("numero_secuencial")
+          .eq("user_id", userId)
+          .order("numero_secuencial", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        var maxActual = (maxRes.data && maxRes.data.numero_secuencial != null) ? maxRes.data.numero_secuencial : 339;
+        var siguiente = maxActual + 1;
+        var insertRes = await supabaseClient
+          .from("numeros_contrato")
+          .insert({ user_id: userId, rut_mandante: rutKey, numero_secuencial: siguiente })
+          .select("numero_secuencial")
+          .maybeSingle();
+        if (insertRes.error) {
+          var again = await supabaseClient
+            .from("numeros_contrato")
+            .select("numero_secuencial")
+            .eq("user_id", userId)
+            .eq("rut_mandante", rutKey)
+            .maybeSingle();
+          if (again.data && again.data.numero_secuencial != null) return again.data.numero_secuencial;
+          return siguiente;
+        }
+        return siguiente;
+      }
+
+      // Construye el objeto fila para la tabla clientes a partir de los datos del formulario de pensión (mandato).
+      function buildClienteRowFromMandatoData(data, userId) {
+        const mandante = data.mandante || {};
+        const empleador = data.empleador || {};
+        const autorizaciones = data.autorizaciones || {};
+        const antecedentes = data.antecedentes || {};
+        const certificados = data.certificados || {};
+
+        const fechaNac = parseDDMMYYYY(mandante.fechaNacimiento);
+        const row = {
+          user_id: userId || null,
+          rut: (rutToCanonical(mandante.rut) || null),
+          nombres: (mandante.nombres || "").trim() || null,
+          apellido_paterno: (mandante.apellidoPaterno || "").trim() || null,
+          apellido_materno: (mandante.apellidoMaterno || "").trim() || null,
+          fecha_nacimiento: fechaNac && fechaNac.iso ? fechaNac.iso : null,
+          estado_civil: (mandante.estadoCivil || "").trim() || null,
+          domicilio: (mandante.domicilio || "").trim() || null,
+          comuna: (mandante.comuna || "").trim() || null,
+          ciudad: (mandante.ciudad || "").trim() || null,
+          profesion_oficio: (mandante.profesionUOficio || "").trim() || null,
+          telefono: (mandante.telefono || "").trim() || null,
+          email: (mandante.email || "").trim() || null,
+          afp: (mandante.afp || "").trim() || null,
+          institucion_salud: (mandante.institucionSalud || "").trim() || null,
+          nacionalidad: (mandante.nacionalidad || "").trim() || null,
+          sexo: (mandante.sexo || "").trim() || null,
+          empleador_razon_social: (empleador.nombreORazonSocial || "").trim() || null,
+          empleador_rut: (rutToCanonical(empleador.rut) || null),
+          empleador_direccion: (empleador.domicilio || "").trim() || null,
+          empleador_telefono: (empleador.telefono || "").trim() || null,
+          empleador_email: (empleador.email || "").trim() || null,
+          banco: (autorizaciones.banco || "").trim() || null,
+          tipo_cuenta: (autorizaciones.tipoCuenta || "").trim() || null,
+          numero_cuenta: (autorizaciones.numeroCuenta || "").trim() || null,
+          posee_bono_reconocimiento: (antecedentes.poseeBonoReconocimiento || "").trim() === "Sí",
+          solicitud_tipo_pension: (mandante.tipoPension || "").trim() || null,
+          solicitud_cambio_modalidad_tramite: (mandante.cambioModalidadTramite || "").trim() === "Sí",
+          solicitud_antecedentes: antecedentes && typeof antecedentes === "object" ? antecedentes : {},
+          solicitud_autorizaciones: (function () {
+            const aut = autorizaciones && typeof autorizaciones === "object" ? autorizaciones : {};
+            const out = Object.assign({}, aut);
+            const tieneBanco = (autorizaciones.banco || autorizaciones.tipoCuenta || autorizaciones.numeroCuenta || "").toString().trim();
+            out.ingresarDatosCuentaBancaria = tieneBanco ? "Sí" : "No";
+            return out;
+          })(),
+          solicitud_certificados: certificados && typeof certificados === "object" ? certificados : {},
+        };
+
+        const numBenef = parseInt(mandante.numeroBeneficiarios || 0, 10);
+        row.solicitud_numero_beneficiarios = isNaN(numBenef) ? 0 : numBenef;
+
+        const beneficiariosData = data.beneficiarios;
+        if (beneficiariosData && typeof beneficiariosData === "object") {
+          const lista = Object.values(beneficiariosData);
+          row.solicitud_beneficiarios = lista.map(function (b) {
+            const f = (b.fechaNacimiento && parseDDMMYYYY(b.fechaNacimiento)) ? parseDDMMYYYY(b.fechaNacimiento).iso : null;
+            return {
+              nombres: (b.nombres || "").trim() || null,
+              apellido_paterno: (b.apellidoPaterno || "").trim() || null,
+              apellido_materno: (b.apellidoMaterno || "").trim() || null,
+              rut: (rutToCanonical(b.rut) || null),
+              fecha_nacimiento: f,
+              parentesco: (b.parentesco || "").trim() || null,
+              sexo: (b.sexo || "").trim() || null,
+              fecha_matrimonio_union_civil: (b.fechaMatrimonioUnionCivil && parseDDMMYYYY(b.fechaMatrimonioUnionCivil)) ? parseDDMMYYYY(b.fechaMatrimonioUnionCivil).iso : null,
+              ciudad_matrimonio_union_civil: (b.ciudadMatrimonioUnionCivil || "").trim() || null,
+              observaciones: (b.observaciones || "").trim() || null,
+            };
+          });
+        } else {
+          row.solicitud_beneficiarios = [];
+        }
+
+        return row;
+      }
+
+      // Guarda o actualiza el cliente en Supabase a partir de los datos del formulario de pensión (mandato).
+      // Usa RUT como clave; si ya existe el cliente se actualiza.
+      async function saveClienteFromMandatoData(supabaseClient, data) {
+        if (!supabaseClient) return;
+        const sess = await supabaseClient.auth.getSession();
+        const uid = sess && sess.data && sess.data.session && sess.data.session.user && sess.data.session.user.id;
+        if (!uid) throw new Error("No hay sesión activa. Vuelve a iniciar sesión.");
+        const row = buildClienteRowFromMandatoData(data, uid);
+        if (!row.rut) return;
+        const { error } = await supabaseClient.from("clientes").upsert(row, { onConflict: "user_id,rut" });
+        if (error) throw error;
+      }
+
+      // Marca en BD qué documentos ya fueron generados para el cliente (por RUT del propietario actual).
+      async function markClienteDocumentoGenerado(supabaseClient, rutRaw, flags) {
+        if (!supabaseClient) return;
+        const rut = rutToCanonical(rutRaw);
+        if (!rut) return;
+        const sess = await supabaseClient.auth.getSession();
+        const uid = sess && sess.data && sess.data.session && sess.data.session.user && sess.data.session.user.id;
+        if (!uid) return;
+        const { error } = await supabaseClient.from("clientes").update(flags || {}).eq("rut", rut).eq("user_id", uid);
+        if (error) throw error;
+      }
+
+      // Valida el dígito verificador de un RUT chileno.
+      function rutIsValid(rut) {
+        const s = String(rut || "").toUpperCase().replace(/[^0-9K]/g, "");
+        if (s.length < 2) return false;
+        const body = s.slice(0, -1);
+        const dv = s.slice(-1);
+        if (!/^\d+$/.test(body)) return false;
+        let sum = 0;
+        let mul = 2;
+        for (let i = body.length - 1; i >= 0; i--) {
+          sum += Number(body[i]) * mul;
+          mul = mul === 7 ? 2 : mul + 1;
+        }
+        const mod = 11 - (sum % 11);
+        const expected = mod === 11 ? "0" : mod === 10 ? "K" : String(mod);
+        return expected === dv;
+      }
+
+      // Parsea una fecha DD-MM-YYYY y devuelve componentes y formato ISO si es válida.
+      function parseDDMMYYYY(value) {
+        const s = String(value || "").trim();
+        const m = s.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+        if (!m) return null;
+        const dd = Number(m[1]);
+        const mm = Number(m[2]);
+        const yyyy = Number(m[3]);
+        if (yyyy < 1900 || yyyy > 2200) return null;
+        const d = new Date(Date.UTC(yyyy, mm - 1, dd));
+        if (d.getUTCFullYear() !== yyyy || d.getUTCMonth() !== mm - 1 || d.getUTCDate() !== dd) return null;
+        return {
+          dd,
+          mm,
+          yyyy,
+          iso: `${String(yyyy).padStart(4, "0")}-${String(mm).padStart(2, "0")}-${String(dd).padStart(2, "0")}`,
+        };
+      }
+
+      // Muestra un mensaje de estado no bloqueante debajo de los botones.
+      function setStatus(msg) {
+        document.getElementById("status").textContent = msg || "";
+      }
+
+      // Limpia todos los mensajes y marcas de error del formulario.
+      function clearErrors(form) {
+        for (const node of form.querySelectorAll("[data-error-for]")) node.textContent = "";
+        for (const el of form.querySelectorAll("[aria-invalid='true']")) el.removeAttribute("aria-invalid");
+      }
+
+      // Asigna un mensaje de error a un campo identificado por id o nombre.
+      function setError(form, keyOrId, message) {
+        const target = form.querySelector(`[data-error-for="${CSS.escape(keyOrId)}"]`);
+        if (target) target.textContent = message;
+      }
+
+      // Convierte el FormData del formulario en un objeto anidado (usando nombres con puntos).
+      function formDataToObject(form) {
+        const fd = new FormData(form);
+        const out = {};
+        for (const [k, v] of fd.entries()) {
+          const value = typeof v === "string" ? v.trim() : v;
+          const parts = k.split(".");
+          let cur = out;
+          for (let i = 0; i < parts.length; i++) {
+            const p = parts[i];
+            const isLast = i === parts.length - 1;
+            if (isLast) {
+              if (cur[p] === undefined) cur[p] = value;
+              else if (Array.isArray(cur[p])) cur[p].push(value);
+              else cur[p] = [cur[p], value];
+            } else {
+              cur = cur[p] = cur[p] && typeof cur[p] === "object" ? cur[p] : {};
+            }
+          }
+        }
+        return out;
+      }
+
+      // Rellena el formulario a partir de un objeto anidado (para cargar borradores).
+      function setFormFromObject(form, data) {
+        if (!data || typeof data !== "object") return;
+        const flat = {};
+        const walk = (obj, path = []) => {
+          for (const [k, v] of Object.entries(obj)) {
+            const next = [...path, k];
+            if (v && typeof v === "object" && !Array.isArray(v)) walk(v, next);
+            else flat[next.join(".")] = v;
+          }
+        };
+        walk(data);
+
+        for (const [name, value] of Object.entries(flat)) {
+          const nodes = form.querySelectorAll(`[name="${CSS.escape(name)}"]`);
+          if (!nodes.length) continue;
+          const first = nodes[0];
+          if (first.type === "radio") {
+            for (const n of nodes) n.checked = String(n.value) === String(value);
+          } else {
+            first.value = value ?? "";
+          }
+        }
+      }
+
+      // Descarga un objeto como archivo JSON con el nombre indicado.
+      function downloadJson(filename, obj) {
+        const blob = new Blob([JSON.stringify(obj, null, 2)], { type: "application/json;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      }
+
+      // Realiza todas las validaciones del formulario y devuelve si es válido.
+      // Si soloParaContrato es true, omite validar Antecedentes, Autorizaciones y Certificados.
+      function validate(form, { soloParaContrato = false } = {}) {
+        clearErrors(form);
+        let ok = true;
+
+        const omitirParaContrato = (name) =>
+          soloParaContrato && /^(antecedentes|autorizaciones|certificados)\./.test(name || "");
+
+        const requiredInvalid = [];
+        for (const el of form.querySelectorAll("input, select, textarea")) {
+          if (el.disabled) continue;
+          if (el.type === "radio") continue;
+          if (omitirParaContrato(el.name)) continue;
+          if (!el.checkValidity()) requiredInvalid.push(el);
+        }
+
+        if (requiredInvalid.length) {
+          ok = false;
+          for (const el of requiredInvalid) {
+            el.setAttribute("aria-invalid", "true");
+            const msg = el.validity.valueMissing ? "Este campo es obligatorio." : "Valor inválido.";
+            if (el.id) setError(form, el.id, msg);
+          }
+        }
+
+        const radioGroups = new Set();
+        for (const r of form.querySelectorAll("input[type='radio'][required]")) {
+          if (omitirParaContrato(r.name)) continue;
+          radioGroups.add(r.name);
+        }
+        for (const name of radioGroups) {
+          const checked = form.querySelector(`input[type="radio"][name="${CSS.escape(name)}"]:checked`);
+          if (!checked) {
+            ok = false;
+            setError(form, name, "Selecciona una opción.");
+          }
+        }
+
+        const rutFields = [
+          { id: "mandante_rut", label: "Mandante", optional: false },
+          { id: "mandatario_rut", label: "Mandatario", optional: false },
+          { id: "empleador_rut", label: "Empleador", optional: true },
+        ];
+
+        for (const f of rutFields) {
+          const input = document.getElementById(f.id);
+          if (!input) continue;
+          const v = String(input.value || "").trim();
+          if (!v && f.optional) continue;
+          input.value = normalizeRut(v);
+          if (!rutIsValid(input.value)) {
+            ok = false;
+            input.setAttribute("aria-invalid", "true");
+            setError(form, f.id, `RUT inválido (${f.label}).`);
+          }
+        }
+
+        // Validar RUT de beneficiarios
+        for (const input of form.querySelectorAll(".rut-benef")) {
+          const v = String(input.value || "").trim();
+          if (!v) continue;
+          input.value = normalizeRut(v);
+          if (!rutIsValid(input.value)) {
+            ok = false;
+            input.setAttribute("aria-invalid", "true");
+            const name = input.getAttribute("name");
+            if (name) setError(form, name, "RUT inválido (Beneficiario).");
+          }
+        }
+
+        const fecha = document.getElementById("mandante_fechaNac");
+        const parsed = parseDDMMYYYY(fecha?.value);
+        if (!parsed) {
+          ok = false;
+          if (fecha) {
+            fecha.setAttribute("aria-invalid", "true");
+            setError(form, "mandante_fechaNac", "Usa formato DD-MM-YYYY y una fecha válida.");
+          }
+        }
+
+        const emailIds = ["mandante_email", "mandatario_email", "empleador_email"];
+        for (const id of emailIds) {
+          const input = document.getElementById(id);
+          if (!input) continue;
+          const v = String(input.value || "").trim();
+          if (!v) continue;
+          const looksOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+          if (!looksOk) {
+            ok = false;
+            input.setAttribute("aria-invalid", "true");
+            setError(form, id, "Email inválido.");
+          }
+        }
+
+        if (!soloParaContrato) {
+          function validarDetalleApv(apvSi, instSel, pctSel, errKey, etiqueta) {
+            if (!apvSi || apvSi.value !== "Sí") return true;
+            const instIn = instSel ? String(instSel.value || "").trim() : "";
+            const pctRaw = pctSel ? String(pctSel.value || "").trim() : "";
+            if (!instIn) {
+              ok = false;
+              if (instSel) instSel.setAttribute("aria-invalid", "true");
+              setError(form, errKey, "Indica la institución " + etiqueta + ".");
+              return false;
+            }
+            if (!/^\d+$/.test(pctRaw)) {
+              ok = false;
+              if (pctSel) pctSel.setAttribute("aria-invalid", "true");
+              setError(form, errKey, "Porcentaje " + etiqueta + ": ingresa un entero entre 0 y 100.");
+              return false;
+            }
+            const pctNum = parseInt(pctRaw, 10);
+            if (pctNum < 0 || pctNum > 100) {
+              ok = false;
+              if (pctSel) pctSel.setAttribute("aria-invalid", "true");
+              setError(form, errKey, "Porcentaje " + etiqueta + ": entre 0 y 100.");
+              return false;
+            }
+            return true;
+          }
+          const apvSi = form.querySelector('input[name="antecedentes.destinareApv"]:checked');
+          const apvcSi = form.querySelector('input[name="antecedentes.destinareApvc"]:checked');
+          const apvInst = form.querySelector('[name="antecedentes.apvNombreInstitucion"]');
+          const apvPct = form.querySelector('[name="antecedentes.apvPorcentajeTraspaso"]');
+          const apvcInst = form.querySelector('[name="antecedentes.apvcNombreInstitucion"]');
+          const apvcPct = form.querySelector('[name="antecedentes.apvcPorcentajeTraspaso"]');
+          validarDetalleApv(apvSi, apvInst, apvPct, "antecedentes.apvDetalle", "APV");
+          validarDetalleApv(apvcSi, apvcInst, apvcPct, "antecedentes.apvcDetalle", "APVC");
+        }
+
+        return { ok, parsedBirth: parsed };
+      }
+
+      // Crea dinámicamente el bloque de campos para un beneficiario (incluyendo su fecha y RUT).
+      function crearBeneficiario(i){
+
+        const div = document.createElement("div");
+        div.className = "section";
+
+        div.innerHTML = `
+
+<div class="section-title">
+  <h2>Beneficiario ${i+1}</h2>
+  <span class="hint">Datos del beneficiario</span>
+</div>
+
+<div class="grid">
+
+  <div class="field col-4">
+    <label>Nombres <span class="req">*</span></label>
+    <input name="beneficiarios.${i}.nombres" required>
+    <div class="error" data-error-for="beneficiarios.${i}.nombres"></div>
+  </div>
+
+  <div class="field col-4">
+    <label>Apellido Paterno <span class="req">*</span></label>
+    <input name="beneficiarios.${i}.apellidoPaterno" required>
+    <div class="error" data-error-for="beneficiarios.${i}.apellidoPaterno"></div>
+  </div>
+
+  <div class="field col-4">
+    <label>Apellido Materno <span class="req">*</span></label>
+    <input name="beneficiarios.${i}.apellidoMaterno" required>
+    <div class="error" data-error-for="beneficiarios.${i}.apellidoMaterno"></div>
+  </div>
+
+  <div class="field col-4">
+    <label>RUT <span class="req">*</span></label>
+    <input class="rut-benef" name="beneficiarios.${i}.rut" placeholder="12.345.678-5" required>
+    <div class="error" data-error-for="beneficiarios.${i}.rut"></div>
+  </div>
+
+  <div class="field col-4">
+    <label>Sexo <span class="req">*</span></label>
+    <select name="beneficiarios.${i}.sexo" required>
+      <option value="" selected disabled>Selecciona…</option>
+      <option>Masculino</option>
+      <option>Femenino</option>
+    </select>
+    <div class="error" data-error-for="beneficiarios.${i}.sexo"></div>
+  </div>
+
+  <div class="field col-4">
+    <label>Parentesco <span class="req">*</span></label>
+    <select name="beneficiarios.${i}.parentesco" required class="benef-parentesco">
+      <option value="" selected disabled>Selecciona…</option>
+      <option value="Cónyuge">Cónyuge</option>
+      <option value="Conviviente civil">Conviviente civil</option>
+      <option value="MPHFNM">MPHFNM</option>
+      <option value="Hijo/a">Hijo/a</option>
+      <option value="Madre">Madre</option>
+      <option value="Padre">Padre</option>
+    </select>
+    <div class="error" data-error-for="beneficiarios.${i}.parentesco"></div>
+  </div>
+
+  <div class="benef-matrimonio-fields col-12" id="benef_${i}_matrimonio" style="display:none;">
+    <div class="grid">
+      <div class="field col-4">
+        <label>Fecha de matrimonio/unión civil</label>
+        <div class="date-group">
+          <select id="benef_${i}_mat_dia">
+            <option value="" selected disabled>Día</option>
+          </select>
+          <select id="benef_${i}_mat_mes">
+            <option value="" selected disabled>Mes</option>
+          </select>
+          <select id="benef_${i}_mat_anio">
+            <option value="" selected disabled>Año</option>
+          </select>
+          <input type="hidden" name="beneficiarios.${i}.fechaMatrimonioUnionCivil" id="benef_${i}_mat_fecha" />
+        </div>
+      </div>
+      <div class="field col-4">
+        <label>Ciudad del matrimonio/unión civil</label>
+        <input name="beneficiarios.${i}.ciudadMatrimonioUnionCivil" />
+      </div>
+    </div>
+  </div>
+
+  <div class="field col-4">
+    <label>Beneficiario es inválido? <span class="req">*</span></label>
+    <div class="radio-row" role="group" aria-label="Beneficiario inválido">
+      <label class="radio-pill">
+        <input type="radio" name="beneficiarios.${i}.esInvalido" value="Sí" required />
+        Sí
+      </label>
+      <label class="radio-pill">
+        <input type="radio" name="beneficiarios.${i}.esInvalido" value="No" required />
+        No
+      </label>
+    </div>
+    <div class="error" data-error-for="beneficiarios.${i}.esInvalido"></div>
+  </div>
+
+  <div class="field col-4">
+    <label>Fecha nacimiento <span class="req">*</span></label>
+    <div class="date-group">
+      <select id="benef_${i}_dia">
+        <option value="" selected disabled>Día</option>
+      </select>
+      <select id="benef_${i}_mes">
+        <option value="" selected disabled>Mes</option>
+      </select>
+      <select id="benef_${i}_anio">
+        <option value="" selected disabled>Año</option>
+      </select>
+      <input
+        type="hidden"
+        id="benef_${i}_fecha"
+        name="beneficiarios.${i}.fechaNacimiento"
+        required
+      />
+    </div>
+    <div class="error" data-error-for="beneficiarios.${i}.fechaNacimiento"></div>
+  </div>
+
+  <div class="field col-12">
+    <label>Observaciones</label>
+    <textarea name="beneficiarios.${i}.observaciones"></textarea>
+    <div class="error" data-error-for="beneficiarios.${i}.observaciones"></div>
+  </div>
+
+</div>
+`;
+
+        const diaSel = div.querySelector(`#benef_${i}_dia`);
+        const mesSel = div.querySelector(`#benef_${i}_mes`);
+        const anioSel = div.querySelector(`#benef_${i}_anio`);
+        const hidden = div.querySelector(`#benef_${i}_fecha`);
+
+        if (diaSel && mesSel && anioSel && hidden) {
+          for (let d = 1; d <= 31; d++) {
+            const opt = document.createElement("option");
+            opt.value = String(d).padStart(2, "0");
+            opt.textContent = String(d);
+            diaSel.appendChild(opt);
+          }
+          const meses = [
+            "01","02","03","04","05","06","07","08","09","10","11","12"
+          ];
+          meses.forEach((m, idx) => {
+            const opt = document.createElement("option");
+            opt.value = m;
+            opt.textContent = `${idx + 1}`.padStart(2, "0");
+            mesSel.appendChild(opt);
+          });
+          const currentYear = new Date().getFullYear();
+          for (let y = currentYear; y >= 1900; y--) {
+            const opt = document.createElement("option");
+            opt.value = String(y);
+            opt.textContent = String(y);
+            anioSel.appendChild(opt);
+          }
+
+          const updateHidden = () => {
+            const d = diaSel.value;
+            const m = mesSel.value;
+            const y = anioSel.value;
+            if (d && m && y) {
+              hidden.value = `${d}-${m}-${y}`;
+            } else {
+              hidden.value = "";
+            }
+          };
+
+          diaSel.addEventListener("change", updateHidden);
+          mesSel.addEventListener("change", updateHidden);
+          anioSel.addEventListener("change", updateHidden);
+        }
+
+        // Mostrar/ocultar campos de matrimonio/unión civil según parentesco
+        const parentescoSel = div.querySelector(`select[name="beneficiarios.${i}.parentesco"]`);
+        const matrimonioBlock = div.querySelector(`#benef_${i}_matrimonio`);
+        if (parentescoSel && matrimonioBlock) {
+          const toggleMatrimonio = () => {
+            const v = parentescoSel.value;
+            matrimonioBlock.style.display = (v === "Cónyuge" || v === "Conviviente civil") ? "" : "none";
+          };
+          parentescoSel.addEventListener("change", toggleMatrimonio);
+        }
+
+        // Fecha de matrimonio/unión civil: dropdowns + hidden
+        const matDia = div.querySelector(`#benef_${i}_mat_dia`);
+        const matMes = div.querySelector(`#benef_${i}_mat_mes`);
+        const matAnio = div.querySelector(`#benef_${i}_mat_anio`);
+        const matHidden = div.querySelector(`#benef_${i}_mat_fecha`);
+        if (matDia && matMes && matAnio && matHidden) {
+          for (let d = 1; d <= 31; d++) {
+            const opt = document.createElement("option");
+            opt.value = String(d).padStart(2, "0");
+            opt.textContent = String(d);
+            matDia.appendChild(opt);
+          }
+          ["01","02","03","04","05","06","07","08","09","10","11","12"].forEach((m, idx) => {
+            const opt = document.createElement("option");
+            opt.value = m;
+            opt.textContent = String(idx + 1).padStart(2, "0");
+            matMes.appendChild(opt);
+          });
+          const currentYear = new Date().getFullYear();
+          for (let y = currentYear; y >= 1900; y--) {
+            const opt = document.createElement("option");
+            opt.value = String(y);
+            opt.textContent = String(y);
+            matAnio.appendChild(opt);
+          }
+          const updateMatHidden = () => {
+            const d = matDia.value, m = matMes.value, y = matAnio.value;
+            matHidden.value = (d && m && y) ? `${d}-${m}-${y}` : "";
+          };
+          matDia.addEventListener("change", updateMatHidden);
+          matMes.addEventListener("change", updateMatHidden);
+          matAnio.addEventListener("change", updateMatHidden);
+        }
+
+        return div;
+      }
+
+      // Inicializa todos los manejadores de eventos y estado inicial del formulario.
+      function init() {
+            const form = document.getElementById("pensionForm");
+            const out = document.getElementById("output");
+            const preview = document.getElementById("jsonPreview");
+            const btnLimpiar = document.getElementById("btnLimpiar");
+            const btnGuardarBD = document.getElementById("btnGuardarBD");
+            const btnMandatoSimple = document.getElementById("btnMandatoSimple");
+            const btnMandatoCorto = document.getElementById("btnMandatoCorto");
+            const btnContrato = document.getElementById("btnContrato");
+            const supabaseClient = window.SUPABASE_URL && window.SUPABASE_ANON_KEY && window.SUPABASE_URL.indexOf("TU_PROYECTO") === -1
+              ? window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY)
+              : null;
+            const cuentaField = document.getElementById("cuentaBancariaField");
+            const cuentaBanco = document.getElementById("cuenta_banco");
+            const cuentaTipo = document.getElementById("cuenta_tipo");
+            const cuentaInput = document.getElementById("cuenta_bancaria");
+            const benefInput = document.getElementById("mandante_benef");
+            const benefSection = document.getElementById("beneficiariosSection");
+            const benefContainer = document.getElementById("beneficiariosContainer");
+            const mandanteDia = document.getElementById("mandante_fechaNac_dia");
+            const mandanteMes = document.getElementById("mandante_fechaNac_mes");
+            const mandanteAnio = document.getElementById("mandante_fechaNac_anio");
+            const mandanteHidden = document.getElementById("mandante_fechaNac");
+
+            form.addEventListener("keydown", function (e) {
+              if (e.key === "Enter" && e.target.tagName !== "TEXTAREA") e.preventDefault();
+            });
+
+            document.querySelectorAll(".section.collapsible > .section-title").forEach((header) => {
+              header.addEventListener("click", () => {
+                const section = header.closest(".section.collapsible");
+                if (!section) return;
+                section.classList.toggle("collapsed");
+                header.setAttribute("aria-expanded", String(!section.classList.contains("collapsed")));
+              });
+              header.addEventListener("keydown", (e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  header.click();
+                }
+              });
+            });
+
+            btnMandatoSimple.addEventListener("click", async function () {
+              const result = validate(form);
+              if (!result.ok) {
+                setStatus("Debes completar el formulario primero");
+                return;
+              }
+              const data = formDataToObject(form);
+              if (supabaseClient) {
+                try {
+                  await saveClienteFromMandatoData(supabaseClient, data);
+                  await markClienteDocumentoGenerado(supabaseClient, data.mandante && data.mandante.rut, { tiene_mandato_largo: true });
+                  setStatus("Cliente actualizado. Generando mandato…");
+                } catch (e) {
+                  console.error("Error al guardar cliente:", e);
+                  setStatus("No se pudo guardar el cliente en la base de datos. " + (e.message || ""));
+                }
+              }
+              generarMandatoSimple(data);
+              setStatus("");
+            });
+
+            if (btnGuardarBD) {
+              btnGuardarBD.addEventListener("click", async function () {
+                const result = validate(form);
+                if (!result.ok) {
+                  setStatus("Debes completar el formulario primero");
+                  return;
+                }
+                if (!supabaseClient) {
+                  setStatus("No hay conexión a Supabase (inicia sesión o configura supabase-config.js).");
+                  return;
+                }
+                const data = formDataToObject(form);
+                btnGuardarBD.disabled = true;
+                setStatus("Guardando cliente en la base de datos…");
+                try {
+                  await saveClienteFromMandatoData(supabaseClient, data);
+                  setStatus("Cliente guardado/actualizado correctamente (sin generar descarga).");
+                } catch (e) {
+                  console.error("Error al guardar cliente:", e);
+                  setStatus("No se pudo guardar el cliente en la base de datos. " + (e && e.message ? e.message : ""));
+                } finally {
+                  btnGuardarBD.disabled = false;
+                }
+              });
+            }
+
+            btnMandatoCorto.addEventListener("click", async function () {
+              const result = validate(form);
+              if (!result.ok) {
+                setStatus("Debes completar el formulario primero");
+                return;
+              }
+              const data = formDataToObject(form);
+              if (supabaseClient) {
+                try {
+                  await saveClienteFromMandatoData(supabaseClient, data);
+                  await markClienteDocumentoGenerado(supabaseClient, data.mandante && data.mandante.rut, { tiene_mandato_corto: true });
+                  setStatus("Cliente actualizado. Generando mandato corto…");
+                } catch (e) {
+                  console.error("Error al guardar cliente:", e);
+                  setStatus("No se pudo guardar el cliente en la base de datos. " + (e.message || ""));
+                }
+              }
+              generarMandatoCorto(data);
+              setStatus("");
+            });
+
+        if (btnContrato) {
+          btnContrato.addEventListener("click", async () => {
+            const cambioModalidadSeleccionado = form.querySelector('input[name="mandante.cambioModalidadTramite"]:checked');
+            if (!cambioModalidadSeleccionado) {
+              setError(form, "mandante.cambioModalidadTramite", "Selecciona si es cambio de modalidad.");
+              setStatus("Debes indicar si el trámite es cambio de modalidad para generar contrato.");
+              return;
+            }
+
+            const result = validate(form, { soloParaContrato: true });
+
+            if (!result.ok) {
+              setStatus("Debes completar el formulario primero");
+              return;
+            }
+
+            const data = formDataToObject(form);
+            try {
+              if (supabaseClient) {
+                await saveClienteFromMandatoData(supabaseClient, data);
+                await markClienteDocumentoGenerado(supabaseClient, data.mandante && data.mandante.rut, { tiene_contrato: true });
+              }
+              data.numeroContratoSecuencial = supabaseClient
+                ? await getOrAssignNumeroContrato(supabaseClient, data)
+                : "NNN";
+            } catch (e) {
+              console.error("Error al obtener número de contrato:", e);
+              data.numeroContratoSecuencial = "NNN";
+            }
+            generarContrato(data);
+          });
+        }
+
+        if (mandanteDia && mandanteMes && mandanteAnio && mandanteHidden) {
+          llenarSelectFecha(mandanteDia, mandanteMes, mandanteAnio, 1900);
+          const updateMandanteFecha = () => {
+            const d = mandanteDia.value;
+            const m = mandanteMes.value;
+            const y = mandanteAnio.value;
+            if (d && m && y) {
+              mandanteHidden.value = `${d}-${m}-${y}`;
+            } else {
+              mandanteHidden.value = "";
+            }
+          };
+          mandanteDia.addEventListener("change", updateMandanteFecha);
+          mandanteMes.addEventListener("change", updateMandanteFecha);
+          mandanteAnio.addEventListener("change", updateMandanteFecha);
+        }
+
+          function actualizarBeneficiarios(){
+
+            const n = parseInt(benefInput.value || 0);
+            const actual = benefContainer.children.length;
+
+            if(n > 0){
+              benefSection.style.display = "block";
+            }else{
+              benefSection.style.display = "none";
+            }
+
+            if(n > actual){
+              for(let i = actual; i < n; i++){
+                benefContainer.appendChild(crearBeneficiario(i));
+              }
+            }
+
+            if(n < actual){
+              for(let i = actual; i > n; i--){
+                benefContainer.removeChild(benefContainer.lastChild);
+              }
+            }
+
+          }
+
+        benefInput.addEventListener("input", actualizarBeneficiarios);
+        
+        renderYesNo(document.getElementById("antecedentesQuestions"), "antecedentes", antecedentesItems);
+        let refreshAntecedentesApvApvcDetalle = function () {};
+        (function setupAntecedentesApvApvcDetalle() {
+          const apvRow = form.querySelector('[name="antecedentes.destinareApv"]')?.closest(".field");
+          const apvcRow = form.querySelector('[name="antecedentes.destinareApvc"]')?.closest(".field");
+          if (!apvRow || !apvcRow) return;
+          const apvBlock = el("div", { class: "field col-12", id: "bloqueDetalleApv" }, [
+            el("div", { class: "grid", style: "margin-top:0.35rem" }, [
+              el("div", { class: "field col-6" }, [
+                el("label", { for: "antecedentes_apv_inst" }, "Institución APV"),
+                el("input", { type: "text", id: "antecedentes_apv_inst", name: "antecedentes.apvNombreInstitucion", autocomplete: "organization" }),
+              ]),
+              el("div", { class: "field col-3" }, [
+                el("label", { for: "antecedentes_apv_pct" }, "Porcentaje a traspasar (%)"),
+                el("input", { type: "number", id: "antecedentes_apv_pct", name: "antecedentes.apvPorcentajeTraspaso", step: "1", min: "0", max: "100", inputmode: "numeric" }),
+              ]),
+            ]),
+            el("div", { class: "error", "data-error-for": "antecedentes.apvDetalle" }),
+          ]);
+          apvBlock.style.display = "none";
+          const apvcBlock = el("div", { class: "field col-12", id: "bloqueDetalleApvc" }, [
+            el("div", { class: "grid", style: "margin-top:0.35rem" }, [
+              el("div", { class: "field col-6" }, [
+                el("label", { for: "antecedentes_apvc_inst" }, "Institución APVC"),
+                el("input", { type: "text", id: "antecedentes_apvc_inst", name: "antecedentes.apvcNombreInstitucion", autocomplete: "organization" }),
+              ]),
+              el("div", { class: "field col-3" }, [
+                el("label", { for: "antecedentes_apvc_pct" }, "Porcentaje a traspasar (%)"),
+                el("input", { type: "number", id: "antecedentes_apvc_pct", name: "antecedentes.apvcPorcentajeTraspaso", step: "1", min: "0", max: "100", inputmode: "numeric" }),
+              ]),
+            ]),
+            el("div", { class: "error", "data-error-for": "antecedentes.apvcDetalle" }),
+          ]);
+          apvcBlock.style.display = "none";
+          apvRow.after(apvBlock);
+          apvcRow.after(apvcBlock);
+          const apvInstIn = apvBlock.querySelector('[name="antecedentes.apvNombreInstitucion"]');
+          const apvPctIn = apvBlock.querySelector('[name="antecedentes.apvPorcentajeTraspaso"]');
+          const apvcInstIn = apvcBlock.querySelector('[name="antecedentes.apvcNombreInstitucion"]');
+          const apvcPctIn = apvcBlock.querySelector('[name="antecedentes.apvcPorcentajeTraspaso"]');
+          refreshAntecedentesApvApvcDetalle = function () {
+            const rApv = form.querySelector('input[name="antecedentes.destinareApv"]:checked');
+            const rApvc = form.querySelector('input[name="antecedentes.destinareApvc"]:checked');
+            const forzarDestinoCotVol = (rApv && rApv.value === "Sí") || (rApvc && rApvc.value === "Sí");
+            if (rApv && rApv.value === "Sí") {
+              apvBlock.style.display = "";
+              apvInstIn.required = true;
+              apvPctIn.required = true;
+            } else {
+              apvBlock.style.display = "none";
+              apvInstIn.required = false;
+              apvPctIn.required = false;
+              apvInstIn.value = "";
+              apvPctIn.value = "";
+            }
+            if (rApvc && rApvc.value === "Sí") {
+              apvcBlock.style.display = "";
+              apvcInstIn.required = true;
+              apvcPctIn.required = true;
+            } else {
+              apvcBlock.style.display = "none";
+              apvcInstIn.required = false;
+              apvcPctIn.required = false;
+              apvcInstIn.value = "";
+              apvcPctIn.value = "";
+            }
+            if (forzarDestinoCotVol) {
+              const autSi = form.querySelector('input[name="autorizaciones.suscribirDestinoCotizacionesVoluntarias"][value="Sí"]');
+              if (autSi) autSi.checked = true;
+            }
+          };
+          form.addEventListener("change", function (ev) {
+            if (ev.target && (ev.target.name === "antecedentes.destinareApv" || ev.target.name === "antecedentes.destinareApvc")) {
+              refreshAntecedentesApvApvcDetalle();
+            }
+          });
+          refreshAntecedentesApvApvcDetalle();
+        })();
+        renderYesNo(document.getElementById("autorizacionesQuestions"), "autorizaciones", autorizacionesItems);
+        const cuentaBancariaQuestion = form.querySelector('[name="autorizaciones.ingresarDatosCuentaBancaria"]')?.closest(".field");
+        if (cuentaBancariaQuestion && cuentaField) cuentaBancariaQuestion.after(cuentaField);
+        renderYesNo(document.getElementById("certificadosQuestions"), "certificados", certificadosItems);
+
+        function updateCuentaBancariaVisibility() {
+          const selected = form.querySelector(
+          'input[name="autorizaciones.ingresarDatosCuentaBancaria"]:checked'
+          );
+
+          if (!selected) return;
+
+          if (selected.value === "Sí") {
+            cuentaField.style.display = "grid";
+            cuentaBanco.required = true;
+            cuentaTipo.required = true;
+            cuentaInput.required = true;
+          } else {
+            cuentaField.style.display = "none";
+            cuentaBanco.required = false;
+            cuentaTipo.required = false;
+            cuentaInput.required = false;
+            cuentaBanco.value = "";
+            cuentaTipo.value = "";
+            cuentaInput.value = "";
+            }
+            }
+
+            updateCuentaBancariaVisibility();
+
+            form.addEventListener("change", function (e) {
+            if (e.target.name === "autorizaciones.ingresarDatosCuentaBancaria") {
+            updateCuentaBancariaVisibility();
+            }
+            });
+
+            const rutInputs = ["mandante_rut", "mandatario_rut", "empleador_rut"];
+              for (const id of rutInputs) {
+                const input = document.getElementById(id);
+                if (!input) continue;
+                input.addEventListener("blur", () => {
+                input.value = normalizeRut(input.value);
+                });
+              }
+
+              btnLimpiar.addEventListener("click", () => {
+                if (!confirm("¿Seguro que quieres limpiar el formulario?")) return;
+                form.reset();
+                clearErrors(form);
+                out.hidden = true;
+                preview.textContent = "";
+                setStatus("Formulario limpio.");
+                refreshAntecedentesApvApvcDetalle();
+                updateCuentaBancariaVisibility();
+              });
+
+            var params = new URLSearchParams(window.location.search);
+            var clienteId = params.get("cliente");
+            var autoDoc = params.get("imprimir");
+            if (clienteId && supabaseClient) {
+              supabaseClient.from("clientes").select("*").eq("id", clienteId).single().then(function (r) {
+                if (r.error || !r.data) {
+                  setStatus("No se pudieron cargar los datos del cliente. " + (r.error ? r.error.message : "Cliente no encontrado."));
+                  if (r.error) console.error("Prefill cliente:", r.error);
+                  return;
+                }
+                var c = r.data;
+                var fechaStr = c.fecha_nacimiento;
+                if (fechaStr && typeof fechaStr === "string") {
+                  var iso = fechaStr.split("T")[0];
+                  if (iso && iso.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                    var p = iso.split("-");
+                    fechaStr = p[2] + "-" + p[1] + "-" + p[0];
+                  } else { fechaStr = ""; }
+                } else { fechaStr = ""; }
+                var mandanteData = {
+                  rut: normalizeRut(c.rut) || (c.rut || ""),
+                  nacionalidad: c.nacionalidad || "",
+                  sexo: c.sexo || "",
+                  nombres: c.nombres || "",
+                  apellidoPaterno: c.apellido_paterno || "",
+                  apellidoMaterno: c.apellido_materno || "",
+                  domicilio: c.domicilio || "",
+                  comuna: c.comuna || "",
+                  ciudad: c.ciudad || "",
+                  fechaNacimiento: fechaStr,
+                  estadoCivil: c.estado_civil || "",
+                  profesionUOficio: c.profesion_oficio || "",
+                  telefono: c.telefono || "",
+                  email: c.email || "",
+                  afp: c.afp || "",
+                  institucionSalud: c.institucion_salud || ""
+                };
+
+                // Solicitud de pensión (si existe en la tabla clientes)
+                if (c.solicitud_tipo_pension) mandanteData.tipoPension = c.solicitud_tipo_pension;
+                if (c.solicitud_cambio_modalidad_tramite === true) mandanteData.cambioModalidadTramite = "Sí";
+                else if (c.solicitud_cambio_modalidad_tramite === false) mandanteData.cambioModalidadTramite = "No";
+
+                setFormFromObject(form, { mandante: mandanteData });
+
+                // Antecedentes / Autorizaciones / Certificados:
+                // si no hay datos guardados, por defecto quedan en "No".
+                function normalizeYesNoObject(obj) {
+                  if (!obj || typeof obj !== "object") return null;
+                  var out = {};
+                  Object.keys(obj).forEach(function (k) {
+                    var v = obj[k];
+                    if (v === true) out[k] = "Sí";
+                    else if (v === false) out[k] = "No";
+                    else if (v === "Si") out[k] = "Sí";
+                    else out[k] = v;
+                  });
+                  return out;
+                }
+                function defaultsNo(items) {
+                  var out = {};
+                  items.forEach(function (it) { out[it.key] = "No"; });
+                  return out;
+                }
+                var ant = Object.assign(defaultsNo(antecedentesItems), normalizeYesNoObject(c.solicitud_antecedentes) || {});
+                if (c.posee_bono_reconocimiento === true) ant.poseeBonoReconocimiento = "Sí";
+                else if (c.posee_bono_reconocimiento === false) ant.poseeBonoReconocimiento = "No";
+                setFormFromObject(form, { antecedentes: ant });
+                refreshAntecedentesApvApvcDetalle();
+                var aut = Object.assign(defaultsNo(autorizacionesItems), normalizeYesNoObject(c.solicitud_autorizaciones) || {});
+                setFormFromObject(form, { autorizaciones: aut });
+                var cert = Object.assign(defaultsNo(certificadosItems), normalizeYesNoObject(c.solicitud_certificados) || {});
+                setFormFromObject(form, { certificados: cert });
+
+                if (mandanteHidden && mandanteHidden.value && mandanteDia && mandanteMes && mandanteAnio) {
+                  var match = mandanteHidden.value.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+                  if (match) {
+                    mandanteDia.value = match[1];
+                    mandanteMes.value = match[2];
+                    mandanteAnio.value = match[3];
+                  }
+                }
+                // Empleador
+                if (c.empleador_rut || c.empleador_razon_social || c.empleador_direccion || c.empleador_telefono || c.empleador_email) {
+                  setFormFromObject(form, {
+                    empleador: {
+                      rut: c.empleador_rut || "",
+                      telefono: c.empleador_telefono || "",
+                      email: c.empleador_email || "",
+                      nombreORazonSocial: c.empleador_razon_social || "",
+                      domicilio: c.empleador_direccion || ""
+                    }
+                  });
+                }
+                // Cuenta bancaria: marcar Sí y rellenar si hay datos
+                if (c.banco || c.tipo_cuenta || c.numero_cuenta) {
+                  setFormFromObject(form, {
+                    autorizaciones: {
+                      ingresarDatosCuentaBancaria: "Sí",
+                      banco: c.banco || "",
+                      tipoCuenta: c.tipo_cuenta || "",
+                      numeroCuenta: c.numero_cuenta || ""
+                    }
+                  });
+                  if (typeof updateCuentaBancariaVisibility === "function") updateCuentaBancariaVisibility();
+                  // Asignar explícitamente los selects: coincidencia insensible a mayúsculas y alias entre formularios
+                  var aliasBanco = { "Banco Estado": "BancoEstado", "Banco Santander": "Banco Santander Chile", "Scotiabank": "Scotiabank Chile", "Banco Itaú": "Banco Itaú Chile", "Banco Bice": "Banco BICE" };
+                  var aliasTipo = { "Cuenta vista": "Cuenta Vista/Cuenta RUT", "Cuenta Vista": "Cuenta Vista/Cuenta RUT", "Cuenta corriente": "Cuenta Corriente", "Cuenta de ahorro": "Cuenta de Ahorro" };
+                  function elegirOpcion(selectEl, valorGuardado, aliasMap) {
+                    if (!selectEl || !valorGuardado) return;
+                    var val = String(valorGuardado).trim();
+                    if (aliasMap && aliasMap[val] !== undefined) val = aliasMap[val];
+                    var opts = Array.from(selectEl.options);
+                    var op = opts.find(function (o) { var v = (o.value || "").trim(); var t = (o.text || "").trim(); return v === val || t === val || v.toLowerCase() === val.toLowerCase() || t.toLowerCase() === val.toLowerCase(); });
+                    if (op) selectEl.value = op.value;
+                  }
+                  elegirOpcion(cuentaBanco, c.banco, aliasBanco);
+                  elegirOpcion(cuentaTipo, c.tipo_cuenta, aliasTipo);
+                }
+                // Autorrellenar beneficiarios en base a cónyuge/conviviente e hijos menores de 24 años.
+                // Si el cliente es casado o conviviente civil, desplegar al menos un beneficiario (cónyuge) aunque no haya datos en BD.
+                try {
+                  var beneficiarios = [];
+                  var estadoCivilStr = (c.estado_civil || "").toLowerCase();
+                  var esCasadoOConviviente = estadoCivilStr.indexOf("casado") !== -1 || estadoCivilStr.indexOf("conviviente") !== -1;
+                  // Cónyuge / conviviente civil
+                  if (c.conyuge_nombres || c.conyuge_rut || c.conyuge_apellido_paterno || c.conyuge_apellido_materno) {
+                    var fechaConyuge = "";
+                    if (c.conyuge_fecha_nacimiento && typeof c.conyuge_fecha_nacimiento === "string") {
+                      var isoCon = c.conyuge_fecha_nacimiento.split("T")[0];
+                      if (isoCon && isoCon.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                        var pc = isoCon.split("-");
+                        fechaConyuge = pc[2] + "-" + pc[1] + "-" + pc[0];
+                      }
+                    }
+                    var fechaMat = "";
+                    if (c.conyuge_fecha_matrimonio && typeof c.conyuge_fecha_matrimonio === "string") {
+                      var isoMat = c.conyuge_fecha_matrimonio.split("T")[0];
+                      if (isoMat && isoMat.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                        var pm = isoMat.split("-");
+                        fechaMat = pm[2] + "-" + pm[1] + "-" + pm[0];
+                      }
+                    }
+                    var parentescoConyuge = (c.estado_civil || "").toLowerCase().indexOf("conviviente") !== -1
+                      ? "Conviviente civil"
+                      : "Cónyuge";
+                    beneficiarios.push({
+                      nombres: c.conyuge_nombres || "",
+                      apellidoPaterno: c.conyuge_apellido_paterno || "",
+                      apellidoMaterno: c.conyuge_apellido_materno || "",
+                      rut: c.conyuge_rut || "",
+                      sexo: c.conyuge_sexo || "",
+                      parentesco: parentescoConyuge,
+                      fechaNacimiento: fechaConyuge,
+                      fechaMatrimonioUnionCivil: fechaMat,
+                      ciudadMatrimonioUnionCivil: c.conyuge_lugar_matrimonio || "",
+                      esInvalido: "No",
+                      observaciones: ""
+                    });
+                  } else if (esCasadoOConviviente) {
+                    // Cliente casado/conviviente pero sin datos de cónyuge en BD: mostrar un beneficiario vacío para completar
+                    var parentescoVacio = estadoCivilStr.indexOf("conviviente") !== -1 ? "Conviviente civil" : "Cónyuge";
+                    beneficiarios.push({
+                      nombres: "",
+                      apellidoPaterno: "",
+                      apellidoMaterno: "",
+                      rut: "",
+                      sexo: "",
+                      parentesco: parentescoVacio,
+                      fechaNacimiento: "",
+                      fechaMatrimonioUnionCivil: "",
+                      ciudadMatrimonioUnionCivil: "",
+                      esInvalido: "No",
+                      observaciones: ""
+                    });
+                  }
+                  // Hijos menores de 24 años
+                  if (c.tiene_hijos_menores_24 && c.hijos && Array.isArray(c.hijos) && c.hijos.length > 0) {
+                    c.hijos.forEach(function (h) {
+                      if (!h) return;
+                      var fechaHijo = "";
+                      if (h.fecha_nacimiento && typeof h.fecha_nacimiento === "string") {
+                        var isoH = h.fecha_nacimiento.split("T")[0];
+                        if (isoH && isoH.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                          var ph = isoH.split("-");
+                          fechaHijo = ph[2] + "-" + ph[1] + "-" + ph[0];
+                        }
+                      }
+                      beneficiarios.push({
+                        nombres: h.nombres || "",
+                        apellidoPaterno: h.apellido_paterno || "",
+                        apellidoMaterno: h.apellido_materno || "",
+                        rut: h.rut || "",
+                        sexo: h.sexo || "",
+                        parentesco: "Hijo/a",
+                        fechaNacimiento: fechaHijo,
+                        fechaMatrimonioUnionCivil: "",
+                        ciudadMatrimonioUnionCivil: "",
+                        esInvalido: "No",
+                        observaciones: ""
+                      });
+                    });
+                  }
+                  if (beneficiarios.length > 0 && benefInput && typeof actualizarBeneficiarios === "function") {
+                    benefInput.value = String(beneficiarios.length);
+                    actualizarBeneficiarios();
+                    var benefObj = {};
+                    beneficiarios.forEach(function (b, idx) {
+                      benefObj[idx] = b;
+                      // También intentar reflejar la fecha en los selects visibles si existen
+                      if (b.fechaNacimiento) {
+                        var mFecha = b.fechaNacimiento.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+                        if (mFecha) {
+                          var dSel = document.getElementById("benef_" + idx + "_dia");
+                          var mSel = document.getElementById("benef_" + idx + "_mes");
+                          var ySel = document.getElementById("benef_" + idx + "_anio");
+                          var hInput = document.getElementById("benef_" + idx + "_fecha");
+                          if (dSel && mSel && ySel) {
+                            dSel.value = mFecha[1];
+                            mSel.value = mFecha[2];
+                            ySel.value = mFecha[3];
+                            if (hInput) hInput.value = b.fechaNacimiento;
+                          }
+                        }
+                      }
+                      if (b.fechaMatrimonioUnionCivil) {
+                        var mMat = b.fechaMatrimonioUnionCivil.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+                        if (mMat) {
+                          var mdSel = document.getElementById("benef_" + idx + "_mat_dia");
+                          var mmSel = document.getElementById("benef_" + idx + "_mat_mes");
+                          var mySel = document.getElementById("benef_" + idx + "_mat_anio");
+                          var mhInput = document.getElementById("benef_" + idx + "_mat_fecha");
+                          if (mdSel && mmSel && mySel) {
+                            mdSel.value = mMat[1];
+                            mmSel.value = mMat[2];
+                            mySel.value = mMat[3];
+                            if (mhInput) mhInput.value = b.fechaMatrimonioUnionCivil;
+                          }
+                        }
+                      }
+                      // Mostrar bloque de matrimonio/unión civil si el beneficiario es cónyuge o conviviente civil
+                      if (b.parentesco === "Cónyuge" || b.parentesco === "Conviviente civil") {
+                        var matBlock = document.getElementById("benef_" + idx + "_matrimonio");
+                        if (matBlock) matBlock.style.display = "";
+                        var ciudadInput = form.querySelector('input[name="beneficiarios.' + idx + '.ciudadMatrimonioUnionCivil"]');
+                        if (ciudadInput && (b.ciudadMatrimonioUnionCivil || "").trim()) ciudadInput.value = b.ciudadMatrimonioUnionCivil;
+                      }
+                    });
+                    setFormFromObject(form, { beneficiarios: benefObj, mandante: { numeroBeneficiarios: String(beneficiarios.length) } });
+                  }
+                  // Si el cliente es casado/conviviente y no teníamos datos de cónyuge, igual desplegar la sección con 1 beneficiario
+                  else if (esCasadoOConviviente && benefInput && typeof actualizarBeneficiarios === "function") {
+                    benefInput.value = "1";
+                    actualizarBeneficiarios();
+                    var parentescoVacio = estadoCivilStr.indexOf("conviviente") !== -1 ? "Conviviente civil" : "Cónyuge";
+                    setFormFromObject(form, {
+                      beneficiarios: {
+                        0: {
+                          parentesco: parentescoVacio,
+                          esInvalido: "No"
+                        }
+                      },
+                      mandante: { numeroBeneficiarios: "1" }
+                    });
+                    var matBlock0 = document.getElementById("benef_0_matrimonio");
+                    if (matBlock0) matBlock0.style.display = "";
+                  }
+                } catch (_e) {
+                  // Si algo falla en el prellenado de beneficiarios, no bloquear el formulario
+                }
+                var finalizarPrefill = function (msg) {
+                  history.replaceState({}, "", "pension.html");
+                  setStatus(msg || "Datos del cliente cargados. Revisa y completa tipo de pensión, beneficiarios, etc.");
+                };
+
+                if (autoDoc) {
+                  var dataAuto = formDataToObject(form);
+                  if (autoDoc === "mandato_largo") {
+                    generarMandatoSimple(dataAuto);
+                    finalizarPrefill("Mandato descargado.");
+                    return;
+                  }
+                  if (autoDoc === "mandato_corto") {
+                    generarMandatoCorto(dataAuto);
+                    finalizarPrefill("Mandato corto descargado.");
+                    return;
+                  }
+                  if (autoDoc === "contrato") {
+                    Promise.resolve().then(async function () {
+                      try {
+                        dataAuto.numeroContratoSecuencial = await getOrAssignNumeroContrato(supabaseClient, dataAuto);
+                      } catch (e) {
+                        console.error("Error al obtener número de contrato:", e);
+                        dataAuto.numeroContratoSecuencial = "NNN";
+                      }
+                      generarContrato(dataAuto);
+                      finalizarPrefill("Contrato descargado.");
+                    });
+                    return;
+                  }
+                }
+
+                finalizarPrefill();
+              });
+            }
+            }
+
+                init(); // Arranca la configuración del formulario al cargar el script.
+
+      // Autoformatea y valida el RUT de cada beneficiario cuando el campo pierde el foco.
+      document.addEventListener("focusout", function (e) {
+        if (!e.target.classList.contains("rut-benef")) return;
+
+        e.target.value = normalizeRut(e.target.value);
+        if (rutIsValid(e.target.value)) {
+          e.target.removeAttribute("aria-invalid");
+        } else {
+          e.target.setAttribute("aria-invalid", "true");
+        }
+      });
+    </script>
+  </body>
+</html>

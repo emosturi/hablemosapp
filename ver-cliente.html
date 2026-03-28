@@ -127,7 +127,7 @@
         </div>
         <div class="nav-label">Menú</div>
         <a href="dashboard.html">Dashboard</a>
-        <a href="index.html">Formulario Pensión</a>
+        <a href="pension.html">Formulario Pensión</a>
         <a href="clientes.html">Registro de Afiliados</a>
         <a href="revisar-clientes.html" class="active">Listado de Clientes</a>
         <a href="clientes-potenciales.html">Clientes Potenciales</a>
@@ -142,7 +142,7 @@
             <button type="button" class="menu-mobile-btn" id="menuMobileTrigger" aria-expanded="false">Menú</button>
             <div class="menu-mobile-dd" id="menuMobileDd">
               <a href="dashboard.html">Dashboard</a>
-              <a href="index.html">Formulario Pensión</a>
+              <a href="pension.html">Formulario Pensión</a>
               <a href="clientes.html">Registro de Afiliados</a>
               <a href="revisar-clientes.html" class="active">Listado de Clientes</a>
               <a href="clientes-potenciales.html">Clientes Potenciales</a>
@@ -179,7 +179,7 @@
         <p class="subtitle" id="subtitulo">Cargando…</p>
         <div class="header-actions">
           <a href="#" id="lnkEditar" class="btn">Editar cliente</a>
-          <a href="index.html" id="lnkUsar" class="btn">Usar en formulario de pensión</a>
+          <a href="pension.html" id="lnkUsar" class="btn">Usar en formulario de pensión</a>
           <button type="button" id="btnRecordatorio" class="btn">Agregar Recordatorio</button>
           <button type="button" id="btnChecklist" class="btn">Checklist</button>
         </div>
@@ -557,7 +557,7 @@
             document.getElementById("titulo").textContent = nombre || "Ver cliente";
             document.getElementById("subtitulo").textContent = "RUT: " + (c.rut ? formatRutDisplay(c.rut) : "-");
             document.getElementById("lnkEditar").href = "editar-cliente.html?id=" + encodeURIComponent(id);
-            document.getElementById("lnkUsar").href = "index.html?cliente=" + encodeURIComponent(id);
+            document.getElementById("lnkUsar").href = "pension.html?cliente=" + encodeURIComponent(id);
 
             function formatRutDisplay(rut) {
               if (!rut) return "";
