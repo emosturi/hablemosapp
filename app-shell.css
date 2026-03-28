@@ -179,6 +179,11 @@ body {
   flex-direction: column;
 }
 
+/* Anula márgenes de reglas tipo `header { margin: … }` en páginas con formularios */
+header.topbar {
+  margin: 0;
+}
+
 .topbar {
   display: flex;
   align-items: center;
