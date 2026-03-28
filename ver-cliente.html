@@ -62,7 +62,9 @@
       .modal { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); max-width: 420px; width: 100%; padding: 24px; box-shadow: var(--shadow); }
       .modal h3 { margin: 0 0 16px; font-size: 18px; }
       .modal label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 4px; }
-      .modal input, .modal textarea, .modal select { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text); font-size: 14px; margin-bottom: 14px; font-family: inherit; }
+      .modal input:not([type="radio"]):not([type="checkbox"]),
+      .modal textarea,
+      .modal select { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text); font-size: 14px; margin-bottom: 14px; font-family: inherit; }
       .modal textarea { min-height: 80px; resize: vertical; }
       .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
       .modal-actions button { flex: 1; padding: 10px 16px; border-radius: 10px; font-size: 14px; font-weight: 500; cursor: pointer; border: none; }

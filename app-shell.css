@@ -484,3 +484,21 @@ html[data-theme="dark"] .btn-theme-toggle .theme-icon-sun {
     display: none;
   }
 }
+
+/* iOS Safari: reglas tipo `input { width:100%; padding:… }` o `.modal input` no deben aplicarse a radios/checkbox */
+input[type="radio"],
+input[type="checkbox"] {
+  width: auto !important;
+  max-width: none;
+  flex-shrink: 0;
+  min-width: 1.15em;
+  min-height: 1.15em;
+  margin: 0;
+  padding: 0 !important;
+  box-sizing: border-box;
+  border: none;
+  background: transparent;
+  box-shadow: none !important;
+  vertical-align: middle;
+  accent-color: var(--primary-mid);
+}
