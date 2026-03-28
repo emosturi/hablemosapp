@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mi disponibilidad — HablemosApp</title>
+    <link rel="stylesheet" href="app-shell.css" />
+    <script src="theme-init.js"></script>
+    <style>
+      .page { max-width: 1200px; margin: 0 auto; padding: 0 0 40px; }
+      header { margin: 10px 0 18px; }
+      h1 { font-size: clamp(22px, 2.6vw, 30px); margin: 0; letter-spacing: -0.02em; }
+      .subtitle { margin: 8px 0 0; color: var(--muted); line-height: 1.45; font-size: 14px; }
+      .panel {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 18px;
+        overflow-x: auto;
+      }
+      .hint { font-size: 13px; color: var(--muted); margin: 0 0 16px; line-height: 1.45; max-width: 720px; }
+      .grid-disp {
+        display: grid;
+        grid-template-columns: 72px repeat(7, minmax(52px, 1fr));
+        gap: 4px;
+        font-size: 11px;
+        min-width: 560px;
+      }
+      .grid-disp .corner { grid-column: 1; }
+      .grid-disp .dhead {
+        text-align: center;
+        font-weight: 600;
+        color: var(--muted);
+        padding: 6px 2px;
+        font-size: 11px;
+      }
+      .grid-disp .hlabel {
+        text-align: right;
+        padding: 2px 6px 0 0;
+        color: var(--muted);
+        font-variant-numeric: tabular-nums;
+      }
+      .slot {
+        aspect-ratio: 1;
+        max-height: 36px;
+        border-radius: 6px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        cursor: pointer;
+        padding: 0;
+        transition: background 0.12s, border-color 0.12s;
+      }
+      .slot.on {
+        background: var(--primary);
+        border-color: var(--primary-mid);
+      }
+      .slot.on:hover { filter: brightness(1.08); }
+      .slot:not(.on):hover { border-color: var(--primary-mid); }
+      .actions-row { margin-top: 20px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+      .btn-save {
+        padding: 12px 22px;
+        border-radius: 12px;
+        border: none;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        background: var(--primary);
+        color: #fff;
+      }
+      .btn-save:disabled { opacity: 0.55; cursor: not-allowed; }
+      .status { font-size: 14px; color: var(--muted); }
+      .status.ok { color: var(--primary-mid); }
+      .status.err { color: var(--danger-text, #b91c1c); }
+      a.back { display: inline-block; margin-bottom: 14px; color: var(--muted); text-decoration: none; font-size: 14px; }
+      a.back:hover { color: var(--primary); }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar" aria-label="Navegación">
+        <div class="logo-row">
+          <div class="logo-dot" aria-hidden="true"></div>
+          <span class="logo-text">HablemosApp</span>
+        </div>
+        <div class="nav-label">Menú</div>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="pension.html">Formulario Pensión</a>
+        <a href="clientes.html">Registro de Afiliados</a>
+        <a href="revisar-clientes.html">Listado de Clientes</a>
+        <a href="clientes-potenciales.html">Clientes Potenciales</a>
+        <a href="enlace-registro-publico.html">Enlace registro público</a>
+        <a href="disponibilidad-asesor.html" class="active">Mi disponibilidad</a>
+        <a href="enlace-agenda-llamada.html">Enlace agenda llamada</a>
+        <a href="recordatorios.html">Recordatorios</a>
+        <a href="login.html" class="btn-logout sidebar-guest-only">Iniciar sesión</a>
+      </aside>
+      <div class="main">
+        <header class="topbar">
+          <div class="menu-mobile">
+            <button type="button" class="menu-mobile-btn" id="menuMobileTrigger" aria-expanded="false">Menú</button>
+            <div class="menu-mobile-dd" id="menuMobileDd">
+              <a href="dashboard.html">Dashboard</a>
+              <a href="pension.html">Formulario Pensión</a>
+              <a href="clientes.html">Registro de Afiliados</a>
+              <a href="revisar-clientes.html">Listado de Clientes</a>
+              <a href="clientes-potenciales.html">Clientes Potenciales</a>
+              <a href="enlace-registro-publico.html">Enlace registro público</a>
+              <a href="disponibilidad-asesor.html" class="active">Mi disponibilidad</a>
+              <a href="enlace-agenda-llamada.html">Enlace agenda llamada</a>
+              <a href="recordatorios.html">Recordatorios</a>
+            </div>
+          </div>
+          <div class="search-wrap">
+            <input type="search" placeholder="Buscar en la app…" id="appShellSearch" autocomplete="off" />
+          </div>
+          <button type="button" class="btn-theme-toggle" id="btnThemeToggle" title="Modo oscuro" aria-label="Modo oscuro" aria-pressed="false">
+            <svg class="theme-icon-moon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
+            <svg class="theme-icon-sun" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5" /><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" /></svg>
+          </button>
+          <div class="user-menu-wrap sidebar-auth-only">
+            <button type="button" class="user-menu-trigger" id="userMenuTrigger" aria-expanded="false" aria-haspopup="true">
+              <div class="user-avatar" id="userAvatar">?</div>
+              <div class="user-meta">
+                <div class="name" id="userDisplayName">Asesor</div>
+                <div class="email" id="userEmail">—</div>
+              </div>
+            </button>
+            <div class="user-menu-dd" id="userMenuDd" role="menu">
+              <button type="button" class="user-menu-item user-menu-logout" id="btnCerrarSesionMenu" role="menuitem">Cerrar sesión</button>
+            </div>
+          </div>
+        </header>
+        <div class="content">
+          <div class="page">
+            <a href="dashboard.html" class="back">← Dashboard</a>
+            <header>
+              <h1>Mi disponibilidad horaria</h1>
+              <p class="subtitle">Marque bloques de una hora (Chile) en los que puede recibir llamadas. Los clientes solo podrán agendar en estos horarios.</p>
+            </header>
+            <div class="panel">
+              <p class="hint">Días en orden <strong>lunes a domingo</strong> (norma ISO 8601). Horario referido a <strong>America/Santiago</strong>. Toque cada celda para activar o desactivar.</p>
+              <div class="grid-disp" id="gridDisp" aria-label="Grilla de disponibilidad semanal"></div>
+              <div class="actions-row">
+                <button type="button" class="btn-save" id="btnGuardar">Guardar disponibilidad</button>
+                <span class="status" id="status"></span>
+              </div>
+            </div>
+            <p class="hint" style="margin-top:16px">Ejecute en Supabase <code style="color:var(--primary-mid)">supabase-migration-agenda-llamadas.sql</code> si esta página falla al guardar.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="supabase-config.js"></script>
+    <script src="app-shell.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script>
+      (function () {
+        if (typeof window.initAppShell === "function") window.initAppShell();
+        if (typeof window.initAppShellSearch === "function") window.initAppShellSearch();
+        var url = window.SUPABASE_URL;
+        var key = window.SUPABASE_ANON_KEY;
+        if (!url || !key || url.indexOf("TU_PROYECTO") !== -1) {
+          window.location.replace("login.html");
+          return;
+        }
+        var supabase = window.supabase.createClient(url, key);
+        if (typeof window.wireAppShellLogout === "function") window.wireAppShellLogout(supabase);
+        if (typeof window.installInactivityAutoLogout === "function") {
+          window.installInactivityAutoLogout(supabase, { timeoutMs: window.SESSION_IDLE_TIMEOUT_MS, redirectTo: "login.html" });
+        }
+
+        var DIAS = [
+          { k: "1", n: "Lun" },
+          { k: "2", n: "Mar" },
+          { k: "3", n: "Mié" },
+          { k: "4", n: "Jue" },
+          { k: "5", n: "Vie" },
+          { k: "6", n: "Sáb" },
+          { k: "7", n: "Dom" }
+        ];
+        var state = {};
+        DIAS.forEach(function (d) { state[d.k] = {}; });
+
+        var grid = document.getElementById("gridDisp");
+        var statusEl = document.getElementById("status");
+        var btnGuardar = document.getElementById("btnGuardar");
+
+        function setStatus(msg, isErr) {
+          statusEl.textContent = msg || "";
+          statusEl.className = "status" + (isErr ? " err" : msg ? " ok" : "");
+        }
+
+        function renderGrid() {
+          grid.innerHTML = "";
+          var corner = document.createElement("div");
+          corner.className = "corner";
+          grid.appendChild(corner);
+          DIAS.forEach(function (d) {
+            var h = document.createElement("div");
+            h.className = "dhead";
+            h.textContent = d.n;
+            grid.appendChild(h);
+          });
+          for (var hour = 0; hour < 24; hour++) {
+            (function (hour) {
+              var lab = document.createElement("div");
+              lab.className = "hlabel";
+              lab.textContent = (hour < 10 ? "0" : "") + hour + ":00";
+              grid.appendChild(lab);
+              DIAS.forEach(function (d) {
+                var b = document.createElement("button");
+                b.type = "button";
+                b.className = "slot" + (state[d.k][hour] ? " on" : "");
+                b.setAttribute("aria-label", d.n + " " + lab.textContent);
+                b.setAttribute("aria-pressed", state[d.k][hour] ? "true" : "false");
+                b.addEventListener("click", function () {
+                  state[d.k][hour] = !state[d.k][hour];
+                  b.classList.toggle("on", state[d.k][hour]);
+                  b.setAttribute("aria-pressed", state[d.k][hour] ? "true" : "false");
+                });
+                grid.appendChild(b);
+              });
+            })(hour);
+          }
+        }
+
+        function bloquesToJson() {
+          var out = {};
+          DIAS.forEach(function (d) {
+            var arr = [];
+            for (var h = 0; h < 24; h++) {
+              if (state[d.k][h]) arr.push(h);
+            }
+            if (arr.length) out[d.k] = arr;
+          });
+          return out;
+        }
+
+        function mergeBloques(json) {
+          DIAS.forEach(function (d) { state[d.k] = {}; });
+          if (!json || typeof json !== "object") return;
+          DIAS.forEach(function (d) {
+            var arr = json[d.k];
+            if (!Array.isArray(arr)) return;
+            arr.forEach(function (x) {
+              var n = parseInt(x, 10);
+              if (!isNaN(n) && n >= 0 && n <= 23) state[d.k][n] = true;
+            });
+          });
+        }
+
+        renderGrid();
+
+        supabase.auth.getSession().then(function (r) {
+          if (!r.data.session) {
+            window.location.replace("login.html");
+            return;
+          }
+          if (typeof window.applyAppShellUser === "function") window.applyAppShellUser(r.data.session.user);
+          if (typeof window.setAppShellGuest === "function") window.setAppShellGuest(false);
+          var uid = r.data.session.user.id;
+
+          supabase
+            .from("asesor_disponibilidad")
+            .select("bloques")
+            .eq("user_id", uid)
+            .maybeSingle()
+            .then(function (res) {
+              if (res.data && res.data.bloques) mergeBloques(res.data.bloques);
+              renderGrid();
+            });
+
+          btnGuardar.addEventListener("click", function () {
+            var payload = { user_id: uid, bloques: bloquesToJson(), updated_at: new Date().toISOString() };
+            btnGuardar.disabled = true;
+            setStatus("Guardando…");
+            supabase
+              .from("asesor_disponibilidad")
+              .upsert(payload, { onConflict: "user_id" })
+              .then(function (up) {
+                btnGuardar.disabled = false;
+                if (up.error) {
+                  setStatus(up.error.message || "Error al guardar.", true);
+                  return;
+                }
+                setStatus("Disponibilidad guardada.");
+              });
+          });
+        });
+      })();
+    </script>
+  </body>
+</html>

@@ -3,30 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Enlace de registro público</title>
+    <title>Enlace agenda de llamada</title>
     <link rel="stylesheet" href="app-shell.css" />
     <script src="theme-init.js"></script>
     <style>
-      .page {
-        max-width: 1100px;
-        margin: 0 auto;
-        padding: 0 0 40px;
-        overflow-x: hidden;
-      }
-      header {
-        margin: 10px 0 18px;
-      }
-      h1 {
-        font-size: clamp(22px, 2.6vw, 28px);
-        letter-spacing: -0.02em;
-        margin: 0;
-      }
-      .subtitle {
-        margin: 8px 0 0;
-        color: var(--muted);
-        line-height: 1.4;
-        font-size: 14px;
-      }
+      .page { max-width: 1100px; margin: 0 auto; padding: 0 0 40px; }
+      header { margin: 10px 0 18px; }
+      h1 { font-size: clamp(22px, 2.6vw, 28px); margin: 0; letter-spacing: -0.02em; }
+      .subtitle { margin: 8px 0 0; color: var(--muted); font-size: 14px; line-height: 1.45; }
       .panel {
         background: var(--card);
         border: 1px solid var(--border);
@@ -34,7 +18,7 @@
         box-shadow: var(--shadow);
         padding: 24px;
       }
-      .panel h2 { font-size: 15px; margin: 0 0 12px; color: var(--muted); font-weight: 600; letter-spacing: 0.02em; }
+      .panel h2 { font-size: 15px; margin: 0 0 12px; color: var(--muted); font-weight: 600; }
       .url-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: stretch; margin-bottom: 8px; }
       .url-row input {
         flex: 1;
@@ -57,21 +41,13 @@
         color: #fff;
         white-space: nowrap;
       }
-      .btn-use:hover { opacity: 0.95; }
       .btn-use:disabled { opacity: 0.5; cursor: not-allowed; }
       .msg { margin: 8px 0 0; font-size: 13px; color: var(--muted); min-height: 1.3em; }
-      .msg.err {
-        color: var(--danger-text, #b91c1c);
-      }
+      .msg.err { color: var(--danger-text, #b91c1c); }
       .share-block { margin-top: 22px; padding-top: 20px; border-top: 1px solid var(--border); }
       .share-block > p { margin: 0 0 12px; font-size: 14px; color: var(--muted); line-height: 1.45; }
-      .share-grid {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-      }
-      .share-grid a,
-      .share-grid button {
+      .share-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+      .share-grid a, .share-grid button {
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -86,40 +62,13 @@
         background: var(--surface);
         font-family: inherit;
       }
-      .share-grid a:hover,
-      .share-grid button:hover {
-        border-color: var(--primary-mid);
-      }
-      .share-grid a:disabled,
-      .share-grid button:disabled { opacity: 0.45; pointer-events: none; cursor: not-allowed; }
-      .share-wa { background: rgba(37, 211, 102, 0.15); border-color: rgba(37, 211, 102, 0.4); color: #86efac; }
-      .share-tg { background: rgba(0, 136, 204, 0.15); border-color: rgba(0, 136, 204, 0.4); color: #7dd3fc; }
-      .share-fb { background: rgba(24, 119, 242, 0.15); border-color: rgba(24, 119, 242, 0.35); color: #93c5fd; }
-      .share-tw { background: rgba(255, 255, 255, 0.08); border-color: var(--border); }
-      .share-li { background: rgba(10, 102, 194, 0.18); border-color: rgba(10, 102, 194, 0.35); color: #93c5fd; }
+      .share-grid a:hover, .share-grid button:hover { border-color: var(--primary-mid); }
+      .share-wa { background: rgba(37, 211, 102, 0.15); border-color: rgba(37, 211, 102, 0.4); }
+      .share-tg { background: rgba(0, 136, 204, 0.15); border-color: rgba(0, 136, 204, 0.4); }
       .share-mail { background: rgba(255, 255, 255, 0.06); }
-      .share-native {
-        background: var(--accent-soft);
-        border-color: var(--primary-mid);
-        color: var(--primary);
-      }
-      .hint {
-        font-size: 13px;
-        color: var(--muted);
-        margin-top: 14px;
-        line-height: 1.45;
-      }
-      @media (max-width: 640px) {
-        .page {
-          padding-bottom: 24px;
-        }
-        .panel {
-          padding: 18px;
-        }
-        .url-row input {
-          min-width: 100%;
-        }
-      }
+      .share-native { background: var(--accent-soft); border-color: var(--primary-mid); color: var(--primary); }
+      .hint { font-size: 13px; color: var(--muted); margin-top: 14px; line-height: 1.45; }
+      .hint a { color: var(--primary-mid); font-weight: 600; }
     </style>
   </head>
   <body>
@@ -135,13 +84,12 @@
         <a href="clientes.html">Registro de Afiliados</a>
         <a href="revisar-clientes.html">Listado de Clientes</a>
         <a href="clientes-potenciales.html">Clientes Potenciales</a>
-        <a href="enlace-registro-publico.html" class="active">Enlace registro público</a>
+        <a href="enlace-registro-publico.html">Enlace registro público</a>
         <a href="disponibilidad-asesor.html">Mi disponibilidad</a>
-        <a href="enlace-agenda-llamada.html">Enlace agenda llamada</a>
+        <a href="enlace-agenda-llamada.html" class="active">Enlace agenda llamada</a>
         <a href="recordatorios.html">Recordatorios</a>
         <a href="login.html" class="btn-logout sidebar-guest-only">Iniciar sesión</a>
       </aside>
-
       <div class="main">
         <header class="topbar">
           <div class="menu-mobile">
@@ -152,9 +100,9 @@
               <a href="clientes.html">Registro de Afiliados</a>
               <a href="revisar-clientes.html">Listado de Clientes</a>
               <a href="clientes-potenciales.html">Clientes Potenciales</a>
-              <a href="enlace-registro-publico.html" class="active">Enlace registro público</a>
+              <a href="enlace-registro-publico.html">Enlace registro público</a>
               <a href="disponibilidad-asesor.html">Mi disponibilidad</a>
-              <a href="enlace-agenda-llamada.html">Enlace agenda llamada</a>
+              <a href="enlace-agenda-llamada.html" class="active">Enlace agenda llamada</a>
               <a href="recordatorios.html">Recordatorios</a>
             </div>
           </div>
@@ -162,8 +110,8 @@
             <input type="search" placeholder="Buscar en la app…" id="appShellSearch" autocomplete="off" />
           </div>
           <button type="button" class="btn-theme-toggle" id="btnThemeToggle" title="Modo oscuro" aria-label="Modo oscuro" aria-pressed="false">
-            <svg class="theme-icon-moon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
-            <svg class="theme-icon-sun" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="5" /><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" /></svg>
+            <svg class="theme-icon-moon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
+            <svg class="theme-icon-sun" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5" /><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" /></svg>
           </button>
           <div class="user-menu-wrap sidebar-auth-only">
             <button type="button" class="user-menu-trigger" id="userMenuTrigger" aria-expanded="false" aria-haspopup="true">
@@ -178,47 +126,38 @@
             </div>
           </div>
         </header>
-
         <div class="content">
           <div class="page">
-      <header>
-        <h1>Enlace de registro público</h1>
-        <p class="subtitle">
-          Comparta este enlace con sus clientes para que completen el registro de afiliados sin iniciar sesión. Cada envío quedará asociado a su usuario.
-        </p>
-      </header>
-
-      <div class="panel">
-        <h2>Tu enlace personal</h2>
-        <div class="url-row">
-          <input type="text" id="inviteUrl" readonly placeholder="Generando enlace…" aria-label="URL con su token de asesor" />
-          <button type="button" class="btn-use" id="btnCopy" disabled>Copiar enlace</button>
-        </div>
-        <p id="statusMsg" class="msg"></p>
-
-        <div class="share-block">
-          <p>Compartir por WhatsApp, redes o correo (se incluye un texto breve y el enlace):</p>
-          <div class="share-grid" id="shareGrid">
-            <a href="#" id="shareWa" class="share-wa" target="_blank" rel="noopener noreferrer">WhatsApp</a>
-            <a href="#" id="shareTg" class="share-tg" target="_blank" rel="noopener noreferrer">Telegram</a>
-            <a href="#" id="shareFb" class="share-fb" target="_blank" rel="noopener noreferrer">Facebook</a>
-            <a href="#" id="shareTw" class="share-tw" target="_blank" rel="noopener noreferrer">X / Twitter</a>
-            <a href="#" id="shareLi" class="share-li" target="_blank" rel="noopener noreferrer">LinkedIn</a>
-            <a href="#" id="shareMail" class="share-mail">Correo</a>
-            <button type="button" id="shareNative" class="share-native" style="display: none">Compartir en el dispositivo</button>
-          </div>
-        </div>
-
-        <p class="hint">
-          Si no aparece el enlace, ejecute en Supabase la migración
-          <code style="color: var(--primary-mid); font-weight: 600">supabase-migration-registro-afiliados-enlace-publico.sql</code>.
-        </p>
-      </div>
+            <header>
+              <h1>Enlace para agendar llamada</h1>
+              <p class="subtitle">
+                Comparta este enlace para que un cliente elija un bloque de una hora según su <a href="disponibilidad-asesor.html">disponibilidad</a>. Al reservar se crea un cliente potencial y un recordatorio de llamada.
+              </p>
+            </header>
+            <div class="panel">
+              <h2>Tu enlace personal</h2>
+              <div class="url-row">
+                <input type="text" id="inviteUrl" readonly placeholder="Generando enlace…" aria-label="URL para agendar llamada" />
+                <button type="button" class="btn-use" id="btnCopy" disabled>Copiar</button>
+              </div>
+              <p id="statusMsg" class="msg"></p>
+              <div class="share-block">
+                <p>Compartir:</p>
+                <div class="share-grid" id="shareGrid">
+                  <a href="#" id="shareWa" class="share-wa" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+                  <a href="#" id="shareTg" class="share-tg" target="_blank" rel="noopener noreferrer">Telegram</a>
+                  <a href="#" id="shareMail" class="share-mail">Correo</a>
+                  <button type="button" id="shareNative" class="share-native" style="display: none">Compartir…</button>
+                </div>
+              </div>
+              <p class="hint">
+                Migración SQL: <code style="color: var(--primary-mid)">supabase-migration-agenda-llamadas.sql</code>. Sin ella, el enlace no se genera.
+              </p>
+            </div>
           </div>
         </div>
       </div>
     </div>
-
     <script src="supabase-config.js"></script>
     <script src="app-shell.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -232,91 +171,68 @@
           window.location.replace("login.html");
           return;
         }
-
         var input = document.getElementById("inviteUrl");
         var btnCopy = document.getElementById("btnCopy");
         var statusMsg = document.getElementById("statusMsg");
         var shareWa = document.getElementById("shareWa");
         var shareTg = document.getElementById("shareTg");
-        var shareFb = document.getElementById("shareFb");
-        var shareTw = document.getElementById("shareTw");
-        var shareLi = document.getElementById("shareLi");
         var shareMail = document.getElementById("shareMail");
         var shareNative = document.getElementById("shareNative");
-
         var supabase = window.supabase.createClient(cfgUrl, cfgKey);
         if (typeof window.wireAppShellLogout === "function") window.wireAppShellLogout(supabase);
         if (typeof window.installInactivityAutoLogout === "function") {
           window.installInactivityAutoLogout(supabase, { timeoutMs: window.SESSION_IDLE_TIMEOUT_MS, redirectTo: "login.html" });
         }
 
-        actualizarHrefCompartir("");
-        if (shareNative) shareNative.disabled = true;
-
         function textoCompartir(enlace) {
           return (
-            "Hola, puedes completar tu registro de afiliado con este enlace. No necesitas crear una cuenta en el sitio:\n\n" + enlace
+            "Hola, puedes agendar una llamada telefónica conmigo en el horario que prefieras (sin iniciar sesión):\n\n" + enlace
           );
         }
-
         function asuntoCorreo() {
-          return "Enlace para tu registro de afiliado";
+          return "Agendar llamada";
         }
-
         function actualizarHrefCompartir(enlace) {
           var ok = !!(enlace && enlace.trim());
           var t = ok ? textoCompartir(enlace.trim()) : "";
           var encT = encodeURIComponent(t);
           var encU = encodeURIComponent(ok ? enlace.trim() : "");
-
           shareWa.href = ok ? "https://wa.me/?text=" + encT : "#";
-          shareTg.href = ok
-            ? "https://t.me/share/url?url=" + encU + "&text=" + encodeURIComponent("Registro de afiliado — completa el formulario aquí:")
-            : "#";
-          shareFb.href = ok ? "https://www.facebook.com/sharer/sharer.php?u=" + encU : "#";
-          shareTw.href = ok ? "https://twitter.com/intent/tweet?text=" + encT : "#";
-          shareLi.href = ok ? "https://www.linkedin.com/sharing/share-offsite/?url=" + encU : "#";
-          shareMail.href = ok
-            ? "mailto:?subject=" + encodeURIComponent(asuntoCorreo()) + "&body=" + encT
-            : "#";
-
-          [shareWa, shareTg, shareFb, shareTw, shareLi].forEach(function (el) {
+          shareTg.href = ok ? "https://t.me/share/url?url=" + encU + "&text=" + encodeURIComponent("Agenda tu llamada aquí:") : "#";
+          shareMail.href = ok ? "mailto:?subject=" + encodeURIComponent(asuntoCorreo()) + "&body=" + encT : "#";
+          [shareWa, shareTg].forEach(function (el) {
             if (el) {
-              el.setAttribute("aria-disabled", ok ? "false" : "true");
               el.style.pointerEvents = ok ? "" : "none";
               el.style.opacity = ok ? "" : "0.45";
             }
           });
           if (shareMail) {
-            shareMail.setAttribute("aria-disabled", ok ? "false" : "true");
             shareMail.style.pointerEvents = ok ? "" : "none";
             shareMail.style.opacity = ok ? "" : "0.45";
           }
         }
-
         function setUrl(tokenId) {
-          var u = new URL("clientes.html", window.location.href);
+          var u = new URL("agendar-llamada.html", window.location.href);
           u.searchParams.set("ref", tokenId);
           var href = u.href;
           input.value = href;
           actualizarHrefCompartir(href);
-          if (btnCopy) btnCopy.disabled = false;
+          btnCopy.disabled = false;
           if (shareNative) shareNative.disabled = false;
         }
+        actualizarHrefCompartir("");
+        if (shareNative) shareNative.disabled = true;
 
         supabase.auth.getSession().then(function (r) {
           if (!r.data.session) {
             window.location.replace("login.html");
             return;
           }
-
           if (typeof window.applyAppShellUser === "function") window.applyAppShellUser(r.data.session.user);
           if (typeof window.setAppShellGuest === "function") window.setAppShellGuest(false);
-
           var uid = r.data.session.user.id;
-
           supabase
-            .from("registro_afiliados_invites")
+            .from("agenda_llamadas_invites")
             .select("id")
             .eq("owner_user_id", uid)
             .maybeSingle()
@@ -326,24 +242,19 @@
                 return;
               }
               if (q.error) {
-                statusMsg.textContent =
-                  q.error.message ||
-                  "No se pudo cargar el enlace. Ejecuta la migración registro-afiliados-enlace-publico.sql en Supabase.";
+                statusMsg.textContent = q.error.message || "No se pudo cargar el enlace. Ejecuta la migración agenda-llamadas en Supabase.";
                 statusMsg.className = "msg err";
-                actualizarHrefCompartir("");
                 return;
               }
               supabase
-                .from("registro_afiliados_invites")
+                .from("agenda_llamadas_invites")
                 .insert({ owner_user_id: uid })
                 .select("id")
                 .single()
                 .then(function (ins) {
                   if (ins.error) {
-                    statusMsg.textContent =
-                      ins.error.message || "No se pudo crear el enlace. Revisa la migración SQL en Supabase.";
+                    statusMsg.textContent = ins.error.message || "No se pudo crear el enlace.";
                     statusMsg.className = "msg err";
-                    actualizarHrefCompartir("");
                     return;
                   }
                   if (ins.data && ins.data.id) setUrl(ins.data.id);
@@ -355,32 +266,20 @@
           var t = (input.value || "").trim();
           if (!t) return;
           input.select();
-          input.setSelectionRange(0, 99999);
           if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(t).then(function () {
               statusMsg.className = "msg";
-              statusMsg.textContent = "Enlace copiado al portapapeles.";
-              setTimeout(function () {
-                if (statusMsg.textContent === "Enlace copiado al portapapeles.") statusMsg.textContent = "";
-              }, 2500);
+              statusMsg.textContent = "Copiado.";
+              setTimeout(function () { if (statusMsg.textContent === "Copiado.") statusMsg.textContent = ""; }, 2000);
             });
-          } else {
-            statusMsg.textContent = "Selecciona el texto del campo y cópialo manualmente.";
           }
         });
-
         if (navigator.share && shareNative) {
           shareNative.style.display = "inline-flex";
           shareNative.addEventListener("click", function () {
             var enlace = (input.value || "").trim();
             if (!enlace) return;
-            navigator
-              .share({
-                title: asuntoCorreo(),
-                text: textoCompartir(enlace),
-                url: enlace,
-              })
-              .catch(function () {});
+            navigator.share({ title: asuntoCorreo(), text: textoCompartir(enlace), url: enlace }).catch(function () {});
           });
         }
       })();

@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Agendar llamada</title>
+    <link rel="stylesheet" href="app-shell.css" />
+    <script src="theme-init.js"></script>
+    <style>
+      body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--text); }
+      .wrap { max-width: 640px; margin: 0 auto; padding: 24px 16px 48px; }
+      .logo-row { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+      .logo-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--primary); }
+      .logo-text { font-weight: 700; font-size: 18px; letter-spacing: -0.02em; }
+      h1 { font-size: 1.5rem; margin: 0 0 8px; letter-spacing: -0.02em; }
+      .sub { color: var(--muted); font-size: 14px; line-height: 1.45; margin: 0 0 20px; }
+      .panel {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 18px;
+        box-shadow: var(--shadow);
+      }
+      .day-block { margin-bottom: 18px; }
+      .day-block:last-child { margin-bottom: 0; }
+      .day-title { font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 8px; text-transform: capitalize; }
+      .slots { display: flex; flex-wrap: wrap; gap: 8px; }
+      .slot-btn {
+        padding: 8px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text);
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        font-family: inherit;
+      }
+      .slot-btn:hover { border-color: var(--primary-mid); }
+      .slot-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+      .err-banner {
+        padding: 14px;
+        border-radius: 12px;
+        background: var(--danger-bg, rgba(185,28,28,0.12));
+        color: var(--danger-text, #b91c1c);
+        font-size: 14px;
+        margin-bottom: 16px;
+      }
+      .loading { color: var(--muted); padding: 20px 0; }
+      dialog.modal-agenda {
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 0;
+        max-width: 420px;
+        width: calc(100% - 24px);
+        background: var(--card);
+        color: var(--text);
+      }
+      dialog.modal-agenda::backdrop { background: rgba(0,0,0,0.45); }
+      .modal-inner { padding: 20px; }
+      .modal-inner h2 { margin: 0 0 14px; font-size: 1.1rem; }
+      .field { margin-bottom: 12px; }
+      .field label { display: block; font-size: 12px; margin-bottom: 4px; color: var(--muted); }
+      .field input {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text);
+        font-size: 15px;
+        box-sizing: border-box;
+      }
+      .modal-actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+      .modal-actions button {
+        padding: 10px 16px;
+        border-radius: 10px;
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: inherit;
+      }
+      .btn-primary { background: var(--primary); color: #fff; }
+      .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--text); }
+      .success-msg { color: var(--primary-mid); font-size: 14px; line-height: 1.5; margin-top: 12px; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="logo-row">
+        <div class="logo-dot" aria-hidden="true"></div>
+        <span class="logo-text">HablemosApp</span>
+      </div>
+      <h1>Agendar llamada telefónica</h1>
+      <p class="sub">Elija un horario disponible. Le pediremos sus datos para confirmar la reserva.</p>
+
+      <div id="bannerErr" class="err-banner" style="display: none"></div>
+      <div id="loading" class="loading">Cargando horarios…</div>
+      <div id="panel" class="panel" style="display: none"></div>
+    </div>
+
+    <dialog id="dlg" class="modal-agenda">
+      <div class="modal-inner">
+        <h2 id="dlgTitle">Confirmar horario</h2>
+        <form id="formAgenda">
+          <div class="field">
+            <label for="fNombres">Nombres <span style="color:var(--danger)">*</span></label>
+            <input id="fNombres" name="nombres" required autocomplete="given-name" />
+          </div>
+          <div class="field">
+            <label for="fApPat">Apellido paterno <span style="color:var(--danger)">*</span></label>
+            <input id="fApPat" name="apellidoPaterno" required autocomplete="family-name" />
+          </div>
+          <div class="field">
+            <label for="fApMat">Apellido materno <span style="color:var(--danger)">*</span></label>
+            <input id="fApMat" name="apellidoMaterno" required autocomplete="additional-name" />
+          </div>
+          <div class="field">
+            <label for="fCiudad">Ciudad <span style="color:var(--danger)">*</span></label>
+            <input id="fCiudad" name="ciudad" required autocomplete="address-level2" />
+          </div>
+          <div class="field">
+            <label for="fTel">Teléfono <span style="color:var(--danger)">*</span></label>
+            <input id="fTel" name="telefono" type="tel" required autocomplete="tel" placeholder="Ej. +56 9 1234 5678" />
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="btn-ghost" id="btnCancelDlg">Cancelar</button>
+            <button type="submit" class="btn-primary" id="btnConfirm">Confirmar reserva</button>
+          </div>
+        </form>
+        <p id="dlgStatus" class="success-msg" style="display: none"></p>
+      </div>
+    </dialog>
+
+    <script src="supabase-config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script>
+      (function () {
+        var url = window.SUPABASE_URL;
+        var key = window.SUPABASE_ANON_KEY;
+        var bannerErr = document.getElementById("bannerErr");
+        var loading = document.getElementById("loading");
+        var panel = document.getElementById("panel");
+        var dlg = document.getElementById("dlg");
+        var form = document.getElementById("formAgenda");
+        var dlgTitle = document.getElementById("dlgTitle");
+        var dlgStatus = document.getElementById("dlgStatus");
+        var btnCancel = document.getElementById("btnCancelDlg");
+
+        if (!url || !key || url.indexOf("TU_PROYECTO") !== -1) {
+          bannerErr.style.display = "block";
+          bannerErr.textContent = "Falta configurar Supabase (supabase-config.js).";
+          loading.style.display = "none";
+          return;
+        }
+
+        var ref = (new URLSearchParams(window.location.search).get("ref") || "").trim();
+        var uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+        if (!uuidRe.test(ref)) {
+          loading.style.display = "none";
+          bannerErr.style.display = "block";
+          bannerErr.textContent = "Enlace incompleto o inválido. Solicite a su asesor el enlace correcto para agendar.";
+          return;
+        }
+
+        var supabase = window.supabase.createClient(url, key);
+        var cacheBloques = null;
+        var cacheReservas = [];
+        var rangoDesde = null;
+        var rangoHasta = null;
+        var pickFecha = null;
+        var pickHora = null;
+
+        function isoDowFromDateStr(ymd) {
+          var p = ymd.split("-");
+          var d = new Date(parseInt(p[0], 10), parseInt(p[1], 10) - 1, parseInt(p[2], 10), 12, 0, 0);
+          var js = d.getDay();
+          return js === 0 ? 7 : js;
+        }
+
+        function fmtDayTitle(ymd) {
+          var p = ymd.split("-");
+          var d = new Date(parseInt(p[0], 10), parseInt(p[1], 10) - 1, parseInt(p[2], 10));
+          var w = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"][d.getDay()];
+          return w + " " + parseInt(p[2], 10) + "/" + parseInt(p[1], 10) + "/" + p[0];
+        }
+
+        function pad2(n) {
+          return (n < 10 ? "0" : "") + n;
+        }
+
+        function slotKey(fecha, hora) {
+          return fecha + "|" + hora;
+        }
+
+        function isReserved(fecha, hora) {
+          return cacheReservas.some(function (r) {
+            return String(r.fecha) === fecha && Number(r.hora) === Number(hora);
+          });
+        }
+
+        function addDaysYmd(ymd, days) {
+          var p = ymd.split("-");
+          var d = new Date(parseInt(p[0], 10), parseInt(p[1], 10) - 1, parseInt(p[2], 10));
+          d.setDate(d.getDate() + days);
+          return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate());
+        }
+
+        function render() {
+          if (!cacheBloques || Object.keys(cacheBloques).length === 0) {
+            panel.innerHTML = "<p style='color:var(--muted);margin:0'>El asesor aún no ha definido horarios disponibles. Intente más tarde o contacte por otro medio.</p>";
+            panel.style.display = "block";
+            loading.style.display = "none";
+            return;
+          }
+
+          var desde = localTodayYmd();
+          var hasta = addDaysYmd(desde, 21);
+          var html = "";
+          for (var i = 0; i <= 21; i++) {
+            var ymd = addDaysYmd(desde, i);
+            if (ymd > hasta) break;
+            var dow = String(isoDowFromDateStr(ymd));
+            var hours = cacheBloques[dow];
+            if (!hours || !hours.length) continue;
+
+            var slots = [];
+            hours.forEach(function (h) {
+              var hr = parseInt(h, 10);
+              if (isNaN(hr)) return;
+              if (isReserved(ymd, hr)) return;
+              slots.push(hr);
+            });
+            slots.sort(function (a, b) { return a - b; });
+            if (!slots.length) continue;
+
+            html += '<div class="day-block"><div class="day-title">' + fmtDayTitle(ymd) + "</div><div class='slots'>";
+            slots.forEach(function (hr) {
+              html +=
+                "<button type='button' class='slot-btn' data-fecha='" +
+                ymd +
+                "' data-hora='" +
+                hr +
+                "'>" +
+                pad2(hr) +
+                ":00</button>";
+            });
+            html += "</div></div>";
+          }
+
+          if (!html) {
+            panel.innerHTML = "<p style='color:var(--muted);margin:0'>No hay horarios libres en las próximas semanas. Pruebe otro día o contacte a su asesor.</p>";
+          } else {
+            panel.innerHTML = html;
+            panel.querySelectorAll(".slot-btn").forEach(function (btn) {
+              btn.addEventListener("click", function () {
+                pickFecha = btn.getAttribute("data-fecha");
+                pickHora = parseInt(btn.getAttribute("data-hora"), 10);
+                dlgTitle.textContent = "Reservar " + fmtDayTitle(pickFecha) + " a las " + pad2(pickHora) + ":00";
+                dlgStatus.style.display = "none";
+                form.reset();
+                dlg.showModal();
+              });
+            });
+          }
+          panel.style.display = "block";
+          loading.style.display = "none";
+        }
+
+        function load() {
+          supabase
+            .rpc("obtener_agenda_publica", { p_invite: ref, p_desde: null, p_hasta: null })
+            .then(function (res) {
+              loading.style.display = "none";
+              if (res.error) {
+                bannerErr.style.display = "block";
+                bannerErr.textContent = res.error.message || "No se pudieron cargar los horarios.";
+                return;
+              }
+              var data = res.data;
+              if (!data || !data.ok) {
+                bannerErr.style.display = "block";
+                bannerErr.textContent =
+                  data && data.code === "invite_invalida"
+                    ? "El enlace no es válido o expiró."
+                    : "No se pudieron cargar los horarios.";
+                return;
+              }
+              cacheBloques = data.bloques || {};
+              cacheReservas = Array.isArray(data.reservas) ? data.reservas : [];
+              rangoDesde = data.desde || null;
+              rangoHasta = data.hasta || null;
+              render();
+            });
+        }
+
+        btnCancel.addEventListener("click", function () {
+          dlg.close();
+        });
+
+        form.addEventListener("submit", function (e) {
+          e.preventDefault();
+          if (!pickFecha || pickHora == null) return;
+          var btn = document.getElementById("btnConfirm");
+          btn.disabled = true;
+          dlgStatus.style.display = "none";
+          supabase
+            .rpc("agendar_llamada_publica", {
+              p_invite: ref,
+              p_fecha: pickFecha,
+              p_hora: pickHora,
+              p_nombres: (document.getElementById("fNombres").value || "").trim(),
+              p_apellido_paterno: (document.getElementById("fApPat").value || "").trim(),
+              p_apellido_materno: (document.getElementById("fApMat").value || "").trim(),
+              p_ciudad: (document.getElementById("fCiudad").value || "").trim(),
+              p_telefono: (document.getElementById("fTel").value || "").trim()
+            })
+            .then(function (res) {
+              btn.disabled = false;
+              if (res.error) {
+                dlgStatus.style.display = "block";
+                dlgStatus.style.color = "var(--danger-text,#b91c1c)";
+                dlgStatus.textContent = res.error.message || "Error al reservar.";
+                return;
+              }
+              var out = res.data;
+              if (!out || !out.ok) {
+                dlgStatus.style.display = "block";
+                dlgStatus.style.color = "var(--danger-text,#b91c1c)";
+                var code = out && out.code;
+                var map = {
+                  slot_ocupado: "Ese horario acaba de ser tomado. Elija otro.",
+                  slot_no_disponible: "Horario no disponible.",
+                  sin_disponibilidad: "El asesor no tiene agenda activa.",
+                  fecha_invalida: "La fecha no es válida.",
+                  nombre_requerido: "Revise los nombres ingresados.",
+                  telefono_requerido: "Ingrese un teléfono válido."
+                };
+                dlgStatus.textContent = map[code] || "No se pudo completar la reserva.";
+                return;
+              }
+              dlgStatus.style.color = "var(--primary-mid)";
+              dlgStatus.style.display = "block";
+              dlgStatus.textContent = "Listo. Su llamada quedó agendada. El asesor recibirá un recordatorio con su teléfono.";
+              form.style.display = "none";
+              cacheReservas.push({ fecha: pickFecha, hora: pickHora });
+              render();
+              setTimeout(function () {
+                dlg.close();
+                form.style.display = "block";
+              }, 2800);
+            });
+        });
+
+        load();
+      })();
+    </script>
+  </body>
+</html>
