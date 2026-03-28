@@ -136,10 +136,10 @@
             <a href="dashboard.html" class="back">← Dashboard</a>
             <header>
               <h1>Mi disponibilidad horaria</h1>
-              <p class="subtitle">Marque bloques de una hora (Chile) en los que puede recibir llamadas. Los clientes solo podrán agendar en estos horarios.</p>
+              <p class="subtitle">Marque bloques de una hora (Chile, 8:00 a 21:00) en los que puede recibir llamadas. Los clientes solo podrán agendar en estos horarios.</p>
             </header>
             <div class="panel">
-              <p class="hint">Días en orden <strong>lunes a domingo</strong> (norma ISO 8601). Horario referido a <strong>America/Santiago</strong>. Toque cada celda para activar o desactivar.</p>
+              <p class="hint">Días en orden <strong>lunes a domingo</strong> (norma ISO 8601). Franja <strong>8:00–21:00</strong> en <strong>America/Santiago</strong>. Toque cada celda para activar o desactivar.</p>
               <div class="grid-disp" id="gridDisp" aria-label="Grilla de disponibilidad semanal"></div>
               <div class="actions-row">
                 <button type="button" class="btn-save" id="btnGuardar">Guardar disponibilidad</button>
@@ -170,6 +170,8 @@
           window.installInactivityAutoLogout(supabase, { timeoutMs: window.SESSION_IDLE_TIMEOUT_MS, redirectTo: "login.html" });
         }
 
+        var HORA_MIN = 8;
+        var HORA_MAX = 21;
         var DIAS = [
           { k: "1", n: "Lun" },
           { k: "2", n: "Mar" },
@@ -202,7 +204,7 @@
             h.textContent = d.n;
             grid.appendChild(h);
           });
-          for (var hour = 0; hour < 24; hour++) {
+          for (var hour = HORA_MIN; hour <= HORA_MAX; hour++) {
             (function (hour) {
               var lab = document.createElement("div");
               lab.className = "hlabel";
@@ -229,7 +231,7 @@
           var out = {};
           DIAS.forEach(function (d) {
             var arr = [];
-            for (var h = 0; h < 24; h++) {
+            for (var h = HORA_MIN; h <= HORA_MAX; h++) {
               if (state[d.k][h]) arr.push(h);
             }
             if (arr.length) out[d.k] = arr;
@@ -245,7 +247,7 @@
             if (!Array.isArray(arr)) return;
             arr.forEach(function (x) {
               var n = parseInt(x, 10);
-              if (!isNaN(n) && n >= 0 && n <= 23) state[d.k][n] = true;
+              if (!isNaN(n) && n >= HORA_MIN && n <= HORA_MAX) state[d.k][n] = true;
             });
           });
         }
