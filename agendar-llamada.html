@@ -206,6 +206,20 @@
           return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate());
         }
 
+        /** YYYY-MM-DD de hoy en el navegador (respaldo si la RPC no devolviera desde/hasta). */
+        function localTodayYmd() {
+          var d = new Date();
+          return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate());
+        }
+
+        function toYmd(v) {
+          if (v == null || v === "") return null;
+          if (typeof v === "string") return v.length >= 10 ? v.slice(0, 10) : null;
+          if (v instanceof Date && !isNaN(v.getTime()))
+            return v.getFullYear() + "-" + pad2(v.getMonth() + 1) + "-" + pad2(v.getDate());
+          return null;
+        }
+
         function render() {
           if (!cacheBloques || Object.keys(cacheBloques).length === 0) {
             panel.innerHTML = "<p style='color:var(--muted);margin:0'>El asesor aún no ha definido horarios disponibles. Intente más tarde o contacte por otro medio.</p>";
@@ -214,8 +228,8 @@
             return;
           }
 
-          var desde = localTodayYmd();
-          var hasta = addDaysYmd(desde, 21);
+          var desde = rangoDesde || localTodayYmd();
+          var hasta = rangoHasta || addDaysYmd(desde, 21);
           var html = "";
           for (var i = 0; i <= 21; i++) {
             var ymd = addDaysYmd(desde, i);
@@ -288,8 +302,8 @@
               }
               cacheBloques = data.bloques || {};
               cacheReservas = Array.isArray(data.reservas) ? data.reservas : [];
-              rangoDesde = data.desde || null;
-              rangoHasta = data.hasta || null;
+              rangoDesde = toYmd(data.desde);
+              rangoHasta = toYmd(data.hasta);
               render();
             });
         }
