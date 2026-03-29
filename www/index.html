@@ -4,18 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Hablemos Pensiones — Asesoría previsional</title>
-    <script src="site-urls.js"></script>
-    <script>
-      (function () {
-        var b = (window.HABLEMOS_PLATAFORMA_ORIGIN || "").replace(/\/$/, "");
-        if (!b) return;
-        var l = document.createElement("link");
-        l.rel = "stylesheet";
-        l.href = b + "/app-shell.css";
-        document.head.appendChild(l);
-      })();
-    </script>
-    <script src="theme-init.js"></script>
+    <!-- Rutas absolutas desde la raíz del sitio: con rewrite "/" → /www/index.html la URL del documento es "/" y "site-urls.js" pediría /site-urls.js (404). -->
+    <link rel="stylesheet" href="/app-shell.css" />
+    <script src="/www/site-urls.js"></script>
+    <script src="/www/theme-init.js"></script>
     <style>
       /* Misma base visual que login / app (app-shell.css aporta variables; gradientes como en login.html) */
       body {
