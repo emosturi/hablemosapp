@@ -1,3 +1,6 @@
+# Sitio plataforma (ej. plataforma.hablemospensiones.cl): este archivo aplica al deploy desde la RAÍZ del repo.
+# Landing pública en www.hablemospensiones.cl: segundo sitio Netlify con Base directory = "www" (ver www/DEPLOY.txt).
+
 # process-reminders: cada 5 min (pruebas); en producción cambiar a "*/15 * * * *"
 [functions."process-reminders"]
   schedule = "*/5 * * * *"

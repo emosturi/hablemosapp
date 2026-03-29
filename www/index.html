@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Hablemos Pensiones — Asesoría previsional</title>
+    <script src="site-urls.js"></script>
+    <script>
+      (function () {
+        var b = (window.HABLEMOS_PLATAFORMA_ORIGIN || "").replace(/\/$/, "");
+        if (!b) return;
+        var l = document.createElement("link");
+        l.rel = "stylesheet";
+        l.href = b + "/app-shell.css";
+        document.head.appendChild(l);
+      })();
+    </script>
+    <script src="theme-init.js"></script>
+    <style>
+      body {
+        margin: 0;
+        background: var(--surface);
+        color: var(--text);
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial,
+          sans-serif;
+      }
+      .landing {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 20px 16px 56px;
+      }
+      .top-nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 22px;
+        flex-wrap: wrap;
+      }
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 700;
+        color: var(--text);
+      }
+      .brand .dot {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: var(--primary);
+      }
+      .nav-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .btn {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 10px 14px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 14px;
+        color: var(--text);
+        background: var(--card);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-family: inherit;
+      }
+      .btn-primary {
+        background: var(--primary);
+        border-color: var(--primary);
+        color: #fff;
+      }
+      .hero {
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+        gap: 16px;
+        align-items: stretch;
+      }
+      .panel {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 24px;
+      }
+      h1 {
+        margin: 0 0 10px;
+        font-size: clamp(28px, 4vw, 46px);
+        line-height: 1.08;
+        letter-spacing: -0.02em;
+      }
+      .lead {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.55;
+      }
+      .hero-ctas {
+        margin-top: 18px;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .kpi-grid {
+        margin-top: 16px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+      }
+      .kpi {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: var(--surface);
+        padding: 10px;
+      }
+      .kpi b {
+        display: block;
+        font-size: 19px;
+        color: var(--primary);
+      }
+      .kpi span {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .section {
+        margin-top: 16px;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 20px;
+      }
+      .section h2 {
+        margin: 0 0 12px;
+        font-size: 21px;
+        letter-spacing: -0.01em;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+      }
+      .card {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: var(--surface);
+        padding: 14px;
+      }
+      .card h3 {
+        margin: 0 0 6px;
+        font-size: 15px;
+      }
+      .card p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.45;
+      }
+      .steps {
+        display: grid;
+        gap: 10px;
+      }
+      .step {
+        display: grid;
+        grid-template-columns: 28px 1fr;
+        gap: 10px;
+        align-items: start;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: var(--surface);
+        padding: 12px;
+      }
+      .step .n {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        color: #fff;
+        background: var(--primary-mid);
+      }
+      .step p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .footer-cta {
+        margin-top: 16px;
+        padding: 20px;
+        border-radius: var(--radius);
+        border: 1px solid color-mix(in oklab, var(--primary) 45%, var(--border));
+        background: linear-gradient(135deg, color-mix(in oklab, var(--accent-soft) 60%, var(--card)), var(--card));
+      }
+      .footer-cta h2 {
+        margin: 0 0 6px;
+      }
+      .footer-cta p {
+        margin: 0;
+        color: var(--muted);
+      }
+      .footer-cta .hero-ctas {
+        margin-top: 14px;
+      }
+      @media (max-width: 900px) {
+        .hero {
+          grid-template-columns: 1fr;
+        }
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .kpi-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+      @media (max-width: 520px) {
+        .kpi-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="landing">
+      <div class="top-nav">
+        <div class="brand"><span class="dot" aria-hidden="true"></span> Hablemos Pensiones</div>
+        <div class="nav-actions">
+          <button type="button" class="btn-theme-toggle" id="btnThemeTogglePublic" title="Modo oscuro" aria-label="Modo oscuro" aria-pressed="false">
+            <svg class="theme-icon-moon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+            </svg>
+            <svg class="theme-icon-sun" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="5" />
+              <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+            </svg>
+          </button>
+          <a class="btn" data-app-href="/agendar-llamada.html">Agendar llamada</a>
+          <a class="btn btn-primary" data-app-href="/login.html">Ingresar a la plataforma</a>
+        </div>
+      </div>
+
+      <section class="hero">
+        <div class="panel">
+          <h1>Asesoría previsional cercana, clara y en línea</h1>
+          <p class="lead">
+            Ayudamos a afiliados y familias a ordenar su situación previsional, tomar mejores decisiones y avanzar con
+            confianza en cada trámite.
+          </p>
+          <div class="hero-ctas">
+            <a class="btn btn-primary" data-app-href="/agendar-llamada.html">Reservar una llamada</a>
+            <a class="btn" data-app-href="/enlace-registro-publico.html">Registro con enlace del asesor</a>
+          </div>
+          <div class="kpi-grid">
+            <div class="kpi"><b>Atención 1 a 1</b><span>Seguimiento personalizado</span></div>
+            <div class="kpi"><b>Proceso digital</b><span>Gestión ordenada y segura</span></div>
+            <div class="kpi"><b>Agenda flexible</b><span>Reserva el horario que te apropie</span></div>
+          </div>
+        </div>
+        <aside class="panel">
+          <h2 style="margin-top: 0">Qué hacemos</h2>
+          <div class="steps">
+            <div class="step"><span class="n">1</span><p>Diagnóstico previsional inicial y levantamiento de antecedentes.</p></div>
+            <div class="step"><span class="n">2</span><p>Estrategia de pensión según tu etapa y objetivos.</p></div>
+            <div class="step"><span class="n">3</span><p>Acompañamiento en formularios, documentación y plazos.</p></div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="section">
+        <h2>Beneficios</h2>
+        <div class="grid-3">
+          <article class="card">
+            <h3>Explicaciones simples</h3>
+            <p>Traducimos términos técnicos a pasos concretos para que entiendas qué conviene hacer.</p>
+          </article>
+          <article class="card">
+            <h3>Gestión de tiempos</h3>
+            <p>Organizamos agenda y recordatorios para que no se te pasen hitos importantes del proceso.</p>
+          </article>
+          <article class="card">
+            <h3>Visión integral</h3>
+            <p>Revisamos tu caso completo: edad, situación familiar y opciones de pensión disponibles.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>Cómo comenzar</h2>
+        <div class="steps">
+          <div class="step"><span class="n">1</span><p>Reserva un horario desde «Agendar llamada» (te pediremos el enlace de tu asesor si aplica).</p></div>
+          <div class="step"><span class="n">2</span><p>Ingresa a la plataforma con tu cuenta cuando el asesor te lo indique.</p></div>
+          <div class="step"><span class="n">3</span><p>Recibe orientación y próximos pasos claros.</p></div>
+        </div>
+      </section>
+
+      <section class="footer-cta">
+        <h2>¿Listo para avanzar con tu pensión?</h2>
+        <p>Reserva tu llamada o accede a la plataforma para seguir tu trámite.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" data-app-href="/agendar-llamada.html">Agendar ahora</a>
+          <a class="btn" data-app-href="/login.html">Ir a la plataforma</a>
+        </div>
+      </section>
+    </main>
+    <script>
+      (function () {
+        var b = (window.HABLEMOS_PLATAFORMA_ORIGIN || "").replace(/\/$/, "");
+        if (!b) return;
+        document.querySelectorAll("a[data-app-href]").forEach(function (el) {
+          el.setAttribute("href", b + el.getAttribute("data-app-href"));
+        });
+      })();
+    </script>
+  </body>
+</html>

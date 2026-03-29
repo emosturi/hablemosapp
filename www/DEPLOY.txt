@@ -1,0 +1,22 @@
+Landing (www.hablemospensiones.cl) y plataforma (plataforma.hablemospensiones.cl)
+==================================================================================
+
+1) Plataforma (código actual del repo, raíz)
+   - Netlify: sitio A, publish = raíz del repo (como hoy).
+   - Dominio personalizado: plataforma.hablemospensiones.cl
+   - En Supabase → Authentication → URL Configuration → agrega:
+     Site URL: https://plataforma.hablemospensiones.cl
+     Redirect URLs: https://plataforma.hablemospensiones.cl/**
+
+2) Landing (solo carpeta www/)
+   - Netlify: sitio B, mismo repo, "Base directory" = www
+   - Build command: (vacío)
+   - Publish directory: .   (punto, respecto de www)
+   - Dominio: www.hablemospensiones.cl
+   - Opcional: dominio apex hablemospensiones.cl → redirect 301 a www
+
+3) Origen de la plataforma en la landing
+   - Editá www/site-urls.js → HABLEMOS_PLATAFORMA_ORIGIN debe coincidir con la URL real HTTPS de la plataforma.
+
+4) Estilos
+   - La landing carga app-shell.css desde la plataforma; mantené desplegada la plataforma para que los estilos carguen.
