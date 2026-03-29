@@ -7,8 +7,10 @@
     <!-- Rutas absolutas: con rewrite "/" → /www/index.html el documento está en "/" -->
     <link rel="stylesheet" href="/app-shell.css" />
     <script src="/www/site-urls.js"></script>
-    <script src="/www/theme-init.js"></script>
     <style>
+      html {
+        color-scheme: light;
+      }
       body {
         margin: 0;
         min-height: 100vh;
@@ -18,12 +20,6 @@
         background: radial-gradient(1000px 620px at 12% -8%, rgba(0, 223, 195, 0.14), transparent 58%),
           radial-gradient(820px 520px at 92% 12%, rgba(1, 147, 145, 0.16), transparent 52%),
           radial-gradient(700px 480px at 50% 100%, rgba(0, 96, 108, 0.08), transparent 55%),
-          var(--surface);
-      }
-      html[data-theme="dark"] body {
-        background: radial-gradient(900px 560px at 10% -6%, rgba(0, 223, 195, 0.12), transparent 55%),
-          radial-gradient(720px 480px at 92% 8%, rgba(45, 212, 191, 0.1), transparent 52%),
-          radial-gradient(640px 420px at 48% 100%, rgba(0, 96, 108, 0.15), transparent 58%),
           var(--surface);
       }
 
@@ -419,6 +415,22 @@
         color: var(--primary-mid);
         font-weight: 600;
       }
+      .hp-footer .hp-staff-access {
+        margin-top: 32px;
+        padding-top: 20px;
+        text-align: center;
+      }
+      .hp-footer .hp-staff-access a {
+        font-size: 11px;
+        font-weight: 400;
+        color: color-mix(in oklab, var(--muted) 55%, var(--surface));
+        text-decoration: none;
+        letter-spacing: 0.02em;
+      }
+      .hp-footer .hp-staff-access a:hover {
+        color: var(--muted);
+        text-decoration: underline;
+      }
 
       .fab-whatsapp {
         position: fixed;
@@ -485,17 +497,7 @@
           Hablemos Pensiones
         </div>
         <nav class="hp-nav" aria-label="Principal">
-          <button type="button" class="btn-theme-toggle hp-btn" id="btnThemeTogglePublic" title="Modo oscuro" aria-label="Modo oscuro" aria-pressed="false" style="padding: 8px 12px">
-            <svg class="theme-icon-moon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-            </svg>
-            <svg class="theme-icon-sun" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="5" />
-              <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
-            </svg>
-          </button>
-          <a class="hp-btn" data-app-href="/agendar-llamada.html">Agendar llamada</a>
-          <a class="hp-btn hp-btn-primary" data-app-href="/login.html">Ingresar</a>
+          <a class="hp-btn hp-btn-primary" data-app-href="/agendar-llamada.html">Agendar llamada</a>
         </nav>
       </div>
     </header>
@@ -527,7 +529,7 @@
             </li>
             <li>
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
-              <span>Canal seguro con tu asesor (plataforma y WhatsApp).</span>
+              <span>Comunicación directa con tu asesor por WhatsApp u otros medios que acuerden.</span>
             </li>
           </ul>
         </div>
@@ -642,10 +644,10 @@
 
       <section class="hp-band" aria-labelledby="hp-band-title">
         <h2 id="hp-band-title">¿Listo para dar el siguiente paso?</h2>
-        <p>Ingresa a la plataforma si ya trabajas con nosotros, o agenda tu primera conversación.</p>
+        <p>Agenda una conversación o escríbenos por WhatsApp y te orientamos desde el primer contacto.</p>
         <div class="hp-hero-ctas" style="justify-content: center; margin-bottom: 0">
-          <a class="hp-btn hp-btn-primary" data-app-href="/login.html">Ir a la plataforma</a>
-          <a class="hp-btn" data-app-href="/agendar-llamada.html">Agendar llamada</a>
+          <a class="hp-btn hp-btn-primary" data-app-href="/agendar-llamada.html">Agendar llamada</a>
+          <a class="hp-btn hp-btn-wa" href="https://wa.me/56995399068" target="_blank" rel="noopener noreferrer">WhatsApp</a>
         </div>
       </section>
 
@@ -659,6 +661,9 @@
           <a href="https://www.spensiones.cl" target="_blank" rel="noopener noreferrer">Superintendencia de Pensiones</a>.
         </p>
         <p style="margin-top: 12px">© Hablemos Pensiones — Asesoría previsional.</p>
+        <p class="hp-staff-access">
+          <a data-app-href="/login.html">Acceso equipo</a>
+        </p>
       </footer>
     </main>
 
