@@ -1,6 +1,9 @@
 Landing (www.hablemospensiones.cl) y plataforma (plataforma.hablemospensiones.cl)
 ==================================================================================
 
+Nota: con un solo sitio Netlify, netlify.toml reescribe "/" a /www/index.html (landing).
+Los enlaces de la landing usan www/site-urls.js → HABLEMOS_PLATAFORMA_ORIGIN (mismo dominio hasta que exista plataforma.*).
+
 1) Plataforma (código actual del repo, raíz)
    - Netlify: sitio A, publish = raíz del repo (como hoy).
    - Dominio personalizado: plataforma.hablemospensiones.cl

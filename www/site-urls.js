@@ -1,10 +1,6 @@
 /**
- * URLs públicas — sitio www (landing) separado de la plataforma.
- *
- * Deploy: en Netlify crea un sitio con “Base directory” = www y asigna
- * www.hablemospensiones.cl (y opcionalmente hablemospensiones.cl → redirect a www).
- *
- * La plataforma sigue en otro deploy (raíz del repo) con dominio
- * plataforma.hablemospensiones.cl
+ * Origen HTTPS de la plataforma (login, agendar, etc.).
+ * Mismo sitio Netlify que la landing: usá el dominio donde está desplegada la app.
+ * Cuando tengas solo plataforma.hablemospensiones.cl, cambiá esta línea a esa URL.
  */
-window.HABLEMOS_PLATAFORMA_ORIGIN = "https://plataforma.hablemospensiones.cl";
+window.HABLEMOS_PLATAFORMA_ORIGIN = "https://hablemospensiones.cl";
