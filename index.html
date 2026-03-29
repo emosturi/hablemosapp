@@ -12,17 +12,19 @@
         if (params.has("cliente") || params.has("imprimir")) {
           window.location.replace("pension.html" + q + h);
         } else {
-          window.location.replace("dashboard.html" + h);
+          window.location.replace("/www/index.html" + h);
         }
       })();
     </script>
     <noscript>
-      <meta http-equiv="refresh" content="0;url=dashboard.html" />
+      <meta http-equiv="refresh" content="0;url=/www/index.html" />
     </noscript>
   </head>
   <body>
     <p style="font-family: system-ui, sans-serif; margin: 2rem; color: #333">
       Redirigiendo…
+      <a href="/www/index.html">Inicio</a>
+      ·
       <a href="dashboard.html">Ir al panel</a>
       ·
       <a href="pension.html">Formulario de pensión</a>

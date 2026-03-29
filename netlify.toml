@@ -6,7 +6,29 @@
 [functions."process-reminders"]
   schedule = "*/5 * * * *"
 
+# Enlaces antiguos: raíz con parámetros del formulario pensión
+[[redirects]]
+  from = "/"
+  to = "/pension.html"
+  status = 302
+  query = { cliente = ":cliente" }
+
+[[redirects]]
+  from = "/"
+  to = "/pension.html"
+  status = 302
+  query = { imprimir = ":imprimir" }
+
+# Raíz: landing (force evita que gane el index.html que redirige al dashboard)
 [[redirects]]
   from = "/"
   to = "/www/index.html"
   status = 200
+  force = true
+
+# Quien abra /index.html explícito también ve la landing
+[[redirects]]
+  from = "/index.html"
+  to = "/www/index.html"
+  status = 200
+  force = true
