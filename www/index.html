@@ -4,12 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Hablemos Pensiones — Asesoría previsional</title>
-    <!-- Rutas absolutas desde la raíz del sitio: con rewrite "/" → /www/index.html la URL del documento es "/" y "site-urls.js" pediría /site-urls.js (404). -->
+    <!-- Rutas absolutas: con rewrite "/" → /www/index.html el documento está en "/" -->
     <link rel="stylesheet" href="/app-shell.css" />
     <script src="/www/site-urls.js"></script>
     <script src="/www/theme-init.js"></script>
     <style>
-      /* Misma base visual que login / app (app-shell.css aporta variables; gradientes como en login.html) */
       body {
         margin: 0;
         min-height: 100vh;
@@ -27,42 +26,58 @@
           radial-gradient(640px 420px at 48% 100%, rgba(0, 96, 108, 0.15), transparent 58%),
           var(--surface);
       }
-      .landing {
-        max-width: 1100px;
+
+      .hp-wrap {
+        max-width: 1120px;
         margin: 0 auto;
-        padding: 20px 16px 96px;
+        padding: 0 18px 110px;
       }
-      .top-nav {
+
+      .hp-header {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        backdrop-filter: blur(12px);
+        background: color-mix(in oklab, var(--card) 88%, transparent);
+        border-bottom: 1px solid var(--border);
+      }
+      .hp-header-inner {
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 14px 18px;
         display: flex;
-        justify-content: space-between;
         align-items: center;
+        justify-content: space-between;
         gap: 12px;
-        margin-bottom: 22px;
         flex-wrap: wrap;
       }
-      .brand {
+      .hp-brand {
         display: inline-flex;
         align-items: center;
         gap: 10px;
-        font-weight: 700;
+        font-weight: 800;
+        font-size: 1.05rem;
+        letter-spacing: -0.02em;
         color: var(--text);
       }
-      .brand .dot {
-        width: 14px;
-        height: 14px;
-        border-radius: 50%;
-        background: var(--primary);
+      .hp-brand-dot {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, var(--primary), var(--primary-mid));
+        box-shadow: 0 4px 14px color-mix(in oklab, var(--primary-mid) 35%, transparent);
       }
-      .nav-actions {
+      .hp-nav {
         display: flex;
         align-items: center;
         gap: 8px;
         flex-wrap: wrap;
       }
-      .btn {
+
+      .hp-btn {
         border: 1px solid var(--border);
         border-radius: 12px;
-        padding: 10px 14px;
+        padding: 10px 16px;
         text-decoration: none;
         font-weight: 600;
         font-size: 14px;
@@ -71,176 +86,340 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
+        gap: 8px;
         font-family: inherit;
+        cursor: pointer;
+        transition: border-color 0.15s, background 0.15s, transform 0.12s;
       }
-      .btn-primary {
+      .hp-btn:hover {
+        border-color: var(--primary-mid);
+      }
+      .hp-btn-primary {
         background: var(--primary);
         border-color: var(--primary);
         color: #fff;
       }
-      .btn-primary:hover {
+      .hp-btn-primary:hover {
         background: var(--primary-hover);
         border-color: var(--primary-hover);
-        opacity: 0.98;
+        color: #fff;
       }
-      .btn:hover {
-        border-color: var(--primary-mid);
+      .hp-btn-wa {
+        background: #25d366;
+        border-color: #1ebe57;
+        color: #fff;
       }
-      .hero {
+      .hp-btn-wa:hover {
+        background: #20bd5a;
+        border-color: #20bd5a;
+        color: #fff;
+      }
+
+      .hp-hero {
+        padding: 36px 0 28px;
         display: grid;
-        grid-template-columns: 1.2fr 0.8fr;
-        gap: 16px;
-        align-items: stretch;
+        grid-template-columns: 1.15fr 0.85fr;
+        gap: 28px;
+        align-items: center;
       }
-      .panel {
+      .hp-hero h1 {
+        margin: 0 0 14px;
+        font-size: clamp(1.85rem, 4.2vw, 2.75rem);
+        line-height: 1.12;
+        letter-spacing: -0.03em;
+        color: var(--text);
+      }
+      .hp-hero h1 em {
+        font-style: normal;
+        color: var(--primary-mid);
+      }
+      .hp-lead {
+        margin: 0 0 22px;
+        font-size: 1.05rem;
+        line-height: 1.55;
+        color: var(--muted);
+        max-width: 36rem;
+      }
+      .hp-hero-ctas {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 22px;
+      }
+      .hp-hero-card {
         background: var(--card);
         border: 1px solid var(--border);
         border-radius: var(--radius);
         box-shadow: var(--shadow);
-        padding: 24px;
+        padding: 22px;
       }
-      h1 {
-        margin: 0 0 10px;
-        font-size: clamp(28px, 4vw, 46px);
-        line-height: 1.08;
+      .hp-hero-card h2 {
+        margin: 0 0 6px;
+        font-size: 14px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--primary-mid);
+      }
+      .hp-hero-card p {
+        margin: 0 0 14px;
+        font-size: 15px;
+        line-height: 1.5;
+        color: var(--muted);
+      }
+      .hp-mini-list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        gap: 10px;
+      }
+      .hp-mini-list li {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        font-size: 14px;
+        color: var(--text);
+        line-height: 1.4;
+      }
+      .hp-mini-list svg {
+        flex-shrink: 0;
+        margin-top: 2px;
+        color: var(--primary-mid);
+      }
+
+      .hp-strip {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin-bottom: 28px;
+      }
+      .hp-strip-item {
+        background: color-mix(in oklab, var(--card) 92%, var(--surface));
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 14px 16px;
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text);
+      }
+      .hp-strip-item span {
+        color: var(--muted);
+        font-weight: 500;
+        display: block;
+        font-size: 12px;
+        margin-top: 2px;
+      }
+      .hp-strip-ic {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        background: var(--accent-soft);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary);
+      }
+
+      .hp-section {
+        margin-top: 28px;
+      }
+      .hp-section-head {
+        text-align: center;
+        max-width: 36rem;
+        margin: 0 auto 22px;
+      }
+      .hp-section-head h2 {
+        margin: 0 0 8px;
+        font-size: clamp(1.25rem, 2.5vw, 1.6rem);
         letter-spacing: -0.02em;
         color: var(--text);
       }
-      h2,
-      h3 {
-        color: var(--text);
-      }
-      .lead {
+      .hp-section-head p {
         margin: 0;
         color: var(--muted);
-        line-height: 1.55;
+        font-size: 15px;
+        line-height: 1.5;
       }
-      .hero-ctas {
-        margin-top: 18px;
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
+      .hp-kicker {
+        display: block;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--primary-mid);
+        margin-bottom: 6px;
       }
-      .kpi-grid {
-        margin-top: 16px;
+
+      .hp-pillars {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 10px;
+        gap: 14px;
       }
-      .kpi {
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        background: var(--surface);
-        padding: 10px;
-      }
-      .kpi b {
-        display: block;
-        font-size: 19px;
-        color: var(--primary-mid);
-      }
-      .kpi span {
-        font-size: 12px;
-        color: var(--muted);
-      }
-      .section {
-        margin-top: 16px;
+      .hp-pillar {
         background: var(--card);
         border: 1px solid var(--border);
         border-radius: var(--radius);
         box-shadow: var(--shadow);
         padding: 20px;
+        position: relative;
+        overflow: hidden;
       }
-      .section h2 {
-        margin: 0 0 12px;
-        font-size: 21px;
-        letter-spacing: -0.01em;
+      .hp-pillar::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--primary), var(--accent-bright));
+        opacity: 0.85;
       }
-      .grid-3 {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 10px;
-      }
-      .card {
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        background: var(--surface);
-        padding: 14px;
-      }
-      .card h3 {
-        margin: 0 0 6px;
-        font-size: 15px;
-      }
-      .card p {
-        margin: 0;
-        color: var(--muted);
+      .hp-pillar-num {
+        width: 32px;
+        height: 32px;
+        border-radius: 10px;
+        background: var(--accent-soft);
+        color: var(--primary);
+        font-weight: 800;
         font-size: 14px;
-        line-height: 1.45;
-      }
-      .steps {
-        display: grid;
-        gap: 10px;
-      }
-      .step {
-        display: grid;
-        grid-template-columns: 28px 1fr;
-        gap: 10px;
-        align-items: start;
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        background: var(--surface);
-        padding: 12px;
-      }
-      .step .n {
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        display: inline-flex;
+        display: flex;
         align-items: center;
         justify-content: center;
-        font-weight: 700;
-        color: #fff;
-        background: var(--primary-mid);
+        margin-bottom: 12px;
       }
-      .step p {
+      .hp-pillar h3 {
+        margin: 0 0 8px;
+        font-size: 16px;
+        color: var(--text);
+      }
+      .hp-pillar p {
         margin: 0;
-        color: var(--muted);
         font-size: 14px;
-      }
-      .footer-cta {
-        margin-top: 16px;
-        padding: 20px;
-        border-radius: var(--radius);
-        border: 1px solid color-mix(in oklab, var(--primary) 45%, var(--border));
-        background: linear-gradient(135deg, color-mix(in oklab, var(--accent-soft) 60%, var(--card)), var(--card));
-      }
-      .footer-cta h2 {
-        margin: 0 0 6px;
-      }
-      .footer-cta p {
-        margin: 0;
+        line-height: 1.5;
         color: var(--muted);
-      }
-      .footer-cta .hero-ctas {
-        margin-top: 14px;
-      }
-      @media (max-width: 900px) {
-        .hero {
-          grid-template-columns: 1fr;
-        }
-        .grid-3 {
-          grid-template-columns: 1fr;
-        }
-        .kpi-grid {
-          grid-template-columns: 1fr 1fr;
-        }
-      }
-      @media (max-width: 520px) {
-        .kpi-grid {
-          grid-template-columns: 1fr;
-        }
       }
 
-      /* Botón flotante WhatsApp (color marca WA; no depende del tema) */
+      .hp-flow {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 26px 20px 30px;
+      }
+      .hp-flow-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+        position: relative;
+        margin-top: 8px;
+      }
+      .hp-flow-step {
+        text-align: center;
+        padding: 12px 8px;
+        position: relative;
+      }
+      .hp-flow-step::after {
+        content: "";
+        position: absolute;
+        top: 28px;
+        left: 50%;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(90deg, var(--border), var(--primary-mid));
+        z-index: 0;
+        opacity: 0.5;
+      }
+      .hp-flow-step:last-child::after {
+        display: none;
+      }
+      .hp-flow-badge {
+        width: 48px;
+        height: 48px;
+        margin: 0 auto 10px;
+        border-radius: 50%;
+        background: linear-gradient(145deg, var(--primary), var(--primary-mid));
+        color: #fff;
+        font-weight: 800;
+        font-size: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        z-index: 1;
+        box-shadow: 0 6px 18px color-mix(in oklab, var(--primary) 28%, transparent);
+      }
+      .hp-flow-step h3 {
+        margin: 0 0 4px;
+        font-size: 14px;
+        color: var(--text);
+      }
+      .hp-flow-step p {
+        margin: 0;
+        font-size: 12px;
+        line-height: 1.4;
+        color: var(--muted);
+      }
+
+      .hp-split {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
+      .hp-card-cta {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 22px;
+        box-shadow: var(--shadow);
+      }
+      .hp-card-cta h3 {
+        margin: 0 0 8px;
+        font-size: 17px;
+        color: var(--text);
+      }
+      .hp-card-cta p {
+        margin: 0 0 16px;
+        font-size: 14px;
+        color: var(--muted);
+        line-height: 1.45;
+      }
+
+      .hp-band {
+        margin-top: 32px;
+        padding: 28px 22px;
+        border-radius: var(--radius);
+        border: 1px solid color-mix(in oklab, var(--primary-mid) 35%, var(--border));
+        background: linear-gradient(120deg, color-mix(in oklab, var(--accent-soft) 70%, var(--card)), var(--card));
+        text-align: center;
+      }
+      .hp-band h2 {
+        margin: 0 0 8px;
+        font-size: 1.35rem;
+        color: var(--text);
+      }
+      .hp-band p {
+        margin: 0 0 16px;
+        color: var(--muted);
+        font-size: 15px;
+      }
+
+      .hp-footer {
+        margin-top: 40px;
+        padding-top: 24px;
+        border-top: 1px solid var(--border);
+        font-size: 12px;
+        line-height: 1.55;
+        color: var(--muted);
+      }
+      .hp-footer a {
+        color: var(--primary-mid);
+        font-weight: 600;
+      }
+
       .fab-whatsapp {
         position: fixed;
         right: max(18px, env(safe-area-inset-right, 18px));
@@ -251,8 +430,6 @@
         border-radius: 50%;
         background: #25d366;
         color: #fff;
-        border: none;
-        cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -262,7 +439,6 @@
       }
       .fab-whatsapp:hover {
         transform: scale(1.06);
-        box-shadow: 0 6px 28px rgba(37, 211, 102, 0.55), 0 2px 10px rgba(0, 0, 0, 0.14);
         color: #fff;
       }
       .fab-whatsapp:focus-visible {
@@ -272,91 +448,218 @@
       .fab-whatsapp svg {
         width: 30px;
         height: 30px;
-        flex-shrink: 0;
+      }
+
+      @media (max-width: 900px) {
+        .hp-hero {
+          grid-template-columns: 1fr;
+        }
+        .hp-strip {
+          grid-template-columns: 1fr;
+        }
+        .hp-pillars {
+          grid-template-columns: 1fr;
+        }
+        .hp-flow-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+        .hp-flow-step::after {
+          display: none;
+        }
+        .hp-split {
+          grid-template-columns: 1fr;
+        }
+      }
+      @media (max-width: 520px) {
+        .hp-flow-grid {
+          grid-template-columns: 1fr;
+        }
       }
     </style>
   </head>
   <body>
-    <main class="landing">
-      <div class="top-nav">
-        <div class="brand"><span class="dot" aria-hidden="true"></span> Hablemos Pensiones</div>
-        <div class="nav-actions">
-          <button type="button" class="btn-theme-toggle" id="btnThemeTogglePublic" title="Modo oscuro" aria-label="Modo oscuro" aria-pressed="false">
-            <svg class="theme-icon-moon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <header class="hp-header">
+      <div class="hp-header-inner">
+        <div class="hp-brand">
+          <span class="hp-brand-dot" aria-hidden="true"></span>
+          Hablemos Pensiones
+        </div>
+        <nav class="hp-nav" aria-label="Principal">
+          <button type="button" class="btn-theme-toggle hp-btn" id="btnThemeTogglePublic" title="Modo oscuro" aria-label="Modo oscuro" aria-pressed="false" style="padding: 8px 12px">
+            <svg class="theme-icon-moon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
             </svg>
-            <svg class="theme-icon-sun" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg class="theme-icon-sun" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="5" />
               <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
             </svg>
           </button>
-          <a class="btn" data-app-href="/agendar-llamada.html">Agendar llamada</a>
-          <a class="btn btn-primary" data-app-href="/login.html">Ingresar a la plataforma</a>
+          <a class="hp-btn" data-app-href="/agendar-llamada.html">Agendar llamada</a>
+          <a class="hp-btn hp-btn-primary" data-app-href="/login.html">Ingresar</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="hp-wrap">
+      <section class="hp-hero" aria-labelledby="hp-hero-title">
+        <div>
+          <h1 id="hp-hero-title">Ordena tu futuro previsional con <em>asesoría humana</em> y herramientas digitales</h1>
+          <p class="hp-lead">
+            Te ayudamos a entender tu situación, priorizar trámites y tomar decisiones informadas. Proceso claro, seguimiento cercano y
+            atención cuando la necesites.
+          </p>
+          <div class="hp-hero-ctas">
+            <a class="hp-btn hp-btn-wa" href="https://wa.me/56995399068" target="_blank" rel="noopener noreferrer">Contacta a un asesor</a>
+            <a class="hp-btn hp-btn-primary" data-app-href="/agendar-llamada.html">Comienza ahora</a>
+          </div>
+        </div>
+        <div class="hp-hero-card">
+          <h2>Tu aliado integral</h2>
+          <p>Desde la primera conversación hasta los hitos de tu trámite, mantenemos el hilo y el calendario bajo control.</p>
+          <ul class="hp-mini-list">
+            <li>
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><path d="M22 4L12 14.01l-3-3" /></svg>
+              <span>Explicaciones en lenguaje simple y próximos pasos concretos.</span>
+            </li>
+            <li>
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
+              <span>Agenda y recordatorios para no perder plazos.</span>
+            </li>
+            <li>
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
+              <span>Canal seguro con tu asesor (plataforma y WhatsApp).</span>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <div class="hp-strip" role="list">
+        <div class="hp-strip-item" role="listitem">
+          <div class="hp-strip-ic" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
+          </div>
+          <div>
+            Confianza y transparencia
+            <span>Información clara en cada etapa</span>
+          </div>
+        </div>
+        <div class="hp-strip-item" role="listitem">
+          <div class="hp-strip-ic" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" /></svg>
+          </div>
+          <div>
+            100% digital cuando quieras
+            <span>Reserva, registro y seguimiento en línea</span>
+          </div>
+        </div>
+        <div class="hp-strip-item" role="listitem">
+          <div class="hp-strip-ic" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
+          </div>
+          <div>
+            Asesoría personalizada
+            <span>Hablamos tu idioma y tu ritmo</span>
+          </div>
         </div>
       </div>
 
-      <section class="hero">
-        <div class="panel">
-          <h1>Asesoría previsional cercana, clara y en línea</h1>
-          <p class="lead">
-            Ayudamos a afiliados y familias a ordenar su situación previsional, tomar mejores decisiones y avanzar con
-            confianza en cada trámite.
-          </p>
-          <div class="hero-ctas">
-            <a class="btn btn-primary" data-app-href="/agendar-llamada.html">Reservar una llamada</a>
-            <a class="btn" data-app-href="/enlace-registro-publico.html">Registro con enlace del asesor</a>
-          </div>
-          <div class="kpi-grid">
-            <div class="kpi"><b>Atención 1 a 1</b><span>Seguimiento personalizado</span></div>
-            <div class="kpi"><b>Proceso digital</b><span>Gestión ordenada y segura</span></div>
-            <div class="kpi"><b>Agenda flexible</b><span>Reserva el horario que te apropie</span></div>
-          </div>
+      <section class="hp-section" aria-labelledby="hp-pillars-title">
+        <div class="hp-section-head">
+          <span class="hp-kicker" id="hp-pillars-title">Experiencia y equipo</span>
+          <h2>Consistencia, estándares y acompañamiento</h2>
+          <p>Un equipo enfocado en que tomes decisiones con información y tranquilidad.</p>
         </div>
-        <aside class="panel">
-          <h2 style="margin-top: 0">Qué hacemos</h2>
-          <div class="steps">
-            <div class="step"><span class="n">1</span><p>Diagnóstico previsional inicial y levantamiento de antecedentes.</p></div>
-            <div class="step"><span class="n">2</span><p>Estrategia de pensión según tu etapa y objetivos.</p></div>
-            <div class="step"><span class="n">3</span><p>Acompañamiento en formularios, documentación y plazos.</p></div>
-          </div>
-        </aside>
-      </section>
-
-      <section class="section">
-        <h2>Beneficios</h2>
-        <div class="grid-3">
-          <article class="card">
-            <h3>Explicaciones simples</h3>
-            <p>Traducimos términos técnicos a pasos concretos para que entiendas qué conviene hacer.</p>
+        <div class="hp-pillars">
+          <article class="hp-pillar">
+            <div class="hp-pillar-num">1</div>
+            <h3>Altos estándares</h3>
+            <p>Procesos ordenados y revisión de la documentación para reducir errores y vueltas innecesarias.</p>
           </article>
-          <article class="card">
-            <h3>Gestión de tiempos</h3>
-            <p>Organizamos agenda y recordatorios para que no se te pasen hitos importantes del proceso.</p>
+          <article class="hp-pillar">
+            <div class="hp-pillar-num">2</div>
+            <h3>Compromiso permanente</h3>
+            <p>Seguimiento activo: sabrás en qué vas, qué falta y cuándo actuar.</p>
           </article>
-          <article class="card">
-            <h3>Visión integral</h3>
-            <p>Revisamos tu caso completo: edad, situación familiar y opciones de pensión disponibles.</p>
+          <article class="hp-pillar">
+            <div class="hp-pillar-num">3</div>
+            <h3>Orientación a tu medida</h3>
+            <p>Cada caso es distinto; adaptamos el plan a tu edad, familia y objetivos.</p>
           </article>
         </div>
       </section>
 
-      <section class="section">
-        <h2>Cómo comenzar</h2>
-        <div class="steps">
-          <div class="step"><span class="n">1</span><p>Reserva un horario desde «Agendar llamada» (te pediremos el enlace de tu asesor si aplica).</p></div>
-          <div class="step"><span class="n">2</span><p>Ingresa a la plataforma con tu cuenta cuando el asesor te lo indique.</p></div>
-          <div class="step"><span class="n">3</span><p>Recibe orientación y próximos pasos claros.</p></div>
+      <section class="hp-section" aria-labelledby="hp-flow-title">
+        <div class="hp-section-head">
+          <span class="hp-kicker" id="hp-flow-title">Comienza hoy</span>
+          <h2>Empieza en línea: agenda una conversación o escríbenos cuando quieras</h2>
+          <p>Reserva un espacio con tu asesor o escríbenos por WhatsApp. El detalle del trámite lo vemos juntos.</p>
+        </div>
+        <div class="hp-flow">
+          <div class="hp-flow-grid">
+            <div class="hp-flow-step">
+              <div class="hp-flow-badge">1</div>
+              <h3>Ingresa tus datos</h3>
+              <p>Agenda o registro con el enlace que te comparte tu asesor.</p>
+            </div>
+            <div class="hp-flow-step">
+              <div class="hp-flow-badge">2</div>
+              <h3>Conversemos</h3>
+              <p>Llamada o mensaje para entender tu situación.</p>
+            </div>
+            <div class="hp-flow-step">
+              <div class="hp-flow-badge">3</div>
+              <h3>Plan de acción</h3>
+              <p>Te entregamos pasos y plazos claros.</p>
+            </div>
+            <div class="hp-flow-step">
+              <div class="hp-flow-badge">4</div>
+              <h3>Seguimiento</h3>
+              <p>Acompañamiento hasta cada hito acordado.</p>
+            </div>
+          </div>
         </div>
       </section>
 
-      <section class="footer-cta">
-        <h2>¿Listo para avanzar con tu pensión?</h2>
-        <p>Reserva tu llamada o accede a la plataforma para seguir tu trámite.</p>
-        <div class="hero-ctas">
-          <a class="btn btn-primary" data-app-href="/agendar-llamada.html">Agendar ahora</a>
-          <a class="btn" data-app-href="/login.html">Ir a la plataforma</a>
+      <section class="hp-section" aria-labelledby="hp-contact-title">
+        <div class="hp-section-head">
+          <span class="hp-kicker" id="hp-contact-title">Elige cómo contactarnos</span>
+          <h2>Un servicio que se adapta a ti</h2>
+        </div>
+        <div class="hp-split">
+          <div class="hp-card-cta">
+            <h3>WhatsApp</h3>
+            <p>Escribe tu consulta y un asesor te responderá. Ideal para dudas rápidas o coordinar una llamada.</p>
+            <a class="hp-btn hp-btn-wa" href="https://wa.me/56995399068" target="_blank" rel="noopener noreferrer">Abrir WhatsApp</a>
+          </div>
+          <div class="hp-card-cta">
+            <h3>Agenda web</h3>
+            <p>Elige el horario que más te acomoda según la disponibilidad de tu asesor.</p>
+            <a class="hp-btn hp-btn-primary" data-app-href="/agendar-llamada.html">Reservar hora</a>
+            <a class="hp-btn" data-app-href="/enlace-registro-publico.html" style="margin-top: 8px; width: 100%; box-sizing: border-box">Tengo enlace de registro</a>
+          </div>
         </div>
       </section>
+
+      <section class="hp-band" aria-labelledby="hp-band-title">
+        <h2 id="hp-band-title">¿Listo para dar el siguiente paso?</h2>
+        <p>Ingresa a la plataforma si ya trabajas con nosotros, o agenda tu primera conversación.</p>
+        <div class="hp-hero-ctas" style="justify-content: center; margin-bottom: 0">
+          <a class="hp-btn hp-btn-primary" data-app-href="/login.html">Ir a la plataforma</a>
+          <a class="hp-btn" data-app-href="/agendar-llamada.html">Agendar llamada</a>
+        </div>
+      </section>
+
+      <footer class="hp-footer">
+        <p>
+          <strong>Seguridad:</strong> nunca compartas claves de AFP u otros servicios con terceros. Tu asesor no debería pedirte contraseñas de
+          acceso a tus cuentas institucionales.
+        </p>
+        <p style="margin-top: 12px">
+          Para información oficial sobre pensiones en Chile puedes revisar los canales de la
+          <a href="https://www.spensiones.cl" target="_blank" rel="noopener noreferrer">Superintendencia de Pensiones</a>.
+        </p>
+        <p style="margin-top: 12px">© Hablemos Pensiones — Asesoría previsional.</p>
+      </footer>
     </main>
 
     <a
