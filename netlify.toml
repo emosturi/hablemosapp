@@ -19,7 +19,20 @@
   status = 302
   query = { imprimir = ":imprimir" }
 
-# Raíz: landing (force evita que gane el index.html que redirige al dashboard)
+# Subdominio plataforma: raíz → panel (Host explícito; debe estar en DNS y como dominio del sitio en Netlify)
+[[redirects]]
+  from = "https://plataforma.hablemospensiones.cl/"
+  to = "/dashboard.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "https://plataforma.hablemospensiones.cl/index.html"
+  to = "/dashboard.html"
+  status = 200
+  force = true
+
+# Raíz en apex / www / *.netlify.app: landing
 [[redirects]]
   from = "/"
   to = "/www/index.html"

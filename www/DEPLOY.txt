@@ -1,8 +1,16 @@
 Landing (www.hablemospensiones.cl) y plataforma (plataforma.hablemospensiones.cl)
 ==================================================================================
 
-Nota: con un solo sitio Netlify, netlify.toml reescribe "/" a /www/index.html (landing).
-Los enlaces de la landing usan www/site-urls.js → HABLEMOS_PLATAFORMA_ORIGIN (mismo dominio hasta que exista plataforma.*).
+Dominio plataforma.hablemospensiones.cl
+----------------------------------------
+1) Netlify → tu sitio → Domain management → Add domain alias → plataforma.hablemospensiones.cl
+2) Netlify → DNS de hablemospensiones.cl → Add record:
+   - Hostname: plataforma
+   - Type: NETLIFY (o CNAME a tu-sitio.netlify.app, según el panel)
+3) Esperá SSL en verde y probá https://plataforma.hablemospensiones.cl/
+
+netlify.toml: la raíz "/" en plataforma.* reescribe a /dashboard.html; en apex/www a /www/index.html (landing).
+www/site-urls.js → HABLEMOS_PLATAFORMA_ORIGIN debe ser https://plataforma.hablemospensiones.cl
 
 1) Plataforma (código actual del repo, raíz)
    - Netlify: sitio A, publish = raíz del repo (como hoy).
