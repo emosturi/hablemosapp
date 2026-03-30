@@ -31,6 +31,34 @@ async function enviarTelegram(token, chatId, texto) {
   return data.ok;
 }
 
+function normalizarTelefonoE164(phone) {
+  var d = String(phone || "").replace(/\D/g, "");
+  if (!d) return "";
+  if (d.indexOf("56") === 0) return "+" + d;
+  if (d.length >= 8 && d.length <= 15) return "+" + d;
+  return "";
+}
+
+function leerMapaTelefonosChatDesdeEnv() {
+  // Espera un JSON tipo:
+  // {" +56912345678":"123456789", "+5491122334455":"987654321" }
+  var raw = process.env.TELEGRAM_CHAT_BY_PHONE_JSON || "";
+  if (!raw) return {};
+  try {
+    var parsed = JSON.parse(raw);
+    var out = {};
+    Object.keys(parsed || {}).forEach(function (k) {
+      var tel = normalizarTelefonoE164(k);
+      var chatId = String(parsed[k] || "").trim();
+      if (tel && chatId) out[tel] = chatId;
+    });
+    return out;
+  } catch (e) {
+    console.error("[process-reminders] TELEGRAM_CHAT_BY_PHONE_JSON invalido:", e.message);
+    return {};
+  }
+}
+
 exports.handler = async function (event, context) {
   const q = event.queryStringParameters || {};
   const secret = process.env.NOTIFY_SECRET;
@@ -44,10 +72,10 @@ exports.handler = async function (event, context) {
   const supabaseUrl = process.env.SUPABASE_URL;
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const telegramToken = process.env.TELEGRAM_BOT_TOKEN;
-  const telegramChatId = process.env.TELEGRAM_CHAT_ID;
+  const fallbackTelegramChatId = (process.env.TELEGRAM_CHAT_ID || "").trim(); // opcional
 
-  if (!supabaseUrl || !supabaseKey || !telegramToken || !telegramChatId) {
-    console.error("[process-reminders] Faltan variables (SUPABASE_*, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID)");
+  if (!supabaseUrl || !supabaseKey || !telegramToken) {
+    console.error("[process-reminders] Faltan variables (SUPABASE_*, TELEGRAM_BOT_TOKEN)");
     return { statusCode: 500, body: "Configuración incompleta" };
   }
 
@@ -56,10 +84,14 @@ exports.handler = async function (event, context) {
   console.log("[process-reminders] Hoy (Chile):", hoy, "Hora (Chile):", ahoraChile);
 
   const supabase = createClient(supabaseUrl, supabaseKey);
+  const chatByPhone = leerMapaTelefonosChatDesdeEnv();
+  const userPhoneCache = new Map();
+  var enviados = 0;
+  var omitidosSinRuta = 0;
 
   const { data: pendientes, error } = await supabase
     .from("recordatorios")
-    .select("id, fecha, hora, mensaje, cliente_nombre, cliente_telefono")
+    .select("id, user_id, fecha, hora, mensaje, cliente_nombre, cliente_telefono")
     .eq("fecha", hoy)
     .eq("enviado", false);
 
@@ -92,11 +124,49 @@ exports.handler = async function (event, context) {
     const cabeceraStr = cabecera.length > 0 ? " (" + cabecera.join(", ") + ")" : "";
     const texto = `Recordatorio${cabeceraStr} para el ${r.fecha}${r.hora ? " a las " + r.hora : ""}:\n\n${r.mensaje}`;
 
+    let chatIdObjetivo = "";
+    const uid = r.user_id ? String(r.user_id) : "";
+    if (uid) {
+      let phoneAsesor = userPhoneCache.get(uid);
+      if (phoneAsesor === undefined) {
+        try {
+          const userRes = await supabase.auth.admin.getUserById(uid);
+          if (userRes.error) {
+            console.error("[process-reminders] No se pudo leer auth user", uid, userRes.error.message);
+            phoneAsesor = "";
+          } else {
+            const meta = (userRes.data && userRes.data.user && userRes.data.user.user_metadata) || {};
+            phoneAsesor = normalizarTelefonoE164(meta.telefono || meta.phone || "");
+          }
+        } catch (e) {
+          console.error("[process-reminders] Error leyendo user", uid, e.message);
+          phoneAsesor = "";
+        }
+        userPhoneCache.set(uid, phoneAsesor || "");
+      }
+
+      if (phoneAsesor) {
+        chatIdObjetivo = chatByPhone[phoneAsesor] || "";
+      }
+    }
+
+    // fallback opcional para no perder avisos durante migracion
+    if (!chatIdObjetivo && fallbackTelegramChatId) {
+      chatIdObjetivo = fallbackTelegramChatId;
+    }
+
+    if (!chatIdObjetivo) {
+      omitidosSinRuta += 1;
+      console.warn("[process-reminders] Sin ruta Telegram para recordatorio:", r.id, "user_id:", uid || "n/a");
+      continue;
+    }
+
     try {
-      const ok = await enviarTelegram(telegramToken, telegramChatId, texto);
+      const ok = await enviarTelegram(telegramToken, chatIdObjetivo, texto);
       if (ok) {
         await supabase.from("recordatorios").update({ enviado: true }).eq("id", r.id);
         console.log("[process-reminders] Enviado:", r.id);
+        enviados += 1;
       } else {
         console.error("[process-reminders] Telegram no envió:", r.id);
       }
@@ -105,5 +175,8 @@ exports.handler = async function (event, context) {
     }
   }
 
-  return { statusCode: 200, body: JSON.stringify({ ok: true, hoy, ahoraChile, procesados: pendientes.length }) };
+  return {
+    statusCode: 200,
+    body: JSON.stringify({ ok: true, hoy, ahoraChile, procesados: pendientes.length, enviados, omitidosSinRuta }),
+  };
 };
