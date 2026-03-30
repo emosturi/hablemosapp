@@ -5,11 +5,17 @@
 window.SUPABASE_URL = "https://ndxelneraoabehyrplrv.supabase.co";
 window.SUPABASE_ANON_KEY = "sb_publishable_G3-iWOKWSEq84ndlF3kViw_msMmwBT9";
 
-// Notificación WhatsApp al registrar cliente (Netlify Function + Twilio)
-window.NOTIFY_FUNCTION_URL = "https://hablemosapp.netlify.app/.netlify/functions/notify-telegram";
+// Netlify Functions: mismo origen que la página (evita CORS si el dominio es plataforma.* u otro alias).
+// Si necesitas forzar un host fijo, asigna la URL absoluta aquí.
+window.NOTIFY_FUNCTION_URL =
+  typeof window !== "undefined" && window.location && window.location.origin
+    ? window.location.origin + "/.netlify/functions/notify-telegram"
+    : "https://hablemosapp.netlify.app/.netlify/functions/notify-telegram";
 window.NOTIFY_SECRET = "romi1960";
-// Recordatorios por WhatsApp al cliente
-window.REMINDER_FUNCTION_URL = "https://hablemosapp.netlify.app/.netlify/functions/send-reminder";
+window.REMINDER_FUNCTION_URL =
+  typeof window !== "undefined" && window.location && window.location.origin
+    ? window.location.origin + "/.netlify/functions/send-reminder"
+    : "https://hablemosapp.netlify.app/.netlify/functions/send-reminder";
 
 window.ASESOR_REGISTRO_HABILITADO = true; // false = cerrado
 window.ASESOR_REGISTRO_CODIGO = "TU-CODIGO-SEGURO"; // opcional

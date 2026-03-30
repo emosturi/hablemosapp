@@ -2,11 +2,29 @@
  * Netlify Function: envía notificación por Telegram cuando se registra un cliente.
  * Variables: TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, NOTIFY_SECRET.
  */
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "Content-Type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
+function withCors(statusCode, body, extraHeaders) {
+  return {
+    statusCode,
+    headers: Object.assign({}, corsHeaders, extraHeaders || {}),
+    body: body == null ? "" : body,
+  };
+}
+
 exports.handler = async function (event) {
   console.log("[notify-telegram] Invocada, method:", event.httpMethod);
 
+  if (event.httpMethod === "OPTIONS") {
+    return withCors(204, "");
+  }
+
   if (event.httpMethod !== "POST") {
-    return { statusCode: 405, body: "Method Not Allowed" };
+    return withCors(405, "Method Not Allowed");
   }
 
   const secret = process.env.NOTIFY_SECRET;
@@ -15,10 +33,10 @@ exports.handler = async function (event) {
       const body = JSON.parse(event.body);
       if (body.secret !== secret) {
         console.log("[notify-telegram] Secret incorrecto o faltante en body");
-        return { statusCode: 401, body: "Unauthorized" };
+        return withCors(401, "Unauthorized");
       }
     } catch (_) {
-      return { statusCode: 400, body: "Bad Request" };
+      return withCors(400, "Bad Request");
     }
   }
 
@@ -30,10 +48,11 @@ exports.handler = async function (event) {
 
   if (!token || !chatId) {
     console.log("[notify-telegram] Faltan TELEGRAM_BOT_TOKEN o TELEGRAM_CHAT_ID");
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: "Configura TELEGRAM_BOT_TOKEN y TELEGRAM_CHAT_ID en Netlify" }),
-    };
+    return withCors(
+      500,
+      JSON.stringify({ error: "Configura TELEGRAM_BOT_TOKEN y TELEGRAM_CHAT_ID en Netlify" }),
+      { "Content-Type": "application/json" }
+    );
   }
 
   let clientData = {};
@@ -41,7 +60,7 @@ exports.handler = async function (event) {
     const parsed = JSON.parse(event.body || "{}");
     clientData = parsed.client || parsed;
   } catch (_) {
-    return { statusCode: 400, body: "Bad Request" };
+    return withCors(400, "Bad Request");
   }
 
   const nombre = [clientData.nombres, clientData.apellido_paterno, clientData.apellido_materno]
@@ -65,18 +84,20 @@ exports.handler = async function (event) {
     const data = await res.json().catch(() => ({}));
     if (!data.ok) {
       console.error("[notify-telegram] Telegram error:", data.description);
-      return {
-        statusCode: 500,
-        body: JSON.stringify({ error: data.description || "Error al enviar Telegram" }),
-      };
+      return withCors(
+        500,
+        JSON.stringify({ error: data.description || "Error al enviar Telegram" }),
+        { "Content-Type": "application/json" }
+      );
     }
     console.log("[notify-telegram] Mensaje enviado a chat", chatId);
-    return { statusCode: 200, body: JSON.stringify({ ok: true }) };
+    return withCors(200, JSON.stringify({ ok: true }), { "Content-Type": "application/json" });
   } catch (err) {
     console.error("[notify-telegram]", err);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: err.message || "Error al enviar Telegram" }),
-    };
+    return withCors(
+      500,
+      JSON.stringify({ error: err.message || "Error al enviar Telegram" }),
+      { "Content-Type": "application/json" }
+    );
   }
 };

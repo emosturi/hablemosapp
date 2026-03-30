@@ -6,8 +6,8 @@
 window.SUPABASE_URL = "https://TU_PROYECTO.supabase.co";
 window.SUPABASE_ANON_KEY = "tu-anon-key-aqui";
 
-// Opcional: notificación WhatsApp al registrar cliente (Netlify Function + Twilio)
-// window.NOTIFY_FUNCTION_URL = "https://tu-sitio.netlify.app/.netlify/functions/notify-telegram";
+// Opcional: notificación Telegram al registrar cliente (Netlify Function).
+// Recomendado: misma URL que el sitio (evita CORS si usas dominio custom en plataforma.*).
+// window.NOTIFY_FUNCTION_URL = window.location.origin + "/.netlify/functions/notify-telegram";
 // window.NOTIFY_SECRET = "misma-clave-que-NOTIFY_SECRET-en-variables-de-entorno-Netlify";
-// Recordatorios por WhatsApp al cliente
-// window.REMINDER_FUNCTION_URL = "https://tu-sitio.netlify.app/.netlify/functions/send-reminder";
+// window.REMINDER_FUNCTION_URL = window.location.origin + "/.netlify/functions/send-reminder";
