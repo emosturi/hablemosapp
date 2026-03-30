@@ -153,8 +153,15 @@
 
       .phone-grid {
         display: grid;
-        grid-template-columns: 130px 1fr;
+        grid-template-columns: minmax(76px, 92px) 1fr;
         gap: 8px;
+        align-items: stretch;
+      }
+
+      .phone-grid select {
+        padding-left: 8px;
+        padding-right: 6px;
+        font-size: 15px;
       }
 
       .error {
