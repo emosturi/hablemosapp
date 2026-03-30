@@ -427,6 +427,21 @@
           return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizarEmail(email));
         }
 
+        function canonizarTelefono(phone) {
+          var raw = String(phone || "").trim();
+          var digits = raw.replace(/\D/g, "");
+          if (!digits) return "";
+
+          // Canonico para Chile por defecto: +56XXXXXXXXX
+          if (digits.indexOf("56") === 0) digits = digits.slice(2);
+          if (digits.indexOf("0") === 0) digits = digits.slice(1);
+          if (digits.length >= 8 && digits.length <= 9) return "+56" + digits;
+
+          // Fallback E.164 basico para otros casos.
+          if (digits.length >= 8 && digits.length <= 15) return "+" + digits;
+          return "";
+        }
+
         function setupRegisterPolicyUi() {
           var reglas = [];
           if (!REGISTRO_ASESORES_HABILITADO) {
@@ -555,8 +570,9 @@
 
           var email = normalizarEmail(regEmail.value);
           regEmail.value = email;
-          var phone = (regPhone.value || "").trim();
-          regPhone.value = phone;
+          var phoneRaw = (regPhone.value || "").trim();
+          var phoneCanon = canonizarTelefono(phoneRaw);
+          regPhone.value = phoneCanon || phoneRaw;
           var p1 = regPassword.value || "";
           var p2 = regPassword2.value || "";
           var inviteCode = (regInviteCode.value || "").trim();
@@ -572,13 +588,13 @@
             return;
           }
 
-          if (!phone) {
+          if (!phoneRaw) {
             document.getElementById("error_reg_phone").textContent = "Ingresa tu teléfono";
             regPhone.focus();
             return;
           }
-          if (phone.replace(/\D/g, "").length < 8) {
-            document.getElementById("error_reg_phone").textContent = "Ingresa un teléfono válido (mínimo 8 dígitos)";
+          if (!phoneCanon) {
+            document.getElementById("error_reg_phone").textContent = "Ingresa un teléfono válido (ej: +56 9 1234 5678)";
             regPhone.focus();
             return;
           }
@@ -632,7 +648,7 @@
               password: p1,
               options: {
                 data: {
-                  telefono: phone
+                  telefono: phoneCanon
                 }
               }
             })
