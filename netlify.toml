@@ -21,6 +21,18 @@
 
 # Subdominio plataforma: raíz → panel (Host explícito; debe estar en DNS y como dominio del sitio en Netlify)
 [[redirects]]
+  from = "https://plataforma.hablemosdepension.cl/"
+  to = "/dashboard.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "https://plataforma.hablemosdepension.cl/index.html"
+  to = "/dashboard.html"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "https://plataforma.hablemospensiones.cl/"
   to = "/dashboard.html"
   status = 200
