@@ -134,6 +134,29 @@
         box-shadow: 0 0 0 4px var(--accent-soft);
       }
 
+      select {
+        width: 100%;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        color: var(--text);
+        padding: 12px 10px;
+        outline: none;
+        font-size: 16px;
+        transition: border-color 120ms ease, box-shadow 120ms ease;
+      }
+
+      select:focus {
+        border-color: var(--primary-mid);
+        box-shadow: 0 0 0 4px var(--accent-soft);
+      }
+
+      .phone-grid {
+        display: grid;
+        grid-template-columns: 130px 1fr;
+        gap: 8px;
+      }
+
       .error {
         font-size: 12px;
         color: var(--danger);
@@ -266,14 +289,25 @@
 
             <div class="field">
               <label for="regPhone">Teléfono</label>
-              <input
-                id="regPhone"
-                name="regPhone"
-                type="tel"
-                autocomplete="tel"
-                required
-                placeholder="Ej. +56 9 1234 5678"
-              />
+              <div class="phone-grid">
+                <select id="regPhoneCountry" name="regPhoneCountry" autocomplete="tel-country-code" required>
+                  <option value="56" selected>Chile (+56)</option>
+                  <option value="54">Argentina (+54)</option>
+                  <option value="51">Peru (+51)</option>
+                  <option value="57">Colombia (+57)</option>
+                  <option value="52">Mexico (+52)</option>
+                  <option value="34">Espana (+34)</option>
+                  <option value="1">EEUU/Canada (+1)</option>
+                </select>
+                <input
+                  id="regPhone"
+                  name="regPhone"
+                  type="tel"
+                  autocomplete="tel-national"
+                  required
+                  placeholder="Ej. 9 1234 5678"
+                />
+              </div>
               <div class="error" id="error_reg_phone"></div>
             </div>
 
@@ -343,6 +377,7 @@
         var errorGeneral = document.getElementById("error_general");
 
         var regEmail = document.getElementById("regEmail");
+        var regPhoneCountry = document.getElementById("regPhoneCountry");
         var regPhone = document.getElementById("regPhone");
         var regPassword = document.getElementById("regPassword");
         var regPassword2 = document.getElementById("regPassword2");
@@ -427,20 +462,39 @@
           return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizarEmail(email));
         }
 
-        function canonizarTelefono(phone) {
+        function canonizarTelefono(countryCode, phone) {
+          var cc = String(countryCode || "").replace(/\D/g, "");
           var raw = String(phone || "").trim();
           var digits = raw.replace(/\D/g, "");
-          if (!digits) return "";
+          if (!cc || !digits) return "";
 
-          // Canonico para Chile por defecto: +56XXXXXXXXX
-          if (digits.indexOf("56") === 0) digits = digits.slice(2);
-          if (digits.indexOf("0") === 0) digits = digits.slice(1);
-          if (digits.length >= 8 && digits.length <= 9) return "+56" + digits;
+          // Si el usuario pega el numero completo con codigo pais, se lo quitamos.
+          if (digits.indexOf(cc) === 0) digits = digits.slice(cc.length);
+          while (digits.indexOf("0") === 0) digits = digits.slice(1);
 
-          // Fallback E.164 basico para otros casos.
-          if (digits.length >= 8 && digits.length <= 15) return "+" + digits;
-          return "";
+          // E.164: maximo 15 digitos incluyendo codigo de pais.
+          if (digits.length < 6 || (cc.length + digits.length) > 15) return "";
+          if (cc === "56" && (digits.length < 8 || digits.length > 9)) return "";
+
+          return "+" + cc + digits;
         }
+
+        function formatearTelefonoVisible(countryCode, phoneCanon) {
+          var cc = String(countryCode || "").replace(/\D/g, "");
+          var canon = String(phoneCanon || "");
+          if (!cc || canon.indexOf("+" + cc) !== 0) return canon;
+          return canon.slice(cc.length + 1);
+        }
+
+        regPhoneCountry.addEventListener("change", function () {
+          var canon = canonizarTelefono(regPhoneCountry.value, regPhone.value);
+          if (canon) regPhone.value = formatearTelefonoVisible(regPhoneCountry.value, canon);
+        });
+
+        regPhone.addEventListener("blur", function () {
+          var canon = canonizarTelefono(regPhoneCountry.value, regPhone.value);
+          if (canon) regPhone.value = formatearTelefonoVisible(regPhoneCountry.value, canon);
+        });
 
         function setupRegisterPolicyUi() {
           var reglas = [];
@@ -571,8 +625,8 @@
           var email = normalizarEmail(regEmail.value);
           regEmail.value = email;
           var phoneRaw = (regPhone.value || "").trim();
-          var phoneCanon = canonizarTelefono(phoneRaw);
-          regPhone.value = phoneCanon || phoneRaw;
+          var phoneCanon = canonizarTelefono(regPhoneCountry.value, phoneRaw);
+          regPhone.value = phoneCanon ? formatearTelefonoVisible(regPhoneCountry.value, phoneCanon) : phoneRaw;
           var p1 = regPassword.value || "";
           var p2 = regPassword2.value || "";
           var inviteCode = (regInviteCode.value || "").trim();
@@ -594,7 +648,7 @@
             return;
           }
           if (!phoneCanon) {
-            document.getElementById("error_reg_phone").textContent = "Ingresa un teléfono válido (ej: +56 9 1234 5678)";
+            document.getElementById("error_reg_phone").textContent = "Ingresa un telefono valido para el codigo de pais seleccionado";
             regPhone.focus();
             return;
           }
