@@ -258,12 +258,17 @@
             clearErrors();
             setStatus("");
 
-            if (!nombre) {
-              errorNombre.textContent = "Ingresa tu nombre.";
+            if (!nombre || nombre.length < 2) {
+              errorNombre.textContent = "Ingresa un nombre (mínimo 2 caracteres).";
               return;
             }
             if (!telefono) {
               errorTelefono.textContent = "Ingresa tu teléfono.";
+              return;
+            }
+            var digitos = telefono.replace(/\D/g, "");
+            if (digitos.length < 8) {
+              errorTelefono.textContent = "El teléfono debe tener al menos 8 dígitos.";
               return;
             }
 

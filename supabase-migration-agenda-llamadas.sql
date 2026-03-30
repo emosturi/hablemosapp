@@ -1,6 +1,8 @@
 -- Agenda de llamadas: disponibilidad del asesor, reservas públicas por token, cliente potencial + recordatorio.
 -- Requisitos: public.clientes_potenciales con user_id; public.recordatorios con user_id (migración multi-usuario).
 -- Ejecutar en Supabase SQL Editor.
+-- Si esta migración ya estaba aplicada (reserva sin prospecto / teléfono débil), ejecutar además:
+--   supabase-migration-agenda-contacto-minimo.sql
 
 -- Opcional: vincular recordatorio al prospecto
 alter table public.recordatorios
@@ -36,7 +38,7 @@ create table if not exists public.agenda_reservas (
   owner_user_id uuid not null references auth.users(id) on delete cascade,
   fecha date not null,
   hora smallint not null check (hora >= 0 and hora <= 23),
-  cliente_potencial_id uuid references public.clientes_potenciales(id) on delete set null,
+  cliente_potencial_id uuid not null references public.clientes_potenciales(id) on delete cascade,
   created_at timestamptz default now(),
   constraint agenda_reservas_owner_fecha_hora_unique unique (owner_user_id, fecha, hora)
 );
@@ -49,6 +51,8 @@ alter table public.agenda_reservas enable row level security;
 
 drop policy if exists "asesor_disp_select_own" on public.asesor_disponibilidad;
 drop policy if exists "asesor_disp_upsert_own" on public.asesor_disponibilidad;
+drop policy if exists "asesor_disp_insert_own" on public.asesor_disponibilidad;
+drop policy if exists "asesor_disp_update_own" on public.asesor_disponibilidad;
 drop policy if exists "asesor_disp_delete_own" on public.asesor_disponibilidad;
 
 create policy "asesor_disp_select_own"
@@ -217,7 +221,8 @@ begin
   if v_nombre = '' or length(v_nombre) < 3 then
     return jsonb_build_object('ok', false, 'code', 'nombre_requerido');
   end if;
-  if v_tel = '' or length(v_tel) < 6 then
+  -- Al menos 8 dígitos (evita "123" o solo espacios/guiones)
+  if length(regexp_replace(v_tel, '\D', '', 'g')) < 8 then
     return jsonb_build_object('ok', false, 'code', 'telefono_requerido');
   end if;
 

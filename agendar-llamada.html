@@ -193,6 +193,10 @@
           return fecha + "|" + hora;
         }
 
+        function soloDigitos(s) {
+          return String(s || "").replace(/\D/g, "");
+        }
+
         function isReserved(fecha, hora) {
           return cacheReservas.some(function (r) {
             return String(r.fecha) === fecha && Number(r.hora) === Number(hora);
@@ -315,6 +319,32 @@
         form.addEventListener("submit", function (e) {
           e.preventDefault();
           if (!pickFecha || pickHora == null) return;
+          var n1 = (document.getElementById("fNombres").value || "").trim();
+          var n2 = (document.getElementById("fApPat").value || "").trim();
+          var n3 = (document.getElementById("fApMat").value || "").trim();
+          var ciudad = (document.getElementById("fCiudad").value || "").trim();
+          var tel = (document.getElementById("fTel").value || "").trim();
+          var nombreCompleto = [n1, n2, n3].filter(Boolean).join(" ").trim();
+
+          if (nombreCompleto.length < 3) {
+            dlgStatus.style.display = "block";
+            dlgStatus.style.color = "var(--danger-text,#b91c1c)";
+            dlgStatus.textContent = "Complete nombre y apellidos (mínimo 3 caracteres en total).";
+            return;
+          }
+          if (soloDigitos(tel).length < 8) {
+            dlgStatus.style.display = "block";
+            dlgStatus.style.color = "var(--danger-text,#b91c1c)";
+            dlgStatus.textContent = "Ingrese un teléfono con al menos 8 dígitos (puede incluir +56 o espacios).";
+            return;
+          }
+          if (!ciudad) {
+            dlgStatus.style.display = "block";
+            dlgStatus.style.color = "var(--danger-text,#b91c1c)";
+            dlgStatus.textContent = "Indique la ciudad.";
+            return;
+          }
+
           var btn = document.getElementById("btnConfirm");
           btn.disabled = true;
           dlgStatus.style.display = "none";
@@ -323,11 +353,11 @@
               p_invite: ref,
               p_fecha: pickFecha,
               p_hora: pickHora,
-              p_nombres: (document.getElementById("fNombres").value || "").trim(),
-              p_apellido_paterno: (document.getElementById("fApPat").value || "").trim(),
-              p_apellido_materno: (document.getElementById("fApMat").value || "").trim(),
-              p_ciudad: (document.getElementById("fCiudad").value || "").trim(),
-              p_telefono: (document.getElementById("fTel").value || "").trim()
+              p_nombres: n1,
+              p_apellido_paterno: n2,
+              p_apellido_materno: n3,
+              p_ciudad: ciudad,
+              p_telefono: tel
             })
             .then(function (res) {
               btn.disabled = false;
@@ -348,7 +378,7 @@
                   sin_disponibilidad: "El asesor no tiene agenda activa.",
                   fecha_invalida: "La fecha no es válida.",
                   nombre_requerido: "Revise los nombres ingresados.",
-                  telefono_requerido: "Ingrese un teléfono válido."
+                  telefono_requerido: "Ingrese un teléfono con al menos 8 dígitos."
                 };
                 dlgStatus.textContent = map[code] || "No se pudo completar la reserva.";
                 return;
