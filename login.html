@@ -265,6 +265,19 @@
             </div>
 
             <div class="field">
+              <label for="regPhone">Teléfono</label>
+              <input
+                id="regPhone"
+                name="regPhone"
+                type="tel"
+                autocomplete="tel"
+                required
+                placeholder="Ej. +56 9 1234 5678"
+              />
+              <div class="error" id="error_reg_phone"></div>
+            </div>
+
+            <div class="field">
               <label for="regPassword">Contraseña</label>
               <input
                 id="regPassword"
@@ -330,6 +343,7 @@
         var errorGeneral = document.getElementById("error_general");
 
         var regEmail = document.getElementById("regEmail");
+        var regPhone = document.getElementById("regPhone");
         var regPassword = document.getElementById("regPassword");
         var regPassword2 = document.getElementById("regPassword2");
         var regInviteCode = document.getElementById("regInviteCode");
@@ -388,6 +402,7 @@
 
         function clearRegisterErrors() {
           document.getElementById("error_reg_email").textContent = "";
+          document.getElementById("error_reg_phone").textContent = "";
           document.getElementById("error_reg_password").textContent = "";
           document.getElementById("error_reg_password2").textContent = "";
           document.getElementById("error_reg_invite_code").textContent = "";
@@ -540,6 +555,8 @@
 
           var email = normalizarEmail(regEmail.value);
           regEmail.value = email;
+          var phone = (regPhone.value || "").trim();
+          regPhone.value = phone;
           var p1 = regPassword.value || "";
           var p2 = regPassword2.value || "";
           var inviteCode = (regInviteCode.value || "").trim();
@@ -552,6 +569,17 @@
           if (!emailPareceValido(email)) {
             document.getElementById("error_reg_email").textContent = "Email inválido (usa formato nombre@dominio.com)";
             regEmail.focus();
+            return;
+          }
+
+          if (!phone) {
+            document.getElementById("error_reg_phone").textContent = "Ingresa tu teléfono";
+            regPhone.focus();
+            return;
+          }
+          if (phone.replace(/\D/g, "").length < 8) {
+            document.getElementById("error_reg_phone").textContent = "Ingresa un teléfono válido (mínimo 8 dígitos)";
+            regPhone.focus();
             return;
           }
 
@@ -599,7 +627,15 @@
           errorRegisterGeneral.textContent = "Creando cuenta…";
 
           sb.client.auth
-            .signUp({ email: email, password: p1 })
+            .signUp({
+              email: email,
+              password: p1,
+              options: {
+                data: {
+                  telefono: phone
+                }
+              }
+            })
             .then(function (result) {
               btnRegister.disabled = false;
               if (result.error) {
