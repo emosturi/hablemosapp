@@ -1,8 +1,12 @@
 /**
- * Netlify Scheduled Function: envía los recordatorios por Telegram.
+ * Netlify Scheduled Function: envía recordatorios por Telegram al chat del asesor (misma lógica que notify-telegram).
+ * Cada fila en recordatorios.user_id define el dueño; TELEGRAM_CHAT_BY_PHONE_JSON + metadata.telefono del asesor.
+ * Nunca usa TELEGRAM_CHAT_ID como grupo: todos los recordatorios van solo al chat del asesor dueño.
  * Se ejecuta cada 5 min (pruebas) o 15 min (producción). Solo envía cuando la hora Chile >= hora del recordatorio.
  */
 const { createClient } = require("@supabase/supabase-js");
+const { loadTelegramChatByPhoneMap } = require("./telegram-advisor-route");
+const { sendTelegramToAdvisor } = require("./telegram-send");
 
 exports.config = {
   schedule: "*/5 * * * *", // Cada 5 min (pruebas); en producción usar "*/15 * * * *"
@@ -20,17 +24,6 @@ function ahoraChileHHmm() {
   return h + ":" + m;
 }
 
-async function enviarTelegram(token, chatId, texto) {
-  const url = `https://api.telegram.org/bot${token}/sendMessage`;
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ chat_id: chatId, text: texto }),
-  });
-  const data = await res.json().catch(() => ({}));
-  return data.ok;
-}
-
 exports.handler = async function (event, context) {
   const q = event.queryStringParameters || {};
   const secret = process.env.NOTIFY_SECRET;
@@ -44,10 +37,8 @@ exports.handler = async function (event, context) {
   const supabaseUrl = process.env.SUPABASE_URL;
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const telegramToken = process.env.TELEGRAM_BOT_TOKEN;
-  const telegramChatId = process.env.TELEGRAM_CHAT_ID;
-
-  if (!supabaseUrl || !supabaseKey || !telegramToken || !telegramChatId) {
-    console.error("[process-reminders] Faltan variables (SUPABASE_*, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID)");
+  if (!supabaseUrl || !supabaseKey || !telegramToken) {
+    console.error("[process-reminders] Faltan variables (SUPABASE_*, TELEGRAM_BOT_TOKEN)");
     return { statusCode: 500, body: "Configuración incompleta" };
   }
 
@@ -56,10 +47,14 @@ exports.handler = async function (event, context) {
   console.log("[process-reminders] Hoy (Chile):", hoy, "Hora (Chile):", ahoraChile);
 
   const supabase = createClient(supabaseUrl, supabaseKey);
+  const chatByPhone = loadTelegramChatByPhoneMap();
+  const userPhoneCache = new Map();
+  var enviados = 0;
+  var omitidosSinRuta = 0;
 
   const { data: pendientes, error } = await supabase
     .from("recordatorios")
-    .select("id, fecha, hora, mensaje, cliente_nombre, cliente_telefono")
+    .select("id, user_id, fecha, hora, mensaje, cliente_nombre, cliente_telefono")
     .eq("fecha", hoy)
     .eq("enviado", false);
 
@@ -92,18 +87,38 @@ exports.handler = async function (event, context) {
     const cabeceraStr = cabecera.length > 0 ? " (" + cabecera.join(", ") + ")" : "";
     const texto = `Recordatorio${cabeceraStr} para el ${r.fecha}${r.hora ? " a las " + r.hora : ""}:\n\n${r.mensaje}`;
 
-    try {
-      const ok = await enviarTelegram(telegramToken, telegramChatId, texto);
-      if (ok) {
-        await supabase.from("recordatorios").update({ enviado: true }).eq("id", r.id);
-        console.log("[process-reminders] Enviado:", r.id);
+    const uid = r.user_id ? String(r.user_id) : "";
+    const envio = await sendTelegramToAdvisor({
+      supabase,
+      ownerUserId: uid,
+      text: texto,
+      telegramToken,
+      chatByPhone,
+      userPhoneCache,
+      logPrefix: "[process-reminders]",
+    });
+    if (!envio.ok) {
+      if (envio.reason === "no_telegram_route" || envio.reason === "missing_owner_user_id") {
+        omitidosSinRuta += 1;
+        console.warn("[process-reminders] Sin ruta Telegram para recordatorio:", r.id, "user_id:", uid || "n/a");
       } else {
-        console.error("[process-reminders] Telegram no envió:", r.id);
+        console.error("[process-reminders] Error de envío Telegram:", r.id, envio.reason, envio.error || "");
       }
+      continue;
+    }
+    console.log("[process-reminders] Destino asesor chat_id:", envio.chatId, "recordatorio:", r.id);
+
+    try {
+      await supabase.from("recordatorios").update({ enviado: true }).eq("id", r.id);
+      console.log("[process-reminders] Enviado:", r.id);
+      enviados += 1;
     } catch (err) {
       console.error("[process-reminders] Error para", r.id, err.message);
     }
   }
 
-  return { statusCode: 200, body: JSON.stringify({ ok: true, hoy, ahoraChile, procesados: pendientes.length }) };
+  return {
+    statusCode: 200,
+    body: JSON.stringify({ ok: true, hoy, ahoraChile, procesados: pendientes.length, enviados, omitidosSinRuta }),
+  };
 };

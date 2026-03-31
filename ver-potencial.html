@@ -462,7 +462,10 @@
                     })
                     .then(function (r2) {
                       if (r2.ok) {
-                        mostrarFeedback("Recordatorio programado. Recibirás el mensaje por Telegram el día indicado.", false);
+                        mostrarFeedback(
+                          "Recordatorio programado. Te llegará por Telegram a tu chat vinculado al asesor en la fecha indicada.",
+                          false
+                        );
                         setTimeout(cerrarModal, 1500);
                       } else {
                         mostrarFeedback(r2.data && r2.data.error ? r2.data.error : "Error al enviar.", true);

@@ -134,6 +134,36 @@
         box-shadow: 0 0 0 4px var(--accent-soft);
       }
 
+      select {
+        width: 100%;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        color: var(--text);
+        padding: 12px 10px;
+        outline: none;
+        font-size: 16px;
+        transition: border-color 120ms ease, box-shadow 120ms ease;
+      }
+
+      select:focus {
+        border-color: var(--primary-mid);
+        box-shadow: 0 0 0 4px var(--accent-soft);
+      }
+
+      .phone-grid {
+        display: grid;
+        grid-template-columns: minmax(76px, 92px) 1fr;
+        gap: 8px;
+        align-items: stretch;
+      }
+
+      .phone-grid select {
+        padding-left: 8px;
+        padding-right: 6px;
+        font-size: 15px;
+      }
+
       .error {
         font-size: 12px;
         color: var(--danger);
@@ -265,6 +295,30 @@
             </div>
 
             <div class="field">
+              <label for="regPhone">Teléfono</label>
+              <div class="phone-grid">
+                <select id="regPhoneCountry" name="regPhoneCountry" autocomplete="tel-country-code" required>
+                  <option value="56" selected>🇨🇱 +56</option>
+                  <option value="54">🇦🇷 +54</option>
+                  <option value="51">🇵🇪 +51</option>
+                  <option value="57">🇨🇴 +57</option>
+                  <option value="52">🇲🇽 +52</option>
+                  <option value="34">🇪🇸 +34</option>
+                  <option value="1">🇺🇸🇨🇦 +1</option>
+                </select>
+                <input
+                  id="regPhone"
+                  name="regPhone"
+                  type="tel"
+                  autocomplete="tel-national"
+                  required
+                  placeholder="Ej. 9 1234 5678"
+                />
+              </div>
+              <div class="error" id="error_reg_phone"></div>
+            </div>
+
+            <div class="field">
               <label for="regPassword">Contraseña</label>
               <input
                 id="regPassword"
@@ -330,6 +384,8 @@
         var errorGeneral = document.getElementById("error_general");
 
         var regEmail = document.getElementById("regEmail");
+        var regPhoneCountry = document.getElementById("regPhoneCountry");
+        var regPhone = document.getElementById("regPhone");
         var regPassword = document.getElementById("regPassword");
         var regPassword2 = document.getElementById("regPassword2");
         var regInviteCode = document.getElementById("regInviteCode");
@@ -388,6 +444,7 @@
 
         function clearRegisterErrors() {
           document.getElementById("error_reg_email").textContent = "";
+          document.getElementById("error_reg_phone").textContent = "";
           document.getElementById("error_reg_password").textContent = "";
           document.getElementById("error_reg_password2").textContent = "";
           document.getElementById("error_reg_invite_code").textContent = "";
@@ -411,6 +468,40 @@
         function emailPareceValido(email) {
           return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizarEmail(email));
         }
+
+        function canonizarTelefono(countryCode, phone) {
+          var cc = String(countryCode || "").replace(/\D/g, "");
+          var raw = String(phone || "").trim();
+          var digits = raw.replace(/\D/g, "");
+          if (!cc || !digits) return "";
+
+          // Si el usuario pega el numero completo con codigo pais, se lo quitamos.
+          if (digits.indexOf(cc) === 0) digits = digits.slice(cc.length);
+          while (digits.indexOf("0") === 0) digits = digits.slice(1);
+
+          // E.164: maximo 15 digitos incluyendo codigo de pais.
+          if (digits.length < 6 || (cc.length + digits.length) > 15) return "";
+          if (cc === "56" && (digits.length < 8 || digits.length > 9)) return "";
+
+          return "+" + cc + digits;
+        }
+
+        function formatearTelefonoVisible(countryCode, phoneCanon) {
+          var cc = String(countryCode || "").replace(/\D/g, "");
+          var canon = String(phoneCanon || "");
+          if (!cc || canon.indexOf("+" + cc) !== 0) return canon;
+          return canon.slice(cc.length + 1);
+        }
+
+        regPhoneCountry.addEventListener("change", function () {
+          var canon = canonizarTelefono(regPhoneCountry.value, regPhone.value);
+          if (canon) regPhone.value = formatearTelefonoVisible(regPhoneCountry.value, canon);
+        });
+
+        regPhone.addEventListener("blur", function () {
+          var canon = canonizarTelefono(regPhoneCountry.value, regPhone.value);
+          if (canon) regPhone.value = formatearTelefonoVisible(regPhoneCountry.value, canon);
+        });
 
         function setupRegisterPolicyUi() {
           var reglas = [];
@@ -540,6 +631,9 @@
 
           var email = normalizarEmail(regEmail.value);
           regEmail.value = email;
+          var phoneRaw = (regPhone.value || "").trim();
+          var phoneCanon = canonizarTelefono(regPhoneCountry.value, phoneRaw);
+          regPhone.value = phoneCanon ? formatearTelefonoVisible(regPhoneCountry.value, phoneCanon) : phoneRaw;
           var p1 = regPassword.value || "";
           var p2 = regPassword2.value || "";
           var inviteCode = (regInviteCode.value || "").trim();
@@ -552,6 +646,17 @@
           if (!emailPareceValido(email)) {
             document.getElementById("error_reg_email").textContent = "Email inválido (usa formato nombre@dominio.com)";
             regEmail.focus();
+            return;
+          }
+
+          if (!phoneRaw) {
+            document.getElementById("error_reg_phone").textContent = "Ingresa tu teléfono";
+            regPhone.focus();
+            return;
+          }
+          if (!phoneCanon) {
+            document.getElementById("error_reg_phone").textContent = "Ingresa un telefono valido para el codigo de pais seleccionado";
+            regPhone.focus();
             return;
           }
 
@@ -599,7 +704,15 @@
           errorRegisterGeneral.textContent = "Creando cuenta…";
 
           sb.client.auth
-            .signUp({ email: email, password: p1 })
+            .signUp({
+              email: email,
+              password: p1,
+              options: {
+                data: {
+                  telefono: phoneCanon
+                }
+              }
+            })
             .then(function (result) {
               btnRegister.disabled = false;
               if (result.error) {

@@ -168,6 +168,9 @@
         var cacheReservas = [];
         var rangoDesde = null;
         var rangoHasta = null;
+        /** Referencia de "ahora" en America/Santiago (servidor); para no ofrecer franjas ya iniciadas. */
+        var hoyZona = null;
+        var horaCursorZona = null;
         var pickFecha = null;
         var pickHora = null;
 
@@ -201,6 +204,25 @@
           return cacheReservas.some(function (r) {
             return String(r.fecha) === fecha && Number(r.hora) === Number(hora);
           });
+        }
+
+        function toYmdString(v) {
+          var y = toYmd(v);
+          return y || null;
+        }
+
+        /**
+         * Franja fecha HH:00 en America/Santiago: ocultar si ya comenzó o estamos dentro de esa hora.
+         * Usa cursor del servidor; si no hay (RPC antigua), respaldo con reloj local.
+         */
+        function slotYaPasado(ymd, hr) {
+          var hoyRef = hoyZona || localTodayYmd();
+          if (ymd !== hoyRef) return false;
+          var cur =
+            horaCursorZona != null
+              ? Number(horaCursorZona)
+              : new Date().getHours();
+          return Number(hr) <= cur;
         }
 
         function addDaysYmd(ymd, days) {
@@ -247,6 +269,7 @@
               var hr = parseInt(h, 10);
               if (isNaN(hr)) return;
               if (isReserved(ymd, hr)) return;
+              if (slotYaPasado(ymd, hr)) return;
               slots.push(hr);
             });
             slots.sort(function (a, b) { return a - b; });
@@ -308,6 +331,12 @@
               cacheReservas = Array.isArray(data.reservas) ? data.reservas : [];
               rangoDesde = toYmd(data.desde);
               rangoHasta = toYmd(data.hasta);
+              hoyZona = toYmdString(data.hoy_zona);
+              horaCursorZona =
+                data.hora_cursor_zona != null && data.hora_cursor_zona !== ""
+                  ? parseInt(data.hora_cursor_zona, 10)
+                  : null;
+              if (horaCursorZona != null && isNaN(horaCursorZona)) horaCursorZona = null;
               render();
             });
         }
@@ -375,6 +404,7 @@
                 var map = {
                   slot_ocupado: "Ese horario acaba de ser tomado. Elija otro.",
                   slot_no_disponible: "Horario no disponible.",
+                  slot_pasado: "Ese horario ya no está disponible. Elija una hora futura.",
                   sin_disponibilidad: "El asesor no tiene agenda activa.",
                   fecha_invalida: "La fecha no es válida.",
                   nombre_requerido: "Revise los nombres ingresados.",

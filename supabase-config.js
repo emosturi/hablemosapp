@@ -5,8 +5,7 @@
 window.SUPABASE_URL = "https://ndxelneraoabehyrplrv.supabase.co";
 window.SUPABASE_ANON_KEY = "sb_publishable_G3-iWOKWSEq84ndlF3kViw_msMmwBT9";
 
-// Netlify Functions: mismo origen que la página (evita CORS si el dominio es plataforma.* u otro alias).
-// Si necesitas forzar un host fijo, asigna la URL absoluta aquí.
+// Netlify Functions: mismo origen que la página (evita CORS con dominio plataforma.*).
 window.NOTIFY_FUNCTION_URL =
   typeof window !== "undefined" && window.location && window.location.origin
     ? window.location.origin + "/.netlify/functions/notify-telegram"

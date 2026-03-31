@@ -1,98 +1,5 @@
--- Agenda de llamadas: disponibilidad del asesor, reservas públicas por token, cliente potencial + recordatorio.
--- Requisitos: public.clientes_potenciales con user_id; public.recordatorios con user_id (migración multi-usuario).
--- Ejecutar en Supabase SQL Editor.
--- Si esta migración ya estaba aplicada (reserva sin prospecto / teléfono débil), ejecutar además:
---   supabase-migration-agenda-contacto-minimo.sql
-
--- Opcional: vincular recordatorio al prospecto
-alter table public.recordatorios
-  add column if not exists cliente_potencial_id uuid references public.clientes_potenciales(id) on delete set null;
-
-create index if not exists idx_recordatorios_cliente_potencial_id
-  on public.recordatorios (cliente_potencial_id)
-  where cliente_potencial_id is not null;
-
--- Disponibilidad: bloques JSON por día ISO 1=lunes … 7=domingo; valores = array de horas enteras 0–23
-create table if not exists public.asesor_disponibilidad (
-  user_id uuid primary key references auth.users(id) on delete cascade,
-  bloques jsonb not null default '{}'::jsonb,
-  updated_at timestamptz default now()
-);
-
-comment on table public.asesor_disponibilidad is 'Horarios disponibles para agendar llamadas; bloques["1"]..["7"] = arrays de hora (0-23).';
-
--- Un token público por asesor (como registro_afiliados_invites)
-create table if not exists public.agenda_llamadas_invites (
-  id uuid primary key default gen_random_uuid(),
-  owner_user_id uuid not null unique references auth.users(id) on delete cascade,
-  created_at timestamptz default now()
-);
-
-comment on table public.agenda_llamadas_invites is 'UUID en agendar-llamada.html?ref= para reservar llamada con un asesor.';
-
-create index if not exists idx_agenda_invites_owner on public.agenda_llamadas_invites (owner_user_id);
-
--- Reservas (evita doble uso del mismo slot)
-create table if not exists public.agenda_reservas (
-  id uuid primary key default gen_random_uuid(),
-  owner_user_id uuid not null references auth.users(id) on delete cascade,
-  fecha date not null,
-  hora smallint not null check (hora >= 0 and hora <= 23),
-  cliente_potencial_id uuid not null references public.clientes_potenciales(id) on delete cascade,
-  created_at timestamptz default now(),
-  constraint agenda_reservas_owner_fecha_hora_unique unique (owner_user_id, fecha, hora)
-);
-
-create index if not exists idx_agenda_reservas_owner_fecha on public.agenda_reservas (owner_user_id, fecha);
-
-alter table public.asesor_disponibilidad enable row level security;
-alter table public.agenda_llamadas_invites enable row level security;
-alter table public.agenda_reservas enable row level security;
-
-drop policy if exists "asesor_disp_select_own" on public.asesor_disponibilidad;
-drop policy if exists "asesor_disp_upsert_own" on public.asesor_disponibilidad;
-drop policy if exists "asesor_disp_insert_own" on public.asesor_disponibilidad;
-drop policy if exists "asesor_disp_update_own" on public.asesor_disponibilidad;
-drop policy if exists "asesor_disp_delete_own" on public.asesor_disponibilidad;
-
-create policy "asesor_disp_select_own"
-  on public.asesor_disponibilidad for select to authenticated
-  using (user_id = auth.uid());
-
-create policy "asesor_disp_insert_own"
-  on public.asesor_disponibilidad for insert to authenticated
-  with check (user_id = auth.uid());
-
-create policy "asesor_disp_update_own"
-  on public.asesor_disponibilidad for update to authenticated
-  using (user_id = auth.uid()) with check (user_id = auth.uid());
-
-create policy "asesor_disp_delete_own"
-  on public.asesor_disponibilidad for delete to authenticated
-  using (user_id = auth.uid());
-
-drop policy if exists "agenda_inv_select_own" on public.agenda_llamadas_invites;
-drop policy if exists "agenda_inv_insert_own" on public.agenda_llamadas_invites;
-drop policy if exists "agenda_inv_delete_own" on public.agenda_llamadas_invites;
-
-create policy "agenda_inv_select_own"
-  on public.agenda_llamadas_invites for select to authenticated
-  using (owner_user_id = auth.uid());
-
-create policy "agenda_inv_insert_own"
-  on public.agenda_llamadas_invites for insert to authenticated
-  with check (owner_user_id = auth.uid());
-
-create policy "agenda_inv_delete_own"
-  on public.agenda_llamadas_invites for delete to authenticated
-  using (owner_user_id = auth.uid());
-
-drop policy if exists "agenda_res_select_own" on public.agenda_reservas;
-create policy "agenda_res_select_own"
-  on public.agenda_reservas for select to authenticated
-  using (owner_user_id = auth.uid());
-
--- --- Funciones públicas (anon) ---
+-- Ocultar y rechazar franjas ya iniciadas (misma zona que la agenda: America/Santiago).
+-- Ejecutar en Supabase SQL Editor si ya aplicaste supabase-migration-agenda-llamadas.sql.
 
 create or replace function public.obtener_agenda_publica(
   p_invite uuid,
@@ -237,7 +144,6 @@ begin
   if v_nombre = '' or length(v_nombre) < 3 then
     return jsonb_build_object('ok', false, 'code', 'nombre_requerido');
   end if;
-  -- Al menos 8 dígitos (evita "123" o solo espacios/guiones)
   if length(regexp_replace(v_tel, '\D', '', 'g')) < 8 then
     return jsonb_build_object('ok', false, 'code', 'telefono_requerido');
   end if;
@@ -250,7 +156,6 @@ begin
     return jsonb_build_object('ok', false, 'code', 'sin_disponibilidad');
   end if;
 
-  -- ISO: 1 = lunes … 7 = domingo
   v_dow := extract(isodow from p_fecha)::int;
   v_day_hours := v_bloques -> (v_dow::text);
 
@@ -317,11 +222,5 @@ exception
 end;
 $$;
 
-revoke all on function public.obtener_agenda_publica(uuid, date, date) from public;
-revoke all on function public.agendar_llamada_publica(uuid, date, int, text, text, text, text, text) from public;
-
-grant execute on function public.obtener_agenda_publica(uuid, date, date) to anon, authenticated;
-grant execute on function public.agendar_llamada_publica(uuid, date, int, text, text, text, text, text) to anon, authenticated;
-
-comment on function public.obtener_agenda_publica is 'Público: bloques y reservas; hoy_zona/hora_cursor_zona ocultan franjas ya iniciadas (America/Santiago).';
-comment on function public.agendar_llamada_publica is 'Público: crea prospecto, reserva y recordatorio; rechaza la franja si su inicio ya pasó (America/Santiago).';
+comment on function public.obtener_agenda_publica is 'Público: bloques y reservas; hoy_zona/hora_cursor_zona para ocultar franjas ya iniciadas en America/Santiago.';
+comment on function public.agendar_llamada_publica is 'Público: crea prospecto, reserva y recordatorio; rechaza franjas cuyo inicio ya pasó (America/Santiago).';

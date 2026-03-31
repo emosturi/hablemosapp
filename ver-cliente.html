@@ -952,7 +952,10 @@
                   .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
                   .then(function (r) {
                     if (r.ok) {
-                      mostrarFeedback("Recordatorio programado. Recibirás el mensaje por Telegram el día indicado.", false);
+                      mostrarFeedback(
+                        "Recordatorio programado. Te llegará por Telegram a tu chat vinculado al asesor en la fecha indicada.",
+                        false
+                      );
                       setTimeout(cerrarModal, 1500);
                     } else {
                       mostrarFeedback(r.data && r.data.error ? r.data.error : "Error al enviar.", true);
