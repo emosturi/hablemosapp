@@ -74,7 +74,52 @@
 
   window.wireAppShellLogout = function (supabase) {
     var btn = qs("btnCerrarSesionMenu");
-    if (!btn || !supabase) return;
+    if (!supabase) return;
+
+    function ensureOwnerMenuLink(isOwner) {
+      function upsertLink(container) {
+        if (!container) return;
+        var existing = container.querySelector("a[data-owner-menu='1']");
+        if (!isOwner) {
+          if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
+          return;
+        }
+        if (existing) return;
+        var a = document.createElement("a");
+        a.href = "admin-panel.html";
+        a.textContent = "Panel owner";
+        a.setAttribute("data-owner-menu", "1");
+        var active = window.location && /admin-panel\.html(?:\?|$)/.test(window.location.pathname || "");
+        if (active) a.classList.add("active");
+        container.appendChild(a);
+      }
+
+      var sidebars = document.querySelectorAll(".sidebar");
+      sidebars.forEach(function (sb) { upsertLink(sb); });
+      var mobileDd = qs("menuMobileDd");
+      upsertLink(mobileDd);
+    }
+
+    supabase.auth.getSession().then(function (r) {
+      var uid = r && r.data && r.data.session && r.data.session.user && r.data.session.user.id;
+      if (!uid) {
+        ensureOwnerMenuLink(false);
+        return;
+      }
+      supabase
+        .from("platform_owners")
+        .select("user_id")
+        .eq("user_id", uid)
+        .maybeSingle()
+        .then(function (res) {
+          ensureOwnerMenuLink(!!(res && res.data && res.data.user_id));
+        })
+        .catch(function () {
+          ensureOwnerMenuLink(false);
+        });
+    });
+
+    if (!btn) return;
     btn.addEventListener("click", function (e) {
       e.stopPropagation();
       supabase.auth.signOut().then(function () {

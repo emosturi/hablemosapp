@@ -12,6 +12,8 @@
       h1 { margin: 0 0 8px; }
       .sub { margin: 0 0 16px; color: var(--muted); }
       .msg { margin: 10px 0 0; color: var(--muted); font-size: 13px; }
+      .tools { display: flex; gap: 10px; align-items: center; margin: 8px 0 4px; flex-wrap: wrap; }
+      .tools input[type="search"] { min-width: 260px; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text); }
       table { width: 100%; border-collapse: collapse; font-size: 13px; }
       th, td { border-bottom: 1px solid var(--border); text-align: left; padding: 10px 8px; vertical-align: top; }
       th { color: var(--muted); font-weight: 600; }
@@ -42,6 +44,9 @@
             <h1>Panel owner</h1>
             <p class="sub">Administra cuentas de asesores y suscripciones desde una sola vista.</p>
             <div class="panel">
+              <div class="tools">
+                <input type="search" id="advisorSearch" placeholder="Buscar por email o teléfono…" autocomplete="off" />
+              </div>
               <div id="msg" class="msg">Cargando usuarios…</div>
               <div style="overflow:auto; margin-top:10px;">
                 <table>
@@ -71,7 +76,9 @@
       (function () {
         var msg = document.getElementById("msg");
         var rows = document.getElementById("rows");
+        var advisorSearch = document.getElementById("advisorSearch");
         var sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+        var allAdvisors = [];
 
         function esc(s) { return String(s || "").replace(/[&<>"']/g, function (m) { return ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" })[m]; }); }
         function toLocalInput(v) {
@@ -98,6 +105,23 @@
           "</tr>";
         }
 
+        function renderRows(list) {
+          rows.innerHTML = list.map(rowHtml).join("");
+          msg.textContent = "Usuarios cargados: " + list.length + (advisorSearch && advisorSearch.value.trim() ? " (filtrados)" : "");
+        }
+
+        function applyFilter() {
+          var q = advisorSearch ? String(advisorSearch.value || "").trim().toLowerCase() : "";
+          if (!q) {
+            renderRows(allAdvisors);
+            return;
+          }
+          var filtered = allAdvisors.filter(function (u) {
+            return String(u.email || "").toLowerCase().indexOf(q) !== -1 || String(u.telefono || "").toLowerCase().indexOf(q) !== -1;
+          });
+          renderRows(filtered);
+        }
+
         function callOwnerApi(path, method, body) {
           return sb.auth.getSession().then(function (r) {
             var token = r && r.data && r.data.session && r.data.session.access_token;
@@ -120,8 +144,8 @@
             .then(function (r) {
               if (!r.ok) throw new Error((r.json && r.json.error) || "No se pudo cargar");
               var list = (r.json && r.json.advisors) || [];
-              rows.innerHTML = list.map(rowHtml).join("");
-              msg.textContent = "Usuarios cargados: " + list.length;
+              allAdvisors = list;
+              applyFilter();
             })
             .catch(function (e) {
               msg.textContent = e.message || "Error cargando usuarios.";
@@ -151,6 +175,10 @@
               msg.textContent = e.message || "Error al guardar.";
             });
         });
+
+        if (advisorSearch) {
+          advisorSearch.addEventListener("input", applyFilter);
+        }
 
         sb.auth.getSession().then(function (r) {
           if (!r || !r.data || !r.data.session) {
