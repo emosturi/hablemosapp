@@ -198,18 +198,6 @@
   </head>
   <body>
     <div class="layout">
-      <script>
-        (function (root) {
-          try {
-            var ref = new URLSearchParams(window.location.search).get("ref");
-            if (
-              /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(ref || "").trim())
-            ) {
-              root.classList.add("is-registro-publico-afiliado");
-            }
-          } catch (_e) {}
-        })(document.currentScript.parentElement);
-      </script>
       <aside class="sidebar" aria-label="Navegación">
         <div class="logo-row">
           <div class="logo-dot" aria-hidden="true"></div>
@@ -272,10 +260,7 @@
       <header>
         <h1>Registro de Afiliados</h1>
         <p class="subtitle">Ingrese sus datos personales. Los campos con * son obligatorios.</p>
-        <p id="bannerRegistroPublico" class="registro-publico-banner" role="status">
-          Está completando un formulario enviado por su asesor previsional. No necesita crear una cuenta; al enviar, sus datos quedarán asociados a quien le compartió el enlace.
-          Datos de empleador, cuenta bancaria y fecha o lugar de matrimonio/unión civil se registran en la <strong>solicitud de pensión</strong>.
-        </p>
+        <p id="bannerRegistroPublico" class="registro-publico-banner" role="status"></p>
       </header>
 
       <div class="panel">
@@ -646,16 +631,52 @@
     <script src="app-shell.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script>
+      var pageSupabaseClient = null;
+
+      function registroAfiliadosRefValido(s) {
+        return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+          String(s || "").trim()
+        );
+      }
+
+      var BANNER_REG_PUBLICO_AFILIADO_HTML =
+        "Está completando un formulario enviado por su asesor previsional. No necesita crear una cuenta; al enviar, sus datos quedarán asociados a quien le compartió el enlace. " +
+        "Datos de empleador, cuenta bancaria y fecha o lugar de matrimonio/unión civil se registran en la <strong>solicitud de pensión</strong>.";
+
       (function () {
         if (typeof window.initAppShell === "function") window.initAppShell();
         if (typeof window.initAppShellSearch === "function") window.initAppShellSearch();
         var url = window.SUPABASE_URL,
           key = window.SUPABASE_ANON_KEY;
         if (!url || !key || url.indexOf("TU_PROYECTO") !== -1) return;
-        var supaGuest = window.supabase.createClient(url, key);
-        if (typeof window.wireAppShellLogout === "function") window.wireAppShellLogout(supaGuest);
-        supaGuest.auth.getSession().then(function (r) {
-          if (r.data && r.data.session) {
+        pageSupabaseClient = window.supabase.createClient(url, key);
+        if (typeof window.wireAppShellLogout === "function") window.wireAppShellLogout(pageSupabaseClient);
+        if (typeof window.installInactivityAutoLogout === "function") {
+          window.installInactivityAutoLogout(pageSupabaseClient, {
+            timeoutMs: window.SESSION_IDLE_TIMEOUT_MS,
+            redirectTo: "login.html",
+          });
+        }
+        pageSupabaseClient.auth.getSession().then(function (r) {
+          var layout = document.querySelector(".layout");
+          var ref = new URLSearchParams(window.location.search).get("ref");
+          var refOk = registroAfiliadosRefValido(ref);
+          var hasSession = !!(r && r.data && r.data.session);
+          if (layout && refOk) {
+            if (!hasSession) layout.classList.add("is-registro-publico-afiliado");
+            else layout.classList.remove("is-registro-publico-afiliado");
+          }
+          var b = document.getElementById("bannerRegistroPublico");
+          if (b && refOk) {
+            b.style.display = "block";
+            if (hasSession) {
+              b.innerHTML =
+                "Tiene sesión de asesor iniciada: al guardar, el cliente quedará en <strong>su cuenta</strong>, no en la del dueño del enlace público.";
+            } else {
+              b.innerHTML = BANNER_REG_PUBLICO_AFILIADO_HTML;
+            }
+          }
+          if (hasSession) {
             if (typeof window.applyAppShellUser === "function") window.applyAppShellUser(r.data.session.user);
             if (typeof window.setAppShellGuest === "function") window.setAppShellGuest(false);
           } else {
@@ -777,22 +798,16 @@
         }
       }
 
-      function registroAfiliadosRefValido(s) {
-        return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-          String(s || "").trim()
-        );
-      }
       (function gateRegistroAfiliados() {
         var u = window.SUPABASE_URL,
           k = window.SUPABASE_ANON_KEY;
         if (!u || !k || u.indexOf("TU_PROYECTO") !== -1) return;
         var ref = new URLSearchParams(window.location.search).get("ref");
         if (registroAfiliadosRefValido(ref)) {
-          var b = document.getElementById("bannerRegistroPublico");
-          if (b) b.style.display = "block";
           return;
         }
-        window.supabase.createClient(u, k).auth.getSession().then(function (r) {
+        var sb = pageSupabaseClient || window.supabase.createClient(u, k);
+        sb.auth.getSession().then(function (r) {
           if (r.data.session) return;
           var form = document.getElementById("clienteForm");
           var need = document.getElementById("needInviteBlock");
@@ -1332,10 +1347,7 @@
           return;
         }
         setStatus("Guardando…");
-        var supabase = window.supabase.createClient(url, key);
-        if (typeof window.installInactivityAutoLogout === "function") {
-          window.installInactivityAutoLogout(supabase, { timeoutMs: window.SESSION_IDLE_TIMEOUT_MS, redirectTo: "login.html" });
-        }
+        var supabase = pageSupabaseClient || window.supabase.createClient(url, key);
         var refToken = new URLSearchParams(window.location.search).get("ref");
         var notifyOwnerUserId = null;
         var notifyInviteToken = null;
@@ -1375,26 +1387,40 @@
           }
         }
 
-        supabase.auth.getSession().then(function (sr) {
-          if (sr.data && sr.data.session && sr.data.session.user) {
-            notifyOwnerUserId = sr.data.session.user.id;
-            notifyInviteToken = null;
-            row.user_id = sr.data.session.user.id;
-            supabase
-              .from("clientes")
-              .upsert(row, { onConflict: "user_id,rut" })
-              .then(function (result) {
-                if (result.error) {
-                  setStatus("");
-                  setError(form, "cliente_rut", result.error.message || "Error al guardar.");
-                  return;
-                }
-                afterSaveOk();
-              })
-              .catch(function (err) {
+        function upsertClienteAutenticado(authUser) {
+          notifyOwnerUserId = authUser.id;
+          notifyInviteToken = null;
+          row.user_id = authUser.id;
+          supabase
+            .from("clientes")
+            .upsert(row, { onConflict: "user_id,rut" })
+            .then(function (result) {
+              if (result.error) {
                 setStatus("");
-                setError(form, "cliente_rut", err.message || "Error de conexión.");
-              });
+                setError(form, "cliente_rut", result.error.message || "Error al guardar.");
+                return;
+              }
+              afterSaveOk();
+            })
+            .catch(function (err) {
+              setStatus("");
+              setError(form, "cliente_rut", err.message || "Error de conexión.");
+            });
+        }
+
+        function resolveAuthAdvisorUser() {
+          return supabase.auth.getUser().then(function (ur) {
+            if (ur && ur.data && ur.data.user) return ur.data.user;
+            return supabase.auth.getSession().then(function (sr) {
+              if (sr && sr.data && sr.data.session && sr.data.session.user) return sr.data.session.user;
+              return null;
+            });
+          });
+        }
+
+        resolveAuthAdvisorUser().then(function (u) {
+          if (u) {
+            upsertClienteAutenticado(u);
             return;
           }
 
@@ -1408,8 +1434,6 @@
             return;
           }
 
-          notifyOwnerUserId = null;
-          notifyInviteToken = refToken.trim();
           delete row.user_id;
           supabase
             .rpc("registrar_cliente_por_invite", { p_invite: refToken.trim(), p_row: row })
@@ -1425,7 +1449,17 @@
                 setError(form, "cliente_rut", msg);
                 return;
               }
-              afterSaveOk();
+              resolveAuthAdvisorUser().then(function (uNotify) {
+                if (uNotify) {
+                  notifyOwnerUserId = uNotify.id;
+                  notifyInviteToken = null;
+                  row.user_id = uNotify.id;
+                } else {
+                  notifyOwnerUserId = null;
+                  notifyInviteToken = refToken.trim();
+                }
+                afterSaveOk();
+              });
             })
             .catch(function (err) {
               setStatus("");

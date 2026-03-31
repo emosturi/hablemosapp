@@ -1,44 +1,6 @@
--- =============================================================================
--- Registro público de afiliados con enlace personal (?ref=<uuid>)
--- Cada asesor obtiene un token en registro_afiliados_invites; el formulario
--- clientes.html?ref=TOKEN guarda el cliente con user_id del dueño del token.
---
--- Requisito: migración multi-usuario ya aplicada (user_id en clientes, RLS).
--- Ejecutar en Supabase: SQL Editor > Run
--- =============================================================================
+-- Prioridad sesión sobre dueño del invite en registrar_cliente_por_invite.
+-- Ejecutar una vez en Supabase SQL Editor si la función ya existía.
 
-CREATE TABLE IF NOT EXISTS public.registro_afiliados_invites (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  owner_user_id uuid NOT NULL REFERENCES auth.users (id) ON DELETE CASCADE,
-  created_at timestamptz NOT NULL DEFAULT now(),
-  CONSTRAINT registro_afiliados_invites_owner_unique UNIQUE (owner_user_id)
-);
-
-COMMENT ON TABLE public.registro_afiliados_invites IS 'Token de enlace público para registro de afiliados; un token por asesor.';
-
-CREATE INDEX IF NOT EXISTS idx_registro_afiliados_invites_owner ON public.registro_afiliados_invites (owner_user_id);
-
-ALTER TABLE public.registro_afiliados_invites ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "registro_invites_select_own" ON public.registro_afiliados_invites;
-DROP POLICY IF EXISTS "registro_invites_insert_own" ON public.registro_afiliados_invites;
-DROP POLICY IF EXISTS "registro_invites_delete_own" ON public.registro_afiliados_invites;
-
-CREATE POLICY "registro_invites_select_own"
-  ON public.registro_afiliados_invites FOR SELECT TO authenticated
-  USING (owner_user_id = auth.uid());
-
-CREATE POLICY "registro_invites_insert_own"
-  ON public.registro_afiliados_invites FOR INSERT TO authenticated
-  WITH CHECK (owner_user_id = auth.uid());
-
-CREATE POLICY "registro_invites_delete_own"
-  ON public.registro_afiliados_invites FOR DELETE TO authenticated
-  USING (owner_user_id = auth.uid());
-
--- -----------------------------------------------------------------------------
--- RPC: valida token, ignora user_id en JSON, inserta/actualiza cliente del dueño
--- -----------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION public.registrar_cliente_por_invite(p_invite uuid, p_row jsonb)
 RETURNS uuid
 LANGUAGE plpgsql
@@ -244,8 +206,5 @@ BEGIN
 END;
 $$;
 
-REVOKE ALL ON FUNCTION public.registrar_cliente_por_invite(uuid, jsonb) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.registrar_cliente_por_invite(uuid, jsonb) TO anon;
-GRANT EXECUTE ON FUNCTION public.registrar_cliente_por_invite(uuid, jsonb) TO authenticated;
 
 COMMENT ON FUNCTION public.registrar_cliente_por_invite(uuid, jsonb) IS 'Registro con enlace (?ref): valida p_invite. Sin sesión: user_id = dueño del token. Con sesión (auth.uid): user_id = asesor logueado.';
