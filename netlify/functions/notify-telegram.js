@@ -1,47 +1,131 @@
 /**
- * Netlify Function: envía notificación por Telegram cuando se registra un cliente.
- * Variables: TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, NOTIFY_SECRET.
+ * Netlify Function: notificación Telegram al registrar un cliente.
+ * Envía solo al chat del asesor dueño (TELEGRAM_CHAT_BY_PHONE_JSON + user_metadata.telefono).
+ * Variables: TELEGRAM_BOT_TOKEN, NOTIFY_SECRET, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY,
+ *   TELEGRAM_CHAT_BY_PHONE_JSON (recomendado), TELEGRAM_CHAT_ID (fallback opcional).
  */
+const { createClient } = require("@supabase/supabase-js");
+const {
+  loadTelegramChatByPhoneMap,
+  resolveAdvisorTelegramChatId,
+} = require("./telegram-advisor-route");
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "Content-Type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
+function withCors(statusCode, body, extraHeaders) {
+  return {
+    statusCode,
+    headers: Object.assign({}, corsHeaders, extraHeaders || {}),
+    body: body == null ? "" : body,
+  };
+}
+
 exports.handler = async function (event) {
   console.log("[notify-telegram] Invocada, method:", event.httpMethod);
 
+  if (event.httpMethod === "OPTIONS") {
+    return withCors(204, "");
+  }
+
   if (event.httpMethod !== "POST") {
-    return { statusCode: 405, body: "Method Not Allowed" };
+    return withCors(405, "Method Not Allowed");
+  }
+
+  let parsedBody = {};
+  try {
+    parsedBody = JSON.parse(event.body || "{}");
+  } catch (_) {
+    return withCors(400, "Bad Request");
   }
 
   const secret = process.env.NOTIFY_SECRET;
-  if (secret && event.body) {
-    try {
-      const body = JSON.parse(event.body);
-      if (body.secret !== secret) {
-        console.log("[notify-telegram] Secret incorrecto o faltante en body");
-        return { statusCode: 401, body: "Unauthorized" };
-      }
-    } catch (_) {
-      return { statusCode: 400, body: "Bad Request" };
-    }
+  if (secret && parsedBody.secret !== secret) {
+    console.log("[notify-telegram] Secret incorrecto o faltante");
+    return withCors(401, "Unauthorized");
   }
 
   const token = process.env.TELEGRAM_BOT_TOKEN;
-  const chatId = process.env.TELEGRAM_CHAT_ID;
+  const fallbackChatId = (process.env.TELEGRAM_CHAT_ID || "").trim();
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  // Diagnóstico: ver si Netlify está pasando las variables (sin revelar valores)
-  console.log("[notify-telegram] TELEGRAM_BOT_TOKEN presente:", !!token, "| TELEGRAM_CHAT_ID presente:", !!chatId);
-
-  if (!token || !chatId) {
-    console.log("[notify-telegram] Faltan TELEGRAM_BOT_TOKEN o TELEGRAM_CHAT_ID");
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: "Configura TELEGRAM_BOT_TOKEN y TELEGRAM_CHAT_ID en Netlify" }),
-    };
+  if (!token) {
+    return withCors(
+      500,
+      JSON.stringify({ error: "Falta TELEGRAM_BOT_TOKEN" }),
+      { "Content-Type": "application/json" }
+    );
   }
 
-  let clientData = {};
-  try {
-    const parsed = JSON.parse(event.body || "{}");
-    clientData = parsed.client || parsed;
-  } catch (_) {
-    return { statusCode: 400, body: "Bad Request" };
+  if (!supabaseUrl || !supabaseKey) {
+    return withCors(
+      500,
+      JSON.stringify({ error: "Falta SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY" }),
+      { "Content-Type": "application/json" }
+    );
+  }
+
+  const clientData = parsedBody.client || {};
+  let ownerUserId = (parsedBody.owner_user_id || clientData.user_id || "").toString().trim();
+
+  if (!ownerUserId && parsedBody.invite_token) {
+    const invite = String(parsedBody.invite_token || "").trim();
+    const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (uuidRe.test(invite)) {
+      const supabase = createClient(supabaseUrl, supabaseKey);
+      const { data: inv, error: invErr } = await supabase
+        .from("registro_afiliados_invites")
+        .select("owner_user_id")
+        .eq("id", invite)
+        .maybeSingle();
+      if (invErr) {
+        console.error("[notify-telegram] invite lookup:", invErr.message);
+      } else if (inv && inv.owner_user_id) {
+        ownerUserId = String(inv.owner_user_id);
+      }
+    }
+  }
+
+  const supabase = createClient(supabaseUrl, supabaseKey);
+  const chatByPhone = loadTelegramChatByPhoneMap();
+  const userPhoneCache = new Map();
+
+  let chatIdObjetivo = "";
+  if (ownerUserId) {
+    chatIdObjetivo = await resolveAdvisorTelegramChatId(
+      supabase,
+      ownerUserId,
+      chatByPhone,
+      userPhoneCache,
+      "[notify-telegram]"
+    );
+  }
+
+  if (!chatIdObjetivo && fallbackChatId) {
+    console.warn("[notify-telegram] Usando TELEGRAM_CHAT_ID (fallback); asesor sin mapa o sin telefono");
+    chatIdObjetivo = fallbackChatId;
+  }
+
+  if (!chatIdObjetivo) {
+    console.warn(
+      "[notify-telegram] Sin destino Telegram (owner:",
+      ownerUserId || "n/a",
+      "). Configure TELEGRAM_CHAT_BY_PHONE_JSON y telefono en metadata del asesor."
+    );
+    return withCors(
+      200,
+      JSON.stringify({
+        ok: false,
+        delivered: false,
+        reason: "no_telegram_route",
+        hint: "TELEGRAM_CHAT_BY_PHONE_JSON + user_metadata.telefono del asesor, o TELEGRAM_CHAT_ID como fallback",
+      }),
+      { "Content-Type": "application/json" }
+    );
   }
 
   const nombre = [clientData.nombres, clientData.apellido_paterno, clientData.apellido_materno]
@@ -60,23 +144,25 @@ exports.handler = async function (event) {
     const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: chatId, text: msg }),
+      body: JSON.stringify({ chat_id: chatIdObjetivo, text: msg }),
     });
     const data = await res.json().catch(() => ({}));
     if (!data.ok) {
       console.error("[notify-telegram] Telegram error:", data.description);
-      return {
-        statusCode: 500,
-        body: JSON.stringify({ error: data.description || "Error al enviar Telegram" }),
-      };
+      return withCors(
+        500,
+        JSON.stringify({ error: data.description || "Error al enviar Telegram" }),
+        { "Content-Type": "application/json" }
+      );
     }
-    console.log("[notify-telegram] Mensaje enviado a chat", chatId);
-    return { statusCode: 200, body: JSON.stringify({ ok: true }) };
+    console.log("[notify-telegram] Enviado a chat", chatIdObjetivo);
+    return withCors(200, JSON.stringify({ ok: true, delivered: true }), { "Content-Type": "application/json" });
   } catch (err) {
     console.error("[notify-telegram]", err);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: err.message || "Error al enviar Telegram" }),
-    };
+    return withCors(
+      500,
+      JSON.stringify({ error: err.message || "Error al enviar Telegram" }),
+      { "Content-Type": "application/json" }
+    );
   }
 };

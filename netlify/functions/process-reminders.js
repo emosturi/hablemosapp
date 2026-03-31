@@ -3,6 +3,10 @@
  * Se ejecuta cada 5 min (pruebas) o 15 min (producción). Solo envía cuando la hora Chile >= hora del recordatorio.
  */
 const { createClient } = require("@supabase/supabase-js");
+const {
+  loadTelegramChatByPhoneMap,
+  resolveAdvisorTelegramChatId,
+} = require("./telegram-advisor-route");
 
 exports.config = {
   schedule: "*/5 * * * *", // Cada 5 min (pruebas); en producción usar "*/15 * * * *"
@@ -31,34 +35,6 @@ async function enviarTelegram(token, chatId, texto) {
   return data.ok;
 }
 
-function normalizarTelefonoE164(phone) {
-  var d = String(phone || "").replace(/\D/g, "");
-  if (!d) return "";
-  if (d.indexOf("56") === 0) return "+" + d;
-  if (d.length >= 8 && d.length <= 15) return "+" + d;
-  return "";
-}
-
-function leerMapaTelefonosChatDesdeEnv() {
-  // Espera un JSON tipo:
-  // {" +56912345678":"123456789", "+5491122334455":"987654321" }
-  var raw = process.env.TELEGRAM_CHAT_BY_PHONE_JSON || "";
-  if (!raw) return {};
-  try {
-    var parsed = JSON.parse(raw);
-    var out = {};
-    Object.keys(parsed || {}).forEach(function (k) {
-      var tel = normalizarTelefonoE164(k);
-      var chatId = String(parsed[k] || "").trim();
-      if (tel && chatId) out[tel] = chatId;
-    });
-    return out;
-  } catch (e) {
-    console.error("[process-reminders] TELEGRAM_CHAT_BY_PHONE_JSON invalido:", e.message);
-    return {};
-  }
-}
-
 exports.handler = async function (event, context) {
   const q = event.queryStringParameters || {};
   const secret = process.env.NOTIFY_SECRET;
@@ -84,7 +60,7 @@ exports.handler = async function (event, context) {
   console.log("[process-reminders] Hoy (Chile):", hoy, "Hora (Chile):", ahoraChile);
 
   const supabase = createClient(supabaseUrl, supabaseKey);
-  const chatByPhone = leerMapaTelefonosChatDesdeEnv();
+  const chatByPhone = loadTelegramChatByPhoneMap();
   const userPhoneCache = new Map();
   var enviados = 0;
   var omitidosSinRuta = 0;
@@ -124,31 +100,14 @@ exports.handler = async function (event, context) {
     const cabeceraStr = cabecera.length > 0 ? " (" + cabecera.join(", ") + ")" : "";
     const texto = `Recordatorio${cabeceraStr} para el ${r.fecha}${r.hora ? " a las " + r.hora : ""}:\n\n${r.mensaje}`;
 
-    let chatIdObjetivo = "";
     const uid = r.user_id ? String(r.user_id) : "";
-    if (uid) {
-      let phoneAsesor = userPhoneCache.get(uid);
-      if (phoneAsesor === undefined) {
-        try {
-          const userRes = await supabase.auth.admin.getUserById(uid);
-          if (userRes.error) {
-            console.error("[process-reminders] No se pudo leer auth user", uid, userRes.error.message);
-            phoneAsesor = "";
-          } else {
-            const meta = (userRes.data && userRes.data.user && userRes.data.user.user_metadata) || {};
-            phoneAsesor = normalizarTelefonoE164(meta.telefono || meta.phone || "");
-          }
-        } catch (e) {
-          console.error("[process-reminders] Error leyendo user", uid, e.message);
-          phoneAsesor = "";
-        }
-        userPhoneCache.set(uid, phoneAsesor || "");
-      }
-
-      if (phoneAsesor) {
-        chatIdObjetivo = chatByPhone[phoneAsesor] || "";
-      }
-    }
+    let chatIdObjetivo = await resolveAdvisorTelegramChatId(
+      supabase,
+      uid,
+      chatByPhone,
+      userPhoneCache,
+      "[process-reminders]"
+    );
 
     // fallback opcional para no perder avisos durante migracion
     if (!chatIdObjetivo && fallbackTelegramChatId) {
