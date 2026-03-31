@@ -118,6 +118,7 @@ exports.handler = async function (event) {
       { "Content-Type": "application/json" }
     );
   }
+  console.log("[notify-telegram] Destino asesor chat_id:", chatIdObjetivo, "owner:", ownerUserId || "n/a");
 
   const nombre = [clientData.nombres, clientData.apellido_paterno, clientData.apellido_materno]
     .filter(Boolean)

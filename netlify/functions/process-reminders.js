@@ -111,6 +111,7 @@ exports.handler = async function (event, context) {
       console.warn("[process-reminders] Sin ruta Telegram para recordatorio:", r.id, "user_id:", uid || "n/a");
       continue;
     }
+    console.log("[process-reminders] Destino asesor chat_id:", chatIdObjetivo, "recordatorio:", r.id);
 
     try {
       const ok = await enviarTelegram(telegramToken, chatIdObjetivo, texto);

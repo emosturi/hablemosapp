@@ -12,6 +12,18 @@ function normalizarTelefonoE164(phone) {
 }
 
 /**
+ * Solo permitimos chat_id de usuario (numérico positivo).
+ * Grupos/canales suelen ser negativos (ej: -100...), y se bloquean.
+ */
+function normalizarChatIdUsuario(chatId) {
+  const raw = String(chatId || "").trim();
+  if (!raw) return "";
+  if (!/^\d+$/.test(raw)) return "";
+  if (raw === "0") return "";
+  return raw;
+}
+
+/**
  * Si hay al menos un teléfono mapeado, el envío es solo por asesor (no se usa grupo global como fallback).
  */
 function isAdvisorTelegramMapConfigured(chatByPhone) {
@@ -27,7 +39,7 @@ function loadTelegramChatByPhoneMap() {
     const out = {};
     Object.keys(parsed || {}).forEach(function (k) {
       const tel = normalizarTelefonoE164(k);
-      const chatId = String(parsed[k] || "").trim();
+      const chatId = normalizarChatIdUsuario(parsed[k]);
       if (tel && chatId) out[tel] = chatId;
     });
     return out;
@@ -73,6 +85,7 @@ async function resolveAdvisorTelegramChatId(supabase, ownerUserId, chatByPhone, 
 
 module.exports = {
   normalizarTelefonoE164,
+  normalizarChatIdUsuario,
   loadTelegramChatByPhoneMap,
   isAdvisorTelegramMapConfigured,
   resolveAdvisorTelegramChatId,
