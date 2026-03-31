@@ -153,7 +153,8 @@
                 </div>
               </div>
               <p class="hint">
-                Migración SQL: <code style="color: var(--primary-mid)">supabase-migration-agenda-llamadas.sql</code>. Sin ella, el enlace no se genera.
+                Migración SQL: <code style="color: var(--primary-mid)">supabase-migration-agenda-llamadas.sql</code>. Si la agenda ya existía, aplica además
+                <code style="color: var(--primary-mid)">supabase-migration-agenda-no-slots-pasados.sql</code> para no ofrecer horas ya pasadas.
               </p>
             </div>
           </div>
