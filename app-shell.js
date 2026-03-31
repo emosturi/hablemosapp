@@ -100,32 +100,60 @@
       upsertLink(mobileDd);
     }
 
+    function currentHtmlFile() {
+      var path = (window.location && window.location.pathname) || "";
+      var parts = path.split("/");
+      return parts[parts.length - 1] || "";
+    }
+
     supabase.auth.getSession().then(function (r) {
       var uid = r && r.data && r.data.session && r.data.session.user && r.data.session.user.id;
       if (!uid) {
         ensureOwnerMenuLink(false);
         return;
       }
+
+      var file = currentHtmlFile();
+      var skipAccountGuard = file === "login.html" || file === "cuenta-suspendida.html";
+
       supabase
         .from("platform_owners")
         .select("user_id")
         .eq("user_id", uid)
         .maybeSingle()
         .then(function (res) {
-          ensureOwnerMenuLink(!!(res && res.data && res.data.user_id));
+          var isOwner = !!(res && !res.error && res.data && res.data.user_id);
+          ensureOwnerMenuLink(isOwner);
+
+          if (skipAccountGuard || isOwner) return null;
+
+          return supabase
+            .from("asesor_cuentas")
+            .select("account_enabled")
+            .eq("user_id", uid)
+            .maybeSingle();
+        })
+        .then(function (acctRes) {
+          if (!acctRes) return;
+          if (acctRes.error) return;
+          var row = acctRes.data;
+          if (row && row.account_enabled === false) {
+            window.location.replace("cuenta-suspendida.html");
+          }
         })
         .catch(function () {
           ensureOwnerMenuLink(false);
         });
     });
 
-    if (!btn) return;
-    btn.addEventListener("click", function (e) {
-      e.stopPropagation();
-      supabase.auth.signOut().then(function () {
-        window.location.href = "login.html";
+    if (btn) {
+      btn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        supabase.auth.signOut().then(function () {
+          window.location.href = "login.html";
+        });
       });
-    });
+    }
   };
 
   /** Búsqueda rápida en la barra superior (Enter). */

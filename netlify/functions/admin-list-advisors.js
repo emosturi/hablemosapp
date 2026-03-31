@@ -34,7 +34,9 @@ exports.handler = async function (event) {
   const ids = allUsers.map(function (u) { return u.id; });
   let cuentasById = {};
   if (ids.length) {
-    const c = await supabase.from("asesor_cuentas").select("user_id, account_enabled, subscription_plan, subscription_status, current_period_end");
+    const c = await supabase
+      .from("asesor_cuentas")
+      .select("user_id, account_enabled, telegram_reminders_enabled, subscription_plan, subscription_status, current_period_end");
     if (!c.error && Array.isArray(c.data)) {
       c.data.forEach(function (x) { cuentasById[x.user_id] = x; });
     }
@@ -50,6 +52,7 @@ exports.handler = async function (event) {
       created_at: u.created_at || null,
       last_sign_in_at: u.last_sign_in_at || null,
       account_enabled: c.account_enabled !== false,
+      telegram_reminders_enabled: c.telegram_reminders_enabled !== false,
       subscription_plan: c.subscription_plan || null,
       subscription_status: c.subscription_status || "none",
       current_period_end: c.current_period_end || null,

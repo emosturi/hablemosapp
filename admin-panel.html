@@ -55,6 +55,7 @@
                       <th>Email</th>
                       <th>Teléfono</th>
                       <th>Cuenta</th>
+                      <th>Telegram rec.</th>
                       <th>Plan</th>
                       <th>Estado</th>
                       <th>Periodo fin</th>
@@ -98,6 +99,7 @@
             "<td>" + esc(u.email) + "</td>" +
             "<td>" + esc(u.telefono || "—") + "</td>" +
             "<td><select class='f-enabled'><option value='true'" + (u.account_enabled ? " selected":"") + ">Activa</option><option value='false'" + (!u.account_enabled ? " selected":"") + ">Bloqueada</option></select></td>" +
+            "<td><select class='f-tg'><option value='true'" + (u.telegram_reminders_enabled !== false ? " selected":"") + ">Sí</option><option value='false'" + (u.telegram_reminders_enabled === false ? " selected":"") + ">No</option></select></td>" +
             "<td><select class='f-plan'><option value=''>—</option><option value='mensual'" + (u.subscription_plan === "mensual" ? " selected":"") + ">Mensual</option><option value='anual'" + (u.subscription_plan === "anual" ? " selected":"") + ">Anual</option></select></td>" +
             "<td><select class='f-status'><option value='none'" + (u.subscription_status === "none" ? " selected":"") + ">Sin suscripción</option><option value='trial'" + (u.subscription_status === "trial" ? " selected":"") + ">Trial</option><option value='active'" + (u.subscription_status === "active" ? " selected":"") + ">Activa</option><option value='past_due'" + (u.subscription_status === "past_due" ? " selected":"") + ">Mora</option><option value='canceled'" + (u.subscription_status === "canceled" ? " selected":"") + ">Cancelada</option></select></td>" +
             "<td><input type='datetime-local' class='f-end' value='" + esc(toLocalInput(u.current_period_end)) + "' /></td>" +
@@ -159,6 +161,7 @@
           var payload = {
             user_id: tr.getAttribute("data-id"),
             account_enabled: tr.querySelector(".f-enabled").value === "true",
+            telegram_reminders_enabled: tr.querySelector(".f-tg").value === "true",
             subscription_plan: tr.querySelector(".f-plan").value || null,
             subscription_status: tr.querySelector(".f-status").value || null,
             current_period_end: tr.querySelector(".f-end").value ? new Date(tr.querySelector(".f-end").value).toISOString() : null,

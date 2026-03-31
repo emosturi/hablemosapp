@@ -38,6 +38,7 @@ exports.handler = async function (event) {
   const payload = {
     user_id: userId,
     account_enabled: body.account_enabled !== false,
+    telegram_reminders_enabled: body.telegram_reminders_enabled !== false,
     subscription_plan: plan,
     subscription_status: status,
     current_period_end: body.current_period_end || null,

@@ -96,6 +96,17 @@
         color: var(--primary-mid);
         font-weight: 600;
       }
+      .banner-tg-off {
+        margin: 0 0 14px;
+        padding: 12px 14px;
+        border-radius: var(--radius);
+        border: 1px solid rgba(234, 179, 8, 0.45);
+        background: rgba(234, 179, 8, 0.12);
+        color: var(--text);
+        font-size: 14px;
+        line-height: 1.45;
+        max-width: 640px;
+      }
       .btn-borrar {
         padding: 6px 10px;
         font-size: 12px;
@@ -201,7 +212,10 @@
           <div class="page">
             <header>
               <h1>Recordatorios</h1>
-              <p class="subtitle">Recordatorios programados que se envían por Telegram en la fecha y hora indicadas.</p>
+              <p class="subtitle">Recordatorios programados: cuando Telegram está habilitado para tu cuenta, se envían en la fecha y hora indicadas.</p>
+              <div id="tgBanner" class="banner-tg-off" style="display: none" role="status">
+                Los recordatorios automáticos por Telegram están desactivados para tu cuenta. Puedes seguir usando esta pantalla; cuando se configure el envío (chat del asesor), el propietario de la plataforma podrá volver a habilitarlo.
+              </div>
               <p class="hint-enviado">
                 Al llegar la fecha, cada recordatorio se envía por Telegram al <strong>chat personal del asesor dueño</strong>
                 (mismo criterio que registro de clientes y agenda): teléfono del asesor en Supabase Auth y mapa
@@ -262,6 +276,17 @@
 
           if (typeof window.applyAppShellUser === "function") window.applyAppShellUser(r.data.session.user);
           if (typeof window.setAppShellGuest === "function") window.setAppShellGuest(false);
+
+          var tgBanner = document.getElementById("tgBanner");
+          supabase
+            .from("asesor_cuentas")
+            .select("telegram_reminders_enabled")
+            .eq("user_id", r.data.session.user.id)
+            .maybeSingle()
+            .then(function (acct) {
+              var off = acct && acct.data && acct.data.telegram_reminders_enabled === false;
+              if (tgBanner) tgBanner.style.display = off ? "block" : "none";
+            });
 
           var loadingEl = document.getElementById("loading");
           var errorEl = document.getElementById("error");

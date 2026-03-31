@@ -10,6 +10,7 @@ create table if not exists public.platform_owners (
 create table if not exists public.asesor_cuentas (
   user_id uuid primary key references auth.users(id) on delete cascade,
   account_enabled boolean not null default true,
+  telegram_reminders_enabled boolean not null default true,
   subscription_plan text check (subscription_plan in ('mensual', 'anual') or subscription_plan is null),
   subscription_status text check (
     subscription_status in ('trial', 'active', 'past_due', 'canceled', 'none') or subscription_status is null

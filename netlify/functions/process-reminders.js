@@ -65,10 +65,29 @@ exports.handler = async function (event, context) {
 
   if (!pendientes || pendientes.length === 0) {
     console.log("[process-reminders] Sin recordatorios para hoy");
-    return { statusCode: 200, body: JSON.stringify({ ok: true, hoy, ahoraChile, enviados: 0 }) };
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ ok: true, hoy, ahoraChile, enviados: 0, omitidosTelegramOff: 0 }),
+    };
   }
 
   console.log("[process-reminders] Pendientes:", pendientes.length, pendientes.map(function (p) { return { id: p.id, fecha: p.fecha, hora: p.hora }; }));
+
+  const uids = [...new Set(pendientes.map((p) => (p.user_id ? String(p.user_id) : "")).filter(Boolean))];
+  const tgByUser = {};
+  if (uids.length) {
+    const accRes = await supabase
+      .from("asesor_cuentas")
+      .select("user_id, telegram_reminders_enabled")
+      .in("user_id", uids);
+    if (!accRes.error && Array.isArray(accRes.data)) {
+      for (const row of accRes.data) {
+        tgByUser[String(row.user_id)] = row.telegram_reminders_enabled !== false;
+      }
+    }
+  }
+
+  var omitidosTelegramOff = 0;
 
   for (const r of pendientes) {
     const horaRecordatorio = (r.hora || "").trim();
@@ -88,6 +107,18 @@ exports.handler = async function (event, context) {
     const texto = `Recordatorio${cabeceraStr} para el ${r.fecha}${r.hora ? " a las " + r.hora : ""}:\n\n${r.mensaje}`;
 
     const uid = r.user_id ? String(r.user_id) : "";
+    if (uid && Object.prototype.hasOwnProperty.call(tgByUser, uid) && tgByUser[uid] === false) {
+      omitidosTelegramOff += 1;
+      console.warn("[process-reminders] Telegram deshabilitado para asesor, se omite envío:", r.id, "user_id:", uid);
+      try {
+        await supabase.from("recordatorios").update({ enviado: true }).eq("id", r.id);
+        console.log("[process-reminders] Marcado enviado (sin Telegram):", r.id);
+      } catch (err) {
+        console.error("[process-reminders] Error marcando recordatorio:", r.id, err.message);
+      }
+      continue;
+    }
+
     const envio = await sendTelegramToAdvisor({
       supabase,
       ownerUserId: uid,
@@ -119,6 +150,14 @@ exports.handler = async function (event, context) {
 
   return {
     statusCode: 200,
-    body: JSON.stringify({ ok: true, hoy, ahoraChile, procesados: pendientes.length, enviados, omitidosSinRuta }),
+    body: JSON.stringify({
+      ok: true,
+      hoy,
+      ahoraChile,
+      procesados: pendientes.length,
+      enviados,
+      omitidosSinRuta,
+      omitidosTelegramOff,
+    }),
   };
 };
