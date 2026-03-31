@@ -649,7 +649,7 @@
             <div class="section-title" role="button" tabindex="0" aria-expanded="false">
               <span class="toggle-icon" aria-hidden="true">▼</span>
               <h2 id="mandatarioTitle">Mandatario</h2>
-              <span class="hint">Completa los datos del mandatario</span>
+              <span class="hint">La primera vez completa tus datos; al guardar el cliente o generar un documento se guardan para autorellenar en visitas siguientes.</span>
             </div>
 
             <div class="section-body">
@@ -664,56 +664,55 @@
                   inputmode="text"
                   autocomplete="off"
                   placeholder="12.345.678-5"
-                  value="9.526.153-1"
                 />
                 <div class="error" data-error-for="mandatario_rut"></div>
               </div>
 
               <div class="field col-4">
                 <label for="mandatario_nacionalidad">Nacionalidad <span class="req">*</span></label>
-                <input id="mandatario_nacionalidad" name="mandatario.nacionalidad" required value="CHILENA" />
+                <input id="mandatario_nacionalidad" name="mandatario.nacionalidad" required autocomplete="off" />
                 <div class="error" data-error-for="mandatario_nacionalidad"></div>
               </div>
 
               <div class="field col-4">
                 <label for="mandatario_registro">N° Registro de Asesor Previsional (Opcional)</label>
-                <input id="mandatario_registro" name="mandatario.numeroRegistroAsesorPrevisional" value="1026" />
+                <input id="mandatario_registro" name="mandatario.numeroRegistroAsesorPrevisional" autocomplete="off" />
                 <div class="error" data-error-for="mandatario_registro"></div>
               </div>
 
               <div class="field col-4">
                 <label for="mandatario_nombres">Nombres <span class="req">*</span></label>
-                <input id="mandatario_nombres" name="mandatario.nombres" required value="ROSE MARIE" />
+                <input id="mandatario_nombres" name="mandatario.nombres" required autocomplete="off" />
                 <div class="error" data-error-for="mandatario_nombres"></div>
               </div>
 
               <div class="field col-4">
                 <label for="mandatario_apPaterno">Apellido Paterno <span class="req">*</span></label>
-                <input id="mandatario_apPaterno" name="mandatario.apellidoPaterno" required value="ALBISTUR" />
+                <input id="mandatario_apPaterno" name="mandatario.apellidoPaterno" required autocomplete="off" />
                 <div class="error" data-error-for="mandatario_apPaterno"></div>
               </div>
 
               <div class="field col-4">
                 <label for="mandatario_apMaterno">Apellido Materno <span class="req">*</span></label>
-                <input id="mandatario_apMaterno" name="mandatario.apellidoMaterno" required value="BARROS" />
+                <input id="mandatario_apMaterno" name="mandatario.apellidoMaterno" required autocomplete="off" />
                 <div class="error" data-error-for="mandatario_apMaterno"></div>
               </div>
 
               <div class="field col-6">
                 <label for="mandatario_domicilio">Domicilio <span class="req">*</span></label>
-                <textarea id="mandatario_domicilio" name="mandatario.domicilio" required>13 NORTE 853 OFICINA 803, EDIFICIO BOULEVARD</textarea>
+                <textarea id="mandatario_domicilio" name="mandatario.domicilio" required></textarea>
                 <div class="error" data-error-for="mandatario_domicilio"></div>
               </div>
 
               <div class="field col-3">
                 <label for="mandatario_comuna">Comuna <span class="req">*</span></label>
-                <input id="mandatario_comuna" name="mandatario.comuna" required value="VIÑA DEL MAR" />
+                <input id="mandatario_comuna" name="mandatario.comuna" required autocomplete="off" />
                 <div class="error" data-error-for="mandatario_comuna"></div>
               </div>
 
               <div class="field col-3">
                 <label for="mandatario_ciudad">Ciudad <span class="req">*</span></label>
-                <input id="mandatario_ciudad" name="mandatario.ciudad" required value="VIÑA DEL MAR" />
+                <input id="mandatario_ciudad" name="mandatario.ciudad" required autocomplete="off" />
                 <div class="error" data-error-for="mandatario_ciudad"></div>
               </div>
 
@@ -726,14 +725,13 @@
                   inputmode="tel"
                   autocomplete="tel"
                   placeholder="+56 9 1234 5678"
-                  value="+56995399068"
                 />
                 <div class="error" data-error-for="mandatario_telefono"></div>
               </div>
 
               <div class="field col-6">
                 <label for="mandatario_email">Email (Opcional)</label>
-                <input id="mandatario_email" name="mandatario.email" inputmode="email" autocomplete="email" value="ALBISTUR.AP@GMAIL.COM" />
+                <input id="mandatario_email" name="mandatario.email" inputmode="email" autocomplete="email" />
                 <div class="error" data-error-for="mandatario_email"></div>
               </div>
             </div>
@@ -2294,6 +2292,65 @@
         if (error) throw error;
       }
 
+      const MANDATARIO_PERFIL_KEYS = [
+        "rut",
+        "nacionalidad",
+        "numeroRegistroAsesorPrevisional",
+        "nombres",
+        "apellidoPaterno",
+        "apellidoMaterno",
+        "domicilio",
+        "comuna",
+        "ciudad",
+        "telefono",
+        "email",
+      ];
+
+      function extractMandatarioPerfilFromFormData(data) {
+        const m = (data && data.mandatario) || {};
+        const out = {};
+        for (const k of MANDATARIO_PERFIL_KEYS) {
+          const v = m[k];
+          if (v != null && String(v).trim() !== "") out[k] = String(v).trim();
+        }
+        return out;
+      }
+
+      async function saveAsesorMandatarioPerfil(supabaseClient, data) {
+        if (!supabaseClient) return;
+        const perfil = extractMandatarioPerfilFromFormData(data);
+        if (!perfil.rut || !perfil.nombres) return;
+        const sess = await supabaseClient.auth.getSession();
+        const uid = sess && sess.data && sess.data.session && sess.data.session.user && sess.data.session.user.id;
+        if (!uid) return;
+        const { error } = await supabaseClient.from("asesor_mandatario_perfil").upsert(
+          { user_id: uid, datos: perfil, updated_at: new Date().toISOString() },
+          { onConflict: "user_id" }
+        );
+        if (error) console.warn("[pension] No se pudo guardar perfil mandatario:", error.message);
+      }
+
+      async function loadAsesorMandatarioPerfil(supabaseClient) {
+        if (!supabaseClient) return null;
+        const sess = await supabaseClient.auth.getSession();
+        const uid = sess && sess.data && sess.data.session && sess.data.session.user && sess.data.session.user.id;
+        if (!uid) return null;
+        const { data, error } = await supabaseClient
+          .from("asesor_mandatario_perfil")
+          .select("datos")
+          .eq("user_id", uid)
+          .maybeSingle();
+        if (error || !data || !data.datos || typeof data.datos !== "object") return null;
+        return data.datos;
+      }
+
+      function applyMandatarioPerfilToForm(form, datos) {
+        if (!form || !datos || typeof datos !== "object") return;
+        setFormFromObject(form, { mandatario: datos });
+        const mr = document.getElementById("mandatario_rut");
+        if (mr && mr.value) mr.value = normalizeRut(mr.value);
+      }
+
       // Marca en BD qué documentos ya fueron generados para el cliente (por RUT del propietario actual).
       async function markClienteDocumentoGenerado(supabaseClient, rutRaw, flags) {
         if (!supabaseClient) return;
@@ -2835,6 +2892,7 @@
               if (supabaseClient) {
                 try {
                   await saveClienteFromMandatoData(supabaseClient, data);
+                  await saveAsesorMandatarioPerfil(supabaseClient, data);
                   await markClienteDocumentoGenerado(supabaseClient, data.mandante && data.mandante.rut, { tiene_mandato_largo: true });
                   setStatus("Cliente actualizado. Generando mandato…");
                 } catch (e) {
@@ -2862,6 +2920,7 @@
                 setStatus("Guardando cliente en la base de datos…");
                 try {
                   await saveClienteFromMandatoData(supabaseClient, data);
+                  await saveAsesorMandatarioPerfil(supabaseClient, data);
                   setStatus("Cliente guardado/actualizado correctamente (sin generar descarga).");
                 } catch (e) {
                   console.error("Error al guardar cliente:", e);
@@ -2882,6 +2941,7 @@
               if (supabaseClient) {
                 try {
                   await saveClienteFromMandatoData(supabaseClient, data);
+                  await saveAsesorMandatarioPerfil(supabaseClient, data);
                   await markClienteDocumentoGenerado(supabaseClient, data.mandante && data.mandante.rut, { tiene_mandato_corto: true });
                   setStatus("Cliente actualizado. Generando mandato corto…");
                 } catch (e) {
@@ -2913,6 +2973,7 @@
             try {
               if (supabaseClient) {
                 await saveClienteFromMandatoData(supabaseClient, data);
+                await saveAsesorMandatarioPerfil(supabaseClient, data);
                 await markClienteDocumentoGenerado(supabaseClient, data.mandante && data.mandante.rut, { tiene_contrato: true });
               }
               data.numeroContratoSecuencial = supabaseClient
@@ -3102,11 +3163,25 @@
                 setStatus("Formulario limpio.");
                 refreshAntecedentesApvApvcDetalle();
                 updateCuentaBancariaVisibility();
+                if (supabaseClient) {
+                  loadAsesorMandatarioPerfil(supabaseClient)
+                    .then(function (d) {
+                      if (d) applyMandatarioPerfilToForm(form, d);
+                    })
+                    .catch(function () {});
+                }
               });
 
             var params = new URLSearchParams(window.location.search);
             var clienteId = params.get("cliente");
             var autoDoc = params.get("imprimir");
+            if (supabaseClient) {
+              loadAsesorMandatarioPerfil(supabaseClient)
+                .then(function (d) {
+                  if (d) applyMandatarioPerfilToForm(form, d);
+                })
+                .catch(function () {});
+            }
             if (clienteId && supabaseClient) {
               supabaseClient.from("clientes").select("*").eq("id", clienteId).single().then(function (r) {
                 if (r.error || !r.data) {
