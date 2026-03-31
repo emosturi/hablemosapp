@@ -487,7 +487,32 @@ html[data-theme="dark"] .btn-theme-toggle .theme-icon-sun {
   .menu-mobile {
     display: block;
   }
+  /* Barra de búsqueda visible en móvil: segunda fila a ancho completo */
+  .topbar {
+    flex-wrap: wrap;
+    row-gap: 10px;
+    column-gap: 12px;
+  }
+  .topbar .menu-mobile {
+    order: 1;
+    flex-shrink: 0;
+  }
+  .topbar .btn-theme-toggle {
+    order: 2;
+    margin-left: auto;
+  }
+  .topbar .user-menu-wrap {
+    order: 3;
+    flex-shrink: 0;
+  }
   .topbar .search-wrap {
+    order: 4;
+    flex: 1 0 100%;
+    max-width: none;
+    min-width: 0;
+    width: 100%;
+  }
+  .topbar .search-wrap:empty {
     display: none;
   }
 }
