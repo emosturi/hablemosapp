@@ -201,6 +201,45 @@
         filter: none;
       }
 
+      .oauth-divider {
+        margin: 16px 0 14px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .oauth-divider::before,
+      .oauth-divider::after {
+        content: "";
+        height: 1px;
+        background: var(--border);
+        flex: 1;
+      }
+
+      .btn-google {
+        width: 100%;
+        padding: 12px 14px;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text);
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: inherit;
+      }
+
+      .btn-google:hover {
+        border-color: var(--primary-mid);
+      }
+
+      .btn-google:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+
       .links {
         margin-top: 20px;
         text-align: center;
@@ -276,6 +315,8 @@
             <div class="error" id="error_general"></div>
 
             <button type="submit" id="btnLogin">Entrar</button>
+            <div class="oauth-divider">o</div>
+            <button type="button" class="btn-google" id="btnGoogleLogin">Continuar con Google</button>
           </form>
         </div>
 
@@ -359,6 +400,8 @@
             <div class="error" id="error_register_general"></div>
 
             <button type="submit" id="btnRegister">Crear cuenta</button>
+            <div class="oauth-divider">o</div>
+            <button type="button" class="btn-google" id="btnGoogleRegister">Registrar con Google</button>
           </form>
         </div>
 
@@ -395,6 +438,8 @@
         var registerSuccess = document.getElementById("registerSuccess");
         var btnLogin = document.getElementById("btnLogin");
         var btnRegister = document.getElementById("btnRegister");
+        var btnGoogleLogin = document.getElementById("btnGoogleLogin");
+        var btnGoogleRegister = document.getElementById("btnGoogleRegister");
         var REGISTRO_ASESORES_HABILITADO = window.ASESOR_REGISTRO_HABILITADO === true;
         var REGISTRO_ASESORES_CODIGO = typeof window.ASESOR_REGISTRO_CODIGO === "string" ? window.ASESOR_REGISTRO_CODIGO.trim() : "";
         var REGISTRO_ASESORES_DOMINIOS = Array.isArray(window.ASESOR_REGISTRO_DOMINIOS)
@@ -564,6 +609,73 @@
             return "Email o contraseña incorrectos.";
           }
           return msg;
+        }
+
+        function getOAuthReturnUrl(mode) {
+          var base = window.location.origin + window.location.pathname;
+          return base + "?oauth=google&mode=" + encodeURIComponent(mode || "login");
+        }
+
+        function disableGoogleButtons(disabled) {
+          if (btnGoogleLogin) btnGoogleLogin.disabled = disabled;
+          if (btnGoogleRegister) btnGoogleRegister.disabled = disabled;
+        }
+
+        function iniciarGoogle(mode) {
+          var sb = getSupabase();
+          if (sb.error) {
+            if (mode === "register") errorRegisterGeneral.textContent = sb.error;
+            else errorGeneral.textContent = sb.error;
+            return;
+          }
+
+          if (mode === "register") {
+            clearRegisterErrors();
+            if (!REGISTRO_ASESORES_HABILITADO) {
+              errorRegisterGeneral.textContent = "El registro de nuevos asesores está deshabilitado.";
+              return;
+            }
+            var phoneRaw = (regPhone.value || "").trim();
+            var phoneCanon = canonizarTelefono(regPhoneCountry.value, phoneRaw);
+            if (!phoneRaw || !phoneCanon) {
+              document.getElementById("error_reg_phone").textContent =
+                "Para registrar con Google, ingresa primero un teléfono válido.";
+              regPhone.focus();
+              return;
+            }
+            var inviteCode = (regInviteCode.value || "").trim();
+            if (REGISTRO_ASESORES_CODIGO && inviteCode !== REGISTRO_ASESORES_CODIGO) {
+              document.getElementById("error_reg_invite_code").textContent = "Código de invitación inválido";
+              regInviteCode.focus();
+              return;
+            }
+            sessionStorage.setItem("google_register_phone", phoneCanon);
+            sessionStorage.setItem("google_register_started", "1");
+          } else {
+            clearLoginErrors();
+          }
+
+          disableGoogleButtons(true);
+          var targetError = mode === "register" ? errorRegisterGeneral : errorGeneral;
+          targetError.textContent = "Redirigiendo a Google…";
+
+          sb.client.auth
+            .signInWithOAuth({
+              provider: "google",
+              options: {
+                redirectTo: getOAuthReturnUrl(mode),
+              },
+            })
+            .then(function (result) {
+              disableGoogleButtons(false);
+              if (result && result.error) {
+                targetError.textContent = mapAuthError(result.error.message);
+              }
+            })
+            .catch(function (err) {
+              disableGoogleButtons(false);
+              targetError.textContent = err && err.message ? err.message : "No se pudo iniciar sesión con Google.";
+            });
         }
 
         formLogin.addEventListener("submit", function (e) {
@@ -742,6 +854,91 @@
               errorRegisterGeneral.textContent = err.message || "Error al registrar.";
             });
         });
+
+        btnGoogleLogin.addEventListener("click", function () {
+          iniciarGoogle("login");
+        });
+
+        btnGoogleRegister.addEventListener("click", function () {
+          iniciarGoogle("register");
+        });
+
+        (function handleGoogleCallback() {
+          var params = new URLSearchParams(window.location.search || "");
+          if (params.get("oauth") !== "google") return;
+
+          var mode = params.get("mode") || "login";
+          var sb = getSupabase();
+          if (sb.error) {
+            if (mode === "register") errorRegisterGeneral.textContent = sb.error;
+            else errorGeneral.textContent = sb.error;
+            return;
+          }
+
+          sb.client.auth.getSession().then(function (res) {
+            var session = res && res.data ? res.data.session : null;
+            if (!session || !session.user) {
+              if (mode === "register") {
+                showPane("register");
+                errorRegisterGeneral.textContent = "No se pudo completar la autenticación con Google.";
+              } else {
+                showPane("login");
+                errorGeneral.textContent = "No se pudo completar la autenticación con Google.";
+              }
+              return;
+            }
+
+            var user = session.user;
+            if (mode === "register") {
+              var dom = dominioEmail(user.email || "");
+              if (REGISTRO_ASESORES_DOMINIOS.length && REGISTRO_ASESORES_DOMINIOS.indexOf(dom) === -1) {
+                sb.client.auth.signOut().finally(function () {
+                  showPane("register");
+                  errorRegisterGeneral.textContent =
+                    "Tu cuenta Google no pertenece a un dominio autorizado: " + REGISTRO_ASESORES_DOMINIOS.join(", ");
+                });
+                return;
+              }
+
+              var phoneCanon = sessionStorage.getItem("google_register_phone") || "";
+              var phoneActual =
+                (user.user_metadata && (user.user_metadata.telefono || user.user_metadata.phone)) || "";
+              var needsPhoneUpdate = !!phoneCanon && phoneActual !== phoneCanon;
+              if (!needsPhoneUpdate) {
+                sessionStorage.removeItem("google_register_phone");
+                sessionStorage.removeItem("google_register_started");
+                window.location.href = "dashboard.html";
+                return;
+              }
+
+              sb.client.auth
+                .updateUser({
+                  data: {
+                    telefono: phoneCanon,
+                  },
+                })
+                .then(function (upd) {
+                  sessionStorage.removeItem("google_register_phone");
+                  sessionStorage.removeItem("google_register_started");
+                  if (upd && upd.error) {
+                    showPane("register");
+                    errorRegisterGeneral.textContent =
+                      "Google autenticó correctamente, pero no pudimos guardar tu teléfono. Intenta iniciar sesión y actualízalo.";
+                    return;
+                  }
+                  window.location.href = "dashboard.html";
+                })
+                .catch(function () {
+                  showPane("register");
+                  errorRegisterGeneral.textContent =
+                    "Google autenticó correctamente, pero no pudimos guardar tu teléfono. Intenta iniciar sesión y actualízalo.";
+                });
+              return;
+            }
+
+            window.location.href = "dashboard.html";
+          });
+        })();
 
         setupRegisterPolicyUi();
       })();
