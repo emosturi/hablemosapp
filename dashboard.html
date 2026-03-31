@@ -275,6 +275,7 @@
               <a class="btn-primary" href="clientes-potenciales.html">+ Nuevo prospecto</a>
               <a class="btn-secondary" href="disponibilidad-asesor.html">Mi disponibilidad</a>
               <a class="btn-secondary" href="recordatorios.html">Ver todos los recordatorios</a>
+              <a class="btn-secondary" href="admin-panel.html" id="ownerPanelBtn" style="display:none">Panel owner</a>
             </div>
           </div>
 
@@ -436,6 +437,16 @@
 
           if (typeof window.applyAppShellUser === "function") window.applyAppShellUser(r.data.session.user);
           if (typeof window.setAppShellGuest === "function") window.setAppShellGuest(false);
+          supabase
+            .from("platform_owners")
+            .select("user_id")
+            .eq("user_id", r.data.session.user.id)
+            .maybeSingle()
+            .then(function (o) {
+              var btn = document.getElementById("ownerPanelBtn");
+              if (!btn) return;
+              btn.style.display = o && o.data ? "" : "none";
+            });
 
           var today = localISODate(new Date());
           var weekEnd = addDaysISO(today, 6);
