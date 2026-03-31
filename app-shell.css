@@ -356,6 +356,11 @@ html[data-theme="dark"] header.topbar .search-wrap #appShellSearch {
   font-size: 14px;
   text-align: left;
   cursor: pointer;
+  box-sizing: border-box;
+}
+
+a.user-menu-item {
+  text-decoration: none;
 }
 
 .user-menu-item:hover {
