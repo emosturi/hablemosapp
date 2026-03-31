@@ -5,7 +5,8 @@
  * Se ejecuta cada 5 min (pruebas) o 15 min (producción). Solo envía cuando la hora Chile >= hora del recordatorio.
  */
 const { createClient } = require("@supabase/supabase-js");
-const { loadTelegramChatByPhoneMap, resolveAdvisorTelegramChatId } = require("./telegram-advisor-route");
+const { loadTelegramChatByPhoneMap } = require("./telegram-advisor-route");
+const { sendTelegramToAdvisor } = require("./telegram-send");
 
 exports.config = {
   schedule: "*/5 * * * *", // Cada 5 min (pruebas); en producción usar "*/15 * * * *"
@@ -21,17 +22,6 @@ function ahoraChileHHmm() {
   const h = (parts[0] || "0").padStart(2, "0");
   const m = (parts[1] || "0").padStart(2, "0");
   return h + ":" + m;
-}
-
-async function enviarTelegram(token, chatId, texto) {
-  const url = `https://api.telegram.org/bot${token}/sendMessage`;
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ chat_id: chatId, text: texto }),
-  });
-  const data = await res.json().catch(() => ({}));
-  return data.ok;
 }
 
 exports.handler = async function (event, context) {
@@ -98,30 +88,30 @@ exports.handler = async function (event, context) {
     const texto = `Recordatorio${cabeceraStr} para el ${r.fecha}${r.hora ? " a las " + r.hora : ""}:\n\n${r.mensaje}`;
 
     const uid = r.user_id ? String(r.user_id) : "";
-    let chatIdObjetivo = await resolveAdvisorTelegramChatId(
+    const envio = await sendTelegramToAdvisor({
       supabase,
-      uid,
+      ownerUserId: uid,
+      text: texto,
+      telegramToken,
       chatByPhone,
       userPhoneCache,
-      "[process-reminders]"
-    );
-
-    if (!chatIdObjetivo) {
-      omitidosSinRuta += 1;
-      console.warn("[process-reminders] Sin ruta Telegram para recordatorio:", r.id, "user_id:", uid || "n/a");
+      logPrefix: "[process-reminders]",
+    });
+    if (!envio.ok) {
+      if (envio.reason === "no_telegram_route" || envio.reason === "missing_owner_user_id") {
+        omitidosSinRuta += 1;
+        console.warn("[process-reminders] Sin ruta Telegram para recordatorio:", r.id, "user_id:", uid || "n/a");
+      } else {
+        console.error("[process-reminders] Error de envío Telegram:", r.id, envio.reason, envio.error || "");
+      }
       continue;
     }
-    console.log("[process-reminders] Destino asesor chat_id:", chatIdObjetivo, "recordatorio:", r.id);
+    console.log("[process-reminders] Destino asesor chat_id:", envio.chatId, "recordatorio:", r.id);
 
     try {
-      const ok = await enviarTelegram(telegramToken, chatIdObjetivo, texto);
-      if (ok) {
-        await supabase.from("recordatorios").update({ enviado: true }).eq("id", r.id);
-        console.log("[process-reminders] Enviado:", r.id);
-        enviados += 1;
-      } else {
-        console.error("[process-reminders] Telegram no envió:", r.id);
-      }
+      await supabase.from("recordatorios").update({ enviado: true }).eq("id", r.id);
+      console.log("[process-reminders] Enviado:", r.id);
+      enviados += 1;
     } catch (err) {
       console.error("[process-reminders] Error para", r.id, err.message);
     }

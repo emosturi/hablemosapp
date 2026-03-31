@@ -5,7 +5,8 @@
  *   TELEGRAM_CHAT_BY_PHONE_JSON (recomendado). No usa TELEGRAM_CHAT_ID como fallback.
  */
 const { createClient } = require("@supabase/supabase-js");
-const { loadTelegramChatByPhoneMap, resolveAdvisorTelegramChatId } = require("./telegram-advisor-route");
+const { loadTelegramChatByPhoneMap } = require("./telegram-advisor-route");
+const { sendTelegramToAdvisor } = require("./telegram-send");
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -90,18 +91,26 @@ exports.handler = async function (event) {
   const chatByPhone = loadTelegramChatByPhoneMap();
   const userPhoneCache = new Map();
 
-  let chatIdObjetivo = "";
-  if (ownerUserId) {
-    chatIdObjetivo = await resolveAdvisorTelegramChatId(
-      supabase,
-      ownerUserId,
-      chatByPhone,
-      userPhoneCache,
-      "[notify-telegram]"
-    );
-  }
+  const nombre = [clientData.nombres, clientData.apellido_paterno, clientData.apellido_materno]
+    .filter(Boolean)
+    .join(" ");
+  const msg =
+    "Nuevo cliente registrado:\n" +
+    "RUT: " + (clientData.rut || "") + "\n" +
+    "Nombre: " + (nombre || "-") + "\n" +
+    "Teléfono: " + (clientData.telefono || "-") + "\n" +
+    "Revisar en la app y usar para mandato/contrato cuando esté correcto.";
 
-  if (!chatIdObjetivo) {
+  const envio = await sendTelegramToAdvisor({
+    supabase,
+    ownerUserId,
+    text: msg,
+    telegramToken: token,
+    chatByPhone,
+    userPhoneCache,
+    logPrefix: "[notify-telegram]",
+  });
+  if (!envio.ok && envio.reason === "no_telegram_route") {
     console.warn(
       "[notify-telegram] Sin destino Telegram (owner:",
       ownerUserId || "n/a",
@@ -118,43 +127,15 @@ exports.handler = async function (event) {
       { "Content-Type": "application/json" }
     );
   }
-  console.log("[notify-telegram] Destino asesor chat_id:", chatIdObjetivo, "owner:", ownerUserId || "n/a");
-
-  const nombre = [clientData.nombres, clientData.apellido_paterno, clientData.apellido_materno]
-    .filter(Boolean)
-    .join(" ");
-  const msg =
-    "Nuevo cliente registrado:\n" +
-    "RUT: " + (clientData.rut || "") + "\n" +
-    "Nombre: " + (nombre || "-") + "\n" +
-    "Teléfono: " + (clientData.telefono || "-") + "\n" +
-    "Revisar en la app y usar para mandato/contrato cuando esté correcto.";
-
-  const url = `https://api.telegram.org/bot${token}/sendMessage`;
-
-  try {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: chatIdObjetivo, text: msg }),
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!data.ok) {
-      console.error("[notify-telegram] Telegram error:", data.description);
-      return withCors(
-        500,
-        JSON.stringify({ error: data.description || "Error al enviar Telegram" }),
-        { "Content-Type": "application/json" }
-      );
-    }
-    console.log("[notify-telegram] Enviado a chat", chatIdObjetivo);
-    return withCors(200, JSON.stringify({ ok: true, delivered: true }), { "Content-Type": "application/json" });
-  } catch (err) {
-    console.error("[notify-telegram]", err);
+  if (!envio.ok) {
+    console.error("[notify-telegram] Error enviando Telegram:", envio.reason, envio.error || "");
     return withCors(
       500,
-      JSON.stringify({ error: err.message || "Error al enviar Telegram" }),
+      JSON.stringify({ error: envio.error || "Error al enviar Telegram" }),
       { "Content-Type": "application/json" }
     );
   }
+  console.log("[notify-telegram] Destino asesor chat_id:", envio.chatId, "owner:", ownerUserId || "n/a");
+  console.log("[notify-telegram] Enviado a chat", envio.chatId);
+  return withCors(200, JSON.stringify({ ok: true, delivered: true }), { "Content-Type": "application/json" });
 };
