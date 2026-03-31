@@ -11,6 +11,14 @@ function normalizarTelefonoE164(phone) {
   return "";
 }
 
+/**
+ * Si hay al menos un teléfono mapeado, el envío es solo por asesor (no se usa grupo global como fallback).
+ */
+function isAdvisorTelegramMapConfigured(chatByPhone) {
+  const o = chatByPhone || {};
+  return Object.keys(o).length > 0;
+}
+
 function loadTelegramChatByPhoneMap() {
   const raw = process.env.TELEGRAM_CHAT_BY_PHONE_JSON || "";
   if (!raw) return {};
@@ -66,5 +74,6 @@ async function resolveAdvisorTelegramChatId(supabase, ownerUserId, chatByPhone, 
 module.exports = {
   normalizarTelefonoE164,
   loadTelegramChatByPhoneMap,
+  isAdvisorTelegramMapConfigured,
   resolveAdvisorTelegramChatId,
 };

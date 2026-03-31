@@ -1,10 +1,13 @@
 /**
- * Netlify Scheduled Function: envía los recordatorios por Telegram.
+ * Netlify Scheduled Function: envía recordatorios por Telegram al chat del asesor (misma lógica que notify-telegram).
+ * Cada fila en recordatorios.user_id define el dueño; TELEGRAM_CHAT_BY_PHONE_JSON + metadata.telefono del asesor.
+ * Si el mapa por teléfono está configurado, no se usa TELEGRAM_CHAT_ID como grupo (privacidad).
  * Se ejecuta cada 5 min (pruebas) o 15 min (producción). Solo envía cuando la hora Chile >= hora del recordatorio.
  */
 const { createClient } = require("@supabase/supabase-js");
 const {
   loadTelegramChatByPhoneMap,
+  isAdvisorTelegramMapConfigured,
   resolveAdvisorTelegramChatId,
 } = require("./telegram-advisor-route");
 
@@ -109,9 +112,15 @@ exports.handler = async function (event, context) {
       "[process-reminders]"
     );
 
-    // fallback opcional para no perder avisos durante migracion
-    if (!chatIdObjetivo && fallbackTelegramChatId) {
+    // Grupo global solo si aún no configuraste mapa por asesor (migración legacy)
+    if (!chatIdObjetivo && fallbackTelegramChatId && !isAdvisorTelegramMapConfigured(chatByPhone)) {
       chatIdObjetivo = fallbackTelegramChatId;
+    }
+    if (!chatIdObjetivo && fallbackTelegramChatId && isAdvisorTelegramMapConfigured(chatByPhone)) {
+      console.warn(
+        "[process-reminders] Mapa por asesor activo: no se usa TELEGRAM_CHAT_ID. Recordatorio sin chat para user_id:",
+        uid || "n/a"
+      );
     }
 
     if (!chatIdObjetivo) {

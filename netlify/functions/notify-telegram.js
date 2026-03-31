@@ -2,11 +2,12 @@
  * Netlify Function: notificación Telegram al registrar un cliente.
  * Envía solo al chat del asesor dueño (TELEGRAM_CHAT_BY_PHONE_JSON + user_metadata.telefono).
  * Variables: TELEGRAM_BOT_TOKEN, NOTIFY_SECRET, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY,
- *   TELEGRAM_CHAT_BY_PHONE_JSON (recomendado), TELEGRAM_CHAT_ID (fallback opcional).
+ *   TELEGRAM_CHAT_BY_PHONE_JSON (recomendado). TELEGRAM_CHAT_ID solo como fallback si el mapa está vacío (legacy).
  */
 const { createClient } = require("@supabase/supabase-js");
 const {
   loadTelegramChatByPhoneMap,
+  isAdvisorTelegramMapConfigured,
   resolveAdvisorTelegramChatId,
 } = require("./telegram-advisor-route");
 
@@ -93,6 +94,7 @@ exports.handler = async function (event) {
   const supabase = createClient(supabaseUrl, supabaseKey);
   const chatByPhone = loadTelegramChatByPhoneMap();
   const userPhoneCache = new Map();
+  const mapConfigured = isAdvisorTelegramMapConfigured(chatByPhone);
 
   let chatIdObjetivo = "";
   if (ownerUserId) {
@@ -105,9 +107,12 @@ exports.handler = async function (event) {
     );
   }
 
-  if (!chatIdObjetivo && fallbackChatId) {
-    console.warn("[notify-telegram] Usando TELEGRAM_CHAT_ID (fallback); asesor sin mapa o sin telefono");
+  if (!chatIdObjetivo && fallbackChatId && !mapConfigured) {
+    console.warn("[notify-telegram] Usando TELEGRAM_CHAT_ID (fallback legacy; mapa por asesor vacío)");
     chatIdObjetivo = fallbackChatId;
+  }
+  if (!chatIdObjetivo && fallbackChatId && mapConfigured) {
+    console.warn("[notify-telegram] Mapa por asesor activo: no se envía al grupo TELEGRAM_CHAT_ID");
   }
 
   if (!chatIdObjetivo) {
@@ -122,7 +127,7 @@ exports.handler = async function (event) {
         ok: false,
         delivered: false,
         reason: "no_telegram_route",
-        hint: "TELEGRAM_CHAT_BY_PHONE_JSON + user_metadata.telefono del asesor, o TELEGRAM_CHAT_ID como fallback",
+        hint: "TELEGRAM_CHAT_BY_PHONE_JSON y user_metadata.telefono del asesor (si el mapa está vacío, se puede usar TELEGRAM_CHAT_ID)",
       }),
       { "Content-Type": "application/json" }
     );

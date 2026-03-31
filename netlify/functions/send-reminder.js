@@ -1,6 +1,6 @@
 /**
  * Netlify Function: guarda un recordatorio en Supabase para enviarlo en la fecha indicada.
- * El envío lo hace process-reminders (función programada) a NOTIFY_WHATSAPP_TO.
+ * El envío lo hace process-reminders (cron): Telegram al chat del asesor (user_id + TELEGRAM_CHAT_BY_PHONE_JSON).
  * Body: { secret, fecha, hora?, mensaje, user_id?, cliente_id?, cliente_nombre?, cliente_telefono? }
  * user_id: obligatorio si no hay cliente_id en public.clientes (p. ej. recordatorio solo con nombre/teléfono desde cliente potencial).
  */
