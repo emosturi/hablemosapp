@@ -1,15 +1,11 @@
 /**
  * Netlify Scheduled Function: envía recordatorios por Telegram al chat del asesor (misma lógica que notify-telegram).
  * Cada fila en recordatorios.user_id define el dueño; TELEGRAM_CHAT_BY_PHONE_JSON + metadata.telefono del asesor.
- * Si el mapa por teléfono está configurado, no se usa TELEGRAM_CHAT_ID como grupo (privacidad).
+ * Nunca usa TELEGRAM_CHAT_ID como grupo: todos los recordatorios van solo al chat del asesor dueño.
  * Se ejecuta cada 5 min (pruebas) o 15 min (producción). Solo envía cuando la hora Chile >= hora del recordatorio.
  */
 const { createClient } = require("@supabase/supabase-js");
-const {
-  loadTelegramChatByPhoneMap,
-  isAdvisorTelegramMapConfigured,
-  resolveAdvisorTelegramChatId,
-} = require("./telegram-advisor-route");
+const { loadTelegramChatByPhoneMap, resolveAdvisorTelegramChatId } = require("./telegram-advisor-route");
 
 exports.config = {
   schedule: "*/5 * * * *", // Cada 5 min (pruebas); en producción usar "*/15 * * * *"
@@ -51,8 +47,6 @@ exports.handler = async function (event, context) {
   const supabaseUrl = process.env.SUPABASE_URL;
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const telegramToken = process.env.TELEGRAM_BOT_TOKEN;
-  const fallbackTelegramChatId = (process.env.TELEGRAM_CHAT_ID || "").trim(); // opcional
-
   if (!supabaseUrl || !supabaseKey || !telegramToken) {
     console.error("[process-reminders] Faltan variables (SUPABASE_*, TELEGRAM_BOT_TOKEN)");
     return { statusCode: 500, body: "Configuración incompleta" };
@@ -111,17 +105,6 @@ exports.handler = async function (event, context) {
       userPhoneCache,
       "[process-reminders]"
     );
-
-    // Grupo global solo si aún no configuraste mapa por asesor (migración legacy)
-    if (!chatIdObjetivo && fallbackTelegramChatId && !isAdvisorTelegramMapConfigured(chatByPhone)) {
-      chatIdObjetivo = fallbackTelegramChatId;
-    }
-    if (!chatIdObjetivo && fallbackTelegramChatId && isAdvisorTelegramMapConfigured(chatByPhone)) {
-      console.warn(
-        "[process-reminders] Mapa por asesor activo: no se usa TELEGRAM_CHAT_ID. Recordatorio sin chat para user_id:",
-        uid || "n/a"
-      );
-    }
 
     if (!chatIdObjetivo) {
       omitidosSinRuta += 1;
