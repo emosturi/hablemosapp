@@ -155,33 +155,73 @@
         color: var(--text);
       }
       .pay-actions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 12px;
         margin-top: 12px;
       }
       .btn-mp {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        padding: 10px 16px;
-        font-size: 14px;
-        font-weight: 600;
-        border-radius: var(--radius-sm);
-        border: 1px solid var(--border);
-        background: var(--surface);
+        display: block;
+        width: 100%;
+        text-align: left;
+        padding: 16px;
+        border-radius: 14px;
+        border: 1px solid color-mix(in srgb, var(--primary-mid) 35%, var(--border));
+        background: linear-gradient(
+          135deg,
+          color-mix(in srgb, var(--primary-mid) 20%, var(--card)) 0%,
+          color-mix(in srgb, var(--primary) 12%, var(--card)) 100%
+        );
         color: var(--text);
         cursor: pointer;
-        text-decoration: none;
         font-family: inherit;
+        box-shadow: 0 8px 20px color-mix(in srgb, var(--primary-mid) 12%, transparent);
+        transition: transform 0.14s ease, box-shadow 0.14s ease, border-color 0.14s ease;
       }
       .btn-mp:hover:not(:disabled) {
+        transform: translateY(-1px);
         border-color: var(--primary-mid);
-        color: var(--primary-mid);
+        box-shadow: 0 12px 28px color-mix(in srgb, var(--primary-mid) 20%, transparent);
       }
       .btn-mp:disabled {
         opacity: 0.55;
         cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+      }
+      .pay-banner-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 6px;
+      }
+      .pay-banner-title {
+        font-size: 17px;
+        font-weight: 700;
+      }
+      .pay-badge {
+        font-size: 12px;
+        font-weight: 700;
+        padding: 4px 8px;
+        border-radius: 999px;
+        background: color-mix(in srgb, var(--primary-mid) 18%, transparent);
+        border: 1px solid color-mix(in srgb, var(--primary-mid) 36%, var(--border));
+      }
+      .pay-price {
+        font-size: 30px;
+        line-height: 1.1;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      .pay-subline {
+        margin-top: 6px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .pay-old {
+        text-decoration: line-through;
+        opacity: 0.9;
       }
       .pay-note {
         margin: 10px 0 0;
@@ -291,8 +331,22 @@
                 <h2>Pagar con Mercado Pago</h2>
                 <p>Elegí el plan. Serás redirigido al checkout seguro de Mercado Pago. Al aprobarse el pago, tu suscripción se activa o se extiende automáticamente.</p>
                 <div class="pay-actions">
-                  <button type="button" class="btn-mp" id="btnPayMensual">Pagar plan mensual</button>
-                  <button type="button" class="btn-mp" id="btnPayAnual">Pagar plan anual</button>
+                  <button type="button" class="btn-mp" id="btnPayMensual">
+                    <span class="pay-banner-top">
+                      <span class="pay-banner-title">Plan mensual</span>
+                      <span class="pay-badge">Flexible</span>
+                    </span>
+                    <span class="pay-price">$9.990</span>
+                    <span class="pay-subline">Pago por mes</span>
+                  </button>
+                  <button type="button" class="btn-mp" id="btnPayAnual">
+                    <span class="pay-banner-top">
+                      <span class="pay-banner-title">Plan anual</span>
+                      <span class="pay-badge">Ahorra $24.000</span>
+                    </span>
+                    <span class="pay-price">$95.880</span>
+                    <span class="pay-subline"><span class="pay-old">$119.880</span> al pagar mes a mes</span>
+                  </button>
                 </div>
                 <p class="pay-note">
                   Si ya tenés un período vigente, un nuevo pago suma 1 mes o 12 meses desde la fecha de fin actual. Para factura, cambios administrativos o bajas, usá el contacto de abajo.
