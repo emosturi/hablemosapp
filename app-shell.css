@@ -383,14 +383,48 @@ a.user-menu-item {
 }
 
 .menu-mobile-btn {
-  padding: 8px 12px;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
   border: 1px solid var(--border);
   border-radius: 10px;
   background: var(--card);
   cursor: pointer;
-  font-size: 14px;
   color: var(--text);
   font-family: inherit;
+  box-sizing: border-box;
+}
+
+.menu-mobile-btn:focus-visible {
+  outline: 2px solid var(--primary-mid);
+  outline-offset: 2px;
+}
+
+.menu-mobile-btn .menu-hamburger-line {
+  display: block;
+  width: 18px;
+  height: 2px;
+  border-radius: 1px;
+  background: currentColor;
+  flex-shrink: 0;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.menu-mobile-btn[aria-expanded="true"] .menu-hamburger-line:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.menu-mobile-btn[aria-expanded="true"] .menu-hamburger-line:nth-child(2) {
+  opacity: 0;
+}
+
+.menu-mobile-btn[aria-expanded="true"] .menu-hamburger-line:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
 }
 
 .menu-mobile-dd {

@@ -8,11 +8,17 @@
     return document.getElementById(id);
   }
 
-  function closeMobileMenu() {
+  function syncMobileMenuTriggerAria(open) {
     var t = qs("menuMobileTrigger");
+    if (!t) return;
+    t.setAttribute("aria-expanded", open ? "true" : "false");
+    t.setAttribute("aria-label", open ? "Cerrar menú de navegación" : "Abrir menú de navegación");
+  }
+
+  function closeMobileMenu() {
     var d = qs("menuMobileDd");
     if (d) d.classList.remove("open");
-    if (t) t.setAttribute("aria-expanded", "false");
+    syncMobileMenuTriggerAria(false);
   }
 
   function closeUserMenu() {
@@ -26,12 +32,13 @@
     var t = qs("menuMobileTrigger");
     var d = qs("menuMobileDd");
     if (t && d) {
+      syncMobileMenuTriggerAria(false);
       t.addEventListener("click", function (e) {
         e.stopPropagation();
         closeUserMenu();
         var open = !d.classList.contains("open");
         d.classList.toggle("open", open);
-        t.setAttribute("aria-expanded", open ? "true" : "false");
+        syncMobileMenuTriggerAria(open);
       });
     }
 
