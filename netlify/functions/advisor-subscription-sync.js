@@ -1,4 +1,12 @@
 const { requireAdvisorSession } = require("./advisor-session-auth");
+const { loadTelegramChatByPhoneMap, resolveAdvisorTelegramChatId } = require("./telegram-advisor-route");
+
+async function computeTelegramLinked(supabase, userId) {
+  const map = loadTelegramChatByPhoneMap();
+  const cache = new Map();
+  const chatId = await resolveAdvisorTelegramChatId(supabase, userId, map, cache, "[advisor-subscription-sync]");
+  return !!chatId;
+}
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -98,7 +106,7 @@ exports.handler = async function (event) {
   const { data: row, error: selErr } = await supabase
     .from("asesor_cuentas")
     .select(
-      "user_id, account_enabled, subscription_status, subscription_plan, current_period_end, subscription_grace_until, subscription_bypass"
+      "user_id, account_enabled, subscription_status, subscription_plan, current_period_end, subscription_grace_until, subscription_bypass, telegram_reminders_enabled"
     )
     .eq("user_id", userId)
     .maybeSingle();
@@ -119,6 +127,7 @@ exports.handler = async function (event) {
       updated_at: now.toISOString(),
     });
     if (ins.error) return json(500, { error: ins.error.message || "No se pudo crear la cuenta de asesor" });
+    const tgNew = await computeTelegramLinked(supabase, userId);
     return json(200, {
       ok: true,
       created: true,
@@ -128,10 +137,13 @@ exports.handler = async function (event) {
       current_period_end: trialEnd,
       subscription_grace_until: null,
       lock_navigation: false,
+      telegram_linked: tgNew,
+      telegram_reminders_enabled: true,
     });
   }
 
   if (row.account_enabled === false) {
+    const tgOff = await computeTelegramLinked(supabase, userId);
     return json(200, {
       ok: true,
       account_enabled: false,
@@ -140,6 +152,8 @@ exports.handler = async function (event) {
       current_period_end: row.current_period_end,
       subscription_grace_until: row.subscription_grace_until,
       lock_navigation: true,
+      telegram_linked: tgOff,
+      telegram_reminders_enabled: row.telegram_reminders_enabled !== false,
     });
   }
 
@@ -153,7 +167,7 @@ exports.handler = async function (event) {
   const { data: fresh } = await supabase
     .from("asesor_cuentas")
     .select(
-      "account_enabled, subscription_status, current_period_end, subscription_grace_until, subscription_bypass"
+      "account_enabled, subscription_status, current_period_end, subscription_grace_until, subscription_bypass, telegram_reminders_enabled"
     )
     .eq("user_id", userId)
     .maybeSingle();
@@ -161,6 +175,8 @@ exports.handler = async function (event) {
   const st = fresh && fresh.subscription_status;
   const bypass = !!(fresh && fresh.subscription_bypass);
   const lock = !bypass && st === "canceled";
+  const tgLinked = await computeTelegramLinked(supabase, userId);
+  const tgEnabled = fresh ? fresh.telegram_reminders_enabled !== false : true;
 
   return json(200, {
     ok: true,
@@ -170,5 +186,7 @@ exports.handler = async function (event) {
     current_period_end: fresh && fresh.current_period_end,
     subscription_grace_until: fresh && fresh.subscription_grace_until,
     lock_navigation: lock,
+    telegram_linked: tgLinked,
+    telegram_reminders_enabled: tgEnabled,
   });
 };

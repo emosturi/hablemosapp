@@ -125,6 +125,124 @@
     if (layout) layout.classList.toggle("is-guest", !!isGuest);
   };
 
+  function removeHablemosShellBannerNodes() {
+    document.querySelectorAll(".hablemos-float-sub-wrap, #hablemosTelegramSetupBar").forEach(function (n) {
+      if (n && n.parentNode) n.parentNode.removeChild(n);
+    });
+    if (!document.querySelector(".hablemos-float-sub-wrap")) {
+      document.body.classList.remove("hablemos-has-float-sub");
+    }
+  }
+
+  function clearHablemosShellBannerState() {
+    removeHablemosShellBannerNodes();
+    try {
+      delete window.HABLEMOS_SYNC_SUBSCRIPTION;
+      delete window.HABLEMOS_TELEGRAM_LINKED;
+      delete window.HABLEMOS_TELEGRAM_REMINDERS_ENABLED;
+    } catch (eClr) {}
+  }
+
+  window.hablemosRemoveShellBanners = clearHablemosShellBannerState;
+
+  function wholeDaysRemainingFromIso(iso) {
+    if (!iso) return null;
+    var t = new Date(iso).getTime();
+    if (isNaN(t)) return null;
+    var ms = t - Date.now();
+    if (ms <= 0) return 0;
+    return Math.ceil(ms / 86400000);
+  }
+
+  function renderHablemosShellBanners(file, j) {
+    removeHablemosShellBannerNodes();
+    if (!j || j.ok !== true) return;
+
+    window.HABLEMOS_SYNC_SUBSCRIPTION = j;
+    window.HABLEMOS_TELEGRAM_LINKED = j.telegram_linked === true;
+    window.HABLEMOS_TELEGRAM_REMINDERS_ENABLED = j.telegram_reminders_enabled !== false;
+
+    var base = (file || "").split("?")[0].trim();
+    var st = j.subscription_status;
+    var bypass = j.subscription_bypass === true;
+    var lock = j.lock_navigation === true;
+    var payHref = "mi-suscripcion.html";
+
+    function attachFloatClose(wrap) {
+      var btn = wrap.querySelector(".hablemos-float-sub-close");
+      if (btn) {
+        btn.addEventListener("click", function () {
+          if (wrap && wrap.parentNode) wrap.parentNode.removeChild(wrap);
+          if (!document.querySelector(".hablemos-float-sub-wrap")) {
+            document.body.classList.remove("hablemos-has-float-sub");
+          }
+        });
+      }
+    }
+
+    if (!bypass && st === "trial" && j.current_period_end && !lock) {
+      var dTr = wholeDaysRemainingFromIso(j.current_period_end);
+      if (dTr !== null) {
+        var dText =
+          dTr === 0 ? "menos de 1 día" : dTr === 1 ? "1 día" : String(dTr) + " días";
+        var wrap = document.createElement("div");
+        wrap.className = "hablemos-float-sub-wrap hablemos-float-sub-trial";
+        wrap.setAttribute("role", "status");
+        wrap.innerHTML =
+          '<div class="hablemos-float-sub-inner"><div class="hablemos-float-sub-body">' +
+          "<p><strong>Versión de prueba (7 días).</strong> Estás usando HablemosApp en periodo de prueba; algunas funciones pueden estar limitadas o cambiar.</p>" +
+          '<p class="hablemos-float-sub-meta">Te quedan aproximadamente <strong>' +
+          dText +
+          "</strong> de prueba. Después necesitarás suscribirte para seguir usando la plataforma.</p>" +
+          '</div><button type="button" class="hablemos-float-sub-close" aria-label="Cerrar aviso">&times;</button></div>';
+        document.body.appendChild(wrap);
+        document.body.classList.add("hablemos-has-float-sub");
+        attachFloatClose(wrap);
+      }
+    } else if (!bypass && st === "past_due" && j.subscription_grace_until) {
+      var dM = wholeDaysRemainingFromIso(j.subscription_grace_until);
+      if (dM !== null) {
+        var dMText =
+          dM === 0 ? "menos de 24 horas" : dM === 1 ? "1 día" : String(dM) + " días";
+        var wrapM = document.createElement("div");
+        wrapM.className = "hablemos-float-sub-wrap hablemos-float-sub-mora";
+        wrapM.setAttribute("role", "alert");
+        wrapM.innerHTML =
+          '<div class="hablemos-float-sub-inner"><div class="hablemos-float-sub-body">' +
+          "<p><strong>Suscripción vencida.</strong> Tu período pagado finalizó; renová para mantener el acceso completo.</p>" +
+          '<p class="hablemos-float-sub-meta">Quedan <strong>' +
+          dMText +
+          "</strong> antes de que tu cuenta pase a acceso restringido (solo pago y soporte).</p>" +
+          '<p class="hablemos-float-sub-actions"><a class="hablemos-float-sub-cta" href="' +
+          payHref +
+          '">Pagar aquí</a></p></div><button type="button" class="hablemos-float-sub-close" aria-label="Cerrar aviso">&times;</button></div>';
+        document.body.appendChild(wrapM);
+        document.body.classList.add("hablemos-has-float-sub");
+        attachFloatClose(wrapM);
+      }
+    }
+
+    if (
+      (base === "recordatorios.html" || base === "mi-agenda-llamadas.html") &&
+      j.telegram_reminders_enabled !== false &&
+      j.telegram_linked !== true
+    ) {
+      var content = document.querySelector(".layout .main .content");
+      if (content && !document.getElementById("hablemosTelegramSetupBar")) {
+        var tBar = document.createElement("div");
+        tBar.id = "hablemosTelegramSetupBar";
+        tBar.className = "hablemos-telegram-setup-bar";
+        tBar.setAttribute("role", "alert");
+        tBar.innerHTML =
+          "<p><strong>Configurá Telegram para las alertas.</strong> No tenemos vinculado tu chat de Telegram con el teléfono de tu cuenta; sin eso no podemos enviarte recordatorios automáticos.</p>" +
+          '<p class="hablemos-telegram-setup-meta">Escribile al bot de la plataforma con el mismo número que diste al registrarte, o pedí ayuda en <a href="mis-tickets.html">Soporte / tickets</a>.</p>';
+        var first = content.firstElementChild;
+        if (first) content.insertBefore(tBar, first);
+        else content.appendChild(tBar);
+      }
+    }
+  }
+
   window.wireAppShellLogout = function (supabase) {
     var btn = qs("btnCerrarSesionMenu");
     if (!supabase) return;
@@ -269,6 +387,7 @@
         ensureAdvisorTicketsMenuLink(false);
         ensureOwnerMenuLink(false);
         clearSubscriptionShellLock();
+        clearHablemosShellBannerState();
         finishSubscriptionGuard();
         return;
       }
@@ -287,12 +406,14 @@
 
           if (skipAccountGuard || isOwner) {
             clearSubscriptionShellLock();
+            clearHablemosShellBannerState();
             finishSubscriptionGuard();
             return Promise.resolve(null);
           }
 
           if (!token) {
             clearSubscriptionShellLock();
+            clearHablemosShellBannerState();
             finishSubscriptionGuard();
             return Promise.resolve(null);
           }
@@ -316,11 +437,13 @@
           var j = wrapped.j;
           if (!wrapped.httpOk || !j || j.ok !== true) {
             clearSubscriptionShellLock();
+            clearHablemosShellBannerState();
             finishSubscriptionGuard();
             return;
           }
 
           if (j.account_enabled === false) {
+            clearHablemosShellBannerState();
             window.location.replace("cuenta-suspendida.html");
             return;
           }
@@ -331,11 +454,13 @@
             applySubscriptionShellLock();
             redirectIfSubscriptionLocked(file);
           }
+          renderHablemosShellBanners(file, j);
           finishSubscriptionGuard();
         })
         .catch(function () {
           ensureOwnerMenuLink(false);
           clearSubscriptionShellLock();
+          clearHablemosShellBannerState();
           finishSubscriptionGuard();
         });
     });
