@@ -17,6 +17,21 @@
       .st-in_progress { color: #b45309; font-weight: 600; }
       .st-closed { color: var(--muted); }
       .small { font-size: 12px; color: var(--muted); margin-top: 4px; }
+      .toolbar { display: flex; justify-content: space-between; gap: 10px; align-items: center; margin-bottom: 8px; flex-wrap: wrap; }
+      .btn { border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: 8px; padding: 8px 12px; cursor: pointer; font-size: 13px; }
+      .btn:hover { border-color: var(--primary-mid); }
+      .btn.primary { border-color: var(--primary-mid); background: color-mix(in srgb, var(--primary-mid) 14%, var(--surface)); }
+      .modal-backdrop { position: fixed; inset: 0; background: rgba(10, 10, 20, 0.5); display: none; align-items: center; justify-content: center; z-index: 40; padding: 12px; }
+      .modal-backdrop.show { display: flex; }
+      .ticket-modal { width: 100%; max-width: 600px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 18px; }
+      .ticket-modal h3 { margin: 0 0 8px; }
+      .ticket-modal p { margin: 0 0 14px; color: var(--muted); font-size: 14px; }
+      .ticket-field { margin-bottom: 10px; }
+      .ticket-field label { display: block; font-size: 13px; margin-bottom: 6px; }
+      .ticket-field input, .ticket-field textarea { width: 100%; box-sizing: border-box; border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: 8px; padding: 10px; font: inherit; }
+      .ticket-field textarea { min-height: 130px; resize: vertical; }
+      .ticket-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+      .ticket-form-msg { margin-top: 10px; font-size: 13px; color: var(--muted); }
     </style>
   </head>
   <body>
@@ -84,6 +99,10 @@
             <h1>Mis tickets</h1>
             <p class="small">Aquí verás los tickets abiertos desde tu cuenta y su estado de atención.</p>
             <div class="panel">
+              <div class="toolbar">
+                <div class="small">Canal de soporte directo con el administrador.</div>
+                <button type="button" id="openTicketBtn" class="btn primary">Abrir ticket</button>
+              </div>
               <div id="msg" class="msg">Cargando tickets…</div>
               <div style="overflow:auto; margin-top:10px;">
                 <table>
@@ -104,6 +123,25 @@
         </div>
       </div>
     </div>
+    <div class="modal-backdrop" id="ticketModalBackdrop" aria-hidden="true">
+      <div class="ticket-modal" role="dialog" aria-modal="true" aria-labelledby="ticketModalTitle">
+        <h3 id="ticketModalTitle">Abrir ticket de ayuda</h3>
+        <p>Escribe tu consulta para que el equipo la revise desde el panel owner.</p>
+        <div class="ticket-field">
+          <label for="ticketSubject">Asunto</label>
+          <input id="ticketSubject" type="text" maxlength="120" placeholder="Ejemplo: problema con cobro anual" />
+        </div>
+        <div class="ticket-field">
+          <label for="ticketMessage">Detalle</label>
+          <textarea id="ticketMessage" maxlength="2500" placeholder="Describe tu caso con el mayor detalle posible."></textarea>
+        </div>
+        <div class="ticket-actions">
+          <button type="button" class="btn" id="ticketCancelBtn">Cancelar</button>
+          <button type="button" class="btn primary" id="ticketSendBtn">Enviar ticket</button>
+        </div>
+        <div class="ticket-form-msg" id="ticketFormMsg"></div>
+      </div>
+    </div>
     <script src="supabase-config.js"></script>
     <script src="app-shell.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -113,8 +151,16 @@
         if (typeof window.initAppShellSearch === "function") window.initAppShellSearch();
         var msg = document.getElementById("msg");
         var rows = document.getElementById("rows");
+        var openTicketBtn = document.getElementById("openTicketBtn");
+        var ticketModalBackdrop = document.getElementById("ticketModalBackdrop");
+        var ticketSubject = document.getElementById("ticketSubject");
+        var ticketMessage = document.getElementById("ticketMessage");
+        var ticketCancelBtn = document.getElementById("ticketCancelBtn");
+        var ticketSendBtn = document.getElementById("ticketSendBtn");
+        var ticketFormMsg = document.getElementById("ticketFormMsg");
         var sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
         if (typeof window.wireAppShellLogout === "function") window.wireAppShellLogout(sb);
+        var currentUser = null;
 
         function esc(s) {
           return String(s == null ? "" : s).replace(/[&<>"']/g, function (m) {
@@ -133,34 +179,93 @@
           return String(s || "—");
         }
 
+        function loadTickets() {
+          if (!currentUser || !currentUser.id) return Promise.resolve();
+          return sb
+            .from("soporte_tickets")
+            .select("id, subject, message, status, owner_note, created_at")
+            .eq("user_id", currentUser.id)
+            .order("created_at", { ascending: false })
+            .then(function (res) {
+              if (res.error) {
+                msg.textContent = res.error.message || "No se pudieron cargar tus tickets.";
+                return;
+              }
+              var list = res.data || [];
+              msg.textContent = list.length ? "Tickets encontrados: " + list.length : "No tienes tickets aún.";
+              rows.innerHTML = list.map(function (t) {
+                return "<tr>" +
+                  "<td>" + esc(fmtDate(t.created_at)) + "</td>" +
+                  "<td>" + esc(t.subject) + "</td>" +
+                  "<td class='st-" + esc(t.status) + "'>" + esc(statusLabel(t.status)) + "</td>" +
+                  "<td>" + esc(t.message) + "</td>" +
+                  "<td>" + esc(t.owner_note || "—") + "</td>" +
+                "</tr>";
+              }).join("");
+            });
+        }
+
+        function openTicketModal() {
+          ticketFormMsg.textContent = "";
+          ticketModalBackdrop.classList.add("show");
+          ticketModalBackdrop.setAttribute("aria-hidden", "false");
+          setTimeout(function () { ticketSubject.focus(); }, 0);
+        }
+        function closeTicketModal() {
+          ticketModalBackdrop.classList.remove("show");
+          ticketModalBackdrop.setAttribute("aria-hidden", "true");
+        }
+        function sendTicket() {
+          var subject = String(ticketSubject.value || "").trim();
+          var message = String(ticketMessage.value || "").trim();
+          if (subject.length < 5) {
+            ticketFormMsg.textContent = "El asunto debe tener al menos 5 caracteres.";
+            return;
+          }
+          if (message.length < 10) {
+            ticketFormMsg.textContent = "El detalle debe tener al menos 10 caracteres.";
+            return;
+          }
+          ticketSendBtn.disabled = true;
+          ticketFormMsg.textContent = "Enviando ticket...";
+          sb.from("soporte_tickets")
+            .insert({
+              user_id: currentUser.id,
+              advisor_email: currentUser.email || null,
+              subject: subject,
+              message: message,
+              status: "open",
+              updated_at: new Date().toISOString(),
+            })
+            .then(function (res) {
+              ticketSendBtn.disabled = false;
+              if (res.error) {
+                ticketFormMsg.textContent = res.error.message || "No se pudo enviar el ticket.";
+                return;
+              }
+              ticketSubject.value = "";
+              ticketMessage.value = "";
+              ticketFormMsg.textContent = "Ticket enviado.";
+              loadTickets();
+              setTimeout(closeTicketModal, 500);
+            });
+        }
+
         sb.auth.getSession().then(function (r) {
           if (!r || !r.data || !r.data.session) {
             window.location.replace("login.html");
             return;
           }
-          if (typeof window.applyAppShellUser === "function") window.applyAppShellUser(r.data.session.user);
-          return sb
-            .from("soporte_tickets")
-            .select("id, subject, message, status, owner_note, created_at")
-            .eq("user_id", r.data.session.user.id)
-            .order("created_at", { ascending: false });
-        }).then(function (res) {
-          if (!res) return;
-          if (res.error) {
-            msg.textContent = res.error.message || "No se pudieron cargar tus tickets.";
-            return;
-          }
-          var list = res.data || [];
-          msg.textContent = list.length ? "Tickets encontrados: " + list.length : "No tienes tickets aún.";
-          rows.innerHTML = list.map(function (t) {
-            return "<tr>" +
-              "<td>" + esc(fmtDate(t.created_at)) + "</td>" +
-              "<td>" + esc(t.subject) + "</td>" +
-              "<td class='st-" + esc(t.status) + "'>" + esc(statusLabel(t.status)) + "</td>" +
-              "<td>" + esc(t.message) + "</td>" +
-              "<td>" + esc(t.owner_note || "—") + "</td>" +
-            "</tr>";
-          }).join("");
+          currentUser = r.data.session.user;
+          if (typeof window.applyAppShellUser === "function") window.applyAppShellUser(currentUser);
+          loadTickets();
+        });
+
+        openTicketBtn.addEventListener("click", openTicketModal);
+        ticketCancelBtn.addEventListener("click", closeTicketModal);
+        ticketSendBtn.addEventListener("click", sendTicket);
+        ticketModalBackdrop.addEventListener("click", function (ev) {
+          if (ev.target === ticketModalBackdrop) closeTicketModal();
         });
       })();
     </script>
