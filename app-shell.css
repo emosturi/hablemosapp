@@ -407,6 +407,12 @@ a.user-menu-item {
   background: var(--surface);
 }
 
+a.user-menu-item.active {
+  background: var(--accent-soft);
+  color: var(--primary);
+  font-weight: 600;
+}
+
 .user-menu-logout {
   color: var(--danger);
   font-weight: 600;

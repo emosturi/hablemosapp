@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mi suscripción — HablemosApp</title>
+    <link rel="stylesheet" href="app-shell.css" />
+    <script src="theme-init.js"></script>
+    <style>
+      .page {
+        max-width: 640px;
+        margin: 0 auto;
+        padding: 0 0 40px;
+      }
+      header.page-h {
+        margin: 10px 0 18px;
+      }
+      h1 {
+        font-size: clamp(22px, 2.6vw, 28px);
+        margin: 0;
+        letter-spacing: -0.02em;
+      }
+      .subtitle {
+        margin: 8px 0 0;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.45;
+      }
+      a.back {
+        display: inline-block;
+        margin-bottom: 14px;
+        color: var(--muted);
+        text-decoration: none;
+        font-size: 14px;
+      }
+      a.back:hover {
+        color: var(--primary);
+      }
+      .panel {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 18px;
+        margin-bottom: 16px;
+      }
+      .panel h2 {
+        font-size: 15px;
+        margin: 0 0 14px;
+        letter-spacing: 0.02em;
+        color: var(--muted);
+        font-weight: 600;
+      }
+      .sub-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 16px;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--border);
+        font-size: 14px;
+      }
+      .sub-row:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+      }
+      .sub-label {
+        color: var(--muted);
+        min-width: 140px;
+        flex-shrink: 0;
+      }
+      .sub-value {
+        color: var(--text);
+        font-weight: 500;
+      }
+      .sub-value.status-active {
+        color: var(--primary-mid);
+      }
+      .sub-value.status-trial {
+        color: var(--primary);
+      }
+      .sub-value.status-warn {
+        color: var(--danger-text, #b91c1c);
+      }
+      .sub-value.status-muted {
+        color: var(--muted);
+        font-weight: 400;
+      }
+      .manage p {
+        margin: 0 0 12px;
+        font-size: 14px;
+        line-height: 1.5;
+        color: var(--text);
+      }
+      .manage ul {
+        margin: 0 0 12px;
+        padding-left: 1.2em;
+        font-size: 14px;
+        line-height: 1.55;
+        color: var(--text);
+      }
+      .manage a.mail {
+        color: var(--primary-mid);
+        font-weight: 600;
+        text-decoration: none;
+      }
+      .manage a.mail:hover {
+        text-decoration: underline;
+      }
+      .loading,
+      .err-banner {
+        padding: 16px;
+        border-radius: var(--radius-sm);
+        font-size: 14px;
+      }
+      .loading {
+        color: var(--muted);
+      }
+      .err-banner {
+        display: none;
+        background: var(--danger-bg);
+        color: var(--danger-text);
+        margin-bottom: 16px;
+      }
+      .err-banner.show {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar" aria-label="Navegación">
+        <div class="logo-row">
+          <div class="logo-dot" aria-hidden="true"></div>
+          <span class="logo-text">HablemosApp</span>
+        </div>
+        <div class="nav-label">Menú</div>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="pension.html">Formulario Pensión</a>
+        <a href="clientes.html">Registro de Afiliados</a>
+        <a href="revisar-clientes.html">Listado de Clientes</a>
+        <a href="clientes-potenciales.html">Clientes Potenciales</a>
+        <a href="enlace-registro-publico.html">Enlace registro público</a>
+        <a href="disponibilidad-asesor.html">Mi disponibilidad</a>
+        <a href="enlace-agenda-llamada.html">Enlace agenda llamada</a>
+        <a href="mi-agenda-llamadas.html">Mi agenda de llamadas</a>
+        <a href="recordatorios.html">Recordatorios</a>
+        <a href="login.html" class="btn-logout sidebar-guest-only">Iniciar sesión</a>
+      </aside>
+      <div class="main">
+        <header class="topbar">
+          <div class="menu-mobile">
+            <button type="button" class="menu-mobile-btn" id="menuMobileTrigger" aria-expanded="false" aria-controls="menuMobileDd" aria-label="Abrir menú de navegación"><span class="menu-hamburger-line" aria-hidden="true"></span><span class="menu-hamburger-line" aria-hidden="true"></span><span class="menu-hamburger-line" aria-hidden="true"></span></button>
+            <div class="menu-mobile-dd" id="menuMobileDd">
+              <a href="dashboard.html">Dashboard</a>
+              <a href="pension.html">Formulario Pensión</a>
+              <a href="clientes.html">Registro de Afiliados</a>
+              <a href="revisar-clientes.html">Listado de Clientes</a>
+              <a href="clientes-potenciales.html">Clientes Potenciales</a>
+              <a href="enlace-registro-publico.html">Enlace registro público</a>
+              <a href="disponibilidad-asesor.html">Mi disponibilidad</a>
+              <a href="enlace-agenda-llamada.html">Enlace agenda llamada</a>
+              <a href="mi-agenda-llamadas.html">Mi agenda de llamadas</a>
+              <a href="recordatorios.html">Recordatorios</a>
+            </div>
+          </div>
+          <div class="search-wrap">
+            <input type="search" placeholder="Buscar en la app…" id="appShellSearch" autocomplete="off" />
+          </div>
+          <button type="button" class="topbar-search-toggle" id="topbarSearchToggle" aria-expanded="false" aria-controls="appShellSearch" aria-label="Buscar en la app">
+            <svg class="topbar-search-icon-open" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /></svg>
+            <svg class="topbar-search-icon-close" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12" /></svg>
+          </button>
+          <div class="user-menu-wrap sidebar-auth-only">
+            <button type="button" class="user-menu-trigger" id="userMenuTrigger" aria-expanded="false" aria-haspopup="true">
+              <div class="user-avatar" id="userAvatar">?</div>
+              <div class="user-meta">
+                <div class="name" id="userDisplayName">Asesor</div>
+                <div class="email" id="userEmail">—</div>
+              </div>
+            </button>
+            <div class="user-menu-dd" id="userMenuDd" role="menu">
+              <a href="mis-datos-mandatario.html" class="user-menu-item" role="menuitem">Mis datos (mandatario)</a>
+              <a href="mi-suscripcion.html" class="user-menu-item active" role="menuitem" aria-current="page">Mi suscripción</a>
+              <button type="button" class="user-menu-item user-menu-theme" id="userMenuThemeToggle" role="menuitem" aria-pressed="false" aria-label="Modo oscuro">
+                <span class="user-menu-theme-icon" aria-hidden="true">
+                  <svg class="theme-icon-moon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
+                  <svg class="theme-icon-sun" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5" /><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" /></svg>
+                </span>
+                <span class="user-menu-theme-label">Modo oscuro</span>
+              </button>
+              <button type="button" class="user-menu-item user-menu-logout" id="btnCerrarSesionMenu" role="menuitem">Cerrar sesión</button>
+            </div>
+          </div>
+        </header>
+        <div class="content">
+          <div class="page">
+            <a href="dashboard.html" class="back">← Dashboard</a>
+            <div class="err-banner" id="loadErr" role="alert"></div>
+            <header class="page-h">
+              <h1>Mi suscripción</h1>
+              <p class="subtitle">Estado de tu plan y cómo solicitar cambios o ayuda con la facturación.</p>
+            </header>
+
+            <div id="loading" class="panel loading">Cargando datos de suscripción…</div>
+            <div id="panels" style="display: none">
+              <div class="panel">
+                <h2>Estado actual</h2>
+                <div class="sub-row">
+                  <span class="sub-label">Plan</span>
+                  <span class="sub-value" id="vPlan">—</span>
+                </div>
+                <div class="sub-row">
+                  <span class="sub-label">Estado</span>
+                  <span class="sub-value" id="vStatus">—</span>
+                </div>
+                <div class="sub-row">
+                  <span class="sub-label">Fin del período actual</span>
+                  <span class="sub-value" id="vPeriodEnd">—</span>
+                </div>
+              </div>
+              <div class="panel manage">
+                <h2>Gestionar tu suscripción</h2>
+                <p>
+                  Los cambios de plan, medios de pago, facturas y bajas los coordina el equipo de la plataforma. Desde aquí solo ves el estado registrado en tu cuenta.
+                </p>
+                <p>Si necesitás:</p>
+                <ul>
+                  <li>cambiar de plan (mensual / anual),</li>
+                  <li>resolver un cobro o acceso,</li>
+                  <li>solicitar factura o comprobante,</li>
+                  <li>o cancelar la suscripción,</li>
+                </ul>
+                <p id="supportLine">
+                  contactá al administrador de tu cuenta o al soporte de HablemosApp.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="supabase-config.js"></script>
+    <script src="app-shell.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script>
+      (function () {
+        if (typeof window.initAppShell === "function") window.initAppShell();
+        if (typeof window.initAppShellSearch === "function") window.initAppShellSearch();
+
+        var PLAN_LABEL = { mensual: "Mensual", anual: "Anual" };
+        var STATUS_LABEL = {
+          none: "Sin suscripción",
+          trial: "Período de prueba",
+          active: "Activa",
+          past_due: "Pago pendiente",
+          canceled: "Cancelada",
+        };
+
+        function planLabel(v) {
+          if (v == null || v === "") return "Sin plan asignado";
+          return PLAN_LABEL[v] || String(v);
+        }
+
+        function statusLabel(v) {
+          if (v == null || v === "") return "Sin información";
+          return STATUS_LABEL[v] || String(v);
+        }
+
+        function statusClass(v) {
+          if (v === "active") return "status-active";
+          if (v === "trial") return "status-trial";
+          if (v === "past_due") return "status-warn";
+          if (v === "canceled" || v === "none") return "status-muted";
+          return "";
+        }
+
+        function fmtDate(iso) {
+          if (!iso) return "—";
+          try {
+            var d = new Date(iso);
+            if (isNaN(d.getTime())) return "—";
+            return d.toLocaleDateString("es-CL", {
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            });
+          } catch (e) {
+            return "—";
+          }
+        }
+
+        var url = window.SUPABASE_URL;
+        var key = window.SUPABASE_ANON_KEY;
+        if (!url || !key || url.indexOf("TU_PROYECTO") !== -1) {
+          window.location.replace("login.html");
+          return;
+        }
+        var supabase = window.supabase.createClient(url, key);
+        if (typeof window.wireAppShellLogout === "function") window.wireAppShellLogout(supabase);
+        if (typeof window.installInactivityAutoLogout === "function") {
+          window.installInactivityAutoLogout(supabase, { timeoutMs: window.SESSION_IDLE_TIMEOUT_MS, redirectTo: "login.html" });
+        }
+
+        var loading = document.getElementById("loading");
+        var panels = document.getElementById("panels");
+        var loadErr = document.getElementById("loadErr");
+        var vPlan = document.getElementById("vPlan");
+        var vStatus = document.getElementById("vStatus");
+        var vPeriodEnd = document.getElementById("vPeriodEnd");
+        var supportLine = document.getElementById("supportLine");
+
+        var supportEmail = typeof window.HABLEMOS_SUPPORT_EMAIL === "string" ? window.HABLEMOS_SUPPORT_EMAIL.trim() : "";
+        if (supportEmail) {
+          var safeHref = supportEmail.replace(/[\s<>"']/g, "");
+          supportLine.textContent = "";
+          supportLine.appendChild(document.createTextNode("escribinos a "));
+          var mailA = document.createElement("a");
+          mailA.className = "mail";
+          if (safeHref.indexOf("@") !== -1) mailA.href = "mailto:" + safeHref;
+          mailA.textContent = supportEmail;
+          supportLine.appendChild(mailA);
+          supportLine.appendChild(document.createTextNode("."));
+        }
+
+        supabase.auth.getSession().then(function (r) {
+          if (!r || !r.data || !r.data.session) {
+            window.location.replace("login.html");
+            return;
+          }
+          if (typeof window.applyAppShellUser === "function") window.applyAppShellUser(r.data.session.user);
+          if (typeof window.setAppShellGuest === "function") window.setAppShellGuest(false);
+
+          supabase
+            .from("asesor_cuentas")
+            .select("subscription_plan, subscription_status, current_period_end")
+            .eq("user_id", r.data.session.user.id)
+            .maybeSingle()
+            .then(function (res) {
+              loading.style.display = "none";
+              if (res.error) {
+                loadErr.textContent = res.error.message || "No se pudieron cargar los datos.";
+                loadErr.classList.add("show");
+                return;
+              }
+              var row = res.data;
+              vPlan.textContent = planLabel(row && row.subscription_plan);
+              var st = row && row.subscription_status;
+              vStatus.textContent = statusLabel(st);
+              vStatus.className = "sub-value " + statusClass(st);
+              vPeriodEnd.textContent = fmtDate(row && row.current_period_end);
+              if (!row) {
+                vPlan.textContent = "Sin registro en cuenta";
+                vStatus.textContent = "Contactá a soporte si deberías tener un plan activo.";
+                vStatus.className = "sub-value status-muted";
+              }
+              panels.style.display = "block";
+            });
+        });
+      })();
+    </script>
+  </body>
+</html>

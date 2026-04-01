@@ -5,6 +5,9 @@
 window.SUPABASE_URL = "https://ndxelneraoabehyrplrv.supabase.co";
 window.SUPABASE_ANON_KEY = "sb_publishable_G3-iWOKWSEq84ndlF3kViw_msMmwBT9";
 
+// Opcional: enlace mailto en «Mi suscripción» (menú usuario).
+// window.HABLEMOS_SUPPORT_EMAIL = "soporte@ejemplo.cl";
+
 // Netlify Functions: mismo origen que la página (evita CORS con dominio plataforma.*).
 window.NOTIFY_FUNCTION_URL =
   typeof window !== "undefined" && window.location && window.location.origin
