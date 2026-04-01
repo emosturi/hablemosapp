@@ -444,6 +444,50 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script>
       (function () {
+        try {
+          var sp = new URLSearchParams(window.location.search || "");
+          var raw = (sp.get("ref") || sp.get("referral") || "")
+            .trim()
+            .toUpperCase()
+            .replace(/[^A-Z0-9]/g, "");
+          if (raw.length >= 4) sessionStorage.setItem("hablemos_ref", raw.slice(0, 16));
+        } catch (eRefUrl) {}
+
+        function getPendingRefCode() {
+          try {
+            var s = sessionStorage.getItem("hablemos_ref");
+            return s && String(s).length >= 4 ? String(s) : "";
+          } catch (e) {
+            return "";
+          }
+        }
+
+        function tryReferralBindAfterAuth(accessToken, done) {
+          done = typeof done === "function" ? done : function () {};
+          if (!accessToken) {
+            done();
+            return;
+          }
+          var fromStorage = getPendingRefCode();
+          fetch(window.location.origin + "/.netlify/functions/referral-bind", {
+            method: "POST",
+            headers: {
+              Authorization: "Bearer " + accessToken,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(fromStorage ? { code: fromStorage } : {}),
+          })
+            .catch(function () {})
+            .finally(function () {
+              if (fromStorage) {
+                try {
+                  sessionStorage.removeItem("hablemos_ref");
+                } catch (e2) {}
+              }
+              done();
+            });
+        }
+
         var tabLogin = document.getElementById("tabLogin");
         var tabRegister = document.getElementById("tabRegister");
         var paneLogin = document.getElementById("paneLogin");
@@ -751,7 +795,10 @@
                 inputPassword.focus();
                 return;
               }
-              window.location.href = "dashboard.html";
+              var tok = result.data && result.data.session && result.data.session.access_token;
+              tryReferralBindAfterAuth(tok, function () {
+                window.location.href = "dashboard.html";
+              });
             })
             .catch(function (err) {
               btnLogin.disabled = false;
@@ -844,14 +891,16 @@
           btnRegister.disabled = true;
           errorRegisterGeneral.textContent = "Creando cuenta…";
 
+          var regMeta = { telefono: phoneCanon };
+          var refPending = getPendingRefCode();
+          if (refPending) regMeta.referral_code_used = refPending;
+
           sb.client.auth
             .signUp({
               email: email,
               password: p1,
               options: {
-                data: {
-                  telefono: phoneCanon
-                }
+                data: regMeta
               }
             })
             .then(function (result) {
@@ -864,7 +913,10 @@
               errorRegisterGeneral.textContent = "";
 
               if (result.data && result.data.session) {
-                window.location.href = "dashboard.html";
+                var tok = result.data.session.access_token;
+                tryReferralBindAfterAuth(tok, function () {
+                  window.location.href = "dashboard.html";
+                });
                 return;
               }
 
@@ -933,18 +985,31 @@
               var phoneActual =
                 (user.user_metadata && (user.user_metadata.telefono || user.user_metadata.phone)) || "";
               var needsPhoneUpdate = !!phoneCanon && phoneActual !== phoneCanon;
+              var refGoogle = getPendingRefCode();
               if (!needsPhoneUpdate) {
                 sessionStorage.removeItem("google_register_phone");
                 sessionStorage.removeItem("google_register_started");
-                window.location.href = "dashboard.html";
+                var goDash = function () {
+                  tryReferralBindAfterAuth(session.access_token, function () {
+                    window.location.href = "dashboard.html";
+                  });
+                };
+                if (refGoogle) {
+                  sb.client.auth
+                    .updateUser({ data: { referral_code_used: refGoogle } })
+                    .finally(goDash);
+                } else {
+                  goDash();
+                }
                 return;
               }
 
+              var googleMeta = { telefono: phoneCanon };
+              if (refGoogle) googleMeta.referral_code_used = refGoogle;
+
               sb.client.auth
                 .updateUser({
-                  data: {
-                    telefono: phoneCanon,
-                  },
+                  data: googleMeta,
                 })
                 .then(function (upd) {
                   sessionStorage.removeItem("google_register_phone");
@@ -955,7 +1020,9 @@
                       "Google autenticó correctamente, pero no pudimos guardar tu teléfono. Intenta iniciar sesión y actualízalo.";
                     return;
                   }
-                  window.location.href = "dashboard.html";
+                  tryReferralBindAfterAuth(session.access_token, function () {
+                    window.location.href = "dashboard.html";
+                  });
                 })
                 .catch(function () {
                   showPane("register");
@@ -965,7 +1032,9 @@
               return;
             }
 
-            window.location.href = "dashboard.html";
+            tryReferralBindAfterAuth(session.access_token, function () {
+              window.location.href = "dashboard.html";
+            });
           });
         })();
 

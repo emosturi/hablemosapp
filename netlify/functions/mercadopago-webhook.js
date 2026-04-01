@@ -103,6 +103,59 @@ function planFromPayment(payment) {
   return null;
 }
 
+async function resetPayerReferralDiscount(supabase, payerId, plan) {
+  const col = plan === "mensual" ? "referral_discount_percent_mensual" : "referral_discount_percent_anual";
+  const r = await supabase
+    .from("asesor_cuentas")
+    .update({ [col]: 0, updated_at: new Date().toISOString() })
+    .eq("user_id", payerId);
+  if (r.error) console.error("resetPayerReferralDiscount", r.error);
+}
+
+async function creditReferrerFromPayment(supabase, referredUserId, paymentId, plan) {
+  const { data: attr } = await supabase.from("referral_attributions").select("referrer_user_id").eq("referred_user_id", referredUserId).maybeSingle();
+  if (!attr || !attr.referrer_user_id) return;
+
+  const { data: priorConv } = await supabase.from("referral_conversions").select("id").eq("referred_user_id", referredUserId).limit(1).maybeSingle();
+  if (priorConv) return;
+
+  const { error: convErr } = await supabase.from("referral_conversions").insert({
+    mp_payment_id: paymentId,
+    referrer_user_id: attr.referrer_user_id,
+    referred_user_id: referredUserId,
+    plan,
+  });
+  if (convErr) {
+    if (String(convErr.code || "") === "23505") return;
+    console.error("referral_conversions insert", convErr);
+    return;
+  }
+
+  const col = plan === "mensual" ? "referral_discount_percent_mensual" : "referral_discount_percent_anual";
+  const { data: acc } = await supabase.from("asesor_cuentas").select(col).eq("user_id", attr.referrer_user_id).maybeSingle();
+  const cur = acc && typeof acc[col] === "number" ? acc[col] : 0;
+  const next = Math.min(90, cur + 15);
+
+  const { data: refAccRow } = await supabase.from("asesor_cuentas").select("user_id").eq("user_id", attr.referrer_user_id).maybeSingle();
+  if (!refAccRow) {
+    const insRef = await supabase.from("asesor_cuentas").insert({
+      user_id: attr.referrer_user_id,
+      account_enabled: true,
+      telegram_reminders_enabled: true,
+      [col]: next,
+      updated_at: new Date().toISOString(),
+    });
+    if (insRef.error) console.error("referrer asesor_cuentas insert", insRef.error);
+    return;
+  }
+
+  const upd = await supabase
+    .from("asesor_cuentas")
+    .update({ [col]: next, updated_at: new Date().toISOString() })
+    .eq("user_id", attr.referrer_user_id);
+  if (upd.error) console.error("referrer discount update", upd.error);
+}
+
 async function applyApprovedPayment(supabase, payment) {
   const paymentId = payment.id != null ? String(payment.id) : "";
   const ext = payment.external_reference != null ? String(payment.external_reference).trim() : "";
@@ -150,11 +203,15 @@ async function applyApprovedPayment(supabase, payment) {
     );
     const r = await supabase.from("asesor_cuentas").insert(ins);
     if (r.error) return { error: r.error.message };
+    await resetPayerReferralDiscount(supabase, ext, plan);
+    await creditReferrerFromPayment(supabase, ext, paymentId, plan);
     return { ok: true };
   }
 
   const r = await supabase.from("asesor_cuentas").update(upd).eq("user_id", ext);
   if (r.error) return { error: r.error.message };
+  await resetPayerReferralDiscount(supabase, ext, plan);
+  await creditReferrerFromPayment(supabase, ext, paymentId, plan);
   return { ok: true };
 }
 

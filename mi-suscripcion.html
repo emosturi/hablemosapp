@@ -254,6 +254,52 @@
       .terms-consent a:hover {
         text-decoration: underline;
       }
+      .referral-box {
+        margin-top: 12px;
+        padding: 12px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: color-mix(in srgb, var(--surface) 80%, var(--card));
+      }
+      .referral-box h3 {
+        margin: 0 0 8px;
+        font-size: 14px;
+        color: var(--muted);
+        font-weight: 600;
+      }
+      .referral-url {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+      }
+      .referral-url input {
+        flex: 1;
+        min-width: 200px;
+        padding: 8px 10px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text);
+        font-size: 13px;
+      }
+      .btn-copy {
+        padding: 8px 12px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: var(--card);
+        cursor: pointer;
+        font-size: 13px;
+      }
+      .btn-copy:hover {
+        border-color: var(--primary-mid);
+      }
+      .referral-hint {
+        margin: 8px 0 0;
+        font-size: 12px;
+        color: var(--muted);
+        line-height: 1.45;
+      }
       .ticket-link {
         display: inline-flex;
         align-items: center;
@@ -470,6 +516,18 @@
                     <span>He leído y acepto los <a href="terminos-condiciones.html" target="_blank" rel="noopener noreferrer">Términos y Condiciones</a> antes de pagar.</span>
                   </label>
                 </div>
+                <div class="referral-box" id="referralBox" style="display: none">
+                  <h3>Tu enlace de referidos</h3>
+                  <p class="referral-hint" style="margin-top: 0">
+                    Comparte este enlace con otro asesor. Cuando se registre y pague su <strong>primera</strong> suscripción, recibes
+                    <strong>15% de descuento</strong> en el mismo tipo de plan (mensual o anual), hasta 90% acumulado.
+                  </p>
+                  <div class="referral-url">
+                    <input type="text" id="referralUrlInput" readonly value="" aria-label="URL de referido" />
+                    <button type="button" class="btn-copy" id="btnCopyReferral">Copiar</button>
+                  </div>
+                  <p class="referral-hint" id="referralDiscounts">—</p>
+                </div>
               </div>
               <div class="panel manage">
                 <h2>Ayuda y gestión</h2>
@@ -583,6 +641,10 @@
         var btnPayMensual = document.getElementById("btnPayMensual");
         var btnPayAnual = document.getElementById("btnPayAnual");
         var termsAccepted = document.getElementById("termsAccepted");
+        var referralBox = document.getElementById("referralBox");
+        var referralUrlInput = document.getElementById("referralUrlInput");
+        var btnCopyReferral = document.getElementById("btnCopyReferral");
+        var referralDiscounts = document.getElementById("referralDiscounts");
         var openTicketLink = document.getElementById("openTicketLink");
         var ticketModalBackdrop = document.getElementById("ticketModalBackdrop");
         var ticketSubject = document.getElementById("ticketSubject");
@@ -756,7 +818,9 @@
 
           supabase
             .from("asesor_cuentas")
-            .select("subscription_plan, subscription_status, current_period_end")
+            .select(
+              "subscription_plan, subscription_status, current_period_end, referral_code, referral_discount_percent_mensual, referral_discount_percent_anual"
+            )
             .eq("user_id", r.data.session.user.id)
             .maybeSingle()
             .then(function (res) {
@@ -778,6 +842,26 @@
                 vStatus.className = "sub-value status-muted";
               }
               panels.style.display = "block";
+              if (referralBox && referralUrlInput && row && row.referral_code) {
+                referralBox.style.display = "block";
+                referralUrlInput.value =
+                  window.location.origin + "/login.html?ref=" + encodeURIComponent(row.referral_code);
+              }
+              if (referralDiscounts && row) {
+                var dm = row.referral_discount_percent_mensual != null ? row.referral_discount_percent_mensual : 0;
+                var da = row.referral_discount_percent_anual != null ? row.referral_discount_percent_anual : 0;
+                referralDiscounts.textContent =
+                  "Descuento acumulado por referidos: " + dm + "% en plan mensual y " + da + "% en plan anual (se aplica al pagar y luego se reinicia por tipo de plan).";
+              }
+              if (btnCopyReferral && referralUrlInput) {
+                btnCopyReferral.addEventListener("click", function () {
+                  referralUrlInput.select();
+                  referralUrlInput.setSelectionRange(0, 99999);
+                  if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(referralUrlInput.value).catch(function () {});
+                  }
+                });
+              }
               if (btnPayMensual) {
                 btnPayMensual.addEventListener("click", function () {
                   startMercadoPagoCheckout("mensual");

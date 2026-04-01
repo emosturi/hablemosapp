@@ -444,23 +444,31 @@
             return;
           }
 
-          if (typeof window.applyAppShellUser === "function") window.applyAppShellUser(r.data.session.user);
-          if (typeof window.setAppShellGuest === "function") window.setAppShellGuest(false);
-          supabase
-            .from("platform_owners")
-            .select("user_id")
-            .eq("user_id", r.data.session.user.id)
-            .maybeSingle()
-            .then(function (o) {
-              var btn = document.getElementById("ownerPanelBtn");
-              if (!btn) return;
-              btn.style.display = o && o.data ? "" : "none";
-            });
+          var token = r.data.session.access_token;
+          var refSt = "";
+          try {
+            refSt = sessionStorage.getItem("hablemos_ref") || "";
+          } catch (eRef) {}
+          var bindPayload = refSt && refSt.length >= 4 ? { code: refSt } : {};
 
-          var today = localISODate(new Date());
-          var weekEnd = addDaysISO(today, 6);
+          function continueDashboard() {
+            if (typeof window.applyAppShellUser === "function") window.applyAppShellUser(r.data.session.user);
+            if (typeof window.setAppShellGuest === "function") window.setAppShellGuest(false);
+            supabase
+              .from("platform_owners")
+              .select("user_id")
+              .eq("user_id", r.data.session.user.id)
+              .maybeSingle()
+              .then(function (o) {
+                var btn = document.getElementById("ownerPanelBtn");
+                if (!btn) return;
+                btn.style.display = o && o.data ? "" : "none";
+              });
 
-          Promise.all([
+            var today = localISODate(new Date());
+            var weekEnd = addDaysISO(today, 6);
+
+            Promise.all([
             supabase
               .from("recordatorios")
               .select("id, cliente_id, cliente_nombre, fecha, hora, mensaje, enviado")
@@ -468,7 +476,7 @@
               .order("fecha", { ascending: true })
               .order("hora", { ascending: true }),
             supabase.from("clientes_potenciales").select("id, nombre, telefono, created_at").order("created_at", { ascending: false }),
-          ]).then(function (results) {
+            ]).then(function (results) {
             var recRes = results[0];
             var potRes = results[1];
 
@@ -572,7 +580,26 @@
                 ulP.appendChild(li);
               });
             }
-          });
+            });
+          }
+
+          fetch(window.location.origin + "/.netlify/functions/referral-bind", {
+            method: "POST",
+            headers: {
+              Authorization: "Bearer " + token,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(bindPayload),
+          })
+            .catch(function () {})
+            .finally(function () {
+              if (refSt) {
+                try {
+                  sessionStorage.removeItem("hablemos_ref");
+                } catch (e3) {}
+              }
+              continueDashboard();
+            });
         });
       })();
     </script>

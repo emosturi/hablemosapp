@@ -40,7 +40,7 @@ exports.handler = async function (event) {
 
   const priceMensual = parseInt(process.env.MERCADOPAGO_PLAN_MENSUAL_CLP || "", 10);
   const priceAnual = parseInt(process.env.MERCADOPAGO_PLAN_ANUAL_CLP || "", 10);
-  const unitPrice = plan === "mensual" ? priceMensual : priceAnual;
+  let unitPrice = plan === "mensual" ? priceMensual : priceAnual;
   if (!Number.isFinite(unitPrice) || unitPrice < 1) {
     return json(500, {
       error: "Configura MERCADOPAGO_PLAN_MENSUAL_CLP y MERCADOPAGO_PLAN_ANUAL_CLP (números enteros en pesos chilenos)",
@@ -65,6 +65,22 @@ exports.handler = async function (event) {
   const userId = auth.user.id;
   const email = auth.user.email || undefined;
 
+  const { data: acctRow } = await auth.supabase
+    .from("asesor_cuentas")
+    .select("referral_discount_percent_mensual, referral_discount_percent_anual")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  const pctRaw = plan === "mensual" ? acctRow && acctRow.referral_discount_percent_mensual : acctRow && acctRow.referral_discount_percent_anual;
+  let discountPct = parseInt(pctRaw, 10);
+  if (!Number.isFinite(discountPct) || discountPct < 0) discountPct = 0;
+  if (discountPct > 90) discountPct = 90;
+
+  const basePrice = unitPrice;
+  if (discountPct > 0) {
+    unitPrice = Math.max(1, Math.round((basePrice * (100 - discountPct)) / 100));
+  }
+
   const title =
     plan === "mensual" ? "Suscripcion HablemosApp - Plan mensual" : "Suscripcion HablemosApp - Plan anual";
 
@@ -79,7 +95,12 @@ exports.handler = async function (event) {
       },
     ],
     external_reference: userId,
-    metadata: { plan, user_id: userId },
+    metadata: {
+      plan,
+      user_id: userId,
+      base_price_clp: String(basePrice),
+      referral_discount_percent: String(discountPct),
+    },
     back_urls: {
       success: successUrl,
       failure: failureUrl,
