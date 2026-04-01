@@ -229,6 +229,94 @@
         color: var(--muted);
         line-height: 1.5;
       }
+      .ticket-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 6px;
+        color: var(--primary-mid);
+        font-weight: 600;
+        text-decoration: none;
+      }
+      .ticket-link:hover {
+        text-decoration: underline;
+      }
+      .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(10, 10, 20, 0.5);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 40;
+        padding: 12px;
+      }
+      .modal-backdrop.show {
+        display: flex;
+      }
+      .ticket-modal {
+        width: 100%;
+        max-width: 600px;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 18px;
+      }
+      .ticket-modal h3 {
+        margin: 0 0 8px;
+      }
+      .ticket-modal p {
+        margin: 0 0 14px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .ticket-field {
+        margin-bottom: 10px;
+      }
+      .ticket-field label {
+        display: block;
+        font-size: 13px;
+        margin-bottom: 6px;
+      }
+      .ticket-field input,
+      .ticket-field textarea {
+        width: 100%;
+        box-sizing: border-box;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text);
+        border-radius: 8px;
+        padding: 10px;
+        font: inherit;
+      }
+      .ticket-field textarea {
+        min-height: 130px;
+        resize: vertical;
+      }
+      .ticket-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        margin-top: 14px;
+      }
+      .ticket-btn {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--surface);
+        color: var(--text);
+        padding: 9px 12px;
+        cursor: pointer;
+      }
+      .ticket-btn.primary {
+        border-color: var(--primary-mid);
+        background: color-mix(in srgb, var(--primary-mid) 16%, var(--surface));
+      }
+      .ticket-msg {
+        margin-top: 10px;
+        font-size: 13px;
+        color: var(--muted);
+      }
     </style>
   </head>
   <body>
@@ -329,7 +417,7 @@
               </div>
               <div class="panel manage">
                 <h2>Pagar con Mercado Pago</h2>
-                <p>Elegí el plan. Serás redirigido al checkout seguro de Mercado Pago. Al aprobarse el pago, tu suscripción se activa o se extiende automáticamente.</p>
+                <p>Elige el plan. Serás redirigido al checkout seguro de Mercado Pago. Cuando el pago se apruebe, tu suscripción se activa o se extiende automáticamente.</p>
                 <div class="pay-actions">
                   <button type="button" class="btn-mp" id="btnPayMensual">
                     <span class="pay-banner-top">
@@ -345,28 +433,48 @@
                       <span class="pay-badge">Ahorra $24.000</span>
                     </span>
                     <span class="pay-price">$95.880</span>
-                    <span class="pay-subline"><span class="pay-old">$119.880</span> al pagar mes a mes</span>
+                    <span class="pay-subline"><span class="pay-old">$119.880</span> al pagar x mes</span>
                   </button>
                 </div>
                 <p class="pay-note">
-                  Si ya tenés un período vigente, un nuevo pago suma 1 mes o 12 meses desde la fecha de fin actual. Para factura, cambios administrativos o bajas, usá el contacto de abajo.
+                  Si ya tienes un período vigente, un nuevo pago suma 1 mes o 12 meses desde la fecha de fin actual. Para factura, cambios administrativos o bajas, usa el contacto de abajo.
                 </p>
               </div>
               <div class="panel manage">
                 <h2>Ayuda y gestión</h2>
-                <p>Si necesitás factura, resolver un cobro, cancelar o ajustar algo que no dependa del pago en línea:</p>
+                <p>Si necesitas factura, resolver un cobro, cancelar o ajustar algo que no dependa del pago en línea:</p>
                 <ul>
                   <li>cambios que haga solo el administrador de la plataforma,</li>
                   <li>acceso o estado de cuenta,</li>
                   <li>comprobantes o documentación.</li>
                 </ul>
                 <p id="supportLine">
-                  contactá al administrador de tu cuenta o al soporte de HablemosApp.
+                  contacta al administrador de tu cuenta o al soporte de HablemosApp.
                 </p>
+                <a href="#" id="openTicketLink" class="ticket-link">Abrir ticket de ayuda</a>
               </div>
             </div>
           </div>
         </div>
+      </div>
+    </div>
+    <div class="modal-backdrop" id="ticketModalBackdrop" aria-hidden="true">
+      <div class="ticket-modal" role="dialog" aria-modal="true" aria-labelledby="ticketModalTitle">
+        <h3 id="ticketModalTitle">Abrir ticket de ayuda</h3>
+        <p>Escribe tu duda y el equipo de la plataforma te responderá desde el panel owner.</p>
+        <div class="ticket-field">
+          <label for="ticketSubject">Asunto</label>
+          <input id="ticketSubject" type="text" maxlength="120" placeholder="Ejemplo: problema con cobro anual" />
+        </div>
+        <div class="ticket-field">
+          <label for="ticketMessage">Detalle</label>
+          <textarea id="ticketMessage" maxlength="2500" placeholder="Describe tu caso con el mayor detalle posible."></textarea>
+        </div>
+        <div class="ticket-actions">
+          <button type="button" class="ticket-btn" id="ticketCancelBtn">Cancelar</button>
+          <button type="button" class="ticket-btn primary" id="ticketSendBtn">Enviar ticket</button>
+        </div>
+        <div class="ticket-msg" id="ticketMsg"></div>
       </div>
     </div>
     <script src="supabase-config.js"></script>
@@ -443,17 +551,25 @@
         var mpPending = document.getElementById("mpPending");
         var btnPayMensual = document.getElementById("btnPayMensual");
         var btnPayAnual = document.getElementById("btnPayAnual");
+        var openTicketLink = document.getElementById("openTicketLink");
+        var ticketModalBackdrop = document.getElementById("ticketModalBackdrop");
+        var ticketSubject = document.getElementById("ticketSubject");
+        var ticketMessage = document.getElementById("ticketMessage");
+        var ticketSendBtn = document.getElementById("ticketSendBtn");
+        var ticketCancelBtn = document.getElementById("ticketCancelBtn");
+        var ticketMsg = document.getElementById("ticketMsg");
+        var currentUser = null;
 
         (function showMpReturnBanners() {
           var params = new URLSearchParams(window.location.search);
           var mp = params.get("mp");
           if (mp === "ok") {
             mpOk.textContent =
-              "Pago completado. Si el estado aún no muestra «Activa», esperá unos segundos y actualizá la página: el webhook puede tardar un momento.";
+              "Pago completado. Si el estado aún no muestra «Activa», espera unos segundos y actualiza la página: el webhook puede tardar un momento.";
             mpOk.classList.add("show");
           } else if (mp === "fail") {
             mpFail.textContent =
-              "El pago no se completó. Podés intentar de nuevo o escribir a soporte si ves un cargo en Mercado Pago.";
+              "El pago no se completó. Puedes intentarlo de nuevo o escribir a soporte si ves un cargo en Mercado Pago.";
             mpFail.classList.add("show");
           } else if (mp === "pending") {
             mpPending.textContent =
@@ -509,11 +625,67 @@
           });
         }
 
+        function openTicketModal() {
+          if (!ticketModalBackdrop) return;
+          ticketModalBackdrop.classList.add("show");
+          ticketModalBackdrop.setAttribute("aria-hidden", "false");
+          ticketMsg.textContent = "";
+          setTimeout(function () {
+            if (ticketSubject) ticketSubject.focus();
+          }, 0);
+        }
+
+        function closeTicketModal() {
+          if (!ticketModalBackdrop) return;
+          ticketModalBackdrop.classList.remove("show");
+          ticketModalBackdrop.setAttribute("aria-hidden", "true");
+        }
+
+        function sendTicket() {
+          if (!currentUser || !currentUser.id) {
+            ticketMsg.textContent = "Tu sesión no es válida. Recarga la página.";
+            return;
+          }
+          var subject = String(ticketSubject && ticketSubject.value ? ticketSubject.value : "").trim();
+          var message = String(ticketMessage && ticketMessage.value ? ticketMessage.value : "").trim();
+          if (!subject || subject.length < 5) {
+            ticketMsg.textContent = "El asunto debe tener al menos 5 caracteres.";
+            return;
+          }
+          if (!message || message.length < 10) {
+            ticketMsg.textContent = "El detalle debe tener al menos 10 caracteres.";
+            return;
+          }
+          ticketSendBtn.disabled = true;
+          ticketMsg.textContent = "Enviando ticket...";
+          supabase
+            .from("soporte_tickets")
+            .insert({
+              user_id: currentUser.id,
+              advisor_email: currentUser.email || null,
+              subject: subject,
+              message: message,
+              status: "open",
+              updated_at: new Date().toISOString(),
+            })
+            .then(function (res) {
+              ticketSendBtn.disabled = false;
+              if (res.error) {
+                ticketMsg.textContent = res.error.message || "No se pudo enviar el ticket.";
+                return;
+              }
+              ticketMsg.textContent = "Ticket enviado. Puedes seguirlo en Mis tickets.";
+              if (ticketSubject) ticketSubject.value = "";
+              if (ticketMessage) ticketMessage.value = "";
+              setTimeout(closeTicketModal, 700);
+            });
+        }
+
         var supportEmail = typeof window.HABLEMOS_SUPPORT_EMAIL === "string" ? window.HABLEMOS_SUPPORT_EMAIL.trim() : "";
         if (supportEmail) {
           var safeHref = supportEmail.replace(/[\s<>"']/g, "");
           supportLine.textContent = "";
-          supportLine.appendChild(document.createTextNode("escribinos a "));
+          supportLine.appendChild(document.createTextNode("escríbenos a "));
           var mailA = document.createElement("a");
           mailA.className = "mail";
           if (safeHref.indexOf("@") !== -1) mailA.href = "mailto:" + safeHref;
@@ -529,6 +701,21 @@
           }
           if (typeof window.applyAppShellUser === "function") window.applyAppShellUser(r.data.session.user);
           if (typeof window.setAppShellGuest === "function") window.setAppShellGuest(false);
+          currentUser = r.data.session.user;
+
+          if (openTicketLink) {
+            openTicketLink.addEventListener("click", function (ev) {
+              ev.preventDefault();
+              openTicketModal();
+            });
+          }
+          if (ticketCancelBtn) ticketCancelBtn.addEventListener("click", closeTicketModal);
+          if (ticketSendBtn) ticketSendBtn.addEventListener("click", sendTicket);
+          if (ticketModalBackdrop) {
+            ticketModalBackdrop.addEventListener("click", function (ev) {
+              if (ev.target === ticketModalBackdrop) closeTicketModal();
+            });
+          }
 
           supabase
             .from("asesor_cuentas")

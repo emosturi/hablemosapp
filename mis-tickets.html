@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mis tickets — HablemosApp</title>
+    <link rel="stylesheet" href="app-shell.css" />
+    <script src="theme-init.js"></script>
+    <style>
+      .page { max-width: 1100px; margin: 0 auto; }
+      .panel { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px; }
+      .msg { margin: 10px 0 0; color: var(--muted); font-size: 13px; }
+      table { width: 100%; border-collapse: collapse; font-size: 13px; }
+      th, td { border-bottom: 1px solid var(--border); text-align: left; padding: 10px 8px; vertical-align: top; }
+      th { color: var(--muted); font-weight: 600; }
+      .st-open { color: var(--primary-mid); font-weight: 600; }
+      .st-in_progress { color: #b45309; font-weight: 600; }
+      .st-closed { color: var(--muted); }
+      .small { font-size: 12px; color: var(--muted); margin-top: 4px; }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar" aria-label="Navegación">
+        <div class="logo-row"><div class="logo-dot"></div><span class="logo-text">HablemosApp</span></div>
+        <div class="nav-label">Menú</div>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="mi-suscripcion.html">Mi suscripción</a>
+        <a href="mis-tickets.html" class="active">Mis tickets</a>
+      </aside>
+      <div class="main">
+        <header class="topbar">
+          <div class="menu-mobile">
+            <button type="button" class="menu-mobile-btn" id="menuMobileTrigger" aria-expanded="false" aria-controls="menuMobileDd" aria-label="Abrir menú de navegación"><span class="menu-hamburger-line" aria-hidden="true"></span><span class="menu-hamburger-line" aria-hidden="true"></span><span class="menu-hamburger-line" aria-hidden="true"></span></button>
+            <div class="menu-mobile-dd" id="menuMobileDd">
+              <a href="dashboard.html">Dashboard</a>
+              <a href="mi-suscripcion.html">Mi suscripción</a>
+              <a href="mis-tickets.html">Mis tickets</a>
+            </div>
+          </div>
+          <div class="search-wrap">
+            <input type="search" placeholder="Buscar en la app…" id="appShellSearch" autocomplete="off" />
+          </div>
+          <button type="button" class="topbar-search-toggle" id="topbarSearchToggle" aria-expanded="false" aria-controls="appShellSearch" aria-label="Buscar en la app"></button>
+          <div class="user-menu-wrap sidebar-auth-only">
+            <button type="button" class="user-menu-trigger" id="userMenuTrigger" aria-expanded="false" aria-haspopup="true">
+              <div class="user-avatar" id="userAvatar">?</div>
+              <div class="user-meta">
+                <div class="name" id="userDisplayName">Asesor</div>
+                <div class="email" id="userEmail">—</div>
+              </div>
+            </button>
+            <div class="user-menu-dd" id="userMenuDd" role="menu">
+              <a href="mis-datos-mandatario.html" class="user-menu-item" role="menuitem">Mis datos (mandatario)</a>
+              <a href="mi-suscripcion.html" class="user-menu-item" role="menuitem">Mi suscripción</a>
+              <a href="mis-tickets.html" class="user-menu-item active" role="menuitem" aria-current="page">Mis tickets</a>
+              <button type="button" class="user-menu-item user-menu-theme" id="userMenuThemeToggle" role="menuitem" aria-pressed="false" aria-label="Modo oscuro">
+                <span class="user-menu-theme-label">Modo oscuro</span>
+              </button>
+              <button type="button" class="user-menu-item user-menu-logout" id="btnCerrarSesionMenu" role="menuitem">Cerrar sesión</button>
+            </div>
+          </div>
+        </header>
+        <div class="content">
+          <div class="page">
+            <h1>Mis tickets</h1>
+            <p class="small">Aquí verás los tickets abiertos desde tu cuenta y su estado de atención.</p>
+            <div class="panel">
+              <div id="msg" class="msg">Cargando tickets…</div>
+              <div style="overflow:auto; margin-top:10px;">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Fecha</th>
+                      <th>Asunto</th>
+                      <th>Estado</th>
+                      <th>Detalle</th>
+                      <th>Nota admin</th>
+                    </tr>
+                  </thead>
+                  <tbody id="rows"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="supabase-config.js"></script>
+    <script src="app-shell.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script>
+      (function () {
+        if (typeof window.initAppShell === "function") window.initAppShell();
+        if (typeof window.initAppShellSearch === "function") window.initAppShellSearch();
+        var msg = document.getElementById("msg");
+        var rows = document.getElementById("rows");
+        var sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+        if (typeof window.wireAppShellLogout === "function") window.wireAppShellLogout(sb);
+
+        function esc(s) {
+          return String(s == null ? "" : s).replace(/[&<>"']/g, function (m) {
+            return ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;" })[m];
+          });
+        }
+        function fmtDate(v) {
+          var d = new Date(v || "");
+          if (isNaN(d.getTime())) return "—";
+          return d.toLocaleString("es-CL", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+        }
+        function statusLabel(s) {
+          if (s === "open") return "Abierto";
+          if (s === "in_progress") return "En proceso";
+          if (s === "closed") return "Cerrado";
+          return String(s || "—");
+        }
+
+        sb.auth.getSession().then(function (r) {
+          if (!r || !r.data || !r.data.session) {
+            window.location.replace("login.html");
+            return;
+          }
+          if (typeof window.applyAppShellUser === "function") window.applyAppShellUser(r.data.session.user);
+          return sb
+            .from("soporte_tickets")
+            .select("id, subject, message, status, owner_note, created_at")
+            .eq("user_id", r.data.session.user.id)
+            .order("created_at", { ascending: false });
+        }).then(function (res) {
+          if (!res) return;
+          if (res.error) {
+            msg.textContent = res.error.message || "No se pudieron cargar tus tickets.";
+            return;
+          }
+          var list = res.data || [];
+          msg.textContent = list.length ? "Tickets encontrados: " + list.length : "No tienes tickets aún.";
+          rows.innerHTML = list.map(function (t) {
+            return "<tr>" +
+              "<td>" + esc(fmtDate(t.created_at)) + "</td>" +
+              "<td>" + esc(t.subject) + "</td>" +
+              "<td class='st-" + esc(t.status) + "'>" + esc(statusLabel(t.status)) + "</td>" +
+              "<td>" + esc(t.message) + "</td>" +
+              "<td>" + esc(t.owner_note || "—") + "</td>" +
+            "</tr>";
+          }).join("");
+        });
+      })();
+    </script>
+  </body>
+</html>

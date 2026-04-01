@@ -21,6 +21,10 @@
       select, input[type="datetime-local"] { background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 6px 8px; font-size: 12px; }
       .btn { border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: 8px; padding: 6px 10px; cursor: pointer; font-size: 12px; }
       .btn:hover { border-color: var(--primary-mid); }
+      .ticket-status-open { color: var(--primary-mid); font-weight: 600; }
+      .ticket-status-in_progress { color: #b45309; font-weight: 600; }
+      .ticket-status-closed { color: var(--muted); }
+      .ticket-msg { margin: 10px 0 0; color: var(--muted); font-size: 13px; }
     </style>
   </head>
   <body>
@@ -69,6 +73,26 @@
                 </table>
               </div>
             </div>
+            <div class="panel" style="margin-top: 16px;">
+              <h2 style="margin:0 0 10px;">Tickets de soporte</h2>
+              <div class="msg" id="ticketMsg">Cargando tickets…</div>
+              <div style="overflow:auto; margin-top:10px;">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Fecha</th>
+                      <th>Asesor</th>
+                      <th>Asunto</th>
+                      <th>Detalle</th>
+                      <th>Estado</th>
+                      <th>Nota owner</th>
+                      <th>Acción</th>
+                    </tr>
+                  </thead>
+                  <tbody id="ticketRows"></tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -80,6 +104,8 @@
       (function () {
         var msg = document.getElementById("msg");
         var rows = document.getElementById("rows");
+        var ticketRows = document.getElementById("ticketRows");
+        var ticketMsg = document.getElementById("ticketMsg");
         var advisorSearch = document.getElementById("advisorSearch");
         var sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
         var allAdvisors = [];
@@ -157,6 +183,50 @@
             });
         }
 
+        function escStatus(s) {
+          if (s === "open") return "Abierto";
+          if (s === "in_progress") return "En proceso";
+          if (s === "closed") return "Cerrado";
+          return s || "—";
+        }
+
+        function fmtDate(v) {
+          var d = new Date(v || "");
+          if (isNaN(d.getTime())) return "—";
+          return d.toLocaleString("es-CL", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+        }
+
+        function ticketRowHtml(t) {
+          return "<tr data-ticket-id='" + esc(t.id) + "'>" +
+            "<td>" + esc(fmtDate(t.created_at)) + "</td>" +
+            "<td>" + esc(t.advisor_email || t.user_id) + "</td>" +
+            "<td>" + esc(t.subject) + "</td>" +
+            "<td>" + esc(t.message) + "</td>" +
+            "<td>" +
+              "<select class='t-status ticket-status-" + esc(t.status) + "'>" +
+                "<option value='open'" + (t.status === "open" ? " selected" : "") + ">Abierto</option>" +
+                "<option value='in_progress'" + (t.status === "in_progress" ? " selected" : "") + ">En proceso</option>" +
+                "<option value='closed'" + (t.status === "closed" ? " selected" : "") + ">Cerrado</option>" +
+              "</select>" +
+            "</td>" +
+            "<td><input type='text' class='t-note' maxlength='400' value='" + esc(t.owner_note || "") + "' placeholder='Nota interna o respuesta' /></td>" +
+            "<td><button type='button' class='btn btn-ticket-save'>Guardar</button></td>" +
+          "</tr>";
+        }
+
+        function loadTickets() {
+          callOwnerApi("/.netlify/functions/admin-list-support-tickets", "GET")
+            .then(function (r) {
+              if (!r.ok) throw new Error((r.json && r.json.error) || "No se pudieron cargar tickets");
+              var list = (r.json && r.json.tickets) || [];
+              ticketMsg.textContent = list.length ? "Tickets: " + list.length : "No hay tickets aún.";
+              ticketRows.innerHTML = list.map(ticketRowHtml).join("");
+            })
+            .catch(function (e) {
+              ticketMsg.textContent = e.message || "Error cargando tickets.";
+            });
+        }
+
         rows.addEventListener("click", function (ev) {
           var btn = ev.target && ev.target.closest(".btn-save");
           if (!btn) return;
@@ -182,6 +252,29 @@
             });
         });
 
+        ticketRows.addEventListener("click", function (ev) {
+          var btn = ev.target && ev.target.closest(".btn-ticket-save");
+          if (!btn) return;
+          var tr = btn.closest("tr");
+          var payload = {
+            id: tr.getAttribute("data-ticket-id"),
+            status: tr.querySelector(".t-status").value,
+            owner_note: tr.querySelector(".t-note").value || null,
+          };
+          btn.disabled = true;
+          callOwnerApi("/.netlify/functions/admin-update-support-ticket", "POST", payload)
+            .then(function (r) {
+              btn.disabled = false;
+              if (!r.ok) throw new Error((r.json && r.json.error) || "No se pudo actualizar ticket");
+              ticketMsg.textContent = "Ticket actualizado.";
+              loadTickets();
+            })
+            .catch(function (e) {
+              btn.disabled = false;
+              ticketMsg.textContent = e.message || "Error guardando ticket.";
+            });
+        });
+
         if (advisorSearch) {
           advisorSearch.addEventListener("input", applyFilter);
         }
@@ -192,6 +285,7 @@
             return;
           }
           load();
+          loadTickets();
         });
       })();
     </script>

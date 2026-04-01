@@ -123,6 +123,30 @@
     var btn = qs("btnCerrarSesionMenu");
     if (!supabase) return;
 
+    function ensureAdvisorTicketsMenuLink() {
+      var userMenu = qs("userMenuDd");
+      if (!userMenu) return;
+      var existing = userMenu.querySelector("a[data-advisor-tickets='1']");
+      if (existing) return;
+      var anchorBefore = userMenu.querySelector(".user-menu-theme");
+      var a = document.createElement("a");
+      a.href = "mis-tickets.html";
+      a.textContent = "Mis tickets";
+      a.className = "user-menu-item";
+      a.setAttribute("role", "menuitem");
+      a.setAttribute("data-advisor-tickets", "1");
+      var active = window.location && /mis-tickets\.html(?:\?|$)/.test(window.location.pathname || "");
+      if (active) {
+        a.classList.add("active");
+        a.setAttribute("aria-current", "page");
+      }
+      if (anchorBefore && anchorBefore.parentNode === userMenu) {
+        userMenu.insertBefore(a, anchorBefore);
+      } else {
+        userMenu.appendChild(a);
+      }
+    }
+
     function ensureOwnerMenuLink(isOwner) {
       function upsertLink(container) {
         if (!container) return;
@@ -159,6 +183,7 @@
         ensureOwnerMenuLink(false);
         return;
       }
+      ensureAdvisorTicketsMenuLink();
 
       var file = currentHtmlFile();
       var skipAccountGuard = file === "login.html" || file === "cuenta-suspendida.html";
@@ -225,6 +250,10 @@
       }
       if (q.indexOf("record") !== -1 || q.indexOf("alert") !== -1) {
         window.location.href = "recordatorios.html";
+        return;
+      }
+      if (q.indexOf("ticket") !== -1 || q.indexOf("soporte") !== -1 || q.indexOf("ayuda") !== -1) {
+        window.location.href = "mis-tickets.html";
         return;
       }
       if (q.indexOf("client") !== -1 || q.indexOf("list") !== -1) {
