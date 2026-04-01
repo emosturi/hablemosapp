@@ -28,6 +28,16 @@
     if (ut) ut.setAttribute("aria-expanded", "false");
   }
 
+  function closeMobileSearchExpand() {
+    var bar = document.querySelector("header.topbar");
+    var btn = qs("topbarSearchToggle");
+    if (bar) bar.classList.remove("topbar-search-open");
+    if (btn) {
+      btn.setAttribute("aria-expanded", "false");
+      btn.setAttribute("aria-label", "Buscar en la app");
+    }
+  }
+
   window.initAppShell = function () {
     var t = qs("menuMobileTrigger");
     var d = qs("menuMobileDd");
@@ -36,6 +46,7 @@
       t.addEventListener("click", function (e) {
         e.stopPropagation();
         closeUserMenu();
+        closeMobileSearchExpand();
         var open = !d.classList.contains("open");
         d.classList.toggle("open", open);
         syncMobileMenuTriggerAria(open);
@@ -48,15 +59,44 @@
       ut.addEventListener("click", function (e) {
         e.stopPropagation();
         closeMobileMenu();
+        closeMobileSearchExpand();
         var open = !ud.classList.contains("open");
         ud.classList.toggle("open", open);
         ut.setAttribute("aria-expanded", open ? "true" : "false");
       });
     }
 
+    var searchToggle = qs("topbarSearchToggle");
+    var topbar = document.querySelector("header.topbar");
+    var searchInput = qs("appShellSearch");
+    var searchWrap =
+      topbar && searchInput && searchInput.closest ? searchInput.closest(".search-wrap") : null;
+    if (searchToggle && topbar && searchInput) {
+      searchToggle.addEventListener("click", function (e) {
+        e.stopPropagation();
+        closeMobileMenu();
+        closeUserMenu();
+        var open = !topbar.classList.contains("topbar-search-open");
+        topbar.classList.toggle("topbar-search-open", open);
+        searchToggle.setAttribute("aria-expanded", open ? "true" : "false");
+        searchToggle.setAttribute("aria-label", open ? "Cerrar búsqueda" : "Buscar en la app");
+        if (open) {
+          setTimeout(function () {
+            searchInput.focus();
+          }, 0);
+        }
+      });
+    }
+    if (searchWrap) {
+      searchWrap.addEventListener("click", function (e) {
+        e.stopPropagation();
+      });
+    }
+
     document.addEventListener("click", function () {
       closeMobileMenu();
       closeUserMenu();
+      closeMobileSearchExpand();
     });
   };
 

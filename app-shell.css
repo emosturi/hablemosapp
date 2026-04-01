@@ -235,6 +235,46 @@ header.topbar {
   max-width: 420px;
 }
 
+.topbar-search-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  margin: 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--text);
+  cursor: pointer;
+  font-family: inherit;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.topbar-search-toggle:focus-visible {
+  outline: 2px solid var(--primary-mid);
+  outline-offset: 2px;
+}
+
+.topbar-search-toggle svg {
+  width: 22px;
+  height: 22px;
+}
+
+.topbar-search-icon-close {
+  display: none;
+}
+
+.topbar.topbar-search-open .topbar-search-icon-open {
+  display: none;
+}
+
+.topbar.topbar-search-open .topbar-search-icon-close {
+  display: block;
+}
+
 /* #appShellSearch: especificidad por id para que estilos globales de formularios en páginas (p. ej. pension.html)
    no pisen padding ni background y la lupa no se superponga al placeholder. */
 header.topbar .search-wrap #appShellSearch {
@@ -605,17 +645,27 @@ html[data-theme="dark"] .user-menu-theme-icon .theme-icon-sun {
     order: 1;
     flex-shrink: 0;
   }
-  .topbar .user-menu-wrap {
+  .topbar-search-toggle {
+    display: inline-flex;
     order: 2;
-    flex-shrink: 0;
     margin-left: auto;
+    flex-shrink: 0;
   }
-  .topbar .search-wrap {
+  .topbar .user-menu-wrap {
     order: 3;
+    flex-shrink: 0;
+  }
+  /* Búsqueda global: oculta en móvil hasta pulsar la lupa (mismo hueco que el antiguo tema). */
+  .topbar .search-wrap:has(#appShellSearch) {
+    order: 4;
     flex: 1 0 100%;
     max-width: none;
     min-width: 0;
     width: 100%;
+    display: none;
+  }
+  .topbar.topbar-search-open .search-wrap:has(#appShellSearch) {
+    display: block;
   }
   .topbar .search-wrap:empty {
     display: none;
