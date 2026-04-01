@@ -128,6 +128,67 @@
       .err-banner.show {
         display: block;
       }
+      .mp-banner {
+        display: none;
+        padding: 12px 14px;
+        border-radius: var(--radius-sm);
+        font-size: 14px;
+        line-height: 1.45;
+        margin-bottom: 16px;
+        border: 1px solid var(--border);
+      }
+      .mp-banner.show {
+        display: block;
+      }
+      .mp-banner.ok {
+        background: color-mix(in srgb, var(--primary-mid) 12%, transparent);
+        border-color: color-mix(in srgb, var(--primary-mid) 35%, var(--border));
+        color: var(--text);
+      }
+      .mp-banner.warn {
+        background: var(--danger-bg);
+        color: var(--danger-text);
+        border-color: color-mix(in srgb, var(--danger-text) 25%, var(--border));
+      }
+      .mp-banner.pending {
+        background: color-mix(in srgb, var(--muted) 15%, transparent);
+        color: var(--text);
+      }
+      .pay-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 12px;
+      }
+      .btn-mp {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 16px;
+        font-size: 14px;
+        font-weight: 600;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text);
+        cursor: pointer;
+        text-decoration: none;
+        font-family: inherit;
+      }
+      .btn-mp:hover:not(:disabled) {
+        border-color: var(--primary-mid);
+        color: var(--primary-mid);
+      }
+      .btn-mp:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+      .pay-note {
+        margin: 10px 0 0;
+        font-size: 13px;
+        color: var(--muted);
+        line-height: 1.5;
+      }
     </style>
   </head>
   <body>
@@ -165,6 +226,7 @@
               <a href="enlace-agenda-llamada.html">Enlace agenda llamada</a>
               <a href="mi-agenda-llamadas.html">Mi agenda de llamadas</a>
               <a href="recordatorios.html">Recordatorios</a>
+              <a href="mi-suscripcion.html">Mi suscripción</a>
             </div>
           </div>
           <div class="search-wrap">
@@ -200,6 +262,9 @@
           <div class="page">
             <a href="dashboard.html" class="back">← Dashboard</a>
             <div class="err-banner" id="loadErr" role="alert"></div>
+            <div class="mp-banner ok" id="mpOk" role="status"></div>
+            <div class="mp-banner warn" id="mpFail" role="alert"></div>
+            <div class="mp-banner pending" id="mpPending" role="status"></div>
             <header class="page-h">
               <h1>Mi suscripción</h1>
               <p class="subtitle">Estado de tu plan y cómo solicitar cambios o ayuda con la facturación.</p>
@@ -223,16 +288,23 @@
                 </div>
               </div>
               <div class="panel manage">
-                <h2>Gestionar tu suscripción</h2>
-                <p>
-                  Los cambios de plan, medios de pago, facturas y bajas los coordina el equipo de la plataforma (o la pasarela que se integre más adelante). Desde aquí ves el estado registrado en tu cuenta.
+                <h2>Pagar con Mercado Pago</h2>
+                <p>Elegí el plan. Serás redirigido al checkout seguro de Mercado Pago. Al aprobarse el pago, tu suscripción se activa o se extiende automáticamente.</p>
+                <div class="pay-actions">
+                  <button type="button" class="btn-mp" id="btnPayMensual">Pagar plan mensual</button>
+                  <button type="button" class="btn-mp" id="btnPayAnual">Pagar plan anual</button>
+                </div>
+                <p class="pay-note">
+                  Si ya tenés un período vigente, un nuevo pago suma 1 mes o 12 meses desde la fecha de fin actual. Para factura, cambios administrativos o bajas, usá el contacto de abajo.
                 </p>
-                <p>Si necesitás:</p>
+              </div>
+              <div class="panel manage">
+                <h2>Ayuda y gestión</h2>
+                <p>Si necesitás factura, resolver un cobro, cancelar o ajustar algo que no dependa del pago en línea:</p>
                 <ul>
-                  <li>cambiar de plan (mensual / anual),</li>
-                  <li>resolver un cobro o acceso,</li>
-                  <li>solicitar factura o comprobante,</li>
-                  <li>o cancelar la suscripción,</li>
+                  <li>cambios que haga solo el administrador de la plataforma,</li>
+                  <li>acceso o estado de cuenta,</li>
+                  <li>comprobantes o documentación.</li>
                 </ul>
                 <p id="supportLine">
                   contactá al administrador de tu cuenta o al soporte de HablemosApp.
@@ -312,6 +384,76 @@
         var vStatus = document.getElementById("vStatus");
         var vPeriodEnd = document.getElementById("vPeriodEnd");
         var supportLine = document.getElementById("supportLine");
+        var mpOk = document.getElementById("mpOk");
+        var mpFail = document.getElementById("mpFail");
+        var mpPending = document.getElementById("mpPending");
+        var btnPayMensual = document.getElementById("btnPayMensual");
+        var btnPayAnual = document.getElementById("btnPayAnual");
+
+        (function showMpReturnBanners() {
+          var params = new URLSearchParams(window.location.search);
+          var mp = params.get("mp");
+          if (mp === "ok") {
+            mpOk.textContent =
+              "Pago completado. Si el estado aún no muestra «Activa», esperá unos segundos y actualizá la página: el webhook puede tardar un momento.";
+            mpOk.classList.add("show");
+          } else if (mp === "fail") {
+            mpFail.textContent =
+              "El pago no se completó. Podés intentar de nuevo o escribir a soporte si ves un cargo en Mercado Pago.";
+            mpFail.classList.add("show");
+          } else if (mp === "pending") {
+            mpPending.textContent =
+              "Pago pendiente de confirmación. Cuando Mercado Pago lo acredite, tu plan se actualizará solo.";
+            mpPending.classList.add("show");
+          }
+        })();
+
+        function preferenceFnUrl() {
+          return window.location.origin + "/.netlify/functions/mercadopago-create-preference";
+        }
+
+        function startMercadoPagoCheckout(plan) {
+          loadErr.classList.remove("show");
+          loadErr.textContent = "";
+          var busy = plan === "mensual" ? btnPayMensual : btnPayAnual;
+          var other = plan === "mensual" ? btnPayAnual : btnPayMensual;
+          if (busy) busy.disabled = true;
+          if (other) other.disabled = true;
+          supabase.auth.getSession().then(function (r) {
+            var token = r && r.data && r.data.session && r.data.session.access_token;
+            if (!token) {
+              window.location.replace("login.html");
+              return;
+            }
+            fetch(preferenceFnUrl(), {
+              method: "POST",
+              headers: {
+                Authorization: "Bearer " + token,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ plan: plan }),
+            })
+              .then(function (res) {
+                return res.json().then(function (data) {
+                  if (!res.ok) throw new Error((data && data.error) || res.statusText || "Error al crear el pago");
+                  return data;
+                });
+              })
+              .then(function (data) {
+                if (data && data.init_point) {
+                  window.location.href = data.init_point;
+                  return;
+                }
+                throw new Error("Mercado Pago no devolvió la URL de checkout");
+              })
+              .catch(function (err) {
+                loadErr.textContent = err && err.message ? err.message : "No se pudo iniciar el pago.";
+                loadErr.classList.add("show");
+                if (btnPayMensual) btnPayMensual.disabled = false;
+                if (btnPayAnual) btnPayAnual.disabled = false;
+              });
+          });
+        }
 
         var supportEmail = typeof window.HABLEMOS_SUPPORT_EMAIL === "string" ? window.HABLEMOS_SUPPORT_EMAIL.trim() : "";
         if (supportEmail) {
@@ -358,6 +500,16 @@
                 vStatus.className = "sub-value status-muted";
               }
               panels.style.display = "block";
+              if (btnPayMensual) {
+                btnPayMensual.addEventListener("click", function () {
+                  startMercadoPagoCheckout("mensual");
+                });
+              }
+              if (btnPayAnual) {
+                btnPayAnual.addEventListener("click", function () {
+                  startMercadoPagoCheckout("anual");
+                });
+              }
             });
         });
       })();
