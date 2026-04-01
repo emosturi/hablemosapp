@@ -1,4 +1,4 @@
--- Referidos entre asesores: código único, atribución y descuentos acumulados (15% por referido pagado).
+-- Referidos entre asesores: código único, atribución y descuentos acumulados (15% por referido pagado, máx. 75% = 5 veces).
 -- Ejecutar en Supabase SQL Editor.
 
 -- Columnas en asesor_cuentas
@@ -12,22 +12,22 @@ alter table public.asesor_cuentas
 
 alter table public.asesor_cuentas
   add constraint asesor_cuentas_referral_discount_mensual_chk
-  check (referral_discount_percent_mensual >= 0 and referral_discount_percent_mensual <= 90);
+  check (referral_discount_percent_mensual >= 0 and referral_discount_percent_mensual <= 75);
 
 alter table public.asesor_cuentas
   drop constraint if exists asesor_cuentas_referral_discount_anual_chk;
 
 alter table public.asesor_cuentas
   add constraint asesor_cuentas_referral_discount_anual_chk
-  check (referral_discount_percent_anual >= 0 and referral_discount_percent_anual <= 90);
+  check (referral_discount_percent_anual >= 0 and referral_discount_percent_anual <= 75);
 
 create unique index if not exists idx_asesor_cuentas_referral_code
   on public.asesor_cuentas (referral_code)
   where referral_code is not null;
 
 comment on column public.asesor_cuentas.referral_code is 'Código corto para enlaces login.html?ref= (único).';
-comment on column public.asesor_cuentas.referral_discount_percent_mensual is 'Descuento % acumulado por referidos que pagaron plan mensual (máx. 90).';
-comment on column public.asesor_cuentas.referral_discount_percent_anual is 'Descuento % acumulado por referidos que pagaron plan anual (máx. 90).';
+comment on column public.asesor_cuentas.referral_discount_percent_mensual is 'Descuento % acumulado por referidos que pagaron plan mensual (máx. 75, 5×15%).';
+comment on column public.asesor_cuentas.referral_discount_percent_anual is 'Descuento % acumulado por referidos que pagaron plan anual (máx. 75, 5×15%).';
 
 -- Atribución: un solo referidor por asesor referido (primera vinculación válida).
 create table if not exists public.referral_attributions (
@@ -58,7 +58,7 @@ create index if not exists idx_referral_conversions_referrer on public.referral_
 
 alter table public.referral_conversions enable row level security;
 
-comment on table public.referral_conversions is 'Pagos aprobados que generaron +15% de descuento al referidor.';
+comment on table public.referral_conversions is 'Pagos aprobados que generaron +15% de descuento al referidor (tope acumulado 75% por tipo de plan).';
 
 -- Generar referral_code automáticamente si falta (INSERT/UPDATE).
 create or replace function public.asesor_cuentas_set_referral_code ()

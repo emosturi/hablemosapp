@@ -520,7 +520,8 @@
                   <h3>Tu enlace de referidos</h3>
                   <p class="referral-hint" style="margin-top: 0">
                     Comparte este enlace con otro asesor. Cuando se registre y pague su <strong>primera</strong> suscripción, recibes
-                    <strong>15% de descuento</strong> en el mismo tipo de plan (mensual o anual), hasta 90% acumulado.
+                    <strong>15% de descuento</strong> en el mismo tipo de plan (mensual o anual). Podés acumularlo hasta
+                    <strong>5 veces</strong> (máximo <strong>75%</strong> por tipo de plan).
                   </p>
                   <div class="referral-url">
                     <input type="text" id="referralUrlInput" readonly value="" aria-label="URL de referido" />
@@ -851,7 +852,11 @@
                 var dm = row.referral_discount_percent_mensual != null ? row.referral_discount_percent_mensual : 0;
                 var da = row.referral_discount_percent_anual != null ? row.referral_discount_percent_anual : 0;
                 referralDiscounts.textContent =
-                  "Descuento acumulado por referidos: " + dm + "% en plan mensual y " + da + "% en plan anual (se aplica al pagar y luego se reinicia por tipo de plan).";
+                  "Descuento acumulado por referidos: " +
+                  dm +
+                  "% en plan mensual y " +
+                  da +
+                  "% en plan anual (máximo 75% por tipo de plan, 5×15%; se aplica al pagar y luego se reinicia por tipo de plan).";
               }
               if (btnCopyReferral && referralUrlInput) {
                 btnCopyReferral.addEventListener("click", function () {
