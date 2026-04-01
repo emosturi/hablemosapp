@@ -36,7 +36,9 @@ exports.handler = async function (event) {
   if (ids.length) {
     const c = await supabase
       .from("asesor_cuentas")
-      .select("user_id, account_enabled, telegram_reminders_enabled, subscription_plan, subscription_status, current_period_end");
+      .select(
+        "user_id, account_enabled, telegram_reminders_enabled, subscription_plan, subscription_status, current_period_end, subscription_grace_until, subscription_bypass"
+      );
     if (!c.error && Array.isArray(c.data)) {
       c.data.forEach(function (x) { cuentasById[x.user_id] = x; });
     }
@@ -56,6 +58,8 @@ exports.handler = async function (event) {
       subscription_plan: c.subscription_plan || null,
       subscription_status: c.subscription_status || "none",
       current_period_end: c.current_period_end || null,
+      subscription_grace_until: c.subscription_grace_until || null,
+      subscription_bypass: c.subscription_bypass === true,
     };
   });
 

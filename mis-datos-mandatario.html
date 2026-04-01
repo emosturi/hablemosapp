@@ -379,6 +379,14 @@
           if (typeof window.applyAppShellUser === "function") window.applyAppShellUser(r.data.session.user);
           if (typeof window.setAppShellGuest === "function") window.setAppShellGuest(false);
 
+          Promise.resolve(
+            window.__hablemosWhenSubscriptionReady && window.__hablemosWhenSubscriptionReady()
+          ).then(function () {
+            if (window.HABLEMOS_SUB_LOCK_CANCELED) {
+              window.location.replace("mi-suscripcion.html");
+              return;
+            }
+
           supabase
             .from("asesor_mandatario_perfil")
             .select("datos")
@@ -387,6 +395,7 @@
             .then(function (res) {
               if (res.data && res.data.datos) fillForm(res.data.datos);
             });
+          });
         });
 
         fRut.addEventListener("blur", function () {
@@ -411,6 +420,11 @@
             return;
           }
 
+          if (window.HABLEMOS_SUB_LOCK_CANCELED) {
+            setStatus("Renová tu suscripción en «Mi suscripción» para editar estos datos.", "err");
+            return;
+          }
+
           btnGuardar.disabled = true;
           setStatus("Guardando…");
 
@@ -419,6 +433,11 @@
             if (!uid) {
               btnGuardar.disabled = false;
               setStatus("Sesión expirada.", "err");
+              return;
+            }
+            if (window.HABLEMOS_SUB_LOCK_CANCELED) {
+              btnGuardar.disabled = false;
+              setStatus("Renová tu suscripción para guardar cambios.", "err");
               return;
             }
             perfil.rut = normalizeRut(perfil.rut || fRut.value);

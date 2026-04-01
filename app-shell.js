@@ -199,15 +199,80 @@
       return parts[parts.length - 1] || "";
     }
 
+    function clearSubscriptionShellLock() {
+      window.HABLEMOS_SUB_LOCK_CANCELED = false;
+      var layout = document.querySelector(".layout");
+      if (layout) layout.classList.remove("sub-lock-canceled");
+      document.documentElement.classList.remove("sub-lock-canceled");
+      var b = document.getElementById("hablemosSubLockBanner");
+      if (b && b.parentNode) b.parentNode.removeChild(b);
+    }
+
+    function applySubscriptionShellLock() {
+      window.HABLEMOS_SUB_LOCK_CANCELED = true;
+      var layout = document.querySelector(".layout");
+      if (layout) layout.classList.add("sub-lock-canceled");
+      document.documentElement.classList.add("sub-lock-canceled");
+      var main = document.querySelector(".layout .main");
+      if (main && !document.getElementById("hablemosSubLockBanner")) {
+        var bar = document.createElement("div");
+        bar.id = "hablemosSubLockBanner";
+        bar.className = "hablemos-sub-lock-banner";
+        bar.setAttribute("role", "alert");
+        bar.innerHTML =
+          "<p><strong>Suscripción requerida.</strong> El acceso está limitado hasta que regularices el pago en <a href=\"mi-suscripcion.html\">Mi suscripción</a>.</p>";
+        var content = main.querySelector(".content");
+        if (content) main.insertBefore(bar, content);
+        else main.insertBefore(bar, main.firstChild);
+      }
+    }
+
+    var SUB_LOCK_ALLOWED_PAGES = {
+      "dashboard.html": true,
+      "mi-suscripcion.html": true,
+      "mis-tickets.html": true,
+      "revisar-clientes.html": true,
+    };
+
+    function redirectIfSubscriptionLocked(file) {
+      var base = (file || "").split("?")[0] || "";
+      if (!window.HABLEMOS_SUB_LOCK_CANCELED) return;
+      if (SUB_LOCK_ALLOWED_PAGES[base]) return;
+      window.location.replace("dashboard.html");
+    }
+
+    var guardResolve;
+    var guardSettled = false;
+    window.__subscriptionGuardPromise = new Promise(function (resolve) {
+      guardResolve = resolve;
+    });
+    window.__hablemosWhenSubscriptionReady = function () {
+      return window.__subscriptionGuardPromise || Promise.resolve();
+    };
+
+    function finishSubscriptionGuard() {
+      if (guardSettled) return;
+      guardSettled = true;
+      try {
+        if (typeof guardResolve === "function") guardResolve();
+      } catch (eGuard) {}
+    }
+
     supabase.auth.getSession().then(function (r) {
-      var uid = r && r.data && r.data.session && r.data.session.user && r.data.session.user.id;
+      var session = r && r.data && r.data.session;
+      var uid = session && session.user && session.user.id;
+      var token = session && session.access_token;
+      var file = currentHtmlFile();
+      document.documentElement.setAttribute("data-shell-page", (file.split("?")[0] || "").trim());
+
       if (!uid) {
         ensureAdvisorTicketsMenuLink(false);
         ensureOwnerMenuLink(false);
+        clearSubscriptionShellLock();
+        finishSubscriptionGuard();
         return;
       }
 
-      var file = currentHtmlFile();
       var skipAccountGuard = file === "login.html" || file === "cuenta-suspendida.html";
 
       supabase
@@ -220,24 +285,58 @@
           ensureAdvisorTicketsMenuLink(!isOwner);
           ensureOwnerMenuLink(isOwner);
 
-          if (skipAccountGuard || isOwner) return null;
-
-          return supabase
-            .from("asesor_cuentas")
-            .select("account_enabled")
-            .eq("user_id", uid)
-            .maybeSingle();
-        })
-        .then(function (acctRes) {
-          if (!acctRes) return;
-          if (acctRes.error) return;
-          var row = acctRes.data;
-          if (row && row.account_enabled === false) {
-            window.location.replace("cuenta-suspendida.html");
+          if (skipAccountGuard || isOwner) {
+            clearSubscriptionShellLock();
+            finishSubscriptionGuard();
+            return Promise.resolve(null);
           }
+
+          if (!token) {
+            clearSubscriptionShellLock();
+            finishSubscriptionGuard();
+            return Promise.resolve(null);
+          }
+
+          return fetch(window.location.origin + "/.netlify/functions/advisor-subscription-sync", {
+            method: "POST",
+            headers: {
+              Authorization: "Bearer " + token,
+              "Content-Type": "application/json",
+            },
+            body: "{}",
+          }).then(function (res) {
+            return res.json().then(function (j) {
+              return { httpOk: res.ok, j: j };
+            });
+          });
+        })
+        .then(function (wrapped) {
+          if (wrapped === null || wrapped === undefined) return;
+
+          var j = wrapped.j;
+          if (!wrapped.httpOk || !j || j.ok !== true) {
+            clearSubscriptionShellLock();
+            finishSubscriptionGuard();
+            return;
+          }
+
+          if (j.account_enabled === false) {
+            window.location.replace("cuenta-suspendida.html");
+            return;
+          }
+
+          if (j.subscription_bypass || !j.lock_navigation) {
+            clearSubscriptionShellLock();
+          } else {
+            applySubscriptionShellLock();
+            redirectIfSubscriptionLocked(file);
+          }
+          finishSubscriptionGuard();
         })
         .catch(function () {
           ensureOwnerMenuLink(false);
+          clearSubscriptionShellLock();
+          finishSubscriptionGuard();
         });
     });
 

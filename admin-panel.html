@@ -99,6 +99,8 @@
                       <th>Plan</th>
                       <th>Estado</th>
                       <th>Periodo fin</th>
+                      <th>Mora hasta</th>
+                      <th>Bypass suscripción</th>
                       <th>Acción</th>
                     </tr>
                   </thead>
@@ -168,6 +170,8 @@
             "<td><select class='f-plan'><option value=''>—</option><option value='mensual'" + (u.subscription_plan === "mensual" ? " selected":"") + ">Mensual</option><option value='anual'" + (u.subscription_plan === "anual" ? " selected":"") + ">Anual</option></select></td>" +
             "<td><select class='f-status'><option value='none'" + (u.subscription_status === "none" ? " selected":"") + ">Sin suscripción</option><option value='trial'" + (u.subscription_status === "trial" ? " selected":"") + ">Trial</option><option value='active'" + (u.subscription_status === "active" ? " selected":"") + ">Activa</option><option value='past_due'" + (u.subscription_status === "past_due" ? " selected":"") + ">Mora</option><option value='canceled'" + (u.subscription_status === "canceled" ? " selected":"") + ">Cancelada</option></select></td>" +
             "<td><input type='datetime-local' class='f-end' value='" + esc(toLocalInput(u.current_period_end)) + "' /></td>" +
+            "<td><input type='datetime-local' class='f-grace' value='" + esc(toLocalInput(u.subscription_grace_until)) + "' title='Fin de mora (opcional)' /></td>" +
+            "<td><select class='f-bypass'><option value='false'" + (!u.subscription_bypass ? " selected" : "") + ">No</option><option value='true'" + (u.subscription_bypass ? " selected" : "") + ">Sí (acceso total)</option></select></td>" +
             "<td><div class='row-actions'><button type='button' class='btn btn-save'>Guardar</button></div></td>" +
           "</tr>";
         }
@@ -267,6 +271,7 @@
           var btn = ev.target && ev.target.closest(".btn-save");
           if (!btn) return;
           var tr = btn.closest("tr");
+          var graceInp = tr.querySelector(".f-grace");
           var payload = {
             user_id: tr.getAttribute("data-id"),
             account_enabled: tr.querySelector(".f-enabled").value === "true",
@@ -274,6 +279,8 @@
             subscription_plan: tr.querySelector(".f-plan").value || null,
             subscription_status: tr.querySelector(".f-status").value || null,
             current_period_end: tr.querySelector(".f-end").value ? new Date(tr.querySelector(".f-end").value).toISOString() : null,
+            subscription_grace_until: graceInp && graceInp.value ? new Date(graceInp.value).toISOString() : null,
+            subscription_bypass: tr.querySelector(".f-bypass").value === "true",
           };
           btn.disabled = true;
           callOwnerApi("/.netlify/functions/admin-upsert-advisor-account", "POST", payload)

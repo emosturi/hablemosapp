@@ -89,6 +89,16 @@
         color: var(--muted);
         font-weight: 400;
       }
+      .sub-context-note {
+        margin: 12px 0 0;
+        padding: 12px 14px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: var(--accent-soft);
+        color: var(--text);
+        font-size: 14px;
+        line-height: 1.45;
+      }
       .manage p {
         margin: 0 0 12px;
         font-size: 14px;
@@ -485,6 +495,11 @@
                   <span class="sub-label">Fin del período actual</span>
                   <span class="sub-value" id="vPeriodEnd">—</span>
                 </div>
+                <div class="sub-row" id="graceRow" style="display: none">
+                  <span class="sub-label">Plazo para regularizar (mora)</span>
+                  <span class="sub-value" id="vGraceUntil">—</span>
+                </div>
+                <p class="sub-context-note" id="subscriptionContextNote" style="display: none" role="status"></p>
               </div>
               <div class="panel manage">
                 <h2>Pagar con Mercado Pago</h2>
@@ -611,8 +626,24 @@
               day: "numeric",
               month: "long",
               year: "numeric",
+              timeZone: "America/Santiago",
             });
           } catch (e) {
+            return "—";
+          }
+        }
+
+        function fmtDateTimeChile(iso) {
+          if (!iso) return "—";
+          try {
+            var d = new Date(iso);
+            if (isNaN(d.getTime())) return "—";
+            return d.toLocaleString("es-CL", {
+              timeZone: "America/Santiago",
+              dateStyle: "medium",
+              timeStyle: "short",
+            });
+          } catch (e2) {
             return "—";
           }
         }
@@ -654,6 +685,9 @@
         var ticketCancelBtn = document.getElementById("ticketCancelBtn");
         var ticketMsg = document.getElementById("ticketMsg");
         var currentUser = null;
+        var graceRow = document.getElementById("graceRow");
+        var vGraceUntil = document.getElementById("vGraceUntil");
+        var subscriptionContextNote = document.getElementById("subscriptionContextNote");
 
         (function showMpReturnBanners() {
           var params = new URLSearchParams(window.location.search);
@@ -803,6 +837,9 @@
           if (typeof window.setAppShellGuest === "function") window.setAppShellGuest(false);
           currentUser = r.data.session.user;
 
+          Promise.resolve(
+            window.__hablemosWhenSubscriptionReady && window.__hablemosWhenSubscriptionReady()
+          ).then(function () {
           if (openTicketLink) {
             openTicketLink.addEventListener("click", function (ev) {
               ev.preventDefault();
@@ -820,7 +857,7 @@
           supabase
             .from("asesor_cuentas")
             .select(
-              "subscription_plan, subscription_status, current_period_end, referral_code, referral_discount_percent_mensual, referral_discount_percent_anual"
+              "subscription_plan, subscription_status, current_period_end, subscription_grace_until, referral_code, referral_discount_percent_mensual, referral_discount_percent_anual"
             )
             .eq("user_id", r.data.session.user.id)
             .maybeSingle()
@@ -837,10 +874,34 @@
               vStatus.textContent = statusLabel(st);
               vStatus.className = "sub-value " + statusClass(st);
               vPeriodEnd.textContent = fmtDate(row && row.current_period_end);
+              if (graceRow) graceRow.style.display = "none";
+              if (subscriptionContextNote) {
+                subscriptionContextNote.style.display = "none";
+                subscriptionContextNote.textContent = "";
+              }
               if (!row) {
                 vPlan.textContent = "Sin registro en cuenta";
                 vStatus.textContent = "Contactá a soporte si deberías tener un plan activo.";
                 vStatus.className = "sub-value status-muted";
+              } else {
+                var stNow = row.subscription_status;
+                if (stNow === "trial" && row.current_period_end && subscriptionContextNote) {
+                  subscriptionContextNote.textContent =
+                    "Período de prueba: tenés acceso completo hasta la fecha indicada. Al terminar, debés suscribirte para seguir usando la plataforma.";
+                  subscriptionContextNote.style.display = "block";
+                } else if (stNow === "past_due" && subscriptionContextNote) {
+                  if (graceRow && vGraceUntil) {
+                    graceRow.style.display = "";
+                    vGraceUntil.textContent = fmtDateTimeChile(row.subscription_grace_until);
+                  }
+                  subscriptionContextNote.textContent =
+                    "Tu período pagado venció. Tenés hasta el plazo de mora (fecha en horario Chile) para renovar con acceso completo; si no pagás, el acceso quedará limitado.";
+                  subscriptionContextNote.style.display = "block";
+                } else if (stNow === "canceled" && subscriptionContextNote) {
+                  subscriptionContextNote.textContent =
+                    "Tu suscripción no está activa. Completá el pago abajo para recuperar el acceso a todas las funciones.";
+                  subscriptionContextNote.style.display = "block";
+                }
               }
               panels.style.display = "block";
               if (referralBox && referralUrlInput && row && row.referral_code) {
@@ -887,6 +948,7 @@
                 syncTermsButtons();
               }
             });
+          });
         });
       })();
     </script>

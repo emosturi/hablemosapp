@@ -187,6 +187,7 @@ async function applyApprovedPayment(supabase, payment) {
   const upd = {
     subscription_plan: plan,
     subscription_status: "active",
+    subscription_grace_until: null,
     current_period_end: periodEnd.toISOString(),
     mercadopago_last_payment_id: paymentId,
     updated_at: now.toISOString(),

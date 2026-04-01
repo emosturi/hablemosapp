@@ -149,6 +149,16 @@
       .loading { color: var(--muted); padding: 20px; }
       .error-msg { color: var(--danger); padding: 20px; }
       .empty { color: var(--muted); padding: 20px; }
+      .sub-lock-readonly-hint {
+        margin: 10px 0 0;
+        padding: 12px 14px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: var(--accent-soft);
+        color: var(--text);
+        font-size: 14px;
+        line-height: 1.45;
+      }
       .modal-overlay {
         position: fixed;
         inset: 0;
@@ -384,6 +394,22 @@
           if (typeof window.applyAppShellUser === "function") window.applyAppShellUser(r.data.session.user);
           if (typeof window.setAppShellGuest === "function") window.setAppShellGuest(false);
 
+          Promise.resolve(
+            window.__hablemosWhenSubscriptionReady && window.__hablemosWhenSubscriptionReady()
+          ).then(function () {
+          if (window.HABLEMOS_SUB_LOCK_CANCELED) {
+            var pageHdr = document.querySelector(".page header");
+            if (pageHdr && !document.getElementById("subLockReadonlyHint")) {
+              var hint = document.createElement("p");
+              hint.id = "subLockReadonlyHint";
+              hint.className = "sub-lock-readonly-hint";
+              hint.setAttribute("role", "status");
+              hint.textContent =
+                "Listado en solo lectura. Para editar, borrar o abrir formularios, renová tu plan en Mi suscripción.";
+              pageHdr.appendChild(hint);
+            }
+          }
+
           var loadingEl = document.getElementById("loading");
           var errorEl = document.getElementById("error");
           var emptyEl = document.getElementById("empty");
@@ -494,14 +520,18 @@
               : "Buscar por nombre, RUT o teléfono…";
           }
 
-          function renderTabla(list) {
+          function renderTabla(list, readOnly) {
+            readOnly = !!readOnly;
             tbody.innerHTML = "";
             list.forEach(function (item) {
               var fecha = item.created_at ? new Date(item.created_at).toLocaleDateString("es-CL") : "";
               var searchText = [item.nombre || "", (item.rut || "").replace(/[^0-9K]/gi, ""), (item.telefono || "").replace(/\s/g, "")].join(" ").toLowerCase();
               var postCierre = clientePostCierreAfp(item);
               var tr = document.createElement("tr");
-              tr.className = "client-row" + (postCierre ? " cliente-post-cierre-afp" : "");
+              tr.className =
+                "client-row" +
+                (postCierre ? " cliente-post-cierre-afp" : "") +
+                (readOnly ? " sub-lock-readonly-row" : "");
               if (postCierre) {
                 tr.title = "Trámite en etapa «Día del cierre (AFP)» o posterior (línea de tiempo guardada).";
               }
@@ -510,18 +540,28 @@
               tr.setAttribute("data-search", searchText);
               var docsHtml = "-";
               if (item.tipo === "cliente") {
-                docsHtml = "";
-                if (item.tiene_contrato) docsHtml += '<a class="doc-badge" title="Imprimir contrato" href="pension.html?cliente=' + encodeURIComponent(item.id) + '&imprimir=contrato">C</a>';
-                if (item.tiene_mandato_corto) docsHtml += '<a class="doc-badge" title="Imprimir mandato corto" href="pension.html?cliente=' + encodeURIComponent(item.id) + '&imprimir=mandato_corto">MC</a>';
-                if (item.tiene_mandato_largo) docsHtml += '<a class="doc-badge" title="Imprimir mandato largo" href="pension.html?cliente=' + encodeURIComponent(item.id) + '&imprimir=mandato_largo">ML</a>';
-                if (!docsHtml) docsHtml = "-";
+                if (readOnly) {
+                  var dl = [];
+                  if (item.tiene_contrato) dl.push("C");
+                  if (item.tiene_mandato_corto) dl.push("MC");
+                  if (item.tiene_mandato_largo) dl.push("ML");
+                  docsHtml = dl.length ? '<span class="muted">' + dl.join(" · ") + "</span>" : "-";
+                } else {
+                  docsHtml = "";
+                  if (item.tiene_contrato) docsHtml += '<a class="doc-badge" title="Imprimir contrato" href="pension.html?cliente=' + encodeURIComponent(item.id) + '&imprimir=contrato">C</a>';
+                  if (item.tiene_mandato_corto) docsHtml += '<a class="doc-badge" title="Imprimir mandato corto" href="pension.html?cliente=' + encodeURIComponent(item.id) + '&imprimir=mandato_corto">MC</a>';
+                  if (item.tiene_mandato_largo) docsHtml += '<a class="doc-badge" title="Imprimir mandato largo" href="pension.html?cliente=' + encodeURIComponent(item.id) + '&imprimir=mandato_largo">ML</a>';
+                  if (!docsHtml) docsHtml = "-";
+                }
               }
               var nombreCell = (item.nombre || "-");
               if (item.tipo === "cliente" && isFinite(Number(item.numero_contrato_secuencial))) {
                 nombreCell += '<span class="contrato-chip">N° ' + String(item.numero_contrato_secuencial) + "</span>";
               }
               var accionesHtml;
-              if (item.tipo === "cliente") {
+              if (readOnly) {
+                accionesHtml = '<span class="muted" style="font-size:12px">Solo lectura</span>';
+              } else if (item.tipo === "cliente") {
                 accionesHtml =
                   '<a href="editar-cliente.html?id=' + encodeURIComponent(item.id) + '" class="btn-small btn-editar" title="Editar"><span class="btn-icon" aria-hidden="true"><svg class="btn-icon-svg" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span><span class="btn-text">Editar</span></a>' +
                   '<a href="pension.html?cliente=' + encodeURIComponent(item.id) + '" class="btn-small btn-use" title="Usar en formulario de pensiones"><span class="btn-icon" aria-hidden="true"><svg class="btn-icon-svg" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg></span><span class="btn-text">Usar</span></a>' +
@@ -537,20 +577,22 @@
                 "<td class=\"td-docs\">" + docsHtml + "</td>" +
                 '<td class="acciones">' + accionesHtml + "</td>";
               tbody.appendChild(tr);
-              var btnBorrar = tr.querySelector(".btn-borrar");
-              if (btnBorrar) btnBorrar.addEventListener("click", function (e) { e.stopPropagation(); openModal(item.id, item.tipo); });
-              if (item.tipo === "cliente") {
-                tr.querySelector(".btn-editar").addEventListener("click", function (e) { e.stopPropagation(); });
-                tr.querySelector(".btn-use").addEventListener("click", function (e) { e.stopPropagation(); });
-                tr.addEventListener("click", function (e) {
-                  if (e.target.closest("td.acciones") || e.target.closest("td.td-docs")) return;
-                  window.location.href = "ver-cliente.html?id=" + encodeURIComponent(item.id);
-                });
-              } else {
-                tr.addEventListener("click", function (e) {
-                  if (e.target.closest("td.acciones")) return;
-                  window.location.href = "ver-potencial.html?id=" + encodeURIComponent(item.id);
-                });
+              if (!readOnly) {
+                var btnBorrar = tr.querySelector(".btn-borrar");
+                if (btnBorrar) btnBorrar.addEventListener("click", function (e) { e.stopPropagation(); openModal(item.id, item.tipo); });
+                if (item.tipo === "cliente") {
+                  tr.querySelector(".btn-editar").addEventListener("click", function (e) { e.stopPropagation(); });
+                  tr.querySelector(".btn-use").addEventListener("click", function (e) { e.stopPropagation(); });
+                  tr.addEventListener("click", function (e) {
+                    if (e.target.closest("td.acciones") || e.target.closest("td.td-docs")) return;
+                    window.location.href = "ver-cliente.html?id=" + encodeURIComponent(item.id);
+                  });
+                } else {
+                  tr.addEventListener("click", function (e) {
+                    if (e.target.closest("td.acciones")) return;
+                    window.location.href = "ver-potencial.html?id=" + encodeURIComponent(item.id);
+                  });
+                }
               }
             });
             filtrar();
@@ -574,7 +616,7 @@
             }
             emptyEl.style.display = "none";
             tablaEl.style.display = "table";
-            renderTabla(current);
+            renderTabla(current, !!window.HABLEMOS_SUB_LOCK_CANCELED);
           }
 
           function cargarLista() {
@@ -694,6 +736,7 @@
           });
           window.addEventListener("pageshow", function (e) {
             if (e.persisted) cargarLista();
+          });
           });
         });
       })();

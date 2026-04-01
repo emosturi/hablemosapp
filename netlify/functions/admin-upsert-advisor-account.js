@@ -45,6 +45,13 @@ exports.handler = async function (event) {
     updated_at: new Date().toISOString(),
   };
 
+  if (body.subscription_bypass === true) payload.subscription_bypass = true;
+  else if (body.subscription_bypass === false) payload.subscription_bypass = false;
+
+  if (body.subscription_grace_until !== undefined) {
+    payload.subscription_grace_until = body.subscription_grace_until || null;
+  }
+
   const r = await supabase.from("asesor_cuentas").upsert(payload, { onConflict: "user_id" });
   if (r.error) return json(500, { error: r.error.message || "No se pudo actualizar la cuenta" });
 

@@ -687,6 +687,59 @@ html[data-theme="dark"] .user-menu-theme-icon .theme-icon-sun {
   }
 }
 
+/* Suscripción cancelada: navegación mínima (pago, soporte, listado solo lectura, dashboard difuminado) */
+.hablemos-sub-lock-banner {
+  margin: 0;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, rgba(180, 83, 9, 0.12), rgba(0, 96, 108, 0.08));
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.45;
+}
+.hablemos-sub-lock-banner p {
+  margin: 0;
+}
+.hablemos-sub-lock-banner a {
+  color: var(--primary-mid);
+  font-weight: 600;
+}
+
+.layout.sub-lock-canceled .sidebar a[href]:not([href="dashboard.html"]):not([href="mi-suscripcion.html"]):not([href="mis-tickets.html"]):not([href="revisar-clientes.html"]) {
+  display: none !important;
+}
+
+.layout.sub-lock-canceled .menu-mobile-dd a[href]:not([href="dashboard.html"]):not([href="mi-suscripcion.html"]):not([href="mis-tickets.html"]):not([href="revisar-clientes.html"]) {
+  display: none !important;
+}
+
+.layout.sub-lock-canceled .topbar .search-wrap:has(#appShellSearch),
+.layout.sub-lock-canceled .topbar .topbar-search-toggle {
+  display: none !important;
+}
+
+.layout.sub-lock-canceled #userMenuDd a[href*="mis-datos-mandatario"] {
+  display: none !important;
+}
+
+.layout.sub-lock-canceled .header-links {
+  display: none !important;
+}
+
+html[data-shell-page="dashboard.html"] .layout.sub-lock-canceled .main > .content {
+  filter: blur(7px);
+  pointer-events: none;
+  user-select: none;
+  position: relative;
+}
+
+.layout.sub-lock-canceled .client-row.sub-lock-readonly-row {
+  cursor: default;
+}
+.layout.sub-lock-canceled .client-row.sub-lock-readonly-row:hover {
+  background: transparent;
+}
+
 /* iOS Safari: reglas tipo `input { width:100%; padding:… }` o `.modal input` no deben aplicarse a radios/checkbox */
 input[type="radio"],
 input[type="checkbox"] {
