@@ -154,12 +154,24 @@
     function ensureOwnerMenuLink(isOwner) {
       function upsertLink(container) {
         if (!container) return;
-        var existing = container.querySelector("a[data-owner-menu='1'], a[href='admin-panel.html']");
+        var matches = Array.prototype.slice.call(
+          container.querySelectorAll("a[data-owner-menu='1'], a[href='admin-panel.html']")
+        );
         if (!isOwner) {
-          if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
+          matches.forEach(function (n) {
+            if (n && n.parentNode) n.parentNode.removeChild(n);
+          });
           return;
         }
-        if (existing) return;
+        if (matches.length > 0) {
+          var keep = matches[0];
+          for (var i = 1; i < matches.length; i += 1) {
+            var dupe = matches[i];
+            if (dupe && dupe.parentNode) dupe.parentNode.removeChild(dupe);
+          }
+          keep.setAttribute("data-owner-menu", "1");
+          return;
+        }
         var a = document.createElement("a");
         a.href = "admin-panel.html";
         a.textContent = "Panel owner";
