@@ -232,10 +232,6 @@
           <div class="search-wrap">
             <input type="search" placeholder="Buscar en la app…" id="appShellSearch" autocomplete="off" />
           </div>
-          <button type="button" class="btn-theme-toggle" id="btnThemeToggle" title="Modo oscuro" aria-label="Modo oscuro" aria-pressed="false">
-            <svg class="theme-icon-moon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
-            <svg class="theme-icon-sun" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="5" /><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" /></svg>
-          </button>
           <div class="user-menu-wrap sidebar-auth-only">
             <button type="button" class="user-menu-trigger" id="userMenuTrigger" aria-expanded="false" aria-haspopup="true">
               <div class="user-avatar" id="userAvatar">?</div>
@@ -246,7 +242,13 @@
             </button>
             <div class="user-menu-dd" id="userMenuDd" role="menu">
               <a href="mis-datos-mandatario.html" class="user-menu-item" role="menuitem">Mis datos (mandatario)</a>
-              <button type="button" class="user-menu-item" id="userMenuThemeToggle" role="menuitem" aria-pressed="false">Modo oscuro</button>
+              <button type="button" class="user-menu-item user-menu-theme" id="userMenuThemeToggle" role="menuitem" aria-pressed="false" aria-label="Modo oscuro">
+                <span class="user-menu-theme-icon" aria-hidden="true">
+                  <svg class="theme-icon-moon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
+                  <svg class="theme-icon-sun" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5" /><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" /></svg>
+                </span>
+                <span class="user-menu-theme-label">Modo oscuro</span>
+              </button>
               <button type="button" class="user-menu-item user-menu-logout" id="btnCerrarSesionMenu" role="menuitem">Cerrar sesión</button>
             </div>
           </div>

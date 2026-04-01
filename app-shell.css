@@ -509,6 +509,75 @@ html[data-theme="dark"] .btn-theme-toggle .theme-icon-sun {
   display: block;
 }
 
+/* Tema con icono + texto (menú usuario, login, sidebar admin) */
+.user-menu-item.user-menu-theme {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-menu-theme-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  color: var(--text);
+}
+
+.user-menu-theme-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.user-menu-theme-icon .theme-icon-sun {
+  display: none;
+}
+
+html[data-theme="dark"] .user-menu-theme-icon .theme-icon-moon {
+  display: none;
+}
+
+html[data-theme="dark"] .user-menu-theme-icon .theme-icon-sun {
+  display: block;
+}
+
+.user-menu-theme-label {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+}
+
+.sidebar .user-menu-theme {
+  margin-top: 12px;
+}
+
+.login-theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--text);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 14px;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.login-theme-toggle:hover {
+  border-color: var(--primary-mid);
+  color: var(--primary);
+}
+
+.login-theme-toggle:focus-visible {
+  outline: 2px solid var(--primary-mid);
+  outline-offset: 2px;
+}
+
 .content {
   padding: 24px;
   flex: 1;
@@ -536,16 +605,13 @@ html[data-theme="dark"] .btn-theme-toggle .theme-icon-sun {
     order: 1;
     flex-shrink: 0;
   }
-  .topbar .btn-theme-toggle {
+  .topbar .user-menu-wrap {
     order: 2;
+    flex-shrink: 0;
     margin-left: auto;
   }
-  .topbar .user-menu-wrap {
-    order: 3;
-    flex-shrink: 0;
-  }
   .topbar .search-wrap {
-    order: 4;
+    order: 3;
     flex: 1 0 100%;
     max-width: none;
     min-width: 0;

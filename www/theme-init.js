@@ -36,18 +36,26 @@
   function syncButton(btn) {
     if (!btn) return;
     var dark = get() === "dark";
-    btn.setAttribute("aria-pressed", dark ? "true" : "false");
     var label = dark ? "Modo claro" : "Modo oscuro";
-    btn.title = label;
+    btn.setAttribute("aria-pressed", dark ? "true" : "false");
     btn.setAttribute("aria-label", label);
+    var lab = btn.querySelector(".user-menu-theme-label");
+    if (lab) {
+      lab.textContent = label;
+      btn.title = label;
+      return;
+    }
+    btn.title = label;
   }
 
   function themeToggleButtons() {
     var list = [];
     var a = document.getElementById("btnThemeToggle");
     var b = document.getElementById("btnThemeTogglePublic");
+    var c = document.getElementById("userMenuThemeToggle");
     if (a) list.push(a);
     if (b) list.push(b);
+    if (c) list.push(c);
     return list;
   }
 

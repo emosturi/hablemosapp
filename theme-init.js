@@ -39,8 +39,10 @@
     var label = dark ? "Modo claro" : "Modo oscuro";
     btn.setAttribute("aria-pressed", dark ? "true" : "false");
     btn.setAttribute("aria-label", label);
-    if (btn.id === "userMenuThemeToggle") {
-      btn.textContent = label;
+    var lab = btn.querySelector(".user-menu-theme-label");
+    if (lab) {
+      lab.textContent = label;
+      btn.title = label;
       return;
     }
     btn.title = label;
