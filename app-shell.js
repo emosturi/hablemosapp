@@ -123,15 +123,19 @@
     var btn = qs("btnCerrarSesionMenu");
     if (!supabase) return;
 
-    function ensureAdvisorTicketsMenuLink() {
+    function ensureAdvisorTicketsMenuLink(show) {
       var userMenu = qs("userMenuDd");
       if (!userMenu) return;
-      var existing = userMenu.querySelector("a[data-advisor-tickets='1']");
+      var existing = userMenu.querySelector("a[data-advisor-tickets='1'], a[href='mis-tickets.html']");
+      if (!show) {
+        if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
+        return;
+      }
       if (existing) return;
       var anchorBefore = userMenu.querySelector(".user-menu-theme");
       var a = document.createElement("a");
       a.href = "mis-tickets.html";
-      a.textContent = "Mis tickets";
+      a.textContent = "Soporte";
       a.className = "user-menu-item";
       a.setAttribute("role", "menuitem");
       a.setAttribute("data-advisor-tickets", "1");
@@ -180,10 +184,10 @@
     supabase.auth.getSession().then(function (r) {
       var uid = r && r.data && r.data.session && r.data.session.user && r.data.session.user.id;
       if (!uid) {
+        ensureAdvisorTicketsMenuLink(false);
         ensureOwnerMenuLink(false);
         return;
       }
-      ensureAdvisorTicketsMenuLink();
 
       var file = currentHtmlFile();
       var skipAccountGuard = file === "login.html" || file === "cuenta-suspendida.html";
@@ -195,6 +199,7 @@
         .maybeSingle()
         .then(function (res) {
           var isOwner = !!(res && !res.error && res.data && res.data.user_id);
+          ensureAdvisorTicketsMenuLink(!isOwner);
           ensureOwnerMenuLink(isOwner);
 
           if (skipAccountGuard || isOwner) return null;
