@@ -66,7 +66,7 @@ exports.handler = async function (event) {
   const email = auth.user.email || undefined;
 
   const title =
-    plan === "mensual" ? "Suscripción HablemosApp — Plan mensual" : "Suscripción HablemosApp — Plan anual";
+    plan === "mensual" ? "Suscripcion HablemosApp - Plan mensual" : "Suscripcion HablemosApp - Plan anual";
 
   const preferenceBody = {
     items: [
@@ -86,10 +86,16 @@ exports.handler = async function (event) {
       pending: pendingUrl,
     },
     auto_return: "approved",
-    binary_mode: true,
+    locale: "es_CL",
     notification_url: notificationUrl,
-    statement_descriptor: "HABLEMOSAPP",
   };
+
+  if (process.env.MERCADOPAGO_CHECKOUT_BINARY_MODE === "1") {
+    preferenceBody.binary_mode = true;
+  }
+
+  const descriptor = String(process.env.MERCADOPAGO_STATEMENT_DESCRIPTOR || "").trim();
+  if (descriptor) preferenceBody.statement_descriptor = descriptor.slice(0, 22);
 
   if (email) preferenceBody.payer = { email };
 

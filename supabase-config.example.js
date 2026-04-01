@@ -17,6 +17,8 @@ window.SUPABASE_ANON_KEY = "tu-anon-key-aqui";
 //   MERCADOPAGO_WEBHOOK_BASE_URL      — Opcional: si el webhook debe registrarse con otra URL base que la de retorno al usuario.
 //   MERCADOPAGO_WEBHOOK_SECRET        — Firma del webhook en «Tus integraciones» (recomendado en producción).
 //   MERCADOPAGO_WEBHOOK_ALLOW_UNSIGNED_GET=1 — Solo si usás IPN GET legacy sin cabecera x-signature y tenés WEBHOOK_SECRET definido.
+//   MERCADOPAGO_CHECKOUT_BINARY_MODE=1 — Opcional: solo pagos aprobados/rechazados al instante (sin pendiente). En Chile suele ser mejor NO ponerlo si el botón de pago no se habilita.
+//   MERCADOPAGO_STATEMENT_DESCRIPTOR — Opcional: texto en el extracto (máx. ~22 caracteres). Si no lo definís, no se envía.
 // En Supabase, ejecutar supabase-migration-mercadopago-asesor-cuentas.sql para la columna mercadopago_last_payment_id.
 
 // Opcional: notificación Telegram al registrar cliente (Netlify Function).
