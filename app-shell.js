@@ -154,7 +154,7 @@
     function ensureOwnerMenuLink(isOwner) {
       function upsertLink(container) {
         if (!container) return;
-        var existing = container.querySelector("a[data-owner-menu='1']");
+        var existing = container.querySelector("a[data-owner-menu='1'], a[href='admin-panel.html']");
         if (!isOwner) {
           if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
           return;
