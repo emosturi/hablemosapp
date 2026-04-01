@@ -91,6 +91,18 @@ exports.handler = async function (event) {
   const chatByPhone = loadTelegramChatByPhoneMap();
   const userPhoneCache = new Map();
 
+  var dbTelegramChatId = "";
+  if (ownerUserId) {
+    const accRes = await supabase
+      .from("asesor_cuentas")
+      .select("telegram_chat_id")
+      .eq("user_id", ownerUserId)
+      .maybeSingle();
+    if (!accRes.error && accRes.data && accRes.data.telegram_chat_id) {
+      dbTelegramChatId = accRes.data.telegram_chat_id;
+    }
+  }
+
   const nombre = [clientData.nombres, clientData.apellido_paterno, clientData.apellido_materno]
     .filter(Boolean)
     .join(" ");
@@ -109,6 +121,7 @@ exports.handler = async function (event) {
     chatByPhone,
     userPhoneCache,
     logPrefix: "[notify-telegram]",
+    dbTelegramChatId,
   });
   if (!envio.ok && envio.reason === "no_telegram_route") {
     console.warn(

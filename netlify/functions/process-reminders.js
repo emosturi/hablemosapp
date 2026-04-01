@@ -75,14 +75,17 @@ exports.handler = async function (event, context) {
 
   const uids = [...new Set(pendientes.map((p) => (p.user_id ? String(p.user_id) : "")).filter(Boolean))];
   const tgByUser = {};
+  const tgChatByUser = {};
   if (uids.length) {
     const accRes = await supabase
       .from("asesor_cuentas")
-      .select("user_id, telegram_reminders_enabled")
+      .select("user_id, telegram_reminders_enabled, telegram_chat_id")
       .in("user_id", uids);
     if (!accRes.error && Array.isArray(accRes.data)) {
       for (const row of accRes.data) {
-        tgByUser[String(row.user_id)] = row.telegram_reminders_enabled !== false;
+        const uidKey = String(row.user_id);
+        tgByUser[uidKey] = row.telegram_reminders_enabled !== false;
+        tgChatByUser[uidKey] = row.telegram_chat_id || "";
       }
     }
   }
@@ -127,6 +130,7 @@ exports.handler = async function (event, context) {
       chatByPhone,
       userPhoneCache,
       logPrefix: "[process-reminders]",
+      dbTelegramChatId: tgChatByUser[uid] || "",
     });
     if (!envio.ok) {
       if (envio.reason === "no_telegram_route" || envio.reason === "missing_owner_user_id") {

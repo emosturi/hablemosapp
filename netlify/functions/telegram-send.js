@@ -27,6 +27,7 @@ async function postTelegramMessage(token, chatId, text) {
  * @param {Record<string,string>} params.chatByPhone
  * @param {Map<string,string>} params.userPhoneCache
  * @param {string} params.logPrefix
+ * @param {string} [params.dbTelegramChatId] - telegram_chat_id desde asesor_cuentas (opcional).
  * @returns {Promise<{ok:boolean, chatId?:string, reason?:string, error?:string}>}
  */
 async function sendTelegramToAdvisor(params) {
@@ -37,6 +38,7 @@ async function sendTelegramToAdvisor(params) {
   const chatByPhone = params.chatByPhone || {};
   const userPhoneCache = params.userPhoneCache || new Map();
   const logPrefix = params.logPrefix || "[telegram-send]";
+  const dbTelegramChatId = params.dbTelegramChatId;
 
   if (!ownerUserId) {
     return { ok: false, reason: "missing_owner_user_id" };
@@ -53,7 +55,8 @@ async function sendTelegramToAdvisor(params) {
     ownerUserId,
     chatByPhone,
     userPhoneCache,
-    logPrefix
+    logPrefix,
+    dbTelegramChatId
   );
   if (!chatId) {
     return { ok: false, reason: "no_telegram_route" };

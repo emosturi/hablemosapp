@@ -1,10 +1,17 @@
 const { requireAdvisorSession } = require("./advisor-session-auth");
 const { loadTelegramChatByPhoneMap, resolveAdvisorTelegramChatId } = require("./telegram-advisor-route");
 
-async function computeTelegramLinked(supabase, userId) {
+async function computeTelegramLinked(supabase, userId, dbTelegramChatId) {
   const map = loadTelegramChatByPhoneMap();
   const cache = new Map();
-  const chatId = await resolveAdvisorTelegramChatId(supabase, userId, map, cache, "[advisor-subscription-sync]");
+  const chatId = await resolveAdvisorTelegramChatId(
+    supabase,
+    userId,
+    map,
+    cache,
+    "[advisor-subscription-sync]",
+    dbTelegramChatId
+  );
   return !!chatId;
 }
 
@@ -106,7 +113,7 @@ exports.handler = async function (event) {
   const { data: row, error: selErr } = await supabase
     .from("asesor_cuentas")
     .select(
-      "user_id, account_enabled, subscription_status, subscription_plan, current_period_end, subscription_grace_until, subscription_bypass, telegram_reminders_enabled"
+      "user_id, account_enabled, subscription_status, subscription_plan, current_period_end, subscription_grace_until, subscription_bypass, telegram_reminders_enabled, telegram_chat_id"
     )
     .eq("user_id", userId)
     .maybeSingle();
@@ -127,7 +134,7 @@ exports.handler = async function (event) {
       updated_at: now.toISOString(),
     });
     if (ins.error) return json(500, { error: ins.error.message || "No se pudo crear la cuenta de asesor" });
-    const tgNew = await computeTelegramLinked(supabase, userId);
+    const tgNew = await computeTelegramLinked(supabase, userId, null);
     return json(200, {
       ok: true,
       created: true,
@@ -143,7 +150,7 @@ exports.handler = async function (event) {
   }
 
   if (row.account_enabled === false) {
-    const tgOff = await computeTelegramLinked(supabase, userId);
+    const tgOff = await computeTelegramLinked(supabase, userId, row.telegram_chat_id);
     return json(200, {
       ok: true,
       account_enabled: false,
@@ -167,7 +174,7 @@ exports.handler = async function (event) {
   const { data: fresh } = await supabase
     .from("asesor_cuentas")
     .select(
-      "account_enabled, subscription_status, current_period_end, subscription_grace_until, subscription_bypass, telegram_reminders_enabled"
+      "account_enabled, subscription_status, current_period_end, subscription_grace_until, subscription_bypass, telegram_reminders_enabled, telegram_chat_id"
     )
     .eq("user_id", userId)
     .maybeSingle();
@@ -175,7 +182,7 @@ exports.handler = async function (event) {
   const st = fresh && fresh.subscription_status;
   const bypass = !!(fresh && fresh.subscription_bypass);
   const lock = !bypass && st === "canceled";
-  const tgLinked = await computeTelegramLinked(supabase, userId);
+  const tgLinked = await computeTelegramLinked(supabase, userId, fresh && fresh.telegram_chat_id);
   const tgEnabled = fresh ? fresh.telegram_reminders_enabled !== false : true;
 
   return json(200, {

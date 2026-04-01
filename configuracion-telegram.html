@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Configuración Telegram — HablemosApp</title>
+    <link rel="stylesheet" href="app-shell.css" />
+    <script src="theme-init.js"></script>
+    <style>
+      .page {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 0 0 48px;
+        overflow-x: hidden;
+      }
+      header.page-h {
+        margin: 10px 0 20px;
+      }
+      h1 {
+        font-size: clamp(22px, 2.6vw, 28px);
+        margin: 0;
+        letter-spacing: -0.02em;
+      }
+      .subtitle {
+        margin: 8px 0 0;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.45;
+      }
+      a.back {
+        display: inline-block;
+        margin-bottom: 14px;
+        color: var(--muted);
+        text-decoration: none;
+        font-size: 14px;
+      }
+      a.back:hover {
+        color: var(--primary);
+      }
+      .steps {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 18px 20px;
+        margin-bottom: 18px;
+      }
+      .steps h2 {
+        margin: 0 0 12px;
+        font-size: 15px;
+        color: var(--muted);
+        font-weight: 600;
+      }
+      .steps ol {
+        margin: 0;
+        padding-left: 1.25em;
+        line-height: 1.6;
+        font-size: 14px;
+        color: var(--text);
+      }
+      .steps li {
+        margin-bottom: 10px;
+      }
+      .steps li:last-child {
+        margin-bottom: 0;
+      }
+      .steps strong {
+        color: var(--text);
+      }
+      .panel {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 18px 20px;
+      }
+      .panel h2 {
+        margin: 0 0 14px;
+        font-size: 15px;
+        color: var(--muted);
+        font-weight: 600;
+      }
+      label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 6px;
+        color: var(--text);
+      }
+      input[type="text"] {
+        width: 100%;
+        max-width: 360px;
+        box-sizing: border-box;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text);
+        font-size: 15px;
+        font-variant-numeric: tabular-nums;
+      }
+      .field-hint {
+        font-size: 13px;
+        color: var(--muted);
+        margin: 8px 0 16px;
+        line-height: 1.45;
+        max-width: 520px;
+      }
+      .btn-submit {
+        padding: 10px 20px;
+        border-radius: 12px;
+        border: none;
+        background: var(--primary);
+        color: #fff;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        font-family: inherit;
+      }
+      .btn-submit:hover:not(:disabled) {
+        background: var(--primary-hover);
+      }
+      .btn-submit:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+      .msg {
+        margin-top: 14px;
+        font-size: 14px;
+        line-height: 1.45;
+      }
+      .msg.ok {
+        color: var(--primary-mid);
+      }
+      .msg.err {
+        color: var(--danger-text);
+      }
+      .status-line {
+        margin-top: 16px;
+        padding: 12px 14px;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border);
+        font-size: 14px;
+        line-height: 1.45;
+        background: var(--surface);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar" aria-label="Navegación">
+        <div class="logo-row">
+          <div class="logo-dot" aria-hidden="true"></div>
+          <span class="logo-text">HablemosApp</span>
+        </div>
+        <div class="nav-label">Menú</div>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="recordatorios.html">Recordatorios</a>
+        <a href="mi-agenda-llamadas.html">Mi agenda de llamadas</a>
+        <a href="configuracion-telegram.html" class="active">Configuración Telegram</a>
+        <a href="login.html" class="btn-logout sidebar-guest-only">Iniciar sesión</a>
+      </aside>
+
+      <div class="main">
+        <header class="topbar">
+          <div class="menu-mobile">
+            <button type="button" class="menu-mobile-btn" id="menuMobileTrigger" aria-expanded="false" aria-controls="menuMobileDd" aria-label="Abrir menú de navegación"><span class="menu-hamburger-line" aria-hidden="true"></span><span class="menu-hamburger-line" aria-hidden="true"></span><span class="menu-hamburger-line" aria-hidden="true"></span></button>
+            <div class="menu-mobile-dd" id="menuMobileDd">
+              <a href="dashboard.html">Dashboard</a>
+              <a href="recordatorios.html">Recordatorios</a>
+              <a href="mi-agenda-llamadas.html">Mi agenda de llamadas</a>
+              <a href="configuracion-telegram.html" class="active">Configuración Telegram</a>
+            </div>
+          </div>
+          <div class="search-wrap">
+            <input type="search" placeholder="Buscar en la app…" id="appShellSearch" autocomplete="off" />
+          </div>
+          <button type="button" class="topbar-search-toggle" id="topbarSearchToggle" aria-expanded="false" aria-controls="appShellSearch" aria-label="Buscar en la app">
+            <svg class="topbar-search-icon-open" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /></svg>
+            <svg class="topbar-search-icon-close" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12" /></svg>
+          </button>
+          <div class="user-menu-wrap sidebar-auth-only">
+            <button type="button" class="user-menu-trigger" id="userMenuTrigger" aria-expanded="false" aria-haspopup="true">
+              <div class="user-avatar" id="userAvatar">?</div>
+              <div class="user-meta">
+                <div class="name" id="userDisplayName">Asesor</div>
+                <div class="email" id="userEmail">—</div>
+              </div>
+            </button>
+            <div class="user-menu-dd" id="userMenuDd" role="menu">
+              <a href="mis-datos-mandatario.html" class="user-menu-item" role="menuitem">Mis datos (mandatario)</a>
+              <a href="mi-suscripcion.html" class="user-menu-item" role="menuitem">Mi suscripción</a>
+              <a href="configuracion-telegram.html" class="user-menu-item active" role="menuitem" aria-current="page">Configuración Telegram</a>
+              <button type="button" class="user-menu-item user-menu-theme" id="userMenuThemeToggle" role="menuitem" aria-pressed="false" aria-label="Modo oscuro">
+                <span class="user-menu-theme-icon" aria-hidden="true">
+                  <svg class="theme-icon-moon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
+                  <svg class="theme-icon-sun" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5" /><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" /></svg>
+                </span>
+                <span class="user-menu-theme-label">Modo oscuro</span>
+              </button>
+              <button type="button" class="user-menu-item user-menu-logout" id="btnCerrarSesionMenu" role="menuitem">Cerrar sesión</button>
+            </div>
+          </div>
+        </header>
+
+        <div class="content">
+          <div class="page">
+            <a href="dashboard.html" class="back">← Dashboard</a>
+            <header class="page-h">
+              <h1>Configuración de Telegram</h1>
+              <p class="subtitle">
+                Para recibir recordatorios y avisos, necesitamos tu <strong>chat ID</strong> personal de Telegram. El teléfono de tu cuenta en HablemosApp debe ser el mismo que usás en Telegram.
+              </p>
+            </header>
+
+            <section class="steps" aria-labelledby="steps-title">
+              <h2 id="steps-title">Cómo obtener tu chat ID</h2>
+              <ol>
+                <li><strong>Descargá Telegram</strong> en tu celular (App Store o Google Play) o usá <strong>Telegram Web</strong>.</li>
+                <li>
+                  En el buscador de Telegram buscá el bot <strong>«Chat Id Info Bot»</strong> (o un bot de confianza que te muestre solo tu <strong>ID numérico</strong> de usuario).
+                </li>
+                <li>Tocá <strong>Iniciar</strong> / <strong>Start</strong> en la conversación con ese bot.</li>
+                <li>El bot te responderá con un <strong>número</strong> (tu chat ID). <strong>Copiá solo ese número</strong> (sin letras ni espacios).</li>
+                <li>
+                  Volvé a esta página y <strong>pegá el número en el formulario de abajo</strong>. Guardá. El administrador verá el dato en el panel y podrá sincronizar la variable
+                  <code style="font-size:12px">TELEGRAM_CHAT_BY_PHONE_JSON</code> en Netlify si lo necesita.
+                </li>
+              </ol>
+            </section>
+
+            <section class="panel">
+              <h2>Tu chat ID</h2>
+              <form id="formTg" autocomplete="off">
+                <label for="chatIdInput">Chat ID (solo números)</label>
+                <input type="text" id="chatIdInput" name="chat_id" inputmode="numeric" pattern="[0-9]*" placeholder="Ej: 123456789" />
+                <p class="field-hint">
+                  Si cambiás de usuario de Telegram o el bot no te envía mensajes, comprobá que tu teléfono en
+                  <a href="mis-datos-mandatario.html">Mis datos (mandatario)</a> coincida con tu cuenta de Telegram.
+                </p>
+                <button type="submit" class="btn-submit" id="btnGuardar">Guardar chat ID</button>
+              </form>
+              <div id="formMsg" class="msg" style="display: none" role="status"></div>
+              <div id="statusLine" class="status-line" style="display: none" aria-live="polite"></div>
+            </section>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="supabase-config.js"></script>
+    <script src="app-shell.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script>
+      (function () {
+        if (typeof window.initAppShell === "function") window.initAppShell();
+        if (typeof window.initAppShellSearch === "function") window.initAppShellSearch();
+        var url = window.SUPABASE_URL;
+        var key = window.SUPABASE_ANON_KEY;
+        if (!url || !key || url.indexOf("TU_PROYECTO") !== -1) {
+          window.location.replace("login.html");
+          return;
+        }
+        var supabase = window.supabase.createClient(url, key);
+        if (typeof window.wireAppShellLogout === "function") window.wireAppShellLogout(supabase);
+        if (typeof window.installInactivityAutoLogout === "function") {
+          window.installInactivityAutoLogout(supabase, { timeoutMs: window.SESSION_IDLE_TIMEOUT_MS, redirectTo: "login.html" });
+        }
+
+        var form = document.getElementById("formTg");
+        var input = document.getElementById("chatIdInput");
+        var btn = document.getElementById("btnGuardar");
+        var formMsg = document.getElementById("formMsg");
+        var statusLine = document.getElementById("statusLine");
+
+        function showMsg(text, isErr) {
+          formMsg.style.display = "block";
+          formMsg.textContent = text;
+          formMsg.className = "msg " + (isErr ? "err" : "ok");
+        }
+
+        function loadSaved() {
+          supabase.auth.getSession().then(function (r) {
+            if (!r.data.session) return;
+            supabase
+              .from("asesor_cuentas")
+              .select("telegram_chat_id, telegram_chat_id_updated_at")
+              .eq("user_id", r.data.session.user.id)
+              .maybeSingle()
+              .then(function (res) {
+                if (res.error || !res.data) return;
+                if (res.data.telegram_chat_id) input.value = String(res.data.telegram_chat_id);
+                if (res.data.telegram_chat_id_updated_at) {
+                  var d = new Date(res.data.telegram_chat_id_updated_at);
+                  if (!isNaN(d.getTime())) {
+                    statusLine.style.display = "block";
+                    statusLine.textContent =
+                      "Último guardado: " +
+                      d.toLocaleString("es-CL", { dateStyle: "short", timeStyle: "short" }) +
+                      ".";
+                  }
+                }
+              });
+          });
+        }
+
+        supabase.auth.getSession().then(function (r) {
+          if (!r.data.session) {
+            window.location.replace("login.html");
+            return;
+          }
+          if (typeof window.applyAppShellUser === "function") window.applyAppShellUser(r.data.session.user);
+          if (typeof window.setAppShellGuest === "function") window.setAppShellGuest(false);
+          loadSaved();
+        });
+
+        form.addEventListener("submit", function (e) {
+          e.preventDefault();
+          var raw = (input.value || "").trim().replace(/\s+/g, "");
+          if (!/^\d+$/.test(raw)) {
+            showMsg("Ingresá solo el número del chat ID (sin espacios ni otros caracteres).", true);
+            return;
+          }
+          btn.disabled = true;
+          formMsg.style.display = "none";
+          supabase.auth.getSession().then(function (r) {
+            var token = r && r.data && r.data.session && r.data.session.access_token;
+            if (!token) {
+              btn.disabled = false;
+              showMsg("Sesión expirada. Volvé a iniciar sesión.", true);
+              return;
+            }
+            fetch("/.netlify/functions/advisor-save-telegram-chat", {
+              method: "POST",
+              headers: {
+                Authorization: "Bearer " + token,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ chat_id: raw }),
+            })
+              .then(function (res) {
+                return res.json().then(function (j) {
+                  return { ok: res.ok, j: j };
+                });
+              })
+              .then(function (w) {
+                if (!w.ok || !w.j || !w.j.ok) {
+                  btn.disabled = false;
+                  showMsg((w.j && w.j.error) || "No se pudo guardar. Intentá de nuevo.", true);
+                  return;
+                }
+                showMsg("Guardado. Los recordatorios pueden usar este chat ID de inmediato.", false);
+                statusLine.style.display = "block";
+                statusLine.textContent = "Chat ID guardado correctamente.";
+                if (typeof window.hablemosRemoveShellBanners === "function") {
+                  window.hablemosRemoveShellBanners();
+                }
+                fetch("/.netlify/functions/advisor-subscription-sync", {
+                  method: "POST",
+                  headers: {
+                    Authorization: "Bearer " + token,
+                    "Content-Type": "application/json",
+                  },
+                  body: "{}",
+                }).finally(function () {
+                  btn.disabled = false;
+                  window.location.reload();
+                });
+              })
+              .catch(function () {
+                btn.disabled = false;
+                showMsg("Error de red. Intentá de nuevo.", true);
+              });
+          });
+        });
+      })();
+    </script>
+  </body>
+</html>

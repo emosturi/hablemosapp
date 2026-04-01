@@ -25,6 +25,20 @@
       .ticket-status-in_progress { color: #b45309; font-weight: 600; }
       .ticket-status-closed { color: var(--muted); }
       .ticket-msg { margin: 10px 0 0; color: var(--muted); font-size: 13px; }
+      .tg-badge-nuevo {
+        display: inline-block;
+        margin-left: 6px;
+        padding: 2px 7px;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        border-radius: 6px;
+        background: color-mix(in srgb, var(--primary-mid) 22%, var(--surface));
+        color: var(--primary);
+        vertical-align: middle;
+      }
+      textarea#exportTgTa { resize: vertical; min-height: 140px; }
     </style>
   </head>
   <body>
@@ -101,11 +115,35 @@
                       <th>Periodo fin</th>
                       <th>Mora hasta</th>
                       <th>Bypass suscripción</th>
+                      <th>Chat ID Telegram</th>
+                      <th>TG guardado</th>
                       <th>Acción</th>
                     </tr>
                   </thead>
                   <tbody id="rows"></tbody>
                 </table>
+              </div>
+            </div>
+            <div class="panel" style="margin-top: 16px;">
+              <h2 style="margin:0 0 8px;">Exportar Telegram → Netlify</h2>
+              <p class="sub" style="margin:0 0 12px; max-width: 900px; line-height: 1.45;">
+                Los asesores cargan su chat ID en
+                <a href="configuracion-telegram.html" target="_blank" rel="noopener noreferrer">Configuración de Telegram</a>.
+                El JSON incluye solo quienes guardaron un chat ID y tienen teléfono en el perfil (clave = teléfono normalizado, valor = chat ID).
+                Pegalo en la variable de entorno <code style="font-size:12px">TELEGRAM_CHAT_BY_PHONE_JSON</code> del sitio en Netlify (o combiná con entradas manuales si hace falta).
+              </p>
+              <div class="tools">
+                <button type="button" class="btn" id="btnExportTgJson">Generar JSON actualizado</button>
+                <span id="exportTgMsg" class="msg" style="margin:0"></span>
+              </div>
+              <div id="exportTgWrap" style="display:none; margin-top: 12px;">
+                <label for="exportTgTa" style="display:block; font-size: 13px; margin-bottom: 6px; color: var(--muted);"
+                  >Copiá el contenido del recuadro y pegalo como valor de <code>TELEGRAM_CHAT_BY_PHONE_JSON</code>.</label
+                >
+                <textarea id="exportTgTa" readonly rows="10" spellcheck="false"></textarea>
+                <div style="margin-top: 8px;">
+                  <button type="button" class="btn" id="btnCopyTgJson">Copiar al portapapeles</button>
+                </div>
               </div>
             </div>
             <div class="panel" style="margin-top: 16px;">
@@ -161,7 +199,23 @@
           return y + "-" + m + "-" + day + "T" + h + ":" + mi;
         }
 
+        function fmtTgAt(v) {
+          if (!v) return "—";
+          var d = new Date(v);
+          if (isNaN(d.getTime())) return "—";
+          return d.toLocaleString("es-CL", { dateStyle: "short", timeStyle: "short" });
+        }
+
+        function isNewTgSave(v) {
+          if (!v) return false;
+          var t = new Date(v).getTime();
+          if (isNaN(t)) return false;
+          return Date.now() - t < 72 * 3600000;
+        }
+
         function rowHtml(u) {
+          var tgId = u.telegram_chat_id ? esc(String(u.telegram_chat_id)) : "—";
+          var nuevo = isNewTgSave(u.telegram_chat_id_updated_at) && u.telegram_chat_id;
           return "<tr data-id='" + esc(u.user_id) + "'>" +
             "<td>" + esc(u.email) + "</td>" +
             "<td>" + esc(u.telefono || "—") + "</td>" +
@@ -172,6 +226,8 @@
             "<td><input type='datetime-local' class='f-end' value='" + esc(toLocalInput(u.current_period_end)) + "' /></td>" +
             "<td><input type='datetime-local' class='f-grace' value='" + esc(toLocalInput(u.subscription_grace_until)) + "' title='Fin de mora (opcional)' /></td>" +
             "<td><select class='f-bypass'><option value='false'" + (!u.subscription_bypass ? " selected" : "") + ">No</option><option value='true'" + (u.subscription_bypass ? " selected" : "") + ">Sí (acceso total)</option></select></td>" +
+            "<td class='tg-id-cell'>" + tgId + (nuevo ? " <span class='tg-badge-nuevo' title='Guardado en las últimas 72 h'>Nuevo</span>" : "") + "</td>" +
+            "<td>" + esc(fmtTgAt(u.telegram_chat_id_updated_at)) + "</td>" +
             "<td><div class='row-actions'><button type='button' class='btn btn-save'>Guardar</button></div></td>" +
           "</tr>";
         }
@@ -320,6 +376,52 @@
 
         if (advisorSearch) {
           advisorSearch.addEventListener("input", applyFilter);
+        }
+
+        var btnExportTgJson = document.getElementById("btnExportTgJson");
+        var btnCopyTgJson = document.getElementById("btnCopyTgJson");
+        var exportTgWrap = document.getElementById("exportTgWrap");
+        var exportTgTa = document.getElementById("exportTgTa");
+        var exportTgMsg = document.getElementById("exportTgMsg");
+        if (btnExportTgJson && exportTgWrap && exportTgTa) {
+          btnExportTgJson.addEventListener("click", function () {
+            if (exportTgMsg) exportTgMsg.textContent = "Generando…";
+            callOwnerApi("/.netlify/functions/admin-export-telegram-json", "GET")
+              .then(function (r) {
+                if (!r.ok) throw new Error((r.json && r.json.error) || "No se pudo exportar");
+                var pretty = (r.json && r.json.pretty) || "{}";
+                exportTgTa.value = pretty;
+                exportTgWrap.style.display = "block";
+                var c = (r.json && r.json.count) || 0;
+                var sk = (r.json && r.json.skipped && r.json.skipped.length) || 0;
+                if (exportTgMsg) {
+                  exportTgMsg.textContent =
+                    "Listo: " + c + " entrada(s)." + (sk ? " Omitidos: " + sk + " (sin teléfono en perfil)." : "");
+                }
+              })
+              .catch(function (e) {
+                if (exportTgMsg) exportTgMsg.textContent = e.message || "Error";
+              });
+          });
+        }
+        if (btnCopyTgJson && exportTgTa) {
+          btnCopyTgJson.addEventListener("click", function () {
+            var t = exportTgTa.value || "";
+            if (!t) return;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(t).then(function () {
+                if (exportTgMsg) exportTgMsg.textContent = "Copiado al portapapeles.";
+              }).catch(function () {
+                exportTgTa.select();
+                document.execCommand("copy");
+                if (exportTgMsg) exportTgMsg.textContent = "Copiado.";
+              });
+            } else {
+              exportTgTa.select();
+              document.execCommand("copy");
+              if (exportTgMsg) exportTgMsg.textContent = "Copiado.";
+            }
+          });
         }
 
         sb.auth.getSession().then(function (r) {

@@ -235,7 +235,7 @@
         tBar.setAttribute("role", "alert");
         tBar.innerHTML =
           "<p><strong>Configurá Telegram para las alertas.</strong> No tenemos vinculado tu chat de Telegram con el teléfono de tu cuenta; sin eso no podemos enviarte recordatorios automáticos.</p>" +
-          '<p class="hablemos-telegram-setup-meta">Escribile al bot de la plataforma con el mismo número que diste al registrarte, o pedí ayuda en <a href="mis-tickets.html">Soporte / tickets</a>.</p>';
+          '<p class="hablemos-telegram-setup-meta">Seguí los pasos en <a href="configuracion-telegram.html">Configuración de Telegram</a> (obtené tu chat ID y pegalo en el formulario). Si necesitás ayuda, <a href="mis-tickets.html">Soporte / tickets</a>.</p>';
         var first = content.firstElementChild;
         if (first) content.insertBefore(tBar, first);
         else content.appendChild(tBar);
@@ -348,6 +348,7 @@
     var SUB_LOCK_ALLOWED_PAGES = {
       "dashboard.html": true,
       "mi-suscripcion.html": true,
+      "configuracion-telegram.html": true,
       "mis-tickets.html": true,
       "revisar-clientes.html": true,
     };

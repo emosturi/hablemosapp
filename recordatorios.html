@@ -167,6 +167,7 @@
         <a href="enlace-agenda-llamada.html">Enlace agenda llamada</a>
         <a href="mi-agenda-llamadas.html">Mi agenda de llamadas</a>
         <a href="recordatorios.html" class="active">Recordatorios</a>
+        <a href="configuracion-telegram.html">Configuración Telegram</a>
         <a href="login.html" class="btn-logout sidebar-guest-only">Iniciar sesión</a>
       </aside>
 
@@ -185,6 +186,7 @@
               <a href="enlace-agenda-llamada.html">Enlace agenda llamada</a>
               <a href="mi-agenda-llamadas.html">Mi agenda de llamadas</a>
               <a href="recordatorios.html" class="active">Recordatorios</a>
+              <a href="configuracion-telegram.html">Configuración Telegram</a>
             </div>
           </div>
           <div class="search-wrap">
@@ -205,6 +207,7 @@
             <div class="user-menu-dd" id="userMenuDd" role="menu">
               <a href="mis-datos-mandatario.html" class="user-menu-item" role="menuitem">Mis datos (mandatario)</a>
               <a href="mi-suscripcion.html" class="user-menu-item" role="menuitem">Mi suscripción</a>
+              <a href="configuracion-telegram.html" class="user-menu-item" role="menuitem">Configuración Telegram</a>
               <button type="button" class="user-menu-item user-menu-theme" id="userMenuThemeToggle" role="menuitem" aria-pressed="false" aria-label="Modo oscuro">
                 <span class="user-menu-theme-icon" aria-hidden="true">
                   <svg class="theme-icon-moon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
@@ -226,8 +229,10 @@
                 Los recordatorios automáticos por Telegram están desactivados para tu cuenta. Puedes seguir usando esta pantalla; cuando se configure el envío (chat del asesor), el propietario de la plataforma podrá volver a habilitarlo.
               </div>
               <p class="hint-enviado">
-                Al llegar la fecha, cada recordatorio se envía por Telegram al <strong>chat personal del asesor dueño</strong>
-                (mismo criterio que registro de clientes y agenda): teléfono del asesor en Supabase Auth y mapa
+                Al llegar la fecha, cada recordatorio se envía por Telegram al <strong>chat personal del asesor</strong>.
+                Podés registrar tu chat ID en
+                <a href="configuracion-telegram.html">Configuración de Telegram</a>.
+                El teléfono de tu cuenta debe coincidir con el que usás en Telegram; la plataforma también puede usar el mapa
                 <code style="font-size:12px">TELEGRAM_CHAT_BY_PHONE_JSON</code> en Netlify.
               </p>
               <a href="revisar-clientes.html" class="back">← Volver al listado de clientes</a>

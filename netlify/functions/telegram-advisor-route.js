@@ -1,6 +1,8 @@
 /**
- * Resuelve chat_id de Telegram por asesor: user_metadata.telefono + TELEGRAM_CHAT_BY_PHONE_JSON.
- * Usado por process-reminders y notify-telegram.
+ * Resuelve chat_id de Telegram por asesor:
+ * 1) asesor_cuentas.telegram_chat_id (si el caller lo pasa),
+ * 2) user_metadata.telefono + TELEGRAM_CHAT_BY_PHONE_JSON.
+ * Usado por process-reminders, notify-telegram y advisor-subscription-sync.
  */
 
 function normalizarTelefonoE164(phone) {
@@ -55,11 +57,22 @@ function loadTelegramChatByPhoneMap() {
  * @param {Record<string,string>} chatByPhone - mapa telefono -> chat_id
  * @param {Map<string,string>} userPhoneCache - cache uid -> telefono normalizado
  * @param {string} logPrefix
+ * @param {string} [dbTelegramChatId] - Si está en asesor_cuentas.telegram_chat_id, tiene prioridad sobre el mapa env.
  * @returns {Promise<string>} chat_id o ""
  */
-async function resolveAdvisorTelegramChatId(supabase, ownerUserId, chatByPhone, userPhoneCache, logPrefix) {
+async function resolveAdvisorTelegramChatId(
+  supabase,
+  ownerUserId,
+  chatByPhone,
+  userPhoneCache,
+  logPrefix,
+  dbTelegramChatId
+) {
   const uid = ownerUserId ? String(ownerUserId) : "";
   if (!uid) return "";
+
+  const fromDb = normalizarChatIdUsuario(dbTelegramChatId);
+  if (fromDb) return fromDb;
 
   let phoneAsesor = userPhoneCache.get(uid);
   if (phoneAsesor === undefined) {
