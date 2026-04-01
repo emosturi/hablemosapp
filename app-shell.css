@@ -676,6 +676,15 @@ html[data-theme="dark"] .user-menu-theme-icon .theme-icon-sun {
   .topbar .search-wrap:empty {
     display: none;
   }
+
+  /* Solo avatar con iniciales: nombre y email siguen en el menú desplegable */
+  .topbar .user-menu-wrap .user-meta {
+    display: none;
+  }
+
+  .topbar .user-menu-trigger {
+    padding: 4px;
+  }
 }
 
 /* iOS Safari: reglas tipo `input { width:100%; padding:… }` o `.modal input` no deben aplicarse a radios/checkbox */

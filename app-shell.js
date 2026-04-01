@@ -112,6 +112,12 @@
     if (ne) ne.textContent = email || "—";
     if (nn) nn.textContent = name;
     if (na) na.textContent = (String(name).charAt(0) || "?").toUpperCase();
+    var ut = qs("userMenuTrigger");
+    if (ut) {
+      var al = "Menú de cuenta: " + name;
+      if (email) al += " (" + email + ")";
+      ut.setAttribute("aria-label", al);
+    }
   };
 
   window.setAppShellGuest = function (isGuest) {
