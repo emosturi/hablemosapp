@@ -20,7 +20,6 @@ window.REMINDER_FUNCTION_URL =
     : "https://hablemosapp.netlify.app/.netlify/functions/send-reminder";
 
 window.ASESOR_REGISTRO_HABILITADO = true; // false = cerrado
-window.ASESOR_REGISTRO_CODIGO = "TU-CODIGO-SEGURO"; // opcional
 //window.ASESOR_REGISTRO_DOMINIOS = ["gmail.com", "asesores.tuempresa.cl"]; // opcional
 
 // Cierre automático por inactividad (1 hora).

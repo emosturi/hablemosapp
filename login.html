@@ -406,18 +406,6 @@
               <div class="error" id="error_reg_password2"></div>
             </div>
 
-            <div class="field" id="registerCodeField" style="display: none">
-              <label for="regInviteCode">Código de invitación</label>
-              <input
-                id="regInviteCode"
-                name="regInviteCode"
-                type="text"
-                autocomplete="off"
-                placeholder="Ingresa el código entregado por el administrador"
-              />
-              <div class="error" id="error_reg_invite_code"></div>
-            </div>
-
             <div class="error" id="error_register_general"></div>
 
             <button type="submit" id="btnRegister">Crear cuenta</button>
@@ -504,9 +492,7 @@
         var regPhone = document.getElementById("regPhone");
         var regPassword = document.getElementById("regPassword");
         var regPassword2 = document.getElementById("regPassword2");
-        var regInviteCode = document.getElementById("regInviteCode");
         var errorRegisterGeneral = document.getElementById("error_register_general");
-        var registerCodeField = document.getElementById("registerCodeField");
         var registerPolicyHint = document.getElementById("registerPolicyHint");
         var registerSuccess = document.getElementById("registerSuccess");
         var btnLogin = document.getElementById("btnLogin");
@@ -514,7 +500,6 @@
         var btnGoogleLogin = document.getElementById("btnGoogleLogin");
         var btnGoogleRegister = document.getElementById("btnGoogleRegister");
         var REGISTRO_ASESORES_HABILITADO = window.ASESOR_REGISTRO_HABILITADO === true;
-        var REGISTRO_ASESORES_CODIGO = typeof window.ASESOR_REGISTRO_CODIGO === "string" ? window.ASESOR_REGISTRO_CODIGO.trim() : "";
         var REGISTRO_ASESORES_DOMINIOS = Array.isArray(window.ASESOR_REGISTRO_DOMINIOS)
           ? window.ASESOR_REGISTRO_DOMINIOS.map(function (d) { return String(d || "").trim().toLowerCase(); }).filter(Boolean)
           : [];
@@ -565,7 +550,6 @@
           document.getElementById("error_reg_phone").textContent = "";
           document.getElementById("error_reg_password").textContent = "";
           document.getElementById("error_reg_password2").textContent = "";
-          document.getElementById("error_reg_invite_code").textContent = "";
           errorRegisterGeneral.textContent = "";
         }
 
@@ -638,16 +622,6 @@
           tabRegister.disabled = false;
           btnRegister.disabled = false;
 
-          if (REGISTRO_ASESORES_CODIGO) {
-            registerCodeField.style.display = "";
-            regInviteCode.required = true;
-            reglas.push("código de invitación");
-          } else {
-            registerCodeField.style.display = "none";
-            regInviteCode.required = false;
-            regInviteCode.value = "";
-          }
-
           if (REGISTRO_ASESORES_DOMINIOS.length) {
             reglas.push("dominios permitidos: " + REGISTRO_ASESORES_DOMINIOS.join(", "));
           }
@@ -714,12 +688,6 @@
               document.getElementById("error_reg_phone").textContent =
                 "Para registrar con Google, ingresa primero un teléfono válido.";
               regPhone.focus();
-              return;
-            }
-            var inviteCode = (regInviteCode.value || "").trim();
-            if (REGISTRO_ASESORES_CODIGO && inviteCode !== REGISTRO_ASESORES_CODIGO) {
-              document.getElementById("error_reg_invite_code").textContent = "Código de invitación inválido";
-              regInviteCode.focus();
               return;
             }
             sessionStorage.setItem("google_register_phone", phoneCanon);
@@ -824,7 +792,6 @@
           regPhone.value = phoneCanon ? formatearTelefonoVisible(regPhoneCountry.value, phoneCanon) : phoneRaw;
           var p1 = regPassword.value || "";
           var p2 = regPassword2.value || "";
-          var inviteCode = (regInviteCode.value || "").trim();
 
           if (!email) {
             document.getElementById("error_reg_email").textContent = "Ingresa tu email";
@@ -863,12 +830,6 @@
           if (p1 !== p2) {
             document.getElementById("error_reg_password2").textContent = "Las contraseñas no coinciden";
             regPassword2.focus();
-            return;
-          }
-
-          if (REGISTRO_ASESORES_CODIGO && inviteCode !== REGISTRO_ASESORES_CODIGO) {
-            document.getElementById("error_reg_invite_code").textContent = "Código de invitación inválido";
-            regInviteCode.focus();
             return;
           }
 
