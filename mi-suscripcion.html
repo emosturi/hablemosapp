@@ -229,6 +229,31 @@
         color: var(--muted);
         line-height: 1.5;
       }
+      .terms-consent {
+        margin-top: 12px;
+        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: color-mix(in srgb, var(--surface) 75%, var(--card));
+      }
+      .terms-consent label {
+        display: flex;
+        gap: 8px;
+        align-items: flex-start;
+        font-size: 13px;
+        line-height: 1.5;
+      }
+      .terms-consent input[type="checkbox"] {
+        margin-top: 2px;
+      }
+      .terms-consent a {
+        color: var(--primary-mid);
+        font-weight: 600;
+        text-decoration: none;
+      }
+      .terms-consent a:hover {
+        text-decoration: underline;
+      }
       .ticket-link {
         display: inline-flex;
         align-items: center;
@@ -439,6 +464,12 @@
                 <p class="pay-note">
                   Si ya tienes un período vigente, un nuevo pago suma 1 mes o 12 meses desde la fecha de fin actual. Para factura, cambios administrativos o bajas, usa el contacto de abajo.
                 </p>
+                <div class="terms-consent">
+                  <label for="termsAccepted">
+                    <input type="checkbox" id="termsAccepted" />
+                    <span>He leído y acepto los <a href="terminos-condiciones.html" target="_blank" rel="noopener noreferrer">Términos y Condiciones (1-18)</a> antes de pagar.</span>
+                  </label>
+                </div>
               </div>
               <div class="panel manage">
                 <h2>Ayuda y gestión</h2>
@@ -551,6 +582,7 @@
         var mpPending = document.getElementById("mpPending");
         var btnPayMensual = document.getElementById("btnPayMensual");
         var btnPayAnual = document.getElementById("btnPayAnual");
+        var termsAccepted = document.getElementById("termsAccepted");
         var openTicketLink = document.getElementById("openTicketLink");
         var ticketModalBackdrop = document.getElementById("ticketModalBackdrop");
         var ticketSubject = document.getElementById("ticketSubject");
@@ -585,6 +617,11 @@
         function startMercadoPagoCheckout(plan) {
           loadErr.classList.remove("show");
           loadErr.textContent = "";
+          if (!termsAccepted || !termsAccepted.checked) {
+            loadErr.textContent = "Debes aceptar los Términos y Condiciones antes de pagar.";
+            loadErr.classList.add("show");
+            return;
+          }
           var busy = plan === "mensual" ? btnPayMensual : btnPayAnual;
           var other = plan === "mensual" ? btnPayAnual : btnPayMensual;
           if (busy) busy.disabled = true;
@@ -750,6 +787,15 @@
                 btnPayAnual.addEventListener("click", function () {
                   startMercadoPagoCheckout("anual");
                 });
+              }
+              if (termsAccepted) {
+                function syncTermsButtons() {
+                  var enabled = !!termsAccepted.checked;
+                  btnPayMensual.disabled = !enabled;
+                  btnPayAnual.disabled = !enabled;
+                }
+                termsAccepted.addEventListener("change", syncTermsButtons);
+                syncTermsButtons();
               }
             });
         });
