@@ -334,6 +334,74 @@
         background: var(--card);
         border: 1px solid var(--border);
       }
+
+      .modal-numero-contrato-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 400;
+        background: rgba(35, 47, 62, 0.55);
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+      }
+      .modal-numero-contrato-overlay.open {
+        display: flex;
+      }
+      .modal-numero-contrato {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        max-width: 440px;
+        width: 100%;
+        padding: 22px;
+        box-shadow: var(--shadow);
+      }
+      .modal-numero-contrato h3 {
+        margin: 0 0 12px;
+        font-size: 18px;
+      }
+      .modal-numero-contrato .modal-advertencia {
+        margin: 0 0 16px;
+        padding: 12px;
+        border-radius: 10px;
+        background: var(--danger-bg, rgba(220, 38, 38, 0.12));
+        color: var(--danger-text, #991b1b);
+        font-size: 13px;
+        line-height: 1.45;
+      }
+      .modal-numero-contrato label {
+        display: block;
+        font-size: 13px;
+        color: var(--muted);
+        margin-bottom: 6px;
+      }
+      .modal-numero-contrato input[type="number"] {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text);
+        font-size: 16px;
+        margin-bottom: 8px;
+        font-family: inherit;
+      }
+      .modal-numero-contrato .modal-numero-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 16px;
+        flex-wrap: wrap;
+      }
+      .modal-numero-contrato .modal-numero-actions button {
+        flex: 1;
+        min-width: 120px;
+      }
+      .modal-numero-contrato .modal-numero-error {
+        font-size: 13px;
+        color: var(--danger, #dc2626);
+        min-height: 1.2em;
+      }
     </style>
     <script src="https://unpkg.com/pizzip@3.1.5/dist/pizzip.min.js"></script>
     <script src="https://unpkg.com/docxtemplater@3.44.0/build/docxtemplater.js"></script>
@@ -981,6 +1049,38 @@
         </form>
       </div>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="modalNumeroContratoInicial"
+      class="modal-numero-contrato-overlay"
+      role="dialog"
+      aria-labelledby="modalNumeroContratoTitulo"
+      aria-modal="true"
+      aria-hidden="true"
+    >
+      <div class="modal-numero-contrato">
+        <h3 id="modalNumeroContratoTitulo">Número de contrato inicial</h3>
+        <p class="modal-advertencia">
+          Es la primera vez que generas un contrato con tu cuenta. Indica el número que debe tener <strong>este</strong> contrato.
+          Solo lo pediremos una vez: los contratos siguientes usarán el siguiente número automáticamente.
+        </p>
+        <label for="numeroContratoInicialInput">Número de contrato</label>
+        <input
+          type="number"
+          id="numeroContratoInicialInput"
+          min="1"
+          step="1"
+          inputmode="numeric"
+          placeholder="Ej: 1"
+          autocomplete="off"
+        />
+        <div class="modal-numero-error" id="modalNumeroContratoInicialError" aria-live="polite"></div>
+        <div class="modal-numero-actions">
+          <button type="button" id="btnNumeroContratoInicialCancel">Cancelar</button>
+          <button type="button" class="primary" id="btnNumeroContratoInicialOk">Continuar</button>
         </div>
       </div>
     </div>
@@ -2425,9 +2525,76 @@
         return `${bodyWithDots}-${dv}`;
       }
 
+      var NUMERO_CONTRATO_CANCELADO = "NUMERO_CONTRATO_CANCELADO";
+
+      function pedirNumeroInicialContratoAsync() {
+        return new Promise(function (resolve) {
+          var overlay = document.getElementById("modalNumeroContratoInicial");
+          var input = document.getElementById("numeroContratoInicialInput");
+          var errEl = document.getElementById("modalNumeroContratoInicialError");
+          var btnOk = document.getElementById("btnNumeroContratoInicialOk");
+          var btnCancel = document.getElementById("btnNumeroContratoInicialCancel");
+          if (!overlay || !input || !btnOk || !btnCancel) {
+            resolve(null);
+            return;
+          }
+          var listeners = {
+            onKey: function (e) {
+              if (e.key === "Escape") finish(null);
+            },
+            onBackdrop: function (e) {
+              if (e.target === overlay) finish(null);
+            },
+            onInputKey: function (e) {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                btnOk.click();
+              }
+            },
+          };
+          function cleanup() {
+            overlay.classList.remove("open");
+            overlay.setAttribute("aria-hidden", "true");
+            input.value = "";
+            if (errEl) errEl.textContent = "";
+            document.removeEventListener("keydown", listeners.onKey);
+            overlay.removeEventListener("click", listeners.onBackdrop);
+            input.removeEventListener("keydown", listeners.onInputKey);
+            btnOk.onclick = null;
+            btnCancel.onclick = null;
+          }
+          function finish(val) {
+            cleanup();
+            resolve(val);
+          }
+          if (errEl) errEl.textContent = "";
+          input.value = "";
+          overlay.classList.add("open");
+          overlay.setAttribute("aria-hidden", "false");
+          document.addEventListener("keydown", listeners.onKey);
+          overlay.addEventListener("click", listeners.onBackdrop);
+          input.addEventListener("keydown", listeners.onInputKey);
+          setTimeout(function () {
+            input.focus();
+          }, 50);
+          btnOk.onclick = function () {
+            var n = parseInt(String(input.value || "").trim(), 10);
+            if (!Number.isFinite(n) || n < 1) {
+              if (errEl) errEl.textContent = "Ingresa un número entero mayor o igual a 1.";
+              return;
+            }
+            finish(n);
+          };
+          btnCancel.onclick = function () {
+            finish(null);
+          };
+        });
+      }
+
       // Obtiene o asigna número secuencial de contrato por RUT del mandante (Supabase).
       // Si el mandante ya tiene número asignado, se reutiliza (no se incrementa al regenerar).
-      // Si no tiene, se toma el siguiente disponible y se guarda en la BD.
+      // Si no tiene filas previas para el asesor, se pide el número inicial en un modal (solo la primera vez).
+      // Si ya hay otros contratos del asesor, el siguiente es max + 1.
       async function getOrAssignNumeroContrato(supabaseClient, data) {
         const mandante = data && data.mandante;
         const rutRaw = mandante && mandante.rut;
@@ -2453,8 +2620,15 @@
           .order("numero_secuencial", { ascending: false })
           .limit(1)
           .maybeSingle();
-        var maxActual = (maxRes.data && maxRes.data.numero_secuencial != null) ? maxRes.data.numero_secuencial : 339;
-        var siguiente = maxActual + 1;
+        var maxActual = maxRes.data && maxRes.data.numero_secuencial != null ? maxRes.data.numero_secuencial : null;
+        var siguiente;
+        if (maxActual == null) {
+          var inicial = await pedirNumeroInicialContratoAsync();
+          if (inicial == null) throw new Error(NUMERO_CONTRATO_CANCELADO);
+          siguiente = inicial;
+        } else {
+          siguiente = maxActual + 1;
+        }
         var insertRes = await supabaseClient
           .from("numeros_contrato")
           .insert({ user_id: userId, rut_mandante: rutKey, numero_secuencial: siguiente })
@@ -3381,15 +3555,25 @@
               if (supabaseClient) {
                 await saveClienteFromMandatoData(supabaseClient, data);
                 await saveAsesorMandatarioPerfil(supabaseClient, data, { contrato_anexos: anexosSnap });
-                await markClienteDocumentoGenerado(supabaseClient, data.mandante && data.mandante.rut, { tiene_contrato: true });
               }
               data.numeroContratoSecuencial = supabaseClient
                 ? await getOrAssignNumeroContrato(supabaseClient, data)
                 : "NNN";
             } catch (e) {
-              console.error("Error al obtener número de contrato:", e);
+              if (e && e.message === NUMERO_CONTRATO_CANCELADO) {
+                setStatus("Generación de contrato cancelada.");
+                return;
+              }
+              console.error("Error al preparar contrato:", e);
               data.numeroContratoSecuencial = "NNN";
             }
+            try {
+              if (supabaseClient) {
+                await markClienteDocumentoGenerado(supabaseClient, data.mandante && data.mandante.rut, {
+                  tiene_contrato: true,
+                });
+              }
+            } catch (_markErr) {}
             generarContrato(data);
           });
         }
@@ -3942,6 +4126,13 @@
                       try {
                         dataAuto.numeroContratoSecuencial = await getOrAssignNumeroContrato(supabaseClient, dataAuto);
                       } catch (e) {
+                        if (e && e.message === NUMERO_CONTRATO_CANCELADO) {
+                          setStatus("Generación de contrato cancelada.");
+                          finalizarPrefill(
+                            "Contrato no generado: indica el número inicial de contrato la próxima vez o pulsa Continuar."
+                          );
+                          return;
+                        }
                         console.error("Error al obtener número de contrato:", e);
                         dataAuto.numeroContratoSecuencial = "NNN";
                       }
