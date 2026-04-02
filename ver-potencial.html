@@ -206,6 +206,43 @@
         color: var(--muted);
         font-style: italic;
       }
+      .nota-asesor-item {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .nota-asesor-item:last-child {
+        border-bottom: none;
+      }
+      .nota-asesor-text {
+        flex: 1;
+        min-width: 0;
+        font-size: 14px;
+        line-height: 1.55;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      .btn-nota-eliminar {
+        flex-shrink: 0;
+        padding: 6px 12px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--danger);
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: inherit;
+      }
+      .btn-nota-eliminar:hover:not(:disabled) {
+        background: rgba(239, 68, 68, 0.1);
+      }
+      .btn-nota-eliminar:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
       @media (max-width: 640px) {
         .page {
           padding-bottom: 24px;
@@ -427,12 +464,89 @@
               document.getElementById("contenido").innerHTML = html;
               document.getElementById("contenido").style.display = "block";
 
+              function parseNotasAsesorBloques(raw) {
+                var s = (raw || "").toString().trim();
+                if (!s) return [];
+                return s
+                  .split(/\n\n+/)
+                  .map(function (b) {
+                    return b.trim();
+                  })
+                  .filter(Boolean);
+              }
+
+              function juntarNotasAsesorBloques(arr) {
+                if (!arr || !arr.length) return "";
+                return arr.join("\n\n");
+              }
+
+              function wireEliminarNotasAsesorClick() {
+                var el = document.getElementById("notasAsesorBody");
+                if (!el || el.dataset.eliminarNotasWired === "1") return;
+                el.dataset.eliminarNotasWired = "1";
+                el.addEventListener("click", function (ev) {
+                  var btn = ev.target && ev.target.closest ? ev.target.closest("[data-eliminar-nota]") : null;
+                  if (!btn || btn.disabled) return;
+                  var idx = parseInt(btn.getAttribute("data-eliminar-nota"), 10);
+                  if (Number.isNaN(idx)) return;
+                  if (!confirm("¿Eliminar esta nota? Esta acción no se puede deshacer.")) return;
+                  var bloques = parseNotasAsesorBloques(p.notas_asesor);
+                  if (idx < 0 || idx >= bloques.length) return;
+                  btn.disabled = true;
+                  bloques.splice(idx, 1);
+                  var merged = juntarNotasAsesorBloques(bloques);
+                  supabase
+                    .from("clientes_potenciales")
+                    .update({ notas_asesor: merged })
+                    .eq("id", id)
+                    .select()
+                    .single()
+                    .then(function (up) {
+                      btn.disabled = false;
+                      if (up.error) {
+                        alert(up.error.message || "No se pudo eliminar la nota.");
+                        return;
+                      }
+                      p.notas_asesor = up.data.notas_asesor;
+                      refreshNotasAsesorUI();
+                    })
+                    .catch(function () {
+                      btn.disabled = false;
+                      alert("Error de red al eliminar la nota.");
+                    });
+                });
+              }
+
               function refreshNotasAsesorUI() {
                 var el = document.getElementById("notasAsesorBody");
                 if (!el) return;
-                var txt = (p.notas_asesor || "").toString().trim();
-                el.textContent = txt || "Sin notas todavía. Usa «Agregar nota» para registrar información.";
-                el.className = "notas-body" + (!txt ? " notas-vacio" : "");
+                var bloques = parseNotasAsesorBloques(p.notas_asesor);
+                el.innerHTML = "";
+                el.className = "notas-body";
+                if (!bloques.length) {
+                  el.classList.add("notas-vacio");
+                  var vacio = document.createElement("p");
+                  vacio.className = "notas-vacio-msg";
+                  vacio.textContent = "Sin notas todavía. Usa «Agregar nota» para registrar información.";
+                  el.appendChild(vacio);
+                } else {
+                  for (var i = 0; i < bloques.length; i++) {
+                    var row = document.createElement("div");
+                    row.className = "nota-asesor-item";
+                    var text = document.createElement("div");
+                    text.className = "nota-asesor-text";
+                    text.textContent = bloques[i];
+                    var btnEl = document.createElement("button");
+                    btnEl.type = "button";
+                    btnEl.className = "btn-nota-eliminar";
+                    btnEl.setAttribute("data-eliminar-nota", String(i));
+                    btnEl.textContent = "Eliminar";
+                    row.appendChild(text);
+                    row.appendChild(btnEl);
+                    el.appendChild(row);
+                  }
+                }
+                wireEliminarNotasAsesorClick();
               }
               refreshNotasAsesorUI();
 
