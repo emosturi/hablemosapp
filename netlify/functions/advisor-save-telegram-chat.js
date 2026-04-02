@@ -42,7 +42,7 @@ exports.handler = async function (event) {
   if (!phone) {
     return json(400, {
       error:
-        "Falta tu teléfono en el perfil de la cuenta. Actualizalo en «Mis datos (mandatario)» para que coincida con el número que usás en Telegram.",
+        "Falta tu teléfono en el perfil de la cuenta. Actualízalo en «Mis datos (mandatario)» para que coincida con el número que usas en Telegram.",
     });
   }
 

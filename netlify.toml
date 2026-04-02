@@ -1,6 +1,6 @@
 # Deploy desde la RAÍZ: la raíz del dominio (apex y www) muestra la landing en /www/index.html.
 # La app sigue en /dashboard.html, /login.html, etc.
-# Si más adelante usás un sitio Netlify solo para plataforma.*, allí podés volver a poner / → dashboard.
+# Si más adelante usas un sitio Netlify solo para plataforma.*, allí puedes volver a poner / → dashboard.
 
 # process-reminders: cada 5 min (pruebas); en producción cambiar a "*/15 * * * *"
 [functions."process-reminders"]

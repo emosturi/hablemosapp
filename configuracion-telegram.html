@@ -155,9 +155,15 @@
         </div>
         <div class="nav-label">Menú</div>
         <a href="dashboard.html">Dashboard</a>
-        <a href="recordatorios.html">Recordatorios</a>
+        <a href="pension.html">Formulario Pensión</a>
+        <a href="clientes.html">Registro de Afiliados</a>
+        <a href="revisar-clientes.html">Listado de Clientes</a>
+        <a href="clientes-potenciales.html">Clientes Potenciales</a>
+        <a href="enlace-registro-publico.html">Enlace registro público</a>
+        <a href="disponibilidad-asesor.html">Mi disponibilidad</a>
+        <a href="enlace-agenda-llamada.html">Enlace agenda llamada</a>
         <a href="mi-agenda-llamadas.html">Mi agenda de llamadas</a>
-        <a href="configuracion-telegram.html" class="active">Configuración Telegram</a>
+        <a href="recordatorios.html">Recordatorios</a>
         <a href="login.html" class="btn-logout sidebar-guest-only">Iniciar sesión</a>
       </aside>
 
@@ -167,9 +173,15 @@
             <button type="button" class="menu-mobile-btn" id="menuMobileTrigger" aria-expanded="false" aria-controls="menuMobileDd" aria-label="Abrir menú de navegación"><span class="menu-hamburger-line" aria-hidden="true"></span><span class="menu-hamburger-line" aria-hidden="true"></span><span class="menu-hamburger-line" aria-hidden="true"></span></button>
             <div class="menu-mobile-dd" id="menuMobileDd">
               <a href="dashboard.html">Dashboard</a>
-              <a href="recordatorios.html">Recordatorios</a>
+              <a href="pension.html">Formulario Pensión</a>
+              <a href="clientes.html">Registro de Afiliados</a>
+              <a href="revisar-clientes.html">Listado de Clientes</a>
+              <a href="clientes-potenciales.html">Clientes Potenciales</a>
+              <a href="enlace-registro-publico.html">Enlace registro público</a>
+              <a href="disponibilidad-asesor.html">Mi disponibilidad</a>
+              <a href="enlace-agenda-llamada.html">Enlace agenda llamada</a>
               <a href="mi-agenda-llamadas.html">Mi agenda de llamadas</a>
-              <a href="configuracion-telegram.html" class="active">Configuración Telegram</a>
+              <a href="recordatorios.html">Recordatorios</a>
             </div>
           </div>
           <div class="search-wrap">
@@ -190,7 +202,6 @@
             <div class="user-menu-dd" id="userMenuDd" role="menu">
               <a href="mis-datos-mandatario.html" class="user-menu-item" role="menuitem">Mis datos (mandatario)</a>
               <a href="mi-suscripcion.html" class="user-menu-item" role="menuitem">Mi suscripción</a>
-              <a href="configuracion-telegram.html" class="user-menu-item active" role="menuitem" aria-current="page">Configuración Telegram</a>
               <button type="button" class="user-menu-item user-menu-theme" id="userMenuThemeToggle" role="menuitem" aria-pressed="false" aria-label="Modo oscuro">
                 <span class="user-menu-theme-icon" aria-hidden="true">
                   <svg class="theme-icon-moon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
@@ -209,21 +220,21 @@
             <header class="page-h">
               <h1>Configuración de Telegram</h1>
               <p class="subtitle">
-                Para recibir recordatorios y avisos, necesitamos tu <strong>chat ID</strong> personal de Telegram. El teléfono de tu cuenta en HablemosApp debe ser el mismo que usás en Telegram.
+                Para recibir recordatorios y avisos, necesitamos tu <strong>chat ID</strong> personal de Telegram. El teléfono de tu cuenta en HablemosApp debe ser el mismo que usas en Telegram.
               </p>
             </header>
 
             <section class="steps" aria-labelledby="steps-title">
               <h2 id="steps-title">Cómo obtener tu chat ID</h2>
               <ol>
-                <li><strong>Descargá Telegram</strong> en tu celular (App Store o Google Play) o usá <strong>Telegram Web</strong>.</li>
+                <li><strong>Descarga Telegram</strong> en tu móvil (App Store o Google Play) o usa <strong>Telegram Web</strong>.</li>
                 <li>
-                  En el buscador de Telegram buscá el bot <strong>«Chat Id Info Bot»</strong> (o un bot de confianza que te muestre solo tu <strong>ID numérico</strong> de usuario).
+                  En el buscador de Telegram busca el bot <strong>«Chat Id Info Bot»</strong> (o un bot de confianza que te muestre solo tu <strong>ID numérico</strong> de usuario).
                 </li>
-                <li>Tocá <strong>Iniciar</strong> / <strong>Start</strong> en la conversación con ese bot.</li>
-                <li>El bot te responderá con un <strong>número</strong> (tu chat ID). <strong>Copiá solo ese número</strong> (sin letras ni espacios).</li>
+                <li>Toca <strong>Iniciar</strong> / <strong>Start</strong> en la conversación con ese bot.</li>
+                <li>El bot te responderá con un <strong>número</strong> (tu chat ID). <strong>Copia solo ese número</strong> (sin letras ni espacios).</li>
                 <li>
-                  Volvé a esta página y <strong>pegá el número en el formulario de abajo</strong>. Guardá. El administrador verá el dato en el panel y podrá sincronizar la variable
+                  Vuelve a esta página y <strong>pega el número en el formulario de abajo</strong>. Guarda. El administrador verá el dato en el panel y podrá sincronizar la variable
                   <code style="font-size:12px">TELEGRAM_CHAT_BY_PHONE_JSON</code> en Netlify si lo necesita.
                 </li>
               </ol>
@@ -235,7 +246,7 @@
                 <label for="chatIdInput">Chat ID (solo números)</label>
                 <input type="text" id="chatIdInput" name="chat_id" inputmode="numeric" pattern="[0-9]*" placeholder="Ej: 123456789" />
                 <p class="field-hint">
-                  Si cambiás de usuario de Telegram o el bot no te envía mensajes, comprobá que tu teléfono en
+                  Si cambias de usuario de Telegram o el bot no te envía mensajes, comprueba que tu teléfono en
                   <a href="mis-datos-mandatario.html">Mis datos (mandatario)</a> coincida con tu cuenta de Telegram.
                 </p>
                 <button type="submit" class="btn-submit" id="btnGuardar">Guardar chat ID</button>
@@ -318,7 +329,7 @@
           e.preventDefault();
           var raw = (input.value || "").trim().replace(/\s+/g, "");
           if (!/^\d+$/.test(raw)) {
-            showMsg("Ingresá solo el número del chat ID (sin espacios ni otros caracteres).", true);
+            showMsg("Ingresa solo el número del chat ID (sin espacios ni otros caracteres).", true);
             return;
           }
           btn.disabled = true;
@@ -327,7 +338,7 @@
             var token = r && r.data && r.data.session && r.data.session.access_token;
             if (!token) {
               btn.disabled = false;
-              showMsg("Sesión expirada. Volvé a iniciar sesión.", true);
+              showMsg("Sesión expirada. Vuelve a iniciar sesión.", true);
               return;
             }
             fetch("/.netlify/functions/advisor-save-telegram-chat", {
@@ -346,7 +357,7 @@
               .then(function (w) {
                 if (!w.ok || !w.j || !w.j.ok) {
                   btn.disabled = false;
-                  showMsg((w.j && w.j.error) || "No se pudo guardar. Intentá de nuevo.", true);
+                  showMsg((w.j && w.j.error) || "No se pudo guardar. Intenta de nuevo.", true);
                   return;
                 }
                 showMsg("Guardado. Los recordatorios pueden usar este chat ID de inmediato.", false);
@@ -369,7 +380,7 @@
               })
               .catch(function () {
                 btn.disabled = false;
-                showMsg("Error de red. Intentá de nuevo.", true);
+                showMsg("Error de red. Intenta de nuevo.", true);
               });
           });
         });

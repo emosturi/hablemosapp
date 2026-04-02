@@ -2,7 +2,7 @@
 -- Ejecutar en Supabase SQL Editor.
 -- Recomendación: las transiciones se aplican al cargar la app (Netlify advisor-subscription-sync).
 -- Opcional (respaldo): job diario con pg_cron o Edge Function que reproduzca las mismas reglas
--- si necesitás estados correctos sin que el asesor abra la app (la app ya sincroniza al cargar).
+-- si necesitas estados correctos sin que el asesor abra la app (la app ya sincroniza al cargar).
 
 alter table public.asesor_cuentas
   add column if not exists subscription_grace_until timestamptz null;

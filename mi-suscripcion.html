@@ -535,7 +535,7 @@
                   <h3>Tu enlace de referidos</h3>
                   <p class="referral-hint" style="margin-top: 0">
                     Comparte este enlace con otro asesor. Cuando se registre y pague su <strong>primera</strong> suscripción, recibes
-                    <strong>15% de descuento</strong> en el mismo tipo de plan (mensual o anual). Podés acumularlo hasta
+                    <strong>15% de descuento</strong> en el mismo tipo de plan (mensual o anual). Puedes acumularlo hasta
                     <strong>5 veces</strong> (máximo <strong>75%</strong> por tipo de plan).
                   </p>
                   <div class="referral-url">
@@ -881,13 +881,13 @@
               }
               if (!row) {
                 vPlan.textContent = "Sin registro en cuenta";
-                vStatus.textContent = "Contactá a soporte si deberías tener un plan activo.";
+                vStatus.textContent = "Contacta a soporte si deberías tener un plan activo.";
                 vStatus.className = "sub-value status-muted";
               } else {
                 var stNow = row.subscription_status;
                 if (stNow === "trial" && row.current_period_end && subscriptionContextNote) {
                   subscriptionContextNote.textContent =
-                    "Período de prueba: tenés acceso completo hasta la fecha indicada. Al terminar, debés suscribirte para seguir usando la plataforma.";
+                    "Período de prueba: tienes acceso completo hasta la fecha indicada. Al terminar, debes suscribirte para seguir usando la plataforma.";
                   subscriptionContextNote.style.display = "block";
                 } else if (stNow === "past_due" && subscriptionContextNote) {
                   if (graceRow && vGraceUntil) {
@@ -895,11 +895,11 @@
                     vGraceUntil.textContent = fmtDateTimeChile(row.subscription_grace_until);
                   }
                   subscriptionContextNote.textContent =
-                    "Tu período pagado venció. Tenés hasta el plazo de mora (fecha en horario Chile) para renovar con acceso completo; si no pagás, el acceso quedará limitado.";
+                    "Tu período pagado venció. Tienes hasta el plazo de mora (fecha en horario Chile) para renovar con acceso completo; si no pagas, el acceso quedará limitado.";
                   subscriptionContextNote.style.display = "block";
                 } else if (stNow === "canceled" && subscriptionContextNote) {
                   subscriptionContextNote.textContent =
-                    "Tu suscripción no está activa. Completá el pago abajo para recuperar el acceso a todas las funciones.";
+                    "Tu suscripción no está activa. Completa el pago abajo para recuperar el acceso a todas las funciones.";
                   subscriptionContextNote.style.display = "block";
                 }
               }

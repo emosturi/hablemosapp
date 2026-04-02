@@ -209,7 +209,7 @@
         wrapM.setAttribute("role", "alert");
         wrapM.innerHTML =
           '<div class="hablemos-float-sub-inner"><div class="hablemos-float-sub-body">' +
-          "<p><strong>Suscripción vencida.</strong> Tu período pagado finalizó; renová para mantener el acceso completo.</p>" +
+          "<p><strong>Suscripción vencida.</strong> Tu período pagado finalizó; renueva para mantener el acceso completo.</p>" +
           '<p class="hablemos-float-sub-meta">Quedan <strong>' +
           dMText +
           "</strong> antes de que tu cuenta pase a acceso restringido (solo pago y soporte).</p>" +
@@ -234,8 +234,8 @@
         tBar.className = "hablemos-telegram-setup-bar";
         tBar.setAttribute("role", "alert");
         tBar.innerHTML =
-          "<p><strong>Configurá Telegram para las alertas.</strong> No tenemos vinculado tu chat de Telegram con el teléfono de tu cuenta; sin eso no podemos enviarte recordatorios automáticos.</p>" +
-          '<p class="hablemos-telegram-setup-meta">Seguí los pasos en <a href="configuracion-telegram.html">Configuración de Telegram</a> (obtené tu chat ID y pegalo en el formulario). Si necesitás ayuda, <a href="mis-tickets.html">Soporte / tickets</a>.</p>';
+          "<p><strong>Configura Telegram para las alertas.</strong> No tenemos vinculado tu chat de Telegram con el teléfono de tu cuenta; sin eso no podemos enviarte recordatorios automáticos.</p>" +
+          '<p class="hablemos-telegram-setup-meta">Sigue los pasos en <a href="configuracion-telegram.html">Configuración de Telegram</a> (obtén tu chat ID y pégalo en el formulario). Si necesitas ayuda, <a href="mis-tickets.html">Soporte / tickets</a>.</p>';
         var first = content.firstElementChild;
         if (first) content.insertBefore(tBar, first);
         else content.appendChild(tBar);

@@ -7,16 +7,16 @@ Dominio plataforma.hablemosdepension.cl
 2) DNS de hablemosdepension.cl → Add record:
    - Hostname: plataforma
    - Type: CNAME → tu-sitio.netlify.app (el mismo del sitio que despliega este repo)
-3) Esperá SSL en verde y probá https://plataforma.hablemosdepension.cl/
+3) Espera SSL en verde y prueba https://plataforma.hablemosdepension.cl/
 
 netlify.toml: la raíz "/" en plataforma.* reescribe a /dashboard.html; en apex/www a /www/index.html (landing).
 www/site-urls.js → HABLEMOS_PLATAFORMA_ORIGIN = https://plataforma.hablemosdepension.cl
 
 Dominio anterior (opcional, si sigue en uso)
 --------------------------------------------
-Si mantenés plataforma.hablemospensiones.cl en Netlify y DNS, las reglas en netlify.toml siguen sirviendo el panel ahí también.
+Si mantienes plataforma.hablemospensiones.cl en Netlify y DNS, las reglas en netlify.toml siguen sirviendo el panel ahí también.
 
 Supabase → Authentication → URL Configuration
 ----------------------------------------------
 - Site URL: https://plataforma.hablemosdepension.cl
-- Redirect URLs: incluir al menos https://plataforma.hablemosdepension.cl/** (y la URL antigua si aún la usás)
+- Redirect URLs: incluir al menos https://plataforma.hablemosdepension.cl/** (y la URL antigua si aún la usas)
