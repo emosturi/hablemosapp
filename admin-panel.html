@@ -129,8 +129,8 @@
               <p class="sub" style="margin:0 0 12px; max-width: 900px; line-height: 1.45;">
                 Los asesores cargan su chat ID en
                 <a href="configuracion-telegram.html" target="_blank" rel="noopener noreferrer">Configuración de Telegram</a>.
-                El JSON incluye solo quienes guardaron un chat ID y tienen teléfono en el perfil (clave = teléfono normalizado, valor = chat ID).
-                Pégalo en la variable de entorno <code style="font-size:12px">TELEGRAM_CHAT_BY_PHONE_JSON</code> del sitio en Netlify (o combínalo con entradas manuales si hace falta).
+                El JSON <strong>une</strong> lo que ya tengas en <code style="font-size:12px">TELEGRAM_CHAT_BY_PHONE_JSON</code> en Netlify con los chat ID guardados en la app (Configuración Telegram). Los datos de la app añaden asesores nuevos y, si el teléfono ya existía, actualizan el chat ID.
+                Pégalo como nuevo valor de la variable en Netlify.
               </p>
               <div class="tools">
                 <button type="button" class="btn" id="btnExportTgJson">Generar JSON actualizado</button>
@@ -393,10 +393,16 @@
                 exportTgTa.value = pretty;
                 exportTgWrap.style.display = "block";
                 var c = (r.json && r.json.count) || 0;
+                var envC = r.json && typeof r.json.from_env_count === "number" ? r.json.from_env_count : null;
+                var dbC = r.json && typeof r.json.from_db_count === "number" ? r.json.from_db_count : null;
                 var sk = (r.json && r.json.skipped && r.json.skipped.length) || 0;
                 if (exportTgMsg) {
-                  exportTgMsg.textContent =
-                    "Listo: " + c + " entrada(s)." + (sk ? " Omitidos: " + sk + " (sin teléfono en perfil)." : "");
+                  var parts = ["Listo: " + c + " teléfono(s) en total."];
+                  if (envC !== null && dbC !== null) {
+                    parts.push(" Desde variable actual en Netlify: " + envC + ". Desde la app (Config. Telegram): " + dbC + ".");
+                  }
+                  if (sk) parts.push(" Omitidos en BD: " + sk + " (sin teléfono en perfil).");
+                  exportTgMsg.textContent = parts.join("");
                 }
               })
               .catch(function (e) {

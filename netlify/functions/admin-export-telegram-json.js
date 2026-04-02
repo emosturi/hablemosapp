@@ -1,5 +1,9 @@
 const { requirePlatformOwner } = require("./platform-owner-auth");
-const { normalizarTelefonoE164, normalizarChatIdUsuario } = require("./telegram-advisor-route");
+const {
+  normalizarTelefonoE164,
+  normalizarChatIdUsuario,
+  loadTelegramChatByPhoneMap,
+} = require("./telegram-advisor-route");
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -24,6 +28,9 @@ exports.handler = async function (event) {
 
   const supabase = auth.supabase;
 
+  /** Mapa ya desplegado en Netlify (asesores históricos). */
+  const fromEnv = loadTelegramChatByPhoneMap();
+
   const { data: rows, error } = await supabase
     .from("asesor_cuentas")
     .select("user_id, telegram_chat_id")
@@ -31,7 +38,7 @@ exports.handler = async function (event) {
 
   if (error) return json(500, { error: error.message || "Error leyendo cuentas" });
 
-  const map = {};
+  const fromDb = {};
   const skipped = [];
 
   for (const row of rows || []) {
@@ -60,15 +67,20 @@ exports.handler = async function (event) {
       continue;
     }
 
-    map[phone] = chatId;
+    fromDb[phone] = chatId;
   }
 
-  const pretty = JSON.stringify(map, null, 2);
+  /** Env primero; la app (Configuración Telegram) añade o sobrescribe por mismo teléfono. */
+  const merged = Object.assign({}, fromEnv, fromDb);
+  const pretty = JSON.stringify(merged, null, 2);
+
   return json(200, {
     ok: true,
-    map,
+    map: merged,
     pretty,
-    count: Object.keys(map).length,
+    count: Object.keys(merged).length,
+    from_env_count: Object.keys(fromEnv).length,
+    from_db_count: Object.keys(fromDb).length,
     skipped,
   });
 };
