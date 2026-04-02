@@ -224,18 +224,20 @@
 
     if (
       (base === "recordatorios.html" || base === "mi-agenda-llamadas.html") &&
-      j.telegram_reminders_enabled !== false &&
-      j.telegram_linked !== true
+      j.telegram_reminders_enabled !== false
     ) {
       var content = document.querySelector(".layout .main .content");
       if (content && !document.getElementById("hablemosTelegramSetupBar")) {
         var tBar = document.createElement("div");
         tBar.id = "hablemosTelegramSetupBar";
-        tBar.className = "hablemos-telegram-setup-bar";
-        tBar.setAttribute("role", "alert");
-        tBar.innerHTML =
-          "<p><strong>Configura Telegram para las alertas.</strong> No tenemos vinculado tu chat de Telegram con el teléfono de tu cuenta; sin eso no podemos enviarte recordatorios automáticos.</p>" +
-          '<p class="hablemos-telegram-setup-meta">Sigue los pasos en <a href="configuracion-telegram.html">Configuración de Telegram</a> (obtén tu chat ID y pégalo en el formulario). Si necesitas ayuda, <a href="mis-tickets.html">Soporte / tickets</a>.</p>';
+        var tgLinked = j.telegram_linked === true;
+        tBar.className =
+          "hablemos-telegram-setup-bar " +
+          (tgLinked ? "hablemos-telegram-setup-bar-ok" : "hablemos-telegram-setup-bar-missing");
+        tBar.setAttribute("role", tgLinked ? "status" : "alert");
+        tBar.innerHTML = tgLinked
+          ? '<p><strong>Tu Telegram ya está configurado.</strong></p><p class="hablemos-telegram-setup-actions"><a class="hablemos-telegram-setup-btn" href="configuracion-telegram.html">Configuración Telegram</a></p>'
+          : '<p><strong>Configura Telegram para recibir recordatorios.</strong></p><p class="hablemos-telegram-setup-actions"><a class="hablemos-telegram-setup-btn" href="configuracion-telegram.html">Ir a configuración Telegram</a></p>';
         var first = content.firstElementChild;
         if (first) content.insertBefore(tBar, first);
         else content.appendChild(tBar);

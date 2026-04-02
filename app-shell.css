@@ -860,16 +860,25 @@ body.hablemos-has-float-sub {
   background: var(--accent-soft);
 }
 
-/* Recordatorios / agenda: aviso rojo si Telegram no vinculado */
+/* Recordatorios / agenda: aviso de estado Telegram */
 .hablemos-telegram-setup-bar {
   margin: 0 0 16px;
   padding: 12px 14px;
   border-radius: var(--radius-sm);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.hablemos-telegram-setup-bar-missing {
   border: 1px solid rgba(220, 38, 38, 0.45);
   background: var(--danger-bg);
   color: var(--danger-text);
-  font-size: 14px;
-  line-height: 1.45;
+}
+
+.hablemos-telegram-setup-bar-ok {
+  border: 1px solid color-mix(in srgb, var(--primary-mid) 35%, var(--border));
+  background: color-mix(in srgb, var(--primary-mid) 12%, transparent);
+  color: var(--text);
 }
 
 .hablemos-telegram-setup-bar p {
@@ -880,13 +889,22 @@ body.hablemos-has-float-sub {
   margin-bottom: 0;
 }
 
-.hablemos-telegram-setup-bar a {
-  color: var(--danger);
-  font-weight: 600;
-  text-decoration: underline;
+.hablemos-telegram-setup-actions {
+  margin-top: 0.25em !important;
 }
 
-.hablemos-telegram-setup-meta {
-  font-size: 13px;
-  opacity: 0.95;
+.hablemos-telegram-setup-btn {
+  display: inline-block;
+  padding: 7px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--primary-mid);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.hablemos-telegram-setup-btn:hover {
+  border-color: var(--primary-mid);
+  color: var(--primary-hover);
 }
