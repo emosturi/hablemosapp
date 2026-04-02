@@ -94,6 +94,29 @@
         display: none;
       }
 
+      .section.poliza-expirada {
+        border-color: var(--danger, #dc2626);
+        background: var(--danger-bg, rgba(220, 38, 38, 0.1));
+        box-shadow: 0 0 0 1px rgba(220, 38, 38, 0.15);
+      }
+      .section.poliza-expirada > .section-title h2 {
+        color: var(--danger-text, #991b1b);
+      }
+      .section.poliza-expirada > .section-title .hint {
+        color: var(--danger-text, #991b1b);
+        opacity: 0.95;
+      }
+      .poliza-expirada-msg {
+        margin: 0 0 12px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        background: var(--danger-bg, rgba(220, 38, 38, 0.12));
+        color: var(--danger-text, #991b1b);
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 1.4;
+      }
+
       .grid {
         display: grid;
         grid-template-columns: repeat(12, 1fr);
@@ -747,13 +770,14 @@
             </div>
           </div>
 
-          <div class="section collapsible collapsed" aria-labelledby="polizaTitle">
+          <div id="polizaSection" class="section collapsible collapsed" aria-labelledby="polizaTitle">
             <div class="section-title" role="button" tabindex="0" aria-expanded="false">
               <span class="toggle-icon" aria-hidden="true">▼</span>
               <h2 id="polizaTitle">Póliza de responsabilidad civil</h2>
-              <span class="hint">Datos que aparecen en el contrato de asesoría; se guardan en tu perfil de asesor (no en el cliente).</span>
+              <span class="hint">Datos se guardan en tu perfil de asesor.</span>
             </div>
             <div class="section-body">
+              <div id="polizaExpiradaMsg" class="poliza-expirada-msg" hidden role="alert"></div>
               <div class="grid">
                 <div class="field col-4">
                   <label for="poliza_registro">Registro de póliza (C.M.F.)</label>
@@ -2664,6 +2688,7 @@
             ? datos.poliza
             : {};
         setFormFromObject(form, { poliza: { ...POLIZA_PERFIL_DEFAULTS, ...p } });
+        updatePolizaVencimientoWarning();
       }
 
       // Marca en BD qué documentos ya fueron generados para el cliente (por RUT del propietario actual).
@@ -2713,6 +2738,48 @@
           yyyy,
           iso: `${String(yyyy).padStart(4, "0")}-${String(mm).padStart(2, "0")}-${String(dd).padStart(2, "0")}`,
         };
+      }
+
+      // Fecha de póliza en DD/MM/AAAA o DD-MM-AAAA (formulario contrato).
+      function parsePolizaFechaFlexible(value) {
+        const s = String(value || "").trim();
+        const m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+        if (!m) return null;
+        const dd = Number(m[1]);
+        const mm = Number(m[2]);
+        const yyyy = Number(m[3]);
+        if (dd < 1 || dd > 31 || mm < 1 || mm > 12 || yyyy < 1900 || yyyy > 2200) return null;
+        const d = new Date(yyyy, mm - 1, dd);
+        if (d.getFullYear() !== yyyy || d.getMonth() !== mm - 1 || d.getDate() !== dd) return null;
+        return { dd, mm, yyyy };
+      }
+
+      function updatePolizaVencimientoWarning() {
+        const section = document.getElementById("polizaSection");
+        const msgEl = document.getElementById("polizaExpiradaMsg");
+        const input = document.getElementById("poliza_fecha_venc");
+        if (!section || !msgEl) return;
+        const raw = input && input.value ? input.value : "";
+        const parsed = parsePolizaFechaFlexible(raw);
+        if (!parsed) {
+          section.classList.remove("poliza-expirada");
+          msgEl.hidden = true;
+          msgEl.textContent = "";
+          return;
+        }
+        const now = new Date();
+        const hoyInt = now.getFullYear() * 10000 + (now.getMonth() + 1) * 100 + now.getDate();
+        const venInt = parsed.yyyy * 10000 + parsed.mm * 100 + parsed.dd;
+        const expirada = hoyInt > venInt;
+        if (expirada) {
+          section.classList.add("poliza-expirada");
+          msgEl.hidden = false;
+          msgEl.textContent = "Actualizar póliza: póliza expirada";
+        } else {
+          section.classList.remove("poliza-expirada");
+          msgEl.hidden = true;
+          msgEl.textContent = "";
+        }
       }
 
       // Muestra un mensaje de estado no bloqueante debajo de los botones.
@@ -3529,6 +3596,11 @@
             var autoDoc = params.get("imprimir");
             applyPolizaPerfilToForm(form, null);
             setupContratoAnexosFormListeners(form);
+            var polizaVencInput = document.getElementById("poliza_fecha_venc");
+            if (polizaVencInput) {
+              polizaVencInput.addEventListener("input", updatePolizaVencimientoWarning);
+              polizaVencInput.addEventListener("change", updatePolizaVencimientoWarning);
+            }
             if (supabaseClient) {
               loadAsesorMandatarioPerfil(supabaseClient)
                 .then(function (d) {
