@@ -277,6 +277,40 @@
       }
     }
 
+    function ensureAyudaMenuLink(show) {
+      var userMenu = qs("userMenuDd");
+      if (!userMenu) return;
+      var existing = userMenu.querySelector("a[data-ayuda-menu='1'], a[href='ayuda.html']");
+      if (!show) {
+        if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
+        return;
+      }
+      var active = window.location && /ayuda\.html(?:\?|$)/.test(window.location.pathname || "");
+      if (existing) {
+        existing.setAttribute("data-ayuda-menu", "1");
+        existing.classList.toggle("active", active);
+        if (active) existing.setAttribute("aria-current", "page");
+        else existing.removeAttribute("aria-current");
+        return;
+      }
+      var anchorBefore = userMenu.querySelector(".user-menu-theme");
+      var a = document.createElement("a");
+      a.href = "ayuda.html";
+      a.textContent = "Ayuda";
+      a.className = "user-menu-item";
+      a.setAttribute("role", "menuitem");
+      a.setAttribute("data-ayuda-menu", "1");
+      if (active) {
+        a.classList.add("active");
+        a.setAttribute("aria-current", "page");
+      }
+      if (anchorBefore && anchorBefore.parentNode === userMenu) {
+        userMenu.insertBefore(a, anchorBefore);
+      } else {
+        userMenu.appendChild(a);
+      }
+    }
+
     function ensureOwnerMenuLink(isOwner) {
       function upsertLink(container) {
         if (!container) return;
@@ -353,6 +387,7 @@
       "configuracion-telegram.html": true,
       "mis-tickets.html": true,
       "revisar-clientes.html": true,
+      "ayuda.html": true,
     };
 
     function redirectIfSubscriptionLocked(file) {
@@ -389,6 +424,7 @@
       if (!uid) {
         ensureAdvisorTicketsMenuLink(false);
         ensureOwnerMenuLink(false);
+        ensureAyudaMenuLink(false);
         clearSubscriptionShellLock();
         clearHablemosShellBannerState();
         finishSubscriptionGuard();
@@ -406,6 +442,7 @@
           var isOwner = !!(res && !res.error && res.data && res.data.user_id);
           ensureAdvisorTicketsMenuLink(!isOwner);
           ensureOwnerMenuLink(isOwner);
+          ensureAyudaMenuLink(true);
 
           if (skipAccountGuard || isOwner) {
             clearSubscriptionShellLock();
@@ -462,6 +499,7 @@
         })
         .catch(function () {
           ensureOwnerMenuLink(false);
+          ensureAyudaMenuLink(true);
           clearSubscriptionShellLock();
           clearHablemosShellBannerState();
           finishSubscriptionGuard();
@@ -502,7 +540,22 @@
         window.location.href = "recordatorios.html";
         return;
       }
-      if (q.indexOf("ticket") !== -1 || q.indexOf("soporte") !== -1 || q.indexOf("ayuda") !== -1) {
+      if (
+        q.indexOf("tutorial") !== -1 ||
+        q.indexOf("guía") !== -1 ||
+        q.indexOf("guia") !== -1 ||
+        q.indexOf("faq") !== -1 ||
+        q.indexOf("pregunt") !== -1 ||
+        q.indexOf("manual") !== -1
+      ) {
+        window.location.href = "ayuda.html";
+        return;
+      }
+      if (q.indexOf("ayuda") !== -1) {
+        window.location.href = "ayuda.html";
+        return;
+      }
+      if (q.indexOf("ticket") !== -1 || q.indexOf("soporte") !== -1) {
         window.location.href = "mis-tickets.html";
         return;
       }
