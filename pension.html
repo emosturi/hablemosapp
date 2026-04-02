@@ -860,6 +860,43 @@
             </div>
           </div>
 
+          <div class="section collapsible collapsed" aria-labelledby="contratoAnexosTitle">
+            <div class="section-title" role="button" tabindex="0" aria-expanded="false">
+              <span class="toggle-icon" aria-hidden="true">▼</span>
+              <h2 id="contratoAnexosTitle">Anexos al contrato</h2>
+              <span class="hint">Solo se incluyen al pulsar «Generar Contrato». La preferencia y textos se guardan por asesor para reutilizarlos.</span>
+            </div>
+            <div class="section-body">
+              <div class="grid">
+                <div class="field col-12">
+                  <label>¿Desea agregar anexos al contrato?</label>
+                  <div class="radio-row" role="group" aria-label="Anexos al contrato">
+                    <label class="radio-pill">
+                      <input type="radio" name="contrato.anexos" value="Sí" />
+                      Sí
+                    </label>
+                    <label class="radio-pill">
+                      <input type="radio" name="contrato.anexos" value="No" checked />
+                      No
+                    </label>
+                  </div>
+                  <div class="error" data-error-for="contrato.anexos"></div>
+                </div>
+                <div id="contratoAnexosDetalle" class="col-12" style="display: none">
+                  <div class="grid">
+                    <div class="field col-4">
+                      <label for="contrato_num_anexos">Cantidad de anexos</label>
+                      <input type="number" id="contrato_num_anexos" min="1" max="20" step="1" value="1" inputmode="numeric" />
+                      <div class="error" data-error-for="contrato_num_anexos"></div>
+                    </div>
+                    <div class="error col-12" data-error-for="contrato.anexos.detalle" style="grid-column: 1 / -1"></div>
+                    <div id="contratoAnexosTextos" class="grid col-12" style="margin-top: 0.35rem"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div class="actions">
             <div class="btns">
               <button type="button" id="btnGuardarBD">Guardar en BD</button>
@@ -1723,6 +1760,14 @@
         descargarDocumentoWordCompat(html, "mandato_corto");
       }
 
+      function escapeHtmlContrato(s) {
+        return String(s || "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+
       // Genera el contrato de prestación de servicios de asesoría y lo descarga como archivo .doc.
       function generarContrato(data){
         const mandante = data.mandante || {};
@@ -1771,6 +1816,27 @@
           fechaInicio: "01/10/2025",
           fechaVencimiento: "30/09/2026",
         };
+
+        const anexosCfg = data.contratoAnexos;
+        let anexosHtml = "";
+        if (anexosCfg && anexosCfg.usar && Array.isArray(anexosCfg.textos)) {
+          const partes = anexosCfg.textos.map((t) => String(t || "").trim()).filter(Boolean);
+          if (partes.length) {
+            anexosHtml =
+              '<div style="page-break-before:always"></div>' +
+              partes
+                .map((t, idx) => {
+                  return (
+                    "<h2>ANEXO " +
+                    (idx + 1) +
+                    '</h2><p style="text-align:justify;white-space:pre-wrap;">' +
+                    escapeHtmlContrato(t) +
+                    "</p>"
+                  );
+                })
+                .join("");
+          }
+        }
 
         const html = `
         <html>
@@ -2051,6 +2117,8 @@
         cada una de las partes.
         </p>
 
+        ${anexosHtml}
+
         <br/><br/><br/><br/><br/><br/>
 
         <table class="tabla-firmas" border="0" cellpadding="0" cellspacing="0" style="margin-top:40px;width:100%;">
@@ -2090,6 +2158,147 @@
           node.append(child instanceof Node ? child : document.createTextNode(String(child)));
         }
         return node;
+      }
+
+      function updateContratoAnexosDisabledState(form) {
+        if (!form) return;
+        const chk = form.querySelector('input[name="contrato.anexos"]:checked');
+        const si = chk && chk.value === "Sí";
+        const numEl = document.getElementById("contrato_num_anexos");
+        const tas = form.querySelectorAll("[data-contrato-anexo-i]");
+        if (numEl) numEl.disabled = !si;
+        tas.forEach((t) => {
+          t.disabled = !si;
+        });
+      }
+
+      function getContratoAnexoValuesFromDom(form) {
+        const arr = [];
+        if (!form) return arr;
+        form.querySelectorAll("[data-contrato-anexo-i]").forEach((node) => {
+          const i = parseInt(node.getAttribute("data-contrato-anexo-i"), 10);
+          if (!Number.isNaN(i)) arr[i] = node.value;
+        });
+        return arr;
+      }
+
+      function renderContratoAnexosTextareas(form, count, values) {
+        const box = document.getElementById("contratoAnexosTextos");
+        if (!box) return;
+        const n = Math.min(20, Math.max(1, parseInt(count, 10) || 1));
+        box.innerHTML = "";
+        for (let i = 0; i < n; i++) {
+          const wrap = el("div", { class: "field col-12" }, [
+            el("label", { for: "contrato_anexo_" + i }, "Texto del anexo " + (i + 1)),
+            el("textarea", {
+              id: "contrato_anexo_" + i,
+              "data-contrato-anexo-i": String(i),
+              rows: "6",
+              maxlength: "12000",
+              placeholder: "Texto que aparecerá en el documento del contrato…",
+            }),
+          ]);
+          box.appendChild(wrap);
+          const ta = wrap.querySelector("textarea");
+          if (values && values[i] != null) ta.value = String(values[i]);
+        }
+        updateContratoAnexosDisabledState(form);
+      }
+
+      function collectContratoAnexosForData(form) {
+        if (!form) return { usar: false, textos: [] };
+        const sel = form.querySelector('input[name="contrato.anexos"]:checked');
+        const usar = sel && sel.value === "Sí";
+        if (!usar) return { usar: false, textos: [] };
+        const textos = [];
+        form.querySelectorAll("[data-contrato-anexo-i]").forEach((node) => {
+          const i = parseInt(node.getAttribute("data-contrato-anexo-i"), 10);
+          if (!Number.isNaN(i)) textos[i] = String(node.value || "");
+        });
+        const compact = [];
+        for (let j = 0; j < textos.length; j++) compact.push(textos[j] != null ? textos[j] : "");
+        return { usar: true, textos: compact };
+      }
+
+      function resetContratoAnexosUiDefault(form) {
+        if (!form) return;
+        const no = form.querySelector('input[name="contrato.anexos"][value="No"]');
+        const si = form.querySelector('input[name="contrato.anexos"][value="Sí"]');
+        if (no) no.checked = true;
+        if (si) si.checked = false;
+        const det = document.getElementById("contratoAnexosDetalle");
+        if (det) det.style.display = "none";
+        const num = document.getElementById("contrato_num_anexos");
+        if (num) num.value = "1";
+        const box = document.getElementById("contratoAnexosTextos");
+        if (box) box.innerHTML = "";
+        updateContratoAnexosDisabledState(form);
+      }
+
+      function applyContratoAnexosUiFromPerfil(datos, form) {
+        if (!form) return;
+        const ca = datos && datos.contrato_anexos;
+        const tieneTexto =
+          ca &&
+          ca.usar === true &&
+          Array.isArray(ca.textos) &&
+          ca.textos.some((t) => String(t || "").trim());
+        const radioSi = form.querySelector('input[name="contrato.anexos"][value="Sí"]');
+        const radioNo = form.querySelector('input[name="contrato.anexos"][value="No"]');
+        const det = document.getElementById("contratoAnexosDetalle");
+        const numEl = document.getElementById("contrato_num_anexos");
+        if (tieneTexto) {
+          if (radioSi) radioSi.checked = true;
+          if (radioNo) radioNo.checked = false;
+          if (det) det.style.display = "block";
+          const n = Math.min(20, Math.max(1, ca.textos.length));
+          if (numEl) numEl.value = String(n);
+          renderContratoAnexosTextareas(form, n, ca.textos);
+        } else {
+          if (radioNo) radioNo.checked = true;
+          if (radioSi) radioSi.checked = false;
+          if (det) det.style.display = "none";
+          if (numEl) numEl.value = "1";
+          const box = document.getElementById("contratoAnexosTextos");
+          if (box) box.innerHTML = "";
+          updateContratoAnexosDisabledState(form);
+        }
+      }
+
+      function setupContratoAnexosFormListeners(form) {
+        const det = document.getElementById("contratoAnexosDetalle");
+        const numEl = document.getElementById("contrato_num_anexos");
+        const box = document.getElementById("contratoAnexosTextos");
+        if (!form || !det || !numEl || !box) return;
+
+        form.querySelectorAll('input[name="contrato.anexos"]').forEach((r) => {
+          r.addEventListener("change", () => {
+            const si =
+              form.querySelector('input[name="contrato.anexos"]:checked') &&
+              form.querySelector('input[name="contrato.anexos"]:checked').value === "Sí";
+            det.style.display = si ? "block" : "none";
+            if (si && box.children.length === 0) {
+              const n = parseInt(numEl.value, 10) || 1;
+              renderContratoAnexosTextareas(form, n, []);
+            }
+            updateContratoAnexosDisabledState(form);
+          });
+        });
+
+        numEl.addEventListener("change", () => {
+          const si =
+            form.querySelector('input[name="contrato.anexos"]:checked') &&
+            form.querySelector('input[name="contrato.anexos"]:checked').value === "Sí";
+          if (!si) return;
+          const prev = getContratoAnexoValuesFromDom(form);
+          let n = parseInt(numEl.value, 10) || 1;
+          if (n < 1) n = 1;
+          if (n > 20) n = 20;
+          numEl.value = String(n);
+          const next = [];
+          for (let i = 0; i < n; i++) next[i] = prev[i] != null ? prev[i] : "";
+          renderContratoAnexosTextareas(form, n, next);
+        });
       }
 
       function marcar(valor){
@@ -2325,15 +2534,31 @@
         return out;
       }
 
-      async function saveAsesorMandatarioPerfil(supabaseClient, data) {
+      async function saveAsesorMandatarioPerfil(supabaseClient, data, datosPatch) {
         if (!supabaseClient) return;
         const perfil = extractMandatarioPerfilFromFormData(data);
         if (!perfil.rut || !perfil.nombres) return;
         const sess = await supabaseClient.auth.getSession();
         const uid = sess && sess.data && sess.data.session && sess.data.session.user && sess.data.session.user.id;
         if (!uid) return;
+        const { data: row, error: fetchErr } = await supabaseClient
+          .from("asesor_mandatario_perfil")
+          .select("datos")
+          .eq("user_id", uid)
+          .maybeSingle();
+        if (fetchErr) console.warn("[pension] Leer perfil mandatario:", fetchErr.message);
+        let merged = {};
+        if (row && row.datos && typeof row.datos === "object" && !Array.isArray(row.datos)) {
+          merged = { ...row.datos };
+        }
+        Object.assign(merged, perfil);
+        if (datosPatch && typeof datosPatch === "object") {
+          for (const k of Object.keys(datosPatch)) {
+            merged[k] = datosPatch[k];
+          }
+        }
         const { error } = await supabaseClient.from("asesor_mandatario_perfil").upsert(
-          { user_id: uid, datos: perfil, updated_at: new Date().toISOString() },
+          { user_id: uid, datos: merged, updated_at: new Date().toISOString() },
           { onConflict: "user_id" }
         );
         if (error) console.warn("[pension] No se pudo guardar perfil mandatario:", error.message);
@@ -2616,6 +2841,29 @@
           const apvcPct = form.querySelector('[name="antecedentes.apvcPorcentajeTraspaso"]');
           validarDetalleApv(apvSi, apvInst, apvPct, "antecedentes.apvDetalle", "APV");
           validarDetalleApv(apvcSi, apvcInst, apvcPct, "antecedentes.apvcDetalle", "APVC");
+        }
+
+        if (soloParaContrato) {
+          const anexosSel = form.querySelector('input[name="contrato.anexos"]:checked');
+          if (anexosSel && anexosSel.value === "Sí") {
+            const numEl = document.getElementById("contrato_num_anexos");
+            const n = parseInt(numEl && numEl.value ? numEl.value : "0", 10);
+            if (!Number.isFinite(n) || n < 1 || n > 20) {
+              ok = false;
+              if (numEl) numEl.setAttribute("aria-invalid", "true");
+              setError(form, "contrato_num_anexos", "Indica un número de anexos entre 1 y 20.");
+            } else {
+              let faltan = false;
+              for (let i = 0; i < n; i++) {
+                const ta = form.querySelector('[data-contrato-anexo-i="' + i + '"]');
+                if (!ta || !String(ta.value || "").trim()) faltan = true;
+              }
+              if (faltan) {
+                ok = false;
+                setError(form, "contrato.anexos.detalle", "Completa el texto de cada anexo.");
+              }
+            }
+          }
         }
 
         return { ok, parsedBirth: parsed };
@@ -2979,10 +3227,12 @@
             }
 
             const data = formDataToObject(form);
+            const anexosSnap = collectContratoAnexosForData(form);
+            data.contratoAnexos = anexosSnap;
             try {
               if (supabaseClient) {
                 await saveClienteFromMandatoData(supabaseClient, data);
-                await saveAsesorMandatarioPerfil(supabaseClient, data);
+                await saveAsesorMandatarioPerfil(supabaseClient, data, { contrato_anexos: anexosSnap });
                 await markClienteDocumentoGenerado(supabaseClient, data.mandante && data.mandante.rut, { tiene_contrato: true });
               }
               data.numeroContratoSecuencial = supabaseClient
@@ -3175,9 +3425,16 @@
                 if (supabaseClient) {
                   loadAsesorMandatarioPerfil(supabaseClient)
                     .then(function (d) {
-                      if (d) applyMandatarioPerfilToForm(form, d);
+                      if (d) {
+                        applyMandatarioPerfilToForm(form, d);
+                        applyContratoAnexosUiFromPerfil(d, form);
+                      } else {
+                        resetContratoAnexosUiDefault(form);
+                      }
                     })
                     .catch(function () {});
+                } else {
+                  resetContratoAnexosUiDefault(form);
                 }
               });
 
@@ -3187,10 +3444,21 @@
             if (supabaseClient) {
               loadAsesorMandatarioPerfil(supabaseClient)
                 .then(function (d) {
-                  if (d) applyMandatarioPerfilToForm(form, d);
+                  if (d) {
+                    applyMandatarioPerfilToForm(form, d);
+                    applyContratoAnexosUiFromPerfil(d, form);
+                  } else {
+                    resetContratoAnexosUiDefault(form);
+                  }
                 })
-                .catch(function () {});
+                .catch(function () {
+                  resetContratoAnexosUiDefault(form);
+                });
+            } else {
+              resetContratoAnexosUiDefault(form);
             }
+
+            setupContratoAnexosFormListeners(form);
             if (clienteId && supabaseClient) {
               supabaseClient.from("clientes").select("*").eq("id", clienteId).single().then(function (r) {
                 if (r.error || !r.data) {
@@ -3504,6 +3772,11 @@
                   }
                   if (autoDoc === "contrato") {
                     Promise.resolve().then(async function () {
+                      try {
+                        const dPerfilContrato = await loadAsesorMandatarioPerfil(supabaseClient);
+                        if (dPerfilContrato) applyContratoAnexosUiFromPerfil(dPerfilContrato, form);
+                      } catch (_e) {}
+                      dataAuto.contratoAnexos = collectContratoAnexosForData(form);
                       try {
                         dataAuto.numeroContratoSecuencial = await getOrAssignNumeroContrato(supabaseClient, dataAuto);
                       } catch (e) {
