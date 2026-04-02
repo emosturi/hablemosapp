@@ -96,6 +96,17 @@
       .modal-feedback { margin-top: 12px; font-size: 13px; }
       .modal-feedback.error { color: #ef4444; }
       .modal-feedback.success { color: var(--primary-mid); }
+      .notas-body {
+        margin: 0;
+        font-size: 14px;
+        line-height: 1.55;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      .notas-body.notas-vacio {
+        color: var(--muted);
+        font-style: italic;
+      }
       .checklist { margin: 0; padding: 0; list-style: none; }
       .checklist li { display: flex; align-items: flex-start; gap: 10px; padding: 10px 8px; border-radius: 10px; }
       .checklist li:hover { background: rgba(0, 96, 108, 0.06); }
@@ -234,6 +245,7 @@
           <a href="#" id="lnkEditar" class="btn">Editar cliente</a>
           <a href="pension.html" id="lnkUsar" class="btn">Usar en formulario de pensión</a>
           <button type="button" id="btnRecordatorio" class="btn">Agregar Recordatorio</button>
+          <button type="button" id="btnAgregarNota" class="btn">Agregar nota</button>
           <button type="button" id="btnChecklist" class="btn">Checklist</button>
         </div>
       </header>
@@ -261,6 +273,24 @@
           <button type="button" id="btnBonoSi" class="btn-si">Sí</button>
         </div>
         <div class="modal-feedback" id="modalBonoFeedback" style="display: none;"></div>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="modalNotaAsesor" role="dialog" aria-labelledby="modalNotaAsesorTitulo" aria-modal="true">
+      <div class="modal">
+        <h3 id="modalNotaAsesorTitulo">Agregar nota</h3>
+        <p style="margin: 0 0 14px; font-size: 13px; line-height: 1.45; color: var(--muted);">
+          La nota se guarda al final del historial, con fecha y hora.
+        </p>
+        <form id="formNotaAsesor">
+          <label for="notaAsesorInput">Texto de la nota</label>
+          <textarea id="notaAsesorInput" name="nota" maxlength="4000" required placeholder="Escribe la información que quieras recordar sobre este cliente…"></textarea>
+          <div class="modal-actions">
+            <button type="button" id="btnCerrarModalNota" class="btn-secondary">Cancelar</button>
+            <button type="submit" id="btnGuardarNotaAsesor" class="btn-primary">Guardar nota</button>
+          </div>
+          <div class="modal-feedback" id="modalNotaAsesorFeedback" style="display: none"></div>
+        </form>
       </div>
     </div>
 
@@ -690,6 +720,9 @@
             }
 
             var html = "";
+            html +=
+              '<div class="section section-notas-asesor"><h2>Notas del asesor</h2>' +
+              '<div id="notasAsesorBody" class="notas-body"></div></div>';
             if (c.pensionado === true) {
               html += '<div class="section"><h2>Pensionado</h2><div class="grid">';
               html += item("Compañía", c.pension_compania);
@@ -783,6 +816,15 @@
 
             document.getElementById("contenido").innerHTML = html;
             document.getElementById("contenido").style.display = "block";
+
+            function refreshNotasAsesorUI() {
+              var el = document.getElementById("notasAsesorBody");
+              if (!el) return;
+              var txt = (c.notas_asesor || "").toString().trim();
+              el.textContent = txt || "Sin notas todavía. Usa «Agregar nota» para registrar información.";
+              el.className = "notas-body" + (!txt ? " notas-vacio" : "");
+            }
+            refreshNotasAsesorUI();
 
             function guardarEtapaTramite() {
               var sel = document.getElementById("tramiteEtapaSelect");
@@ -1008,6 +1050,97 @@
                   })
                   .catch(function () { mostrarFeedback("Error de red al enviar.", true); })
                   .finally(function () { btnEnviar.disabled = false; });
+              });
+            }
+
+            var modalNota = document.getElementById("modalNotaAsesor");
+            var btnAgregarNota = document.getElementById("btnAgregarNota");
+            var btnCerrarModalNota = document.getElementById("btnCerrarModalNota");
+            var formNotaAsesor = document.getElementById("formNotaAsesor");
+            var modalNotaFeedback = document.getElementById("modalNotaAsesorFeedback");
+            var btnGuardarNotaAsesor = document.getElementById("btnGuardarNotaAsesor");
+
+            function timestampNotaAsesor() {
+              var d = new Date();
+              function pad(n) {
+                return n < 10 ? "0" + n : "" + n;
+              }
+              return pad(d.getDate()) + "/" + pad(d.getMonth() + 1) + "/" + d.getFullYear() + ", " + pad(d.getHours()) + ":" + pad(d.getMinutes());
+            }
+
+            function cerrarModalNota() {
+              if (modalNota) modalNota.classList.remove("open");
+              if (modalNotaFeedback) {
+                modalNotaFeedback.style.display = "none";
+                modalNotaFeedback.textContent = "";
+                modalNotaFeedback.className = "modal-feedback";
+              }
+            }
+
+            function mostrarFeedbackNota(msg, esError) {
+              if (!modalNotaFeedback) return;
+              modalNotaFeedback.textContent = msg;
+              modalNotaFeedback.className = "modal-feedback " + (esError ? "error" : "success");
+              modalNotaFeedback.style.display = "block";
+            }
+
+            if (btnAgregarNota) {
+              btnAgregarNota.addEventListener("click", function () {
+                if (modalNota) modalNota.classList.add("open");
+                if (formNotaAsesor) formNotaAsesor.reset();
+                if (modalNotaFeedback) {
+                  modalNotaFeedback.style.display = "none";
+                  modalNotaFeedback.textContent = "";
+                  modalNotaFeedback.className = "modal-feedback";
+                }
+              });
+            }
+            if (btnCerrarModalNota) btnCerrarModalNota.addEventListener("click", cerrarModalNota);
+            if (modalNota) {
+              modalNota.addEventListener("click", function (e) {
+                if (e.target === modalNota) cerrarModalNota();
+              });
+            }
+
+            if (formNotaAsesor) {
+              formNotaAsesor.addEventListener("submit", function (e) {
+                e.preventDefault();
+                var ta = document.getElementById("notaAsesorInput");
+                var nuevo = (ta && ta.value ? ta.value : "").trim();
+                if (!nuevo) {
+                  mostrarFeedbackNota("Escribe el texto de la nota.", true);
+                  return;
+                }
+                var prev = (c.notas_asesor || "").toString().trim();
+                var line = "[" + timestampNotaAsesor() + "] " + nuevo;
+                var merged = prev ? prev + "\n\n" + line : line;
+                if (btnGuardarNotaAsesor) btnGuardarNotaAsesor.disabled = true;
+                mostrarFeedbackNota("Guardando…", false);
+                supabase
+                  .from("clientes")
+                  .update({ notas_asesor: merged })
+                  .eq("id", id)
+                  .select()
+                  .single()
+                  .then(function (up) {
+                    if (btnGuardarNotaAsesor) btnGuardarNotaAsesor.disabled = false;
+                    if (up.error) {
+                      mostrarFeedbackNota(
+                        up.error.message ||
+                          "No se pudo guardar. Ejecuta en Supabase el script supabase-migration-clientes-notas-asesor.sql si falta la columna notas_asesor.",
+                        true
+                      );
+                      return;
+                    }
+                    c.notas_asesor = up.data.notas_asesor;
+                    refreshNotasAsesorUI();
+                    mostrarFeedbackNota("Nota guardada.", false);
+                    setTimeout(cerrarModalNota, 800);
+                  })
+                  .catch(function () {
+                    if (btnGuardarNotaAsesor) btnGuardarNotaAsesor.disabled = false;
+                    mostrarFeedbackNota("Error de red al guardar.", true);
+                  });
               });
             }
 
