@@ -747,6 +747,48 @@
             </div>
           </div>
 
+          <div class="section collapsible collapsed" aria-labelledby="polizaTitle">
+            <div class="section-title" role="button" tabindex="0" aria-expanded="false">
+              <span class="toggle-icon" aria-hidden="true">▼</span>
+              <h2 id="polizaTitle">Póliza de responsabilidad civil</h2>
+              <span class="hint">Datos que aparecen en el contrato de asesoría; se guardan en tu perfil de asesor (no en el cliente).</span>
+            </div>
+            <div class="section-body">
+              <div class="grid">
+                <div class="field col-4">
+                  <label for="poliza_registro">Registro de póliza (C.M.F.)</label>
+                  <input type="text" id="poliza_registro" name="poliza.registroPoliza" autocomplete="off" />
+                  <div class="error" data-error-for="poliza_registro"></div>
+                </div>
+                <div class="field col-4">
+                  <label for="poliza_numero">N° de póliza</label>
+                  <input type="text" id="poliza_numero" name="poliza.numeroPoliza" autocomplete="off" />
+                  <div class="error" data-error-for="poliza_numero"></div>
+                </div>
+                <div class="field col-4">
+                  <label for="poliza_fecha_contrato">Fecha contratación póliza</label>
+                  <input type="text" id="poliza_fecha_contrato" name="poliza.fechaContrato" placeholder="DD/MM/AAAA" autocomplete="off" />
+                  <div class="error" data-error-for="poliza_fecha_contrato"></div>
+                </div>
+                <div class="field col-6">
+                  <label for="poliza_fecha_inicio">Vigencia desde</label>
+                  <input type="text" id="poliza_fecha_inicio" name="poliza.fechaInicio" placeholder="DD/MM/AAAA" autocomplete="off" />
+                  <div class="error" data-error-for="poliza_fecha_inicio"></div>
+                </div>
+                <div class="field col-6">
+                  <label for="poliza_fecha_venc">Vencimiento</label>
+                  <input type="text" id="poliza_fecha_venc" name="poliza.fechaVencimiento" placeholder="DD/MM/AAAA" autocomplete="off" />
+                  <div class="error" data-error-for="poliza_fecha_venc"></div>
+                </div>
+                <div class="field col-12">
+                  <label for="poliza_compania">Compañía aseguradora</label>
+                  <textarea id="poliza_compania" name="poliza.compania" rows="2" autocomplete="organization"></textarea>
+                  <div class="error" data-error-for="poliza_compania"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div class="section collapsible collapsed" aria-labelledby="antecedentesTitle">
             <div class="section-title" role="button" tabindex="0" aria-expanded="false">
               <span class="toggle-icon" aria-hidden="true">▼</span>
@@ -950,6 +992,15 @@
 
     <script>
       const STORAGE_KEY = "hablemosapp_pension_form_v1";
+
+      const POLIZA_PERFIL_DEFAULTS = {
+        registroPoliza: "1.2013.0970",
+        compania: "COMPAÑÍA DE SEGUROS GENERALES SURAMERICANA S.A.",
+        numeroPoliza: "9148151",
+        fechaContrato: "23/09/2025",
+        fechaInicio: "01/10/2025",
+        fechaVencimiento: "30/09/2026",
+      };
 
       const antecedentesItems = [
         { key: "deseoPensionPreliminar", label: "Deseo pensión preliminar" },
@@ -1807,14 +1858,9 @@
           });
         }
 
-        // Datos de la póliza (en el futuro vendrán de un formulario distinto para actualizarse anualmente)
-        const poliza = data.poliza || {
-          registroPoliza: "1.2013.0970",
-          compania: "COMPAÑÍA DE SEGUROS GENERALES SURAMERICANA S.A.",
-          numeroPoliza: "9148151",
-          fechaContrato: "23/09/2025",
-          fechaInicio: "01/10/2025",
-          fechaVencimiento: "30/09/2026",
+        const poliza = {
+          ...POLIZA_PERFIL_DEFAULTS,
+          ...(data.poliza && typeof data.poliza === "object" ? data.poliza : {}),
         };
 
         const anexosCfg = data.contratoAnexos;
@@ -2534,6 +2580,24 @@
         return out;
       }
 
+      const POLIZA_PERFIL_KEYS = [
+        "registroPoliza",
+        "compania",
+        "numeroPoliza",
+        "fechaContrato",
+        "fechaInicio",
+        "fechaVencimiento",
+      ];
+
+      function extractPolizaPerfilFromFormData(data) {
+        const p = (data && data.poliza) || {};
+        const out = {};
+        for (const k of POLIZA_PERFIL_KEYS) {
+          if (p[k] != null) out[k] = String(p[k]).trim();
+        }
+        return out;
+      }
+
       async function saveAsesorMandatarioPerfil(supabaseClient, data, datosPatch) {
         if (!supabaseClient) return;
         const perfil = extractMandatarioPerfilFromFormData(data);
@@ -2552,6 +2616,10 @@
           merged = { ...row.datos };
         }
         Object.assign(merged, perfil);
+        const polizaSnap = extractPolizaPerfilFromFormData(data);
+        if (Object.keys(polizaSnap).length > 0) {
+          merged.poliza = { ...POLIZA_PERFIL_DEFAULTS, ...(merged.poliza || {}), ...polizaSnap };
+        }
         if (datosPatch && typeof datosPatch === "object") {
           for (const k of Object.keys(datosPatch)) {
             merged[k] = datosPatch[k];
@@ -2580,9 +2648,22 @@
 
       function applyMandatarioPerfilToForm(form, datos) {
         if (!form || !datos || typeof datos !== "object") return;
-        setFormFromObject(form, { mandatario: datos });
+        const m = {};
+        for (const k of MANDATARIO_PERFIL_KEYS) {
+          if (Object.prototype.hasOwnProperty.call(datos, k)) m[k] = datos[k];
+        }
+        setFormFromObject(form, { mandatario: m });
         const mr = document.getElementById("mandatario_rut");
         if (mr && mr.value) mr.value = normalizeRut(mr.value);
+      }
+
+      function applyPolizaPerfilToForm(form, datos) {
+        if (!form) return;
+        const p =
+          datos && datos.poliza && typeof datos.poliza === "object" && !Array.isArray(datos.poliza)
+            ? datos.poliza
+            : {};
+        setFormFromObject(form, { poliza: { ...POLIZA_PERFIL_DEFAULTS, ...p } });
       }
 
       // Marca en BD qué documentos ya fueron generados para el cliente (por RUT del propietario actual).
@@ -3427,13 +3508,18 @@
                     .then(function (d) {
                       if (d) {
                         applyMandatarioPerfilToForm(form, d);
+                        applyPolizaPerfilToForm(form, d);
                         applyContratoAnexosUiFromPerfil(d, form);
                       } else {
+                        applyPolizaPerfilToForm(form, null);
                         resetContratoAnexosUiDefault(form);
                       }
                     })
-                    .catch(function () {});
+                    .catch(function () {
+                      applyPolizaPerfilToForm(form, null);
+                    });
                 } else {
+                  applyPolizaPerfilToForm(form, null);
                   resetContratoAnexosUiDefault(form);
                 }
               });
@@ -3441,11 +3527,14 @@
             var params = new URLSearchParams(window.location.search);
             var clienteId = params.get("cliente");
             var autoDoc = params.get("imprimir");
+            applyPolizaPerfilToForm(form, null);
+            setupContratoAnexosFormListeners(form);
             if (supabaseClient) {
               loadAsesorMandatarioPerfil(supabaseClient)
                 .then(function (d) {
                   if (d) {
                     applyMandatarioPerfilToForm(form, d);
+                    applyPolizaPerfilToForm(form, d);
                     applyContratoAnexosUiFromPerfil(d, form);
                   } else {
                     resetContratoAnexosUiDefault(form);
@@ -3457,8 +3546,6 @@
             } else {
               resetContratoAnexosUiDefault(form);
             }
-
-            setupContratoAnexosFormListeners(form);
             if (clienteId && supabaseClient) {
               supabaseClient.from("clientes").select("*").eq("id", clienteId).single().then(function (r) {
                 if (r.error || !r.data) {
@@ -3774,7 +3861,10 @@
                     Promise.resolve().then(async function () {
                       try {
                         const dPerfilContrato = await loadAsesorMandatarioPerfil(supabaseClient);
-                        if (dPerfilContrato) applyContratoAnexosUiFromPerfil(dPerfilContrato, form);
+                        if (dPerfilContrato) {
+                          applyPolizaPerfilToForm(form, dPerfilContrato);
+                          applyContratoAnexosUiFromPerfil(dPerfilContrato, form);
+                        }
                       } catch (_e) {}
                       dataAuto.contratoAnexos = collectContratoAnexosForData(form);
                       try {
