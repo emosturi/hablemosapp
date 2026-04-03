@@ -1424,6 +1424,18 @@
               doc.documentElement.style.color = "#111111";
               body.style.backgroundColor = "#ffffff";
               body.style.color = "#111111";
+              // Ayuda a html2pdf a partir páginas entre bloques y no a mitad de línea / filas.
+              if (head && !head.querySelector("style[data-hablemos-pdf-breaks]")) {
+                const inj = doc.createElement("style");
+                inj.setAttribute("data-hablemos-pdf-breaks", "1");
+                inj.textContent =
+                  "table{page-break-inside:auto;}" +
+                  "tr,thead,tfoot{page-break-inside:avoid!important;break-inside:avoid!important;-webkit-column-break-inside:avoid;}" +
+                  "h1,h2,h3,h4{page-break-after:avoid!important;break-after:avoid!important;}" +
+                  ".tabla-firmas,.firmas{page-break-inside:avoid!important;break-inside:avoid!important;}" +
+                  "p{orphans:3;widows:3;}";
+                head.appendChild(inj);
+              }
             } catch (_e) {}
 
             const dpr =
@@ -1446,7 +1458,7 @@
                 scrollY: 0,
               },
               jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-              pagebreak: { mode: ["css", "legacy"] },
+              pagebreak: { mode: ["avoid-all", "css", "legacy"] },
             };
 
             html2pdf()
