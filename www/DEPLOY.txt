@@ -10,7 +10,7 @@ Dominio plataforma.hablemosdepension.cl
 3) Espera SSL en verde y prueba https://plataforma.hablemosdepension.cl/
 
 netlify.toml: la raíz "/" en plataforma.* reescribe a /dashboard.html; en apex/www a /www/index.html (landing).
-www/site-urls.js → HABLEMOS_PLATAFORMA_ORIGIN = https://plataforma.hablemosdepension.cl
+www/site-urls.js → PREVY_PLATAFORMA_ORIGIN = https://plataforma.hablemosdepension.cl
 
 Dominio anterior (opcional, si sigue en uso)
 --------------------------------------------

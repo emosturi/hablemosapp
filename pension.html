@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Solicitud de pensión — Plataforma de Asesores Previsionales</title>
+    <title>Solicitud de pensión — Prevy</title>
     <link rel="stylesheet" href="app-shell.css" />
     <script src="theme-init.js"></script>
     <style>
@@ -425,7 +425,7 @@
       <aside class="sidebar" aria-label="Navegación">
         <div class="logo-row">
           <div class="logo-dot" aria-hidden="true"></div>
-          <span class="logo-text">HablemosApp</span>
+          <span class="logo-text">Prevy</span>
         </div>
         <div class="nav-label">Menú</div>
         <a href="dashboard.html">Dashboard</a>
@@ -1128,7 +1128,7 @@
     </script>
 
     <script>
-      const STORAGE_KEY = "hablemosapp_pension_form_v1";
+      const STORAGE_KEY = "prevy_pension_form_v1";
 
       const POLIZA_PERFIL_DEFAULTS = {
         registroPoliza: "1.2013.0970",
@@ -1447,9 +1447,9 @@
               body.style.backgroundColor = "#ffffff";
               body.style.color = "#111111";
               // Ayuda a html2pdf a partir páginas entre bloques y no a mitad de línea / filas.
-              if (head && !head.querySelector("style[data-hablemos-pdf-breaks]")) {
+              if (head && !head.querySelector("style[data-prevy-pdf-breaks]")) {
                 const inj = doc.createElement("style");
-                inj.setAttribute("data-hablemos-pdf-breaks", "1");
+                inj.setAttribute("data-prevy-pdf-breaks", "1");
                 inj.textContent =
                   "table{page-break-inside:auto;}" +
                   "tr,thead,tfoot{page-break-inside:avoid!important;break-inside:avoid!important;-webkit-column-break-inside:avoid;}" +
@@ -1579,7 +1579,7 @@
         }
 
         var pie =
-          '<div style="mso-element:footer" id="HablemosPiePag1">' +
+          '<div style="mso-element:footer" id="PrevyPiePag1">' +
           '<p class="MsoFooter" align="center" style="margin:0;text-align:center;font-size:9pt;font-family:Arial;color:#444">' +
           "P\u00e1gina " +
           wordField("PAGE", "1") +

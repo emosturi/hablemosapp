@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Ayuda y tutoriales — Plataforma de Asesores Previsionales</title>
+    <title>Ayuda y tutoriales — Prevy</title>
     <link rel="stylesheet" href="app-shell.css" />
     <script src="theme-init.js"></script>
     <style>
@@ -181,7 +181,7 @@
       <aside class="sidebar" aria-label="Navegación">
         <div class="logo-row">
           <div class="logo-dot" aria-hidden="true"></div>
-          <span class="logo-text">HablemosApp</span>
+          <span class="logo-text">Prevy</span>
         </div>
         <div class="nav-label">Menú</div>
         <a href="dashboard.html">Dashboard</a>
@@ -343,7 +343,7 @@
                   <p>Cuando compartes tu enlace personal de <a href="enlace-registro-publico.html">registro público</a>, la persona completa el formulario <strong>sin</strong> tener usuario en la app.</p>
                   <ol>
                     <li>Los datos se guardan asociados a <strong>tu</strong> cuenta de asesora.</li>
-                    <li>El cliente no inicia sesión en HablemosApp; solo rellena y envía.</li>
+                    <li>El cliente no inicia sesión en Prevy; solo rellena y envía.</li>
                     <li>Tú ves el resultado en <a href="revisar-clientes.html">Listado de Clientes</a>.</li>
                   </ol>
                   <p class="faq-note">Si tú estás logueada y abres un enlace con <code>?ref=</code>, el guardado puede asociarse a tu sesión según la configuración del formulario.</p>
@@ -733,7 +733,7 @@
           }
           if (typeof window.applyAppShellUser === "function") window.applyAppShellUser(r.data.session.user);
           if (typeof window.setAppShellGuest === "function") window.setAppShellGuest(false);
-          Promise.resolve(window.__hablemosWhenSubscriptionReady && window.__hablemosWhenSubscriptionReady()).then(function () {});
+          Promise.resolve(window.__prevyWhenSubscriptionReady && window.__prevyWhenSubscriptionReady()).then(function () {});
         });
       })();
     </script>

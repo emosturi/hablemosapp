@@ -7,7 +7,7 @@ window.SUPABASE_URL = "https://TU_PROYECTO.supabase.co";
 window.SUPABASE_ANON_KEY = "tu-anon-key-aqui";
 
 // Opcional: correo de soporte (enlace mailto en la página «Mi suscripción» del menú de usuario).
-// window.HABLEMOS_SUPPORT_EMAIL = "soporte@tudominio.cl";
+// window.PREVY_SUPPORT_EMAIL = "soporte@tudominio.cl";
 
 // Mercado Pago (suscripción en mi-suscripcion.html): configurar en Netlify → Site settings → Environment variables:
 //   MERCADOPAGO_ACCESS_TOKEN          — Access Token de la aplicación (producción o prueba).

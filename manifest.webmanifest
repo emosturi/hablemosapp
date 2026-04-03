@@ -1,7 +1,7 @@
 {
-  "name": "Hablemos — Plataforma asesores",
-  "short_name": "Hablemos",
-  "description": "Plataforma de asesores previsionales (fuera de la landing en www/).",
+  "name": "Prevy — Plataforma asesores",
+  "short_name": "Prevy",
+  "description": "Prevy: plataforma de asesores previsionales (fuera de la landing en www/).",
   "start_url": "/login.html",
   "scope": "/",
   "display": "standalone",

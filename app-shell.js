@@ -168,25 +168,25 @@
     if (layout) layout.classList.toggle("is-guest", !!isGuest);
   };
 
-  function removeHablemosShellBannerNodes() {
-    document.querySelectorAll(".hablemos-float-sub-wrap, #hablemosTelegramSetupBar").forEach(function (n) {
+  function removePrevyShellBannerNodes() {
+    document.querySelectorAll(".prevy-float-sub-wrap, #prevyTelegramSetupBar").forEach(function (n) {
       if (n && n.parentNode) n.parentNode.removeChild(n);
     });
-    if (!document.querySelector(".hablemos-float-sub-wrap")) {
-      document.body.classList.remove("hablemos-has-float-sub");
+    if (!document.querySelector(".prevy-float-sub-wrap")) {
+      document.body.classList.remove("prevy-has-float-sub");
     }
   }
 
-  function clearHablemosShellBannerState() {
-    removeHablemosShellBannerNodes();
+  function clearPrevyShellBannerState() {
+    removePrevyShellBannerNodes();
     try {
-      delete window.HABLEMOS_SYNC_SUBSCRIPTION;
-      delete window.HABLEMOS_TELEGRAM_LINKED;
-      delete window.HABLEMOS_TELEGRAM_REMINDERS_ENABLED;
+      delete window.PREVY_SYNC_SUBSCRIPTION;
+      delete window.PREVY_TELEGRAM_LINKED;
+      delete window.PREVY_TELEGRAM_REMINDERS_ENABLED;
     } catch (eClr) {}
   }
 
-  window.hablemosRemoveShellBanners = clearHablemosShellBannerState;
+  window.prevyRemoveShellBanners = clearPrevyShellBannerState;
 
   function wholeDaysRemainingFromIso(iso) {
     if (!iso) return null;
@@ -197,13 +197,13 @@
     return Math.ceil(ms / 86400000);
   }
 
-  function renderHablemosShellBanners(file, j) {
-    removeHablemosShellBannerNodes();
+  function renderPrevyShellBanners(file, j) {
+    removePrevyShellBannerNodes();
     if (!j || j.ok !== true) return;
 
-    window.HABLEMOS_SYNC_SUBSCRIPTION = j;
-    window.HABLEMOS_TELEGRAM_LINKED = j.telegram_linked === true;
-    window.HABLEMOS_TELEGRAM_REMINDERS_ENABLED = j.telegram_reminders_enabled !== false;
+    window.PREVY_SYNC_SUBSCRIPTION = j;
+    window.PREVY_TELEGRAM_LINKED = j.telegram_linked === true;
+    window.PREVY_TELEGRAM_REMINDERS_ENABLED = j.telegram_reminders_enabled !== false;
 
     var base = (file || "").split("?")[0].trim();
     var st = j.subscription_status;
@@ -212,12 +212,12 @@
     var payHref = "mi-suscripcion.html";
 
     function attachFloatClose(wrap) {
-      var btn = wrap.querySelector(".hablemos-float-sub-close");
+      var btn = wrap.querySelector(".prevy-float-sub-close");
       if (btn) {
         btn.addEventListener("click", function () {
           if (wrap && wrap.parentNode) wrap.parentNode.removeChild(wrap);
-          if (!document.querySelector(".hablemos-float-sub-wrap")) {
-            document.body.classList.remove("hablemos-has-float-sub");
+          if (!document.querySelector(".prevy-float-sub-wrap")) {
+            document.body.classList.remove("prevy-has-float-sub");
           }
         });
       }
@@ -229,17 +229,17 @@
         var dText =
           dTr === 0 ? "menos de 1 día" : dTr === 1 ? "1 día" : String(dTr) + " días";
         var wrap = document.createElement("div");
-        wrap.className = "hablemos-float-sub-wrap hablemos-float-sub-trial";
+        wrap.className = "prevy-float-sub-wrap prevy-float-sub-trial";
         wrap.setAttribute("role", "status");
         wrap.innerHTML =
-          '<div class="hablemos-float-sub-inner"><div class="hablemos-float-sub-body">' +
-          "<p><strong>Versión de prueba (7 días).</strong> Estás usando HablemosApp en periodo de prueba; algunas funciones pueden estar limitadas o cambiar.</p>" +
-          '<p class="hablemos-float-sub-meta">Te quedan aproximadamente <strong>' +
+          '<div class="prevy-float-sub-inner"><div class="prevy-float-sub-body">' +
+          "<p><strong>Versión de prueba (7 días).</strong> Estás usando Prevy en periodo de prueba; algunas funciones pueden estar limitadas o cambiar.</p>" +
+          '<p class="prevy-float-sub-meta">Te quedan aproximadamente <strong>' +
           dText +
           "</strong> de prueba. Después necesitarás suscribirte para seguir usando la plataforma.</p>" +
-          '</div><button type="button" class="hablemos-float-sub-close" aria-label="Cerrar aviso">&times;</button></div>';
+          '</div><button type="button" class="prevy-float-sub-close" aria-label="Cerrar aviso">&times;</button></div>';
         document.body.appendChild(wrap);
-        document.body.classList.add("hablemos-has-float-sub");
+        document.body.classList.add("prevy-has-float-sub");
         attachFloatClose(wrap);
       }
     } else if (!bypass && st === "past_due" && j.subscription_grace_until) {
@@ -248,19 +248,19 @@
         var dMText =
           dM === 0 ? "menos de 24 horas" : dM === 1 ? "1 día" : String(dM) + " días";
         var wrapM = document.createElement("div");
-        wrapM.className = "hablemos-float-sub-wrap hablemos-float-sub-mora";
+        wrapM.className = "prevy-float-sub-wrap prevy-float-sub-mora";
         wrapM.setAttribute("role", "alert");
         wrapM.innerHTML =
-          '<div class="hablemos-float-sub-inner"><div class="hablemos-float-sub-body">' +
+          '<div class="prevy-float-sub-inner"><div class="prevy-float-sub-body">' +
           "<p><strong>Suscripción vencida.</strong> Tu período pagado finalizó; renueva para mantener el acceso completo.</p>" +
-          '<p class="hablemos-float-sub-meta">Quedan <strong>' +
+          '<p class="prevy-float-sub-meta">Quedan <strong>' +
           dMText +
           "</strong> antes de que tu cuenta pase a acceso restringido (solo pago y soporte).</p>" +
-          '<p class="hablemos-float-sub-actions"><a class="hablemos-float-sub-cta" href="' +
+          '<p class="prevy-float-sub-actions"><a class="prevy-float-sub-cta" href="' +
           payHref +
-          '">Pagar aquí</a></p></div><button type="button" class="hablemos-float-sub-close" aria-label="Cerrar aviso">&times;</button></div>';
+          '">Pagar aquí</a></p></div><button type="button" class="prevy-float-sub-close" aria-label="Cerrar aviso">&times;</button></div>';
         document.body.appendChild(wrapM);
-        document.body.classList.add("hablemos-has-float-sub");
+        document.body.classList.add("prevy-has-float-sub");
         attachFloatClose(wrapM);
       }
     }
@@ -270,17 +270,17 @@
       j.telegram_reminders_enabled !== false
     ) {
       var content = document.querySelector(".layout .main .content");
-      if (content && !document.getElementById("hablemosTelegramSetupBar")) {
+      if (content && !document.getElementById("prevyTelegramSetupBar")) {
         var tBar = document.createElement("div");
-        tBar.id = "hablemosTelegramSetupBar";
+        tBar.id = "prevyTelegramSetupBar";
         var tgLinked = j.telegram_linked === true;
         tBar.className =
-          "hablemos-telegram-setup-bar " +
-          (tgLinked ? "hablemos-telegram-setup-bar-ok" : "hablemos-telegram-setup-bar-missing");
+          "prevy-telegram-setup-bar " +
+          (tgLinked ? "prevy-telegram-setup-bar-ok" : "prevy-telegram-setup-bar-missing");
         tBar.setAttribute("role", tgLinked ? "status" : "alert");
         tBar.innerHTML = tgLinked
-          ? '<p><strong>Tu Telegram ya está configurado.</strong></p><p class="hablemos-telegram-setup-actions"><a class="hablemos-telegram-setup-btn" href="configuracion-telegram.html">Configuración Telegram</a></p>'
-          : '<p><strong>Configura Telegram para recibir recordatorios.</strong></p><p class="hablemos-telegram-setup-actions"><a class="hablemos-telegram-setup-btn" href="configuracion-telegram.html">Ir a configuración Telegram</a></p>';
+          ? '<p><strong>Tu Telegram ya está configurado.</strong></p><p class="prevy-telegram-setup-actions"><a class="prevy-telegram-setup-btn" href="configuracion-telegram.html">Configuración Telegram</a></p>'
+          : '<p><strong>Configura Telegram para recibir recordatorios.</strong></p><p class="prevy-telegram-setup-actions"><a class="prevy-telegram-setup-btn" href="configuracion-telegram.html">Ir a configuración Telegram</a></p>';
         var first = content.firstElementChild;
         if (first) content.insertBefore(tBar, first);
         else content.appendChild(tBar);
@@ -397,24 +397,24 @@
     }
 
     function clearSubscriptionShellLock() {
-      window.HABLEMOS_SUB_LOCK_CANCELED = false;
+      window.PREVY_SUB_LOCK_CANCELED = false;
       var layout = document.querySelector(".layout");
       if (layout) layout.classList.remove("sub-lock-canceled");
       document.documentElement.classList.remove("sub-lock-canceled");
-      var b = document.getElementById("hablemosSubLockBanner");
+      var b = document.getElementById("prevySubLockBanner");
       if (b && b.parentNode) b.parentNode.removeChild(b);
     }
 
     function applySubscriptionShellLock() {
-      window.HABLEMOS_SUB_LOCK_CANCELED = true;
+      window.PREVY_SUB_LOCK_CANCELED = true;
       var layout = document.querySelector(".layout");
       if (layout) layout.classList.add("sub-lock-canceled");
       document.documentElement.classList.add("sub-lock-canceled");
       var main = document.querySelector(".layout .main");
-      if (main && !document.getElementById("hablemosSubLockBanner")) {
+      if (main && !document.getElementById("prevySubLockBanner")) {
         var bar = document.createElement("div");
-        bar.id = "hablemosSubLockBanner";
-        bar.className = "hablemos-sub-lock-banner";
+        bar.id = "prevySubLockBanner";
+        bar.className = "prevy-sub-lock-banner";
         bar.setAttribute("role", "alert");
         bar.innerHTML =
           "<p><strong>Suscripción requerida.</strong> El acceso está limitado hasta que regularices el pago en <a href=\"mi-suscripcion.html\">Mi suscripción</a>.</p>";
@@ -435,7 +435,7 @@
 
     function redirectIfSubscriptionLocked(file) {
       var base = (file || "").split("?")[0] || "";
-      if (!window.HABLEMOS_SUB_LOCK_CANCELED) return;
+      if (!window.PREVY_SUB_LOCK_CANCELED) return;
       if (SUB_LOCK_ALLOWED_PAGES[base]) return;
       window.location.replace("dashboard.html");
     }
@@ -445,7 +445,7 @@
     window.__subscriptionGuardPromise = new Promise(function (resolve) {
       guardResolve = resolve;
     });
-    window.__hablemosWhenSubscriptionReady = function () {
+    window.__prevyWhenSubscriptionReady = function () {
       return window.__subscriptionGuardPromise || Promise.resolve();
     };
 
@@ -469,7 +469,7 @@
         ensureOwnerMenuLink(false);
         ensureAyudaMenuLink(false);
         clearSubscriptionShellLock();
-        clearHablemosShellBannerState();
+        clearPrevyShellBannerState();
         finishSubscriptionGuard();
         return;
       }
@@ -489,14 +489,14 @@
 
           if (skipAccountGuard || isOwner) {
             clearSubscriptionShellLock();
-            clearHablemosShellBannerState();
+            clearPrevyShellBannerState();
             finishSubscriptionGuard();
             return Promise.resolve(null);
           }
 
           if (!token) {
             clearSubscriptionShellLock();
-            clearHablemosShellBannerState();
+            clearPrevyShellBannerState();
             finishSubscriptionGuard();
             return Promise.resolve(null);
           }
@@ -520,13 +520,13 @@
           var j = wrapped.j;
           if (!wrapped.httpOk || !j || j.ok !== true) {
             clearSubscriptionShellLock();
-            clearHablemosShellBannerState();
+            clearPrevyShellBannerState();
             finishSubscriptionGuard();
             return;
           }
 
           if (j.account_enabled === false) {
-            clearHablemosShellBannerState();
+            clearPrevyShellBannerState();
             window.location.replace("cuenta-suspendida.html");
             return;
           }
@@ -537,14 +537,14 @@
             applySubscriptionShellLock();
             redirectIfSubscriptionLocked(file);
           }
-          renderHablemosShellBanners(file, j);
+          renderPrevyShellBanners(file, j);
           finishSubscriptionGuard();
         })
         .catch(function () {
           ensureOwnerMenuLink(false);
           ensureAyudaMenuLink(true);
           clearSubscriptionShellLock();
-          clearHablemosShellBannerState();
+          clearPrevyShellBannerState();
           finishSubscriptionGuard();
         });
     });

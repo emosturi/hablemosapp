@@ -82,7 +82,7 @@ exports.handler = async function (event) {
   }
 
   const title =
-    plan === "mensual" ? "Suscripcion HablemosApp - Plan mensual" : "Suscripcion HablemosApp - Plan anual";
+    plan === "mensual" ? "Suscripcion Prevy - Plan mensual" : "Suscripcion Prevy - Plan anual";
 
   const preferenceBody = {
     items: [

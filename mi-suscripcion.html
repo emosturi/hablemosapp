@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Mi suscripción — Plataforma de Asesores Previsionales</title>
+    <title>Mi suscripción — Prevy</title>
     <link rel="stylesheet" href="app-shell.css" />
     <script src="theme-init.js"></script>
     <style>
@@ -405,7 +405,7 @@
       <aside class="sidebar" aria-label="Navegación">
         <div class="logo-row">
           <div class="logo-dot" aria-hidden="true"></div>
-          <span class="logo-text">HablemosApp</span>
+          <span class="logo-text">Prevy</span>
         </div>
         <div class="nav-label">Menú</div>
         <a href="dashboard.html">Dashboard</a>
@@ -554,7 +554,7 @@
                   <li>comprobantes o documentación.</li>
                 </ul>
                 <p id="supportLine">
-                  contacta al administrador de tu cuenta o al soporte de HablemosApp.
+                  contacta al administrador de tu cuenta o al soporte de Prevy.
                 </p>
                 <a href="#" id="openTicketLink" class="ticket-link">Abrir ticket de ayuda</a>
               </div>
@@ -815,7 +815,10 @@
             });
         }
 
-        var supportEmail = typeof window.HABLEMOS_SUPPORT_EMAIL === "string" ? window.HABLEMOS_SUPPORT_EMAIL.trim() : "";
+        var supportEmail =
+          (typeof window.PREVY_SUPPORT_EMAIL === "string" && window.PREVY_SUPPORT_EMAIL.trim()) ||
+          (typeof window.HABLEMOS_SUPPORT_EMAIL === "string" && window.HABLEMOS_SUPPORT_EMAIL.trim()) ||
+          "";
         if (supportEmail) {
           var safeHref = supportEmail.replace(/[\s<>"']/g, "");
           supportLine.textContent = "";
@@ -838,7 +841,7 @@
           currentUser = r.data.session.user;
 
           Promise.resolve(
-            window.__hablemosWhenSubscriptionReady && window.__hablemosWhenSubscriptionReady()
+            window.__prevyWhenSubscriptionReady && window.__prevyWhenSubscriptionReady()
           ).then(function () {
           if (openTicketLink) {
             openTicketLink.addEventListener("click", function (ev) {

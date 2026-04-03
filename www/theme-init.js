@@ -3,7 +3,8 @@
  * En www se sirve localmente; el CSS viene de la plataforma (app-shell.css).
  */
 (function () {
-  var KEY = "hablemosapp_theme";
+  var KEY = "prevy_theme";
+  var LEGACY_KEY = "hablemosapp_theme";
 
   function apply(mode) {
     if (mode === "dark") document.documentElement.setAttribute("data-theme", "dark");
@@ -11,7 +12,15 @@
   }
 
   try {
-    if (localStorage.getItem(KEY) === "dark") apply("dark");
+    var stored = localStorage.getItem(KEY);
+    if (stored !== "dark" && stored !== "light") {
+      var leg = localStorage.getItem(LEGACY_KEY);
+      if (leg === "dark" || leg === "light") {
+        localStorage.setItem(KEY, leg);
+        stored = leg;
+      }
+    }
+    if (stored === "dark") apply("dark");
   } catch (e) {}
 
   function get() {
@@ -23,9 +32,12 @@
     apply(dark ? "dark" : "light");
     try {
       localStorage.setItem(KEY, dark ? "dark" : "light");
+      localStorage.removeItem(LEGACY_KEY);
     } catch (err) {}
     try {
-      window.dispatchEvent(new CustomEvent("hablemosapp-themechange", { detail: { theme: dark ? "dark" : "light" } }));
+      var detail = { theme: dark ? "dark" : "light" };
+      window.dispatchEvent(new CustomEvent("prevy-themechange", { detail: detail }));
+      window.dispatchEvent(new CustomEvent("hablemosapp-themechange", { detail: detail }));
     } catch (err2) {}
   }
 
@@ -73,13 +85,16 @@
         syncAllThemeButtons();
       });
     });
-    if (!window.__hablemosThemeGlobalSync) {
-      window.__hablemosThemeGlobalSync = true;
+    if (!window.__prevyThemeGlobalSync) {
+      window.__prevyThemeGlobalSync = true;
+      window.addEventListener("prevy-themechange", syncAllThemeButtons);
       window.addEventListener("hablemosapp-themechange", syncAllThemeButtons);
     }
   }
 
-  window.hablemosappTheme = { get: get, set: set, toggle: toggle, init: initThemeToggle };
+  var api = { get: get, set: set, toggle: toggle, init: initThemeToggle };
+  window.prevyTheme = api;
+  window.hablemosappTheme = api;
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", initThemeToggle);

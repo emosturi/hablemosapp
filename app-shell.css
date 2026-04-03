@@ -688,7 +688,7 @@ html[data-theme="dark"] .user-menu-theme-icon .theme-icon-sun {
 }
 
 /* Suscripción cancelada: navegación mínima (pago, soporte, listado solo lectura, dashboard difuminado) */
-.hablemos-sub-lock-banner {
+.prevy-sub-lock-banner {
   margin: 0;
   padding: 12px 16px;
   background: linear-gradient(135deg, rgba(180, 83, 9, 0.12), rgba(0, 96, 108, 0.08));
@@ -697,10 +697,10 @@ html[data-theme="dark"] .user-menu-theme-icon .theme-icon-sun {
   font-size: 14px;
   line-height: 1.45;
 }
-.hablemos-sub-lock-banner p {
+.prevy-sub-lock-banner p {
   margin: 0;
 }
-.hablemos-sub-lock-banner a {
+.prevy-sub-lock-banner a {
   color: var(--primary-mid);
   font-weight: 600;
 }
@@ -759,11 +759,11 @@ input[type="checkbox"] {
 }
 
 /* Barra flotante inferior: trial / mora (suscripción) */
-body.hablemos-has-float-sub {
+body.prevy-has-float-sub {
   padding-bottom: calc(7.5rem + env(safe-area-inset-bottom, 0px));
 }
 
-.hablemos-float-sub-wrap {
+.prevy-float-sub-wrap {
   position: fixed;
   left: 0;
   right: 0;
@@ -776,7 +776,7 @@ body.hablemos-has-float-sub {
   box-sizing: border-box;
 }
 
-.hablemos-float-sub-inner {
+.prevy-float-sub-inner {
   pointer-events: auto;
   max-width: 720px;
   width: 100%;
@@ -793,56 +793,56 @@ body.hablemos-has-float-sub {
   background: var(--card);
 }
 
-.hablemos-float-sub-trial .hablemos-float-sub-inner {
+.prevy-float-sub-trial .prevy-float-sub-inner {
   background: linear-gradient(135deg, rgba(0, 96, 108, 0.08), rgba(0, 223, 195, 0.1));
   border-color: var(--primary-mid);
 }
 
-.hablemos-float-sub-mora .hablemos-float-sub-inner {
+.prevy-float-sub-mora .prevy-float-sub-inner {
   background: var(--warn-bg);
   border-color: rgba(180, 83, 9, 0.35);
   color: var(--text);
 }
 
-.hablemos-float-sub-body {
+.prevy-float-sub-body {
   flex: 1;
   min-width: 0;
 }
 
-.hablemos-float-sub-body p {
+.prevy-float-sub-body p {
   margin: 0 0 0.5em;
 }
 
-.hablemos-float-sub-body p:last-child {
+.prevy-float-sub-body p:last-child {
   margin-bottom: 0;
 }
 
-.hablemos-float-sub-meta {
+.prevy-float-sub-meta {
   font-size: 13px;
   color: var(--muted);
 }
 
-.hablemos-float-sub-mora .hablemos-float-sub-meta {
+.prevy-float-sub-mora .prevy-float-sub-meta {
   color: var(--text);
   opacity: 0.92;
 }
 
-.hablemos-float-sub-actions {
+.prevy-float-sub-actions {
   margin-top: 0.35em !important;
 }
 
-.hablemos-float-sub-cta {
+.prevy-float-sub-cta {
   display: inline-block;
   font-weight: 600;
   color: var(--primary-mid);
   text-decoration: underline;
 }
 
-.hablemos-float-sub-cta:hover {
+.prevy-float-sub-cta:hover {
   color: var(--primary-hover);
 }
 
-.hablemos-float-sub-close {
+.prevy-float-sub-close {
   flex-shrink: 0;
   margin: -4px -6px 0 0;
   padding: 4px 8px;
@@ -855,13 +855,13 @@ body.hablemos-has-float-sub {
   border-radius: 8px;
 }
 
-.hablemos-float-sub-close:hover {
+.prevy-float-sub-close:hover {
   color: var(--text);
   background: var(--accent-soft);
 }
 
 /* Recordatorios / agenda: aviso de estado Telegram */
-.hablemos-telegram-setup-bar {
+.prevy-telegram-setup-bar {
   margin: 0 0 16px;
   padding: 12px 14px;
   border-radius: var(--radius-sm);
@@ -869,31 +869,31 @@ body.hablemos-has-float-sub {
   line-height: 1.45;
 }
 
-.hablemos-telegram-setup-bar-missing {
+.prevy-telegram-setup-bar-missing {
   border: 1px solid rgba(220, 38, 38, 0.45);
   background: var(--danger-bg);
   color: var(--danger-text);
 }
 
-.hablemos-telegram-setup-bar-ok {
+.prevy-telegram-setup-bar-ok {
   border: 1px solid color-mix(in srgb, var(--primary-mid) 35%, var(--border));
   background: color-mix(in srgb, var(--primary-mid) 12%, transparent);
   color: var(--text);
 }
 
-.hablemos-telegram-setup-bar p {
+.prevy-telegram-setup-bar p {
   margin: 0 0 0.5em;
 }
 
-.hablemos-telegram-setup-bar p:last-child {
+.prevy-telegram-setup-bar p:last-child {
   margin-bottom: 0;
 }
 
-.hablemos-telegram-setup-actions {
+.prevy-telegram-setup-actions {
   margin-top: 0.25em !important;
 }
 
-.hablemos-telegram-setup-btn {
+.prevy-telegram-setup-btn {
   display: inline-block;
   padding: 7px 12px;
   border-radius: 10px;
@@ -904,7 +904,7 @@ body.hablemos-has-float-sub {
   text-decoration: none;
 }
 
-.hablemos-telegram-setup-btn:hover {
+.prevy-telegram-setup-btn:hover {
   border-color: var(--primary-mid);
   color: var(--primary-hover);
 }

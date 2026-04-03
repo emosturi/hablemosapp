@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Mis datos (mandatario) — Plataforma de Asesores Previsionales</title>
+    <title>Mis datos (mandatario) — Prevy</title>
     <link rel="stylesheet" href="app-shell.css" />
     <script src="theme-init.js"></script>
     <style>
@@ -138,7 +138,7 @@
       <aside class="sidebar" aria-label="Navegación">
         <div class="logo-row">
           <div class="logo-dot" aria-hidden="true"></div>
-          <span class="logo-text">HablemosApp</span>
+          <span class="logo-text">Prevy</span>
         </div>
         <div class="nav-label">Menú</div>
         <a href="dashboard.html">Dashboard</a>
@@ -380,9 +380,9 @@
           if (typeof window.setAppShellGuest === "function") window.setAppShellGuest(false);
 
           Promise.resolve(
-            window.__hablemosWhenSubscriptionReady && window.__hablemosWhenSubscriptionReady()
+            window.__prevyWhenSubscriptionReady && window.__prevyWhenSubscriptionReady()
           ).then(function () {
-            if (window.HABLEMOS_SUB_LOCK_CANCELED) {
+            if (window.PREVY_SUB_LOCK_CANCELED) {
               window.location.replace("mi-suscripcion.html");
               return;
             }
@@ -420,7 +420,7 @@
             return;
           }
 
-          if (window.HABLEMOS_SUB_LOCK_CANCELED) {
+          if (window.PREVY_SUB_LOCK_CANCELED) {
             setStatus("Renueva tu suscripción en «Mi suscripción» para editar estos datos.", "err");
             return;
           }
@@ -435,7 +435,7 @@
               setStatus("Sesión expirada.", "err");
               return;
             }
-            if (window.HABLEMOS_SUB_LOCK_CANCELED) {
+            if (window.PREVY_SUB_LOCK_CANCELED) {
               btnGuardar.disabled = false;
               setStatus("Renueva tu suscripción para guardar cambios.", "err");
               return;

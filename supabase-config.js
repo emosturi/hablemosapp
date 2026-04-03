@@ -6,7 +6,7 @@ window.SUPABASE_URL = "https://ndxelneraoabehyrplrv.supabase.co";
 window.SUPABASE_ANON_KEY = "sb_publishable_G3-iWOKWSEq84ndlF3kViw_msMmwBT9";
 
 // Opcional: enlace mailto en «Mi suscripción» (menú usuario).
-// window.HABLEMOS_SUPPORT_EMAIL = "soporte@ejemplo.cl";
+// window.PREVY_SUPPORT_EMAIL = "soporte@ejemplo.cl";
 
 // Netlify Functions: mismo origen que la página (evita CORS con dominio plataforma.*).
 window.NOTIFY_FUNCTION_URL =
@@ -32,16 +32,20 @@ window.installInactivityAutoLogout = function (supabaseClient, options) {
 
     var timeoutMs = (options && options.timeoutMs) || window.SESSION_IDLE_TIMEOUT_MS || (60 * 60 * 1000);
     var redirectTo = (options && options.redirectTo) || "login.html";
-    var key = "hablemosapp:last-activity-at";
+    var key = "prevy:last-activity-at";
+    var legacyActivityKey = "hablemosapp:last-activity-at";
 
     function nowMs() { return Date.now(); }
     function getLastActivity() {
-      var raw = localStorage.getItem(key);
+      var raw = localStorage.getItem(key) || localStorage.getItem(legacyActivityKey);
       var n = parseInt(raw || "0", 10);
       return isNaN(n) || n <= 0 ? nowMs() : n;
     }
     function setLastActivity() {
-      localStorage.setItem(key, String(nowMs()));
+      try {
+        localStorage.setItem(key, String(nowMs()));
+        localStorage.removeItem(legacyActivityKey);
+      } catch (_ls) {}
     }
     function logoutIfExpired() {
       var elapsed = nowMs() - getLastActivity();

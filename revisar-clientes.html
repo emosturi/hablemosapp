@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Listado de clientes — Plataforma de Asesores Previsionales</title>
+    <title>Listado de clientes — Prevy</title>
     <link rel="stylesheet" href="app-shell.css" />
     <script src="theme-init.js"></script>
     <style>
@@ -249,7 +249,7 @@
       <aside class="sidebar" aria-label="Navegación">
         <div class="logo-row">
           <div class="logo-dot" aria-hidden="true"></div>
-          <span class="logo-text">HablemosApp</span>
+          <span class="logo-text">Prevy</span>
         </div>
         <div class="nav-label">Menú</div>
         <a href="dashboard.html">Dashboard</a>
@@ -395,9 +395,9 @@
           if (typeof window.setAppShellGuest === "function") window.setAppShellGuest(false);
 
           Promise.resolve(
-            window.__hablemosWhenSubscriptionReady && window.__hablemosWhenSubscriptionReady()
+            window.__prevyWhenSubscriptionReady && window.__prevyWhenSubscriptionReady()
           ).then(function () {
-          if (window.HABLEMOS_SUB_LOCK_CANCELED) {
+          if (window.PREVY_SUB_LOCK_CANCELED) {
             var pageHdr = document.querySelector(".page header");
             if (pageHdr && !document.getElementById("subLockReadonlyHint")) {
               var hint = document.createElement("p");
@@ -616,7 +616,7 @@
             }
             emptyEl.style.display = "none";
             tablaEl.style.display = "table";
-            renderTabla(current, !!window.HABLEMOS_SUB_LOCK_CANCELED);
+            renderTabla(current, !!window.PREVY_SUB_LOCK_CANCELED);
           }
 
           function cargarLista() {

@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Iniciar sesión — Plataforma de Asesores Previsionales</title>
+    <title>Iniciar sesión — Prevy</title>
     <meta name="theme-color" content="#00696c" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -276,7 +276,7 @@
   <body>
     <div class="page">
       <div class="panel">
-        <h1>Acceso a la Plataforma</h1>
+        <h1>Acceso a Prevy</h1>
         <p class="subtitle">Área para asesores. Usa tu cuenta para gestionar clientes y trámites.</p>
 
         <div class="success" id="registerSuccess" style="display: none" role="status"></div>
@@ -429,12 +429,12 @@
             .trim()
             .toUpperCase()
             .replace(/[^A-Z0-9]/g, "");
-          if (raw.length >= 4) sessionStorage.setItem("hablemos_ref", raw.slice(0, 16));
+          if (raw.length >= 4) sessionStorage.setItem("prevy_ref", raw.slice(0, 16));
         } catch (eRefUrl) {}
 
         function getPendingRefCode() {
           try {
-            var s = sessionStorage.getItem("hablemos_ref");
+            var s = sessionStorage.getItem("prevy_ref") || sessionStorage.getItem("hablemos_ref");
             return s && String(s).length >= 4 ? String(s) : "";
           } catch (e) {
             return "";
@@ -460,6 +460,7 @@
             .finally(function () {
               if (fromStorage) {
                 try {
+                  sessionStorage.removeItem("prevy_ref");
                   sessionStorage.removeItem("hablemos_ref");
                 } catch (e2) {}
               }
