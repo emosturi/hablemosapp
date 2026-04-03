@@ -1309,6 +1309,40 @@
         return String(s ?? "").toUpperCase();
       }
 
+      // Segmento seguro para nombre de archivo (minúsculas, sin acentos, solo a-z 0-9 y _).
+      function segmentoNombreArchivo(s) {
+        let t = String(s || "").trim();
+        try {
+          t = t.normalize("NFD").replace(/\p{M}/gu, "");
+        } catch (e) {
+          t = t.replace(/[\u0300-\u036f]/g, "");
+        }
+        t = t.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+        return t;
+      }
+
+      function baseNombreDocumentoMandante(mandante) {
+        const m = mandante || {};
+        const partes = [
+          segmentoNombreArchivo(m.nombres),
+          segmentoNombreArchivo(m.apellidoPaterno),
+          segmentoNombreArchivo(m.apellidoMaterno),
+        ].filter(Boolean);
+        return partes.length ? partes.join("_") : "cliente";
+      }
+
+      function segmentoNumeroContratoArchivo(num) {
+        const raw = String(num ?? "").trim();
+        if (!raw) return "sin_numero";
+        const seg = segmentoNombreArchivo(raw.replace(/\./g, "").replace(/-/g, "_"));
+        return seg || "sin_numero";
+      }
+
+      function truncarBaseNombreArchivo(base, maxLen = 180) {
+        if (base.length <= maxLen) return base;
+        return base.slice(0, maxLen).replace(/_+$/g, "");
+      }
+
       // En móvil algunos visores rechazan .doc generado desde HTML.
       // Por compatibilidad, descargamos .html en móvil y .doc en escritorio.
       function descargarDocumentoWordCompat(html, baseName) {
@@ -1316,11 +1350,12 @@
         const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
         const ext = isMobile ? "html" : "doc";
         const mime = isMobile ? "text/html;charset=utf-8" : "application/msword";
+        const safeBase = truncarBaseNombreArchivo(String(baseName || "documento").replace(/[/\\:*?"<>|]/g, "_"));
         const blob = new Blob(["\ufeff", html], { type: mime });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `${baseName}.${ext}`;
+        a.download = `${safeBase}.${ext}`;
         a.click();
         URL.revokeObjectURL(url);
       }
