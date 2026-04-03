@@ -135,12 +135,17 @@ body {
   padding: 0 6px;
 }
 
-.logo-dot {
+.logo-row .logo-img {
   width: 40px;
   height: 40px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-mid) 55%, var(--accent-bright) 120%);
-  box-shadow: 0 4px 16px rgba(0, 96, 108, 0.35);
+  border-radius: 10px;
+  object-fit: cover;
+  flex-shrink: 0;
+  box-shadow: 0 4px 16px rgba(0, 96, 108, 0.28);
+}
+
+html[data-theme="dark"] .logo-row .logo-img {
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.42);
 }
 
 .logo-text {
