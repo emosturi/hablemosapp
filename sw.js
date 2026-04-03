@@ -1,5 +1,5 @@
 /* Plataforma asesores: caché solo de estáticos propios. Sin HTML ni APIs. */
-const CACHE_NAME = "prevy-static-v3";
+const CACHE_NAME = "prevy-static-v4";
 const PRECACHE_URLS = [
   "/manifest.webmanifest",
   "/app-shell.css",
