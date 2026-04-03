@@ -1343,21 +1343,132 @@
         return base.slice(0, maxLen).replace(/_+$/g, "");
       }
 
-      // En móvil algunos visores rechazan .doc generado desde HTML.
-      // Por compatibilidad, descargamos .html en móvil y .doc en escritorio.
-      function descargarDocumentoWordCompat(html, baseName) {
-        const ua = navigator.userAgent || "";
-        const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
-        const ext = isMobile ? "html" : "doc";
-        const mime = isMobile ? "text/html;charset=utf-8" : "application/msword";
-        const safeBase = truncarBaseNombreArchivo(String(baseName || "documento").replace(/[/\\:*?"<>|]/g, "_"));
-        const blob = new Blob(["\ufeff", html], { type: mime });
+      let __html2pdfLoadPromise = null;
+      function ensureHtml2PdfLoaded() {
+        if (typeof html2pdf !== "undefined") return Promise.resolve();
+        if (__html2pdfLoadPromise) return __html2pdfLoadPromise;
+        __html2pdfLoadPromise = new Promise(function (resolve, reject) {
+          const s = document.createElement("script");
+          s.src = "https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js";
+          s.async = true;
+          s.crossOrigin = "anonymous";
+          s.onload = function () {
+            if (typeof html2pdf !== "undefined") resolve();
+            else reject(new Error("html2pdf no quedó definido"));
+          };
+          s.onerror = function () {
+            reject(new Error("Error de red al cargar html2pdf.js"));
+          };
+          document.head.appendChild(s);
+        });
+        return __html2pdfLoadPromise;
+      }
+
+      /** Renderiza HTML completo en iframe oculto y lo descarga como PDF (pensado para móvil). */
+      function descargarHtmlComoPdfMultipage(htmlString, safeBase) {
+        return new Promise(function (resolve, reject) {
+          const iframe = document.createElement("iframe");
+          iframe.setAttribute("title", "pdf-render");
+          iframe.setAttribute("sandbox", "allow-same-origin");
+          iframe.style.cssText =
+            "position:fixed;left:-10000px;top:0;width:794px;max-width:100%;height:1600px;border:0;opacity:0;pointer-events:none;";
+          document.body.appendChild(iframe);
+
+          function cleanup() {
+            if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+          }
+
+          function runPdf() {
+            let doc;
+            let body;
+            try {
+              doc = iframe.contentDocument;
+              body = doc && doc.body;
+            } catch (e) {
+              cleanup();
+              reject(e);
+              return;
+            }
+            if (!body || !String(body.innerHTML || "").trim()) {
+              cleanup();
+              reject(new Error("PDF: contenido vacío"));
+              return;
+            }
+            const dpr =
+              typeof window.devicePixelRatio === "number" && window.devicePixelRatio > 0
+                ? window.devicePixelRatio
+                : 2;
+            const opt = {
+              margin: [8, 8, 8, 8],
+              filename: `${safeBase}.pdf`,
+              image: { type: "jpeg", quality: 0.92 },
+              html2canvas: {
+                scale: Math.min(2, dpr),
+                useCORS: true,
+                logging: false,
+                letterRendering: true,
+              },
+              jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+              pagebreak: { mode: ["css", "legacy"] },
+            };
+            html2pdf()
+              .set(opt)
+              .from(body)
+              .save()
+              .then(function () {
+                cleanup();
+                resolve();
+              })
+              .catch(function (e) {
+                cleanup();
+                reject(e);
+              });
+          }
+
+          iframe.onload = function () {
+            requestAnimationFrame(function () {
+              setTimeout(runPdf, 80);
+            });
+          };
+          iframe.srcdoc = htmlString;
+        });
+      }
+
+      function descargarBlobHtmlFallback(html, safeBase) {
+        const blob = new Blob(["\ufeff", html], { type: "text/html;charset=utf-8" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `${safeBase}.${ext}`;
+        a.download = `${safeBase}.html`;
         a.click();
         URL.revokeObjectURL(url);
+      }
+
+      // Escritorio: .doc. Móvil: intenta PDF vía html2pdf.js; si falla, .html.
+      function descargarDocumentoWordCompat(html, baseName) {
+        const ua = navigator.userAgent || "";
+        const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
+        const safeBase = truncarBaseNombreArchivo(String(baseName || "documento").replace(/[/\\:*?"<>|]/g, "_"));
+
+        if (!isMobile) {
+          const blob = new Blob(["\ufeff", html], { type: "application/msword" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `${safeBase}.doc`;
+          a.click();
+          URL.revokeObjectURL(url);
+          return Promise.resolve();
+        }
+
+        return ensureHtml2PdfLoaded()
+          .then(function () {
+            return descargarHtmlComoPdfMultipage(html, safeBase);
+          })
+          .catch(function (err) {
+            console.warn("PDF móvil no disponible, descargando HTML:", err);
+            descargarBlobHtmlFallback(html, safeBase);
+          });
       }
 
       // Rellena selectores de día, mes y año con rangos válidos.
@@ -1858,7 +1969,7 @@
         </html>
         `;
 
-        descargarDocumentoWordCompat(html, "mandato");
+        descargarDocumentoWordCompat(html, `mandato_largo_${baseNombreDocumentoMandante(mandante)}`);
 
       }
 
@@ -1980,7 +2091,7 @@
         </html>
         `;
 
-        descargarDocumentoWordCompat(html, "mandato_corto");
+        descargarDocumentoWordCompat(html, `mandato_corto_${baseNombreDocumentoMandante(mandante)}`);
       }
 
       function escapeHtmlContrato(s) {
@@ -2360,7 +2471,10 @@
         </html>
         `;
 
-        descargarDocumentoWordCompat(html, "contrato_asesoria");
+        descargarDocumentoWordCompat(
+          html,
+          `contrato_${baseNombreDocumentoMandante(mandante)}_no_${segmentoNumeroContratoArchivo(numeroContrato)}`
+        );
       }
 
       // Crea nodos de DOM de forma compacta (helper para construir el formulario).
