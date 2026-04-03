@@ -151,6 +151,35 @@
         flex: 1;
       }
 
+      .date-group .fecha-text-input {
+        flex: 1 1 9rem;
+        min-width: 7rem;
+        max-width: 11rem;
+        box-sizing: border-box;
+        padding: 8px 10px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text);
+        font-size: 14px;
+        font-family: inherit;
+      }
+
+      .date-group .fecha-text-input:focus {
+        outline: none;
+        border-color: var(--primary-mid);
+        box-shadow: 0 0 0 3px var(--accent-soft);
+      }
+
+      .fecha-inline-hint {
+        flex-basis: 100%;
+        width: 100%;
+        margin: 0;
+        font-size: 12px;
+        color: var(--muted);
+        line-height: 1.35;
+      }
+
       @media (min-width: 768px) {
         .col-6 {
           grid-column: span 6;
@@ -255,6 +284,19 @@
         color: rgba(239, 68, 68, 0.95);
         font-size: 12px;
         min-height: 16px;
+      }
+
+      .pension-field--error {
+        outline: 2px solid var(--danger-text, #b91c1c);
+        outline-offset: 3px;
+        border-radius: 12px;
+        background: var(--danger-bg, rgba(220, 38, 38, 0.1));
+        transition: outline-color 0.2s ease, background 0.2s ease;
+      }
+
+      #contratoAnexosDetalle.pension-field--error {
+        padding: 10px;
+        box-sizing: border-box;
       }
 
       .actions {
@@ -480,7 +522,7 @@
       <header>
         <h1>Formulario de Solicitud de Pensión</h1>
         <p class="subtitle">
-          Completa los datos. Al enviar, se validará el RUT y la fecha (DD-MM-YYYY).
+          Completa los datos. Al enviar, se validará el RUT y la fecha de nacimiento del mandante (puedes escribirla o usar los desplegables).
         </p>
       </header>
 
@@ -630,21 +672,29 @@
               <div class="field col-4">
                 <label for="mandante_fechaNac">Fecha Nacimiento <span class="req">*</span></label>
                 <div class="date-group">
-                  <select id="mandante_fechaNac_dia">
-                    <option value="" selected disabled>Día</option>
-                  </select>
-                  <select id="mandante_fechaNac_mes">
-                    <option value="" selected disabled>Mes</option>
-                  </select>
-                  <select id="mandante_fechaNac_anio">
-                    <option value="" selected disabled>Año</option>
-                  </select>
                   <input
-                    type="hidden"
+                    type="text"
+                    class="fecha-text-input"
                     id="mandante_fechaNac"
                     name="mandante.fechaNacimiento"
                     required
+                    inputmode="numeric"
+                    placeholder="DD-MM-AAAA"
+                    autocomplete="bday"
+                    aria-describedby="mandante_fechaNac_hint"
                   />
+                  <p class="fecha-inline-hint" id="mandante_fechaNac_hint">
+                    Puedes escribir la fecha (ej. <kbd>12-9-1975</kbd> o <kbd>12/09/1975</kbd>) o elegir día, mes y año abajo.
+                  </p>
+                  <select id="mandante_fechaNac_dia" aria-label="Día de nacimiento del mandante">
+                    <option value="" selected disabled>Día</option>
+                  </select>
+                  <select id="mandante_fechaNac_mes" aria-label="Mes de nacimiento del mandante">
+                    <option value="" selected disabled>Mes</option>
+                  </select>
+                  <select id="mandante_fechaNac_anio" aria-label="Año de nacimiento del mandante">
+                    <option value="" selected disabled>Año</option>
+                  </select>
                 </div>
                 <div class="error" data-error-for="mandante_fechaNac"></div>
               </div>
@@ -2895,14 +2945,25 @@
         return expected === dv;
       }
 
-      // Parsea una fecha DD-MM-YYYY y devuelve componentes y formato ISO si es válida.
+      // Parsea fecha día-mes-año: 1–2 cífras en día y mes, separadores - o / (ej. 12-9-1975). También AAAA-MM-DD (autocompletado).
       function parseDDMMYYYY(value) {
         const s = String(value || "").trim();
-        const m = s.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+        const isoIn = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        if (isoIn) {
+          const yyyy = Number(isoIn[1]);
+          const mm = Number(isoIn[2]);
+          const dd = Number(isoIn[3]);
+          if (mm < 1 || mm > 12 || dd < 1 || dd > 31 || yyyy < 1900 || yyyy > 2200) return null;
+          const d = new Date(Date.UTC(yyyy, mm - 1, dd));
+          if (d.getUTCFullYear() !== yyyy || d.getUTCMonth() !== mm - 1 || d.getUTCDate() !== dd) return null;
+          return { dd, mm, yyyy, iso: `${String(yyyy).padStart(4, "0")}-${String(mm).padStart(2, "0")}-${String(dd).padStart(2, "0")}` };
+        }
+        const m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
         if (!m) return null;
         const dd = Number(m[1]);
         const mm = Number(m[2]);
         const yyyy = Number(m[3]);
+        if (mm < 1 || mm > 12 || dd < 1 || dd > 31) return null;
         if (yyyy < 1900 || yyyy > 2200) return null;
         const d = new Date(Date.UTC(yyyy, mm - 1, dd));
         if (d.getUTCFullYear() !== yyyy || d.getUTCMonth() !== mm - 1 || d.getUTCDate() !== dd) return null;
@@ -2912,6 +2973,21 @@
           yyyy,
           iso: `${String(yyyy).padStart(4, "0")}-${String(mm).padStart(2, "0")}-${String(dd).padStart(2, "0")}`,
         };
+      }
+
+      function mandanteFechaCanonical(parsed) {
+        if (!parsed) return "";
+        return `${String(parsed.dd).padStart(2, "0")}-${String(parsed.mm).padStart(2, "0")}-${parsed.yyyy}`;
+      }
+
+      function syncMandanteSelectsFromParsed(diaSel, mesSel, anioSel, textInput, parsed) {
+        if (!parsed) return false;
+        const canon = mandanteFechaCanonical(parsed);
+        if (textInput) textInput.value = canon;
+        if (diaSel) diaSel.value = String(parsed.dd).padStart(2, "0");
+        if (mesSel) mesSel.value = String(parsed.mm).padStart(2, "0");
+        if (anioSel) anioSel.value = String(parsed.yyyy);
+        return true;
       }
 
       // Fecha de póliza en DD/MM/AAAA o DD-MM-AAAA (formulario contrato).
@@ -2965,6 +3041,111 @@
       function clearErrors(form) {
         for (const node of form.querySelectorAll("[data-error-for]")) node.textContent = "";
         for (const el of form.querySelectorAll("[aria-invalid='true']")) el.removeAttribute("aria-invalid");
+        for (const el of form.querySelectorAll(".pension-field--error")) el.classList.remove("pension-field--error");
+      }
+
+      function pensionHighlightBlockForErrorEl(errEl) {
+        const field = errEl.closest(".field");
+        if (field) return field;
+        const anexosDet = errEl.closest("#contratoAnexosDetalle");
+        if (anexosDet) return anexosDet;
+        const secBody = errEl.closest(".section-body");
+        if (secBody) return secBody;
+        return errEl.closest(".section") || errEl.parentElement || errEl;
+      }
+
+      function pensionExpandCollapsedAncestors(el) {
+        let n = el;
+        while (n && n !== document.body) {
+          if (n.classList && n.classList.contains("collapsible") && n.classList.contains("collapsed")) {
+            n.classList.remove("collapsed");
+            const st = n.querySelector(":scope > .section-title");
+            if (st) st.setAttribute("aria-expanded", "true");
+          }
+          n = n.parentElement;
+        }
+      }
+
+      function pensionFocusTargetForError(form, key, errEl) {
+        const err = errEl || (key ? form.querySelector(`[data-error-for="${CSS.escape(key)}"]`) : null);
+        if (!err) {
+          if (!key) return null;
+          const byId = form.querySelector("#" + CSS.escape(key));
+          if (byId && typeof byId.focus === "function") return byId;
+          const byName = form.querySelector(`[name="${CSS.escape(key)}"]`);
+          if (byName) {
+            if (byName.type === "radio") return form.querySelector(`input[type="radio"][name="${CSS.escape(key)}"]`);
+            return byName;
+          }
+          return null;
+        }
+        const field = err.closest(".field");
+        if (field) {
+          const t = field.querySelector("input:not([type='hidden']):not([type='radio']), select, textarea");
+          if (t) return t;
+          const r = field.querySelector("input[type='radio']");
+          if (r) return r;
+        }
+        if (key === "contrato.anexos.detalle") {
+          const ta = form.querySelector("[data-contrato-anexo-i]");
+          if (ta) return ta;
+        }
+        const container = err.closest(".section-body") || err.closest(".section");
+        if (container) {
+          const t = container.querySelector("input:not([type='hidden']):not([type='radio']), select, textarea");
+          if (t) return t;
+          const r = container.querySelector("input[type='radio']");
+          if (r) return r;
+        }
+        return null;
+      }
+
+      function applyPensionFormErrorUX(form) {
+        form.querySelectorAll(".pension-field--error").forEach((el) => el.classList.remove("pension-field--error"));
+        const shown = [];
+        for (const errEl of form.querySelectorAll("[data-error-for]")) {
+          if (!String(errEl.textContent || "").trim()) continue;
+          const key = errEl.getAttribute("data-error-for") || "";
+          const block = pensionHighlightBlockForErrorEl(errEl);
+          if (block) block.classList.add("pension-field--error");
+          const focusEl = pensionFocusTargetForError(form, key, errEl);
+          shown.push({ block, focusEl, errEl });
+        }
+        for (const s of shown) {
+          if (s.block) pensionExpandCollapsedAncestors(s.block);
+        }
+        if (shown.length === 0) {
+          const inv = form.querySelector("[aria-invalid='true']");
+          if (inv) {
+            const block =
+              inv.closest(".field") ||
+              inv.closest("#contratoAnexosDetalle") ||
+              inv.closest(".section-body") ||
+              inv.closest(".section");
+            if (block) {
+              block.classList.add("pension-field--error");
+              pensionExpandCollapsedAncestors(block);
+            }
+            try {
+              inv.focus({ preventScroll: true });
+            } catch (_e) {}
+            (block || inv).scrollIntoView({ behavior: "smooth", block: "center" });
+          }
+          return;
+        }
+        const first = shown[0];
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            if (first.focusEl && typeof first.focusEl.focus === "function") {
+              try {
+                first.focusEl.focus({ preventScroll: true });
+              } catch (_e) {}
+            }
+            if (first.block && typeof first.block.scrollIntoView === "function") {
+              first.block.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
+          });
+        });
       }
 
       // Asigna un mensaje de error a un campo identificado por id o nombre.
@@ -3111,8 +3292,15 @@
           ok = false;
           if (fecha) {
             fecha.setAttribute("aria-invalid", "true");
-            setError(form, "mandante_fechaNac", "Usa formato DD-MM-YYYY y una fecha válida.");
+            setError(
+              form,
+              "mandante_fechaNac",
+              "Ingresa una fecha válida (día y mes con 1 o 2 cífras, año con 4; separa con guión o barra, ej. 12-9-1975)."
+            );
           }
+        } else if (fecha) {
+          const canon = mandanteFechaCanonical(parsed);
+          if (String(fecha.value || "").trim() !== canon) fecha.value = canon;
         }
 
         const emailIds = ["mandante_email", "mandatario_email", "empleador_email"];
@@ -3188,6 +3376,9 @@
           }
         }
 
+        if (!ok) {
+          requestAnimationFrame(() => applyPensionFormErrorUX(form));
+        }
         return { ok, parsedBirth: parsed };
       }
 
@@ -3536,8 +3727,10 @@
           btnContrato.addEventListener("click", async () => {
             const cambioModalidadSeleccionado = form.querySelector('input[name="mandante.cambioModalidadTramite"]:checked');
             if (!cambioModalidadSeleccionado) {
+              clearErrors(form);
               setError(form, "mandante.cambioModalidadTramite", "Selecciona si es cambio de modalidad.");
               setStatus("Debes indicar si el trámite es cambio de modalidad para generar contrato.");
+              requestAnimationFrame(() => applyPensionFormErrorUX(form));
               return;
             }
 
@@ -3593,6 +3786,15 @@
           mandanteDia.addEventListener("change", updateMandanteFecha);
           mandanteMes.addEventListener("change", updateMandanteFecha);
           mandanteAnio.addEventListener("change", updateMandanteFecha);
+
+          const trySyncFromTypedFecha = () => {
+            const raw = String(mandanteHidden.value || "").trim();
+            if (!raw) return;
+            const p = parseDDMMYYYY(raw);
+            if (p) syncMandanteSelectsFromParsed(mandanteDia, mandanteMes, mandanteAnio, mandanteHidden, p);
+          };
+          mandanteHidden.addEventListener("blur", trySyncFromTypedFecha);
+          mandanteHidden.addEventListener("change", trySyncFromTypedFecha);
         }
 
           function actualizarBeneficiarios(){
