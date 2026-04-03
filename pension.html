@@ -151,35 +151,6 @@
         flex: 1;
       }
 
-      .date-group .fecha-text-input {
-        flex: 1 1 9rem;
-        min-width: 7rem;
-        max-width: 11rem;
-        box-sizing: border-box;
-        padding: 8px 10px;
-        border-radius: 10px;
-        border: 1px solid var(--border);
-        background: var(--surface);
-        color: var(--text);
-        font-size: 14px;
-        font-family: inherit;
-      }
-
-      .date-group .fecha-text-input:focus {
-        outline: none;
-        border-color: var(--primary-mid);
-        box-shadow: 0 0 0 3px var(--accent-soft);
-      }
-
-      .fecha-inline-hint {
-        flex-basis: 100%;
-        width: 100%;
-        margin: 0;
-        font-size: 12px;
-        color: var(--muted);
-        line-height: 1.35;
-      }
-
       @media (min-width: 768px) {
         .col-6 {
           grid-column: span 6;
@@ -522,7 +493,7 @@
       <header>
         <h1>Formulario de Solicitud de Pensión</h1>
         <p class="subtitle">
-          Completa los datos. Al enviar, se validará el RUT y la fecha de nacimiento del mandante (puedes escribirla o usar los desplegables).
+          Completa los datos. Al enviar, se validará el RUT y la fecha (DD-MM-YYYY).
         </p>
       </header>
 
@@ -672,29 +643,21 @@
               <div class="field col-4">
                 <label for="mandante_fechaNac">Fecha Nacimiento <span class="req">*</span></label>
                 <div class="date-group">
+                  <select id="mandante_fechaNac_dia">
+                    <option value="" selected disabled>Día</option>
+                  </select>
+                  <select id="mandante_fechaNac_mes">
+                    <option value="" selected disabled>Mes</option>
+                  </select>
+                  <select id="mandante_fechaNac_anio">
+                    <option value="" selected disabled>Año</option>
+                  </select>
                   <input
-                    type="text"
-                    class="fecha-text-input"
+                    type="hidden"
                     id="mandante_fechaNac"
                     name="mandante.fechaNacimiento"
                     required
-                    inputmode="numeric"
-                    placeholder="DD-MM-AAAA"
-                    autocomplete="bday"
-                    aria-describedby="mandante_fechaNac_hint"
                   />
-                  <p class="fecha-inline-hint" id="mandante_fechaNac_hint">
-                    Puedes escribir la fecha (ej. <kbd>12-9-1975</kbd> o <kbd>12/09/1975</kbd>) o elegir día, mes y año abajo.
-                  </p>
-                  <select id="mandante_fechaNac_dia" aria-label="Día de nacimiento del mandante">
-                    <option value="" selected disabled>Día</option>
-                  </select>
-                  <select id="mandante_fechaNac_mes" aria-label="Mes de nacimiento del mandante">
-                    <option value="" selected disabled>Mes</option>
-                  </select>
-                  <select id="mandante_fechaNac_anio" aria-label="Año de nacimiento del mandante">
-                    <option value="" selected disabled>Año</option>
-                  </select>
                 </div>
                 <div class="error" data-error-for="mandante_fechaNac"></div>
               </div>
@@ -2980,14 +2943,16 @@
         return `${String(parsed.dd).padStart(2, "0")}-${String(parsed.mm).padStart(2, "0")}-${parsed.yyyy}`;
       }
 
-      function syncMandanteSelectsFromParsed(diaSel, mesSel, anioSel, textInput, parsed) {
-        if (!parsed) return false;
-        const canon = mandanteFechaCanonical(parsed);
-        if (textInput) textInput.value = canon;
-        if (diaSel) diaSel.value = String(parsed.dd).padStart(2, "0");
-        if (mesSel) mesSel.value = String(parsed.mm).padStart(2, "0");
-        if (anioSel) anioSel.value = String(parsed.yyyy);
-        return true;
+      function syncMandanteNacimientoSelects(parsed) {
+        if (!parsed) return;
+        const hid = document.getElementById("mandante_fechaNac");
+        const dia = document.getElementById("mandante_fechaNac_dia");
+        const mes = document.getElementById("mandante_fechaNac_mes");
+        const anio = document.getElementById("mandante_fechaNac_anio");
+        if (hid) hid.value = mandanteFechaCanonical(parsed);
+        if (dia) dia.value = String(parsed.dd).padStart(2, "0");
+        if (mes) mes.value = String(parsed.mm).padStart(2, "0");
+        if (anio) anio.value = String(parsed.yyyy);
       }
 
       // Fecha de póliza en DD/MM/AAAA o DD-MM-AAAA (formulario contrato).
@@ -3292,15 +3257,13 @@
           ok = false;
           if (fecha) {
             fecha.setAttribute("aria-invalid", "true");
-            setError(
-              form,
-              "mandante_fechaNac",
-              "Ingresa una fecha válida (día y mes con 1 o 2 cífras, año con 4; separa con guión o barra, ej. 12-9-1975)."
-            );
+            setError(form, "mandante_fechaNac", "Usa una fecha válida del calendario (día-mes-año).");
           }
         } else if (fecha) {
           const canon = mandanteFechaCanonical(parsed);
-          if (String(fecha.value || "").trim() !== canon) fecha.value = canon;
+          if (String(fecha.value || "").trim() !== canon) {
+            syncMandanteNacimientoSelects(parsed);
+          }
         }
 
         const emailIds = ["mandante_email", "mandatario_email", "empleador_email"];
@@ -3786,15 +3749,6 @@
           mandanteDia.addEventListener("change", updateMandanteFecha);
           mandanteMes.addEventListener("change", updateMandanteFecha);
           mandanteAnio.addEventListener("change", updateMandanteFecha);
-
-          const trySyncFromTypedFecha = () => {
-            const raw = String(mandanteHidden.value || "").trim();
-            if (!raw) return;
-            const p = parseDDMMYYYY(raw);
-            if (p) syncMandanteSelectsFromParsed(mandanteDia, mandanteMes, mandanteAnio, mandanteHidden, p);
-          };
-          mandanteHidden.addEventListener("blur", trySyncFromTypedFecha);
-          mandanteHidden.addEventListener("change", trySyncFromTypedFecha);
         }
 
           function actualizarBeneficiarios(){
