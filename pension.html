@@ -1687,8 +1687,8 @@
         const nombreMandante =
         `${mandante.nombres || ""} ${mandante.apellidoPaterno || ""} ${mandante.apellidoMaterno || ""}`;
 
-        const nombreMandatario =
-        `${mandatario.nombres || ""} ${mandatario.apellidoPaterno || ""} ${mandatario.apellidoMaterno || ""}`;
+        const nombreCompletoMandatario =
+          `${mandatario.nombres || ""} ${mandatario.apellidoPaterno || ""} ${mandatario.apellidoMaterno || ""}`.trim();
 
         const fechaHoy = fechaHoyHablado();
 
@@ -1810,7 +1810,7 @@
         he incorporado a la institución de salud
         <b>${aMayus(mandante.institucionSalud)}</b>
         confiero poder a 
-        <b>${aMayus(nombreMandatario)}</b>,
+        <b>${aMayus(nombreCompletoMandatario)}</b>,
         RUT <b>${aMayus(mandatario.rut)}</b>,
         domiciliado en <b>${aMayus(mandatario.domicilio)}</b>,
         comuna de <b>${aMayus(mandatario.comuna)}</b>,
@@ -2126,7 +2126,7 @@
         <td>
         <p>______________________________</p>
         <p>Firma Asesor Previsional</p>
-        <p><b>${aMayus(nombreMandatario)}</b></p>
+        <p><b>${aMayus(nombreCompletoMandatario)}</b></p>
         <p>RUT: <b>${aMayus(mandatario.rut)}</b></p>
         </td>
         </tr>
@@ -2151,8 +2151,8 @@
 
         const nombreMandante =
           `${mandante.nombres || ""} ${mandante.apellidoPaterno || ""} ${mandante.apellidoMaterno || ""}`;
-        const nombreMandatario =
-          `${mandatario.nombres || ""} ${mandatario.apellidoPaterno || ""} ${mandatario.apellidoMaterno || ""}`;
+        const nombreCompletoMandatario =
+          `${mandatario.nombres || ""} ${mandatario.apellidoPaterno || ""} ${mandatario.apellidoMaterno || ""}`.trim();
         const fechaHoy = fechaHoyHablado();
 
         const tablaAntecedentesCorto = buildTablaSoloSi(antecedentesItems, antecedentes, antecedentesMandateLabels);
@@ -2200,7 +2200,7 @@
         he incorporado a la institución de salud
         <b>${aMayus(mandante.institucionSalud)}</b>
         confiero poder a 
-        <b>${aMayus(nombreMandatario)}</b>,
+        <b>${aMayus(nombreCompletoMandatario)}</b>,
         RUT <b>${aMayus(mandatario.rut)}</b>,
         domiciliado en <b>${aMayus(mandatario.domicilio)}</b>,
         comuna de <b>${aMayus(mandatario.comuna)}</b>,
@@ -2248,7 +2248,7 @@
         <td>
         <p>______________________________</p>
         <p>Firma Asesor Previsional</p>
-        <p><b>${aMayus(nombreMandatario)}</b></p>
+        <p><b>${aMayus(nombreCompletoMandatario)}</b></p>
         <p>RUT: <b>${aMayus(mandatario.rut)}</b></p>
         </td>
         </tr>
@@ -2640,8 +2640,8 @@
         <td>
         <p>______________________________</p>
         <p>Firma Asesor Previsional</p>
-        <p><b>${aMayus(nombreCompletoMandatario) || "ROSE MARIE ALBISTUR BARROS"}</b></p>
-        <p>RUT: <b>${aMayus(mandatario.rut) || "9.526.153-1"}</b></p>
+        <p><b>${aMayus(nombreCompletoMandatario)}</b></p>
+        <p>RUT: <b>${aMayus(mandatario.rut)}</b></p>
         </td>
         </tr>
         </table>
