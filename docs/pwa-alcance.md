@@ -4,8 +4,14 @@ La **PWA** aplica solo a la **aplicación** servida desde la raíz del sitio (`/
 
 La **landing de marketing** vive en la carpeta **`www/`** (p. ej. `/www/index.html` o la raíz redirigida a ella en el dominio público). **No forma parte** del alcance de la PWA: no debe registrarse el manifest ni el service worker desde esa página.
 
-## Próximos pasos típicos
+## Implementado en el repo
 
-- Completar `manifest.webmanifest` (iconos, `theme_color`, etc.).
-- Service worker con caché acotada (shell + estáticos), sin romper sesión Supabase.
-- Probar instalación sobre todo en el host de **plataforma** (subdominio o ruta donde entra el panel), no confundir con la landing.
+- `manifest.webmanifest` con iconos 192 / 512 (`/icons/`).
+- `sw.js`: precarga manifest + `app-shell.css` + `theme-init` + iconos; en fetch solo cachea estáticos (css, js, png, …) del mismo origen; **no** toca `/.netlify/*` ni HTML.
+- `app-shell.js` y `login.html`: manifest, `theme-color`, meta Apple, registro del SW (`pwa-register.js` en login).
+
+## Próximos pasos opcionales
+
+- Pantalla offline mínima (`offline.html` + fallback en SW para navegación).
+- Icono **maskable** (512 con zona segura) si quieres mejor ajuste en Android.
+- Probar instalación en **plataforma.*** (HTTPS); la landing en `www/` no enlaza el SW.

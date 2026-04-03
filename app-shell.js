@@ -4,15 +4,48 @@
  * Invitado (p. ej. clientes.html): setAppShellGuest(true);
  */
 (function () {
-  (function injectWebAppManifest() {
+  (function injectPwaHead() {
     try {
-      if (document.querySelector('link[rel="manifest"]')) return;
-      var l = document.createElement("link");
-      l.rel = "manifest";
-      l.href = "/manifest.webmanifest";
-      document.head.appendChild(l);
+      var theme = "#00696c";
+      if (!document.querySelector('meta[name="theme-color"]')) {
+        var tc = document.createElement("meta");
+        tc.setAttribute("name", "theme-color");
+        tc.setAttribute("content", theme);
+        document.head.appendChild(tc);
+      }
+      if (!document.querySelector('meta[name="apple-mobile-web-app-capable"]')) {
+        var cap = document.createElement("meta");
+        cap.setAttribute("name", "apple-mobile-web-app-capable");
+        cap.setAttribute("content", "yes");
+        document.head.appendChild(cap);
+      }
+      if (!document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]')) {
+        var st = document.createElement("meta");
+        st.setAttribute("name", "apple-mobile-web-app-status-bar-style");
+        st.setAttribute("content", "default");
+        document.head.appendChild(st);
+      }
+      if (!document.querySelector('link[rel="manifest"]')) {
+        var l = document.createElement("link");
+        l.rel = "manifest";
+        l.href = "/manifest.webmanifest";
+        document.head.appendChild(l);
+      }
+      if (!document.querySelector('link[rel="apple-touch-icon"]')) {
+        var at = document.createElement("link");
+        at.rel = "apple-touch-icon";
+        at.href = "/icons/icon-192.png";
+        document.head.appendChild(at);
+      }
     } catch (_e) {}
   })();
+
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function pwaSwLoad() {
+      window.removeEventListener("load", pwaSwLoad);
+      navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch(function () {});
+    });
+  }
 
   function qs(id) {
     return document.getElementById(id);
