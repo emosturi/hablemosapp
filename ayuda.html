@@ -114,6 +114,66 @@
         color: var(--muted);
         margin-top: 8px;
       }
+
+      .faq-search-wrap {
+        margin: 0 0 20px;
+        padding: 16px;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+      }
+
+      .faq-search-label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: 8px;
+      }
+
+      .faq-search-input {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 10px 12px;
+        font-size: 15px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text);
+        font-family: inherit;
+      }
+
+      .faq-search-input:focus {
+        outline: none;
+        border-color: var(--primary-mid);
+        box-shadow: 0 0 0 3px var(--accent-soft);
+      }
+
+      .faq-search-hint {
+        margin: 8px 0 0;
+        font-size: 13px;
+        color: var(--muted);
+        min-height: 1.25em;
+      }
+
+      .faq-search-hint.faq-search-hint-warn {
+        color: var(--danger-text, #b91c1c);
+      }
+
+      .faq-item.faq-item--flash {
+        animation: faq-flash 1.2s ease-out 1;
+      }
+
+      @keyframes faq-flash {
+        0%,
+        40% {
+          box-shadow: 0 0 0 3px var(--primary-mid);
+        }
+        100% {
+          box-shadow: var(--shadow);
+        }
+      }
     </style>
   </head>
   <body>
@@ -190,12 +250,304 @@
             <header class="page-h">
               <h1>Ayuda y tutoriales</h1>
               <p class="subtitle">
-                Respuestas cortas paso a paso. Abre cada pregunta para ver los detalles. También puedes ir al menú de tu avatar (arriba a la derecha) y elegir <strong>Ayuda</strong> cuando quieras volver aquí.
+                Respuestas cortas paso a paso. Abre cada pregunta o escribe arriba para buscar y saltar automáticamente a la primera coincidencia. También puedes ir al menú de tu avatar y elegir <strong>Ayuda</strong>.
               </p>
             </header>
 
+            <div class="faq-search-wrap">
+              <label for="faqSearchInput" class="faq-search-label">Buscar en las preguntas</label>
+              <input
+                type="search"
+                id="faqSearchInput"
+                class="faq-search-input"
+                placeholder="Ej. clientes, telegram, contrato, dashboard…"
+                autocomplete="off"
+                enterkeyhint="search"
+                aria-describedby="faqSearchHint"
+              />
+              <p class="faq-search-hint" id="faqSearchHint"></p>
+            </div>
+
             <div class="faq-list" id="faqList">
-              <details>
+              <details
+                class="faq-item"
+                id="faq-mis-clientes"
+                data-search="donde encuentro mis clientes listado afiliados ver tabla buscar revisar clientes pensionados potenciales"
+              >
+                <summary>¿Dónde encuentro a mis clientes?</summary>
+                <div class="faq-body">
+                  <ol>
+                    <li>Abre <a href="revisar-clientes.html">Listado de Clientes</a> en el menú lateral.</li>
+                    <li>Ahí ves tus afiliados, puedes cambiar de pestaña a <strong>Clientes potenciales</strong> o <strong>Pensionados</strong> si aplica.</li>
+                    <li>Usa el buscador de la tabla para filtrar por nombre, RUT o teléfono.</li>
+                    <li>Pulsa sobre una fila o en <strong>Ver</strong> para abrir la ficha del cliente.</li>
+                  </ol>
+                  <p class="faq-note">Para dar de alta uno nuevo tú misma, usa <a href="clientes.html">Registro de Afiliados</a>; los prospectos van en <a href="clientes-potenciales.html">Clientes Potenciales</a>.</p>
+                </div>
+              </details>
+
+              <details
+                class="faq-item"
+                id="faq-dashboard"
+                data-search="dashboard inicio resumen alertas prospectos bienvenida kpis"
+              >
+                <summary>¿Para qué sirve el Dashboard?</summary>
+                <div class="faq-body">
+                  <p>Es la pantalla de inicio después de iniciar sesión: resume alertas y prospectos y te da accesos rápidos a lo más habitual.</p>
+                  <ol>
+                    <li>Abre <a href="dashboard.html">Dashboard</a> desde el menú.</li>
+                    <li>Revisa los indicadores y listas (por ejemplo recordatorios próximos y prospectos por antigüedad).</li>
+                    <li>Usa las tarjetas o enlaces para ir a registrar prospectos, enlace público, listado de clientes o recordatorios.</li>
+                  </ol>
+                </div>
+              </details>
+
+              <details
+                class="faq-item"
+                id="faq-barra-buscar"
+                data-search="buscar barra superior busqueda atajo enter navegar"
+              >
+                <summary>¿Cómo uso la búsqueda de la barra superior?</summary>
+                <div class="faq-body">
+                  <ol>
+                    <li>Arriba en la barra verás un campo <strong>Buscar en la app…</strong> (en móvil puede estar tras el ícono de lupa).</li>
+                    <li>Escribe una palabra clave y pulsa <strong>Enter</strong>.</li>
+                    <li>La app te llevará a una pantalla relacionada según lo que escribiste (por ejemplo prospectos, agenda, recordatorios, ayuda o clientes).</li>
+                  </ol>
+                  <p class="faq-note">Es un acceso rápido, no busca dentro del texto de tus clientes.</p>
+                </div>
+              </details>
+
+              <details
+                class="faq-item"
+                id="faq-tema-sesion"
+                data-search="modo oscuro tema claro cerrar sesion salir avatar menu cuenta"
+              >
+                <summary>¿Cómo activo el modo oscuro o cierro sesión?</summary>
+                <div class="faq-body">
+                  <ol>
+                    <li>Pulsa tu nombre o avatar arriba a la derecha para abrir el menú.</li>
+                    <li>Elige <strong>Modo oscuro</strong> para alternar entre tema claro y oscuro (queda guardado en el navegador).</li>
+                    <li>Elige <strong>Cerrar sesión</strong> para salir de la cuenta de forma segura.</li>
+                  </ol>
+                </div>
+              </details>
+
+              <details
+                class="faq-item"
+                id="faq-registro-publico-ref"
+                data-search="ref enlace publico cliente sin cuenta registro afiliado invitacion token"
+              >
+                <summary>¿Qué es el registro con enlace público (?ref=) para mis clientes?</summary>
+                <div class="faq-body">
+                  <p>Cuando compartes tu enlace personal de <a href="enlace-registro-publico.html">registro público</a>, la persona completa el formulario <strong>sin</strong> tener usuario en la app.</p>
+                  <ol>
+                    <li>Los datos se guardan asociados a <strong>tu</strong> cuenta de asesora.</li>
+                    <li>El cliente no inicia sesión en HablemosApp; solo rellena y envía.</li>
+                    <li>Tú ves el resultado en <a href="revisar-clientes.html">Listado de Clientes</a>.</li>
+                  </ol>
+                  <p class="faq-note">Si tú estás logueada y abres un enlace con <code>?ref=</code>, el guardado puede asociarse a tu sesión según la configuración del formulario.</p>
+                </div>
+              </details>
+
+              <details
+                class="faq-item"
+                id="faq-usar-pension"
+                data-search="usar formulario pension cargar cliente mandante datos prellenar"
+              >
+                <summary>¿Cómo cargo los datos de un cliente en el formulario de pensión?</summary>
+                <div class="faq-body">
+                  <ol>
+                    <li>Ve a <a href="revisar-clientes.html">Listado de Clientes</a>.</li>
+                    <li>En la fila del cliente, pulsa <strong>Usar</strong> (icono de documento) para abrir <a href="pension.html">Formulario Pensión</a> con sus datos precargados.</li>
+                    <li>Revisa tipo de pensión, beneficiarios y secciones obligatorias antes de generar documentos o guardar.</li>
+                  </ol>
+                  <p class="faq-note">Si usas enlaces de impresión rápida desde el listado (badges C / MC / ML), también se abre pensión con ese cliente y se dispara la descarga indicada.</p>
+                </div>
+              </details>
+
+              <details
+                class="faq-item"
+                id="faq-mandatos-contrato"
+                data-search="mandato largo corto contrato generar descargar word guardar base datos"
+              >
+                <summary>¿Cómo genero mandato, mandato corto o contrato y qué es guardar en BD?</summary>
+                <div class="faq-body">
+                  <ol>
+                    <li>Abre <a href="pension.html">Formulario Pensión</a> y completa los datos del <strong>Mandante</strong> (cliente) y <strong>Mandatario</strong> (tú), y el resto que pida cada documento.</li>
+                    <li><strong>Generar Mandato</strong> y <strong>Generar Mandato Corto</strong> descargan el archivo correspondiente y pueden actualizar datos del cliente en la base si hay sesión.</li>
+                    <li><strong>Generar Contrato</strong> arma el contrato de asesoría; puede pedirte datos de póliza o anexos si los activas.</li>
+                    <li><strong>Guardar en BD</strong> guarda o actualiza el cliente sin descargar un mandato (útil para dejar el expediente al día).</li>
+                  </ol>
+                </div>
+              </details>
+
+              <details
+                class="faq-item"
+                id="faq-numero-contrato"
+                data-search="numero contrato secuencial 50 51 rut mandante"
+              >
+                <summary>¿Cómo funciona el número de contrato en el documento?</summary>
+                <div class="faq-body">
+                  <p>El número que aparece en el contrato se asocia al <strong>RUT del mandante (cliente)</strong> tal como está en el formulario de pensión en el momento de pulsar <strong>Generar Contrato</strong>, no al “clic” en el listado por sí solo.</p>
+                  <ol>
+                    <li>Si ese RUT ya tenía un número asignado, se <strong>reutiliza</strong> (no cambia al regenerar).</li>
+                    <li>Si es la primera vez que generas contrato en tu cuenta, puede pedirte un número inicial; los siguientes suelen incrementarse automáticamente por RUT de mandante.</li>
+                    <li>Antes de generar, conviene <strong>verificar</strong> que el RUT del mandante en el formulario sea el del cliente correcto (especialmente si hubo correcciones de tipeo).</li>
+                  </ol>
+                </div>
+              </details>
+
+              <details
+                class="faq-item"
+                id="faq-pestanas-listado"
+                data-search="pestañas tabs clientes potenciales pensionados listado"
+              >
+                <summary>¿Qué son las pestañas del listado de clientes?</summary>
+                <div class="faq-body">
+                  <p>En <a href="revisar-clientes.html">Listado de Clientes</a> puedes alternar:</p>
+                  <ul>
+                    <li><strong>Clientes</strong>: afiliados activos en trámite (no marcados como pensionados en la app).</li>
+                    <li><strong>Potenciales</strong>: prospectos (también accesibles desde <a href="clientes-potenciales.html">Clientes Potenciales</a>).</li>
+                    <li><strong>Pensionados</strong>: clientes que pasaron a condición de pensionado en el seguimiento.</li>
+                  </ul>
+                  <p class="faq-note">Las acciones (editar, usar en pensión, ver ficha) dependen del tipo de fila.</p>
+                </div>
+              </details>
+
+              <details
+                class="faq-item"
+                id="faq-ver-cliente-tramite"
+                data-search="ver cliente ficha linea tiempo etapas tramite seguimiento"
+              >
+                <summary>¿Qué puedo hacer en la ficha “Ver cliente”?</summary>
+                <div class="faq-body">
+                  <ol>
+                    <li>Desde el listado, abre un cliente para entrar a <a href="ver-cliente.html">Ver cliente</a> (según el enlace de tu tabla).</li>
+                    <li>Verás datos del expediente, notas, recordatorios, checklist de documentos y el seguimiento por etapas del trámite cuando esté configurado.</li>
+                    <li>Desde ahí puedes actualizar información de seguimiento y gestionar documentos sin perder el historial.</li>
+                  </ol>
+                </div>
+              </details>
+
+              <details
+                class="faq-item"
+                id="faq-ver-potencial"
+                data-search="prospecto potencial ver ficha ver-potencial seguimiento"
+              >
+                <summary>¿Dónde veo la ficha de un cliente potencial?</summary>
+                <div class="faq-body">
+                  <ol>
+                    <li>Entra a <a href="clientes-potenciales.html">Clientes Potenciales</a> o a la pestaña correspondiente en el listado.</li>
+                    <li>Abre el prospecto para ir a su vista de detalle (<a href="clientes-potenciales.html">ficha del potencial</a>).</li>
+                    <li>Desde el listado abre el prospecto para ver su ficha de detalle y registrar seguimiento antes de convertirlo en afiliado si aplica.</li>
+                  </ol>
+                </div>
+              </details>
+
+              <details
+                class="faq-item"
+                id="faq-mi-agenda"
+                data-search="agenda llamadas reservas citas horarios mi agenda"
+              >
+                <summary>¿Dónde veo las llamadas que agendaron conmigo?</summary>
+                <div class="faq-body">
+                  <ol>
+                    <li>Abre <a href="mi-agenda-llamadas.html">Mi agenda de llamadas</a> en el menú.</li>
+                    <li>Revisa las reservas entrantes según la fecha y los datos que muestre la pantalla.</li>
+                    <li>Recuerda que los huecos disponibles para nuevas reservas los defines en <a href="disponibilidad-asesor.html">Mi disponibilidad</a> y el enlace público está en <a href="enlace-agenda-llamada.html">Enlace agenda llamada</a>.</li>
+                  </ol>
+                </div>
+              </details>
+
+              <details
+                class="faq-item"
+                id="faq-agendar-publico"
+                data-search="agendar llamada publico cliente sin cuenta pagina externa"
+              >
+                <summary>¿Cómo agenda alguien una llamada sin entrar a mi cuenta?</summary>
+                <div class="faq-body">
+                  <p>Comparte el enlace de <a href="enlace-agenda-llamada.html">Enlace agenda llamada</a>. La persona abre la página pública (por ejemplo <a href="agendar-llamada.html">agendar llamada</a> con tu identificador) y elige un horario entre los que dejaste libres.</p>
+                </div>
+              </details>
+
+              <details
+                class="faq-item"
+                id="faq-mi-suscripcion"
+                data-search="suscripcion pago mercado pago plan cobro renovar mi suscripcion"
+              >
+                <summary>¿Dónde gestiono mi suscripción o el pago?</summary>
+                <div class="faq-body">
+                  <ol>
+                    <li>Abre <a href="mi-suscripcion.html">Mi suscripción</a> desde el menú de tu avatar.</li>
+                    <li>Allí revisas el estado del plan, pagos o indicaciones que muestre la plataforma (por ejemplo Mercado Pago u otros medios configurados).</li>
+                    <li>Si tu acceso está limitado por suscripción, esta suele ser la pantalla para regularizar antes de volver a usar todo el menú.</li>
+                  </ol>
+                </div>
+              </details>
+
+              <details
+                class="faq-item"
+                id="faq-acceso-limitado"
+                data-search="suscripcion bloqueada restringido solo lectura cuenta suspendida acceso limitado"
+              >
+                <summary>¿Qué pasa si mi suscripción está restringida o la cuenta suspendida?</summary>
+                <div class="faq-body">
+                  <p>Según el estado de tu cuenta, la app puede mostrar avisos y limitar algunas acciones (por ejemplo solo lectura en listados o redirección a <a href="mi-suscripcion.html">Mi suscripción</a>).</p>
+                  <ol>
+                    <li>Lee el mensaje en pantalla: suele indicar si debes renovar o contactar soporte.</li>
+                    <li>Esta página de <strong>Ayuda</strong> suele seguir disponible para consultar tutoriales.</li>
+                    <li>Si no puedes resolverlo, abre un ticket en <a href="mis-tickets.html">Soporte</a>.</li>
+                  </ol>
+                </div>
+              </details>
+
+              <details
+                class="faq-item"
+                id="faq-telegram"
+                data-search="telegram avisos recordatorios bot configurar vincular"
+              >
+                <summary>¿Cómo configuro Telegram para recibir avisos?</summary>
+                <div class="faq-body">
+                  <ol>
+                    <li>Ve a <a href="configuracion-telegram.html">Configuración Telegram</a> (también puede sugerírtelo un aviso en la app si falta configurar).</li>
+                    <li>Sigue los pasos de la pantalla: enlace con el bot, código o verificación que indique el flujo actual.</li>
+                    <li>Cuando quede vinculado, podrás recibir notificaciones relacionadas con recordatorios u otros avisos que la plataforma envíe por ese canal.</li>
+                  </ol>
+                </div>
+              </details>
+
+              <details
+                class="faq-item"
+                id="faq-terminos"
+                data-search="terminos condiciones legales politica"
+              >
+                <summary>¿Dónde leo los términos y condiciones?</summary>
+                <div class="faq-body">
+                  <p>El texto legal está en <a href="terminos-condiciones.html">Términos y condiciones</a>. Ábrelo cuando necesites revisar las condiciones de uso de la plataforma.</p>
+                </div>
+              </details>
+
+              <details
+                class="faq-item"
+                id="faq-tickets"
+                data-search="soporte ticket ayuda problema bug mis tickets"
+              >
+                <summary>¿Cómo pido ayuda o reporto un problema (tickets)?</summary>
+                <div class="faq-body">
+                  <ol>
+                    <li>En el menú de tu avatar elige <strong>Soporte</strong> para abrir <a href="mis-tickets.html">Mis tickets</a>.</li>
+                    <li>Crea un ticket describiendo el problema, la pantalla donde ocurre y, si puedes, pasos para reproducirlo.</li>
+                    <li>Revisa el estado de tus solicitudes en la misma sección.</li>
+                  </ol>
+                </div>
+              </details>
+
+              <details
+                class="faq-item"
+                id="faq-registro-afiliados"
+                data-search="compartir formulario registro afiliados enlace publico copiar whatsapp"
+              >
                 <summary>¿Cómo comparto el formulario de registro de clientes (afiliados)?</summary>
                 <div class="faq-body">
                   <ol>
@@ -208,7 +560,11 @@
                 </div>
               </details>
 
-              <details>
+              <details
+                class="faq-item"
+                id="faq-enlace-agenda"
+                data-search="compartir enlace agenda llamada agendar horario"
+              >
                 <summary>¿Cómo comparto el enlace para que agenden una llamada conmigo?</summary>
                 <div class="faq-body">
                   <ol>
@@ -220,7 +576,11 @@
                 </div>
               </details>
 
-              <details>
+              <details
+                class="faq-item"
+                id="faq-disponibilidad"
+                data-search="disponibilidad horarios calendario franjas agenda"
+              >
                 <summary>¿Cómo cambio mi disponibilidad para la agenda de llamadas?</summary>
                 <div class="faq-body">
                   <ol>
@@ -232,7 +592,11 @@
                 </div>
               </details>
 
-              <details>
+              <details
+                class="faq-item"
+                id="faq-registro-yo"
+                data-search="rellenar formulario afiliados yo misma registro asesor"
+              >
                 <summary>¿Dónde relleno el formulario de clientes (afiliados) yo mismo?</summary>
                 <div class="faq-body">
                   <ol>
@@ -243,7 +607,11 @@
                 </div>
               </details>
 
-              <details>
+              <details
+                class="faq-item"
+                id="faq-potenciales"
+                data-search="potenciales prospectos registrar nuevo"
+              >
                 <summary>¿Dónde registro clientes potenciales (prospectos)?</summary>
                 <div class="faq-body">
                   <ol>
@@ -254,7 +622,11 @@
                 </div>
               </details>
 
-              <details>
+              <details
+                class="faq-item"
+                id="faq-editar-cliente"
+                data-search="editar cliente datos modificar actualizar"
+              >
                 <summary>¿Cómo edito los datos de un cliente ya registrado?</summary>
                 <div class="faq-body">
                   <ol>
@@ -266,7 +638,11 @@
                 </div>
               </details>
 
-              <details>
+              <details
+                class="faq-item"
+                id="faq-recordatorio"
+                data-search="recordatorio alerta fecha aviso"
+              >
                 <summary>¿Cómo genero un recordatorio para un cliente?</summary>
                 <div class="faq-body">
                   <ol>
@@ -279,7 +655,11 @@
                 </div>
               </details>
 
-              <details>
+              <details
+                class="faq-item"
+                id="faq-notas"
+                data-search="notas historial anotaciones cliente"
+              >
                 <summary>¿Cómo agrego notas a un cliente?</summary>
                 <div class="faq-body">
                   <ol>
@@ -290,7 +670,11 @@
                 </div>
               </details>
 
-              <details>
+              <details
+                class="faq-item"
+                id="faq-checklist"
+                data-search="checklist documentos archivos subir adjuntos"
+              >
                 <summary>¿Cómo subo y guardo documentos de un cliente (checklist)?</summary>
                 <div class="faq-body">
                   <ol>
@@ -303,20 +687,17 @@
                 </div>
               </details>
 
-              <details>
+              <details
+                class="faq-item"
+                id="faq-pension-mandatario"
+                data-search="pension formulario mandatario afiliado datos asesor"
+              >
                 <summary>¿Dónde está el formulario de pensión y los datos del mandatario?</summary>
                 <div class="faq-body">
                   <ol>
                     <li>El formulario largo de pensión está en <a href="pension.html">Formulario Pensión</a>.</li>
                     <li>Para no escribir cada vez tus datos como mandatario, puedes guardarlos en <a href="mis-datos-mandatario.html">Mis datos (mandatario)</a> (menú del avatar o enlace directo).</li>
                   </ol>
-                </div>
-              </details>
-
-              <details>
-                <summary>¿Necesito más ayuda o encontré un problema?</summary>
-                <div class="faq-body">
-                  <p>Desde el menú de tu avatar elige <strong>Soporte</strong> para abrir <a href="mis-tickets.html">tickets de soporte</a> y escribir al equipo.</p>
                 </div>
               </details>
             </div>
@@ -354,6 +735,133 @@
           if (typeof window.setAppShellGuest === "function") window.setAppShellGuest(false);
           Promise.resolve(window.__hablemosWhenSubscriptionReady && window.__hablemosWhenSubscriptionReady()).then(function () {});
         });
+      })();
+    </script>
+    <script>
+      (function () {
+        function normalizeAccents(str) {
+          var s = String(str || "").toLowerCase();
+          try {
+            return s.normalize("NFD").replace(/\p{M}/gu, "");
+          } catch (e) {
+            return s.replace(/[\u0300-\u036f]/g, "");
+          }
+        }
+
+        function tokenizeQuery(q) {
+          return normalizeAccents(q)
+            .split(/\s+/)
+            .map(function (t) {
+              return t.replace(/[^a-z0-9ñ\-]/gi, "");
+            })
+            .filter(function (t) {
+              return t.length >= 2;
+            });
+        }
+
+        function paddedHaystack(hay) {
+          return " " + String(hay || "").replace(/\s+/g, " ").trim() + " ";
+        }
+
+        function allWordsInHay(padded, words) {
+          if (!words.length) return false;
+          for (var i = 0; i < words.length; i++) {
+            if (padded.indexOf(" " + words[i] + " ") === -1) return false;
+          }
+          return true;
+        }
+
+        function initFaqSearch() {
+          var input = document.getElementById("faqSearchInput");
+          var hint = document.getElementById("faqSearchHint");
+          var list = document.getElementById("faqList");
+          if (!input || !list) return;
+
+          var items = Array.prototype.slice.call(list.querySelectorAll(".faq-item"));
+          items.forEach(function (el) {
+            var sum = el.querySelector("summary");
+            var extra = el.getAttribute("data-search") || "";
+            var combined = normalizeAccents(extra + " " + (sum ? sum.textContent : ""));
+            el.setAttribute("data-faq-haystack", combined.replace(/\s+/g, " ").trim());
+          });
+
+          var debounceTimer = null;
+
+          function runSearch() {
+            var raw = String(input.value || "").trim();
+            if (!raw) {
+              hint.textContent = "";
+              hint.classList.remove("faq-search-hint-warn");
+              items.forEach(function (el) {
+                el.classList.remove("faq-item--flash");
+              });
+              return;
+            }
+
+            var words = tokenizeQuery(raw);
+            var phrase = normalizeAccents(raw).replace(/\s+/g, " ").trim();
+            var found = null;
+
+            if (words.length) {
+              for (var i = 0; i < items.length; i++) {
+                var hay = paddedHaystack(items[i].getAttribute("data-faq-haystack") || "");
+                if (allWordsInHay(hay, words)) {
+                  found = items[i];
+                  break;
+                }
+              }
+            }
+
+            if (!found && phrase.length >= 3) {
+              for (var j = 0; j < items.length; j++) {
+                var h = items[j].getAttribute("data-faq-haystack") || "";
+                if (h.indexOf(phrase) !== -1) {
+                  found = items[j];
+                  break;
+                }
+              }
+            }
+
+            items.forEach(function (el) {
+              el.classList.remove("faq-item--flash");
+            });
+
+            if (!found) {
+              hint.textContent =
+                "No encontramos una pregunta con esas palabras. Prueba con otras (ej. «clientes», «telegram», «contrato»).";
+              hint.classList.add("faq-search-hint-warn");
+              return;
+            }
+
+            var st = found.querySelector("summary");
+            hint.textContent = "Aquí está: «" + (st ? st.textContent : "") + "».";
+            hint.classList.remove("faq-search-hint-warn");
+            found.open = true;
+            found.classList.add("faq-item--flash");
+            found.scrollIntoView({ behavior: "smooth", block: "center" });
+            setTimeout(function () {
+              found.classList.remove("faq-item--flash");
+            }, 1400);
+          }
+
+          input.addEventListener("input", function () {
+            if (debounceTimer) clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(runSearch, 200);
+          });
+          input.addEventListener("keydown", function (e) {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              if (debounceTimer) clearTimeout(debounceTimer);
+              runSearch();
+            }
+          });
+        }
+
+        if (document.readyState === "loading") {
+          document.addEventListener("DOMContentLoaded", initFaqSearch);
+        } else {
+          initFaqSearch();
+        }
       })();
     </script>
   </body>
