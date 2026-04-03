@@ -1,5 +1,5 @@
 /* Plataforma asesores: caché solo de estáticos propios. Sin HTML ni APIs. */
-const CACHE_NAME = "hablemos-static-v2";
+const CACHE_NAME = "hablemos-static-v3";
 const PRECACHE_URLS = [
   "/manifest.webmanifest",
   "/app-shell.css",
