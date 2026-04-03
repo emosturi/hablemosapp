@@ -4,6 +4,16 @@
  * Invitado (p. ej. clientes.html): setAppShellGuest(true);
  */
 (function () {
+  (function injectWebAppManifest() {
+    try {
+      if (document.querySelector('link[rel="manifest"]')) return;
+      var l = document.createElement("link");
+      l.rel = "manifest";
+      l.href = "/manifest.webmanifest";
+      document.head.appendChild(l);
+    } catch (_e) {}
+  })();
+
   function qs(id) {
     return document.getElementById(id);
   }

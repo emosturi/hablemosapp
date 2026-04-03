@@ -1,0 +1,11 @@
+{
+  "name": "Hablemos — Plataforma asesores",
+  "short_name": "Hablemos",
+  "description": "Plataforma de asesores previsionales (fuera de la landing en www/).",
+  "start_url": "/login.html",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f4f7f8",
+  "theme_color": "#00696c",
+  "lang": "es"
+}
