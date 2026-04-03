@@ -4398,6 +4398,12 @@
                     var matBlock0 = document.getElementById("benef_0_matrimonio");
                     if (matBlock0) matBlock0.style.display = "";
                   }
+                  // Sin cargas: no hay cónyuge/conviviente ni hijos menores de 24 en BD, y no aplica el placeholder de cónyuge.
+                  else if (benefInput && typeof actualizarBeneficiarios === "function") {
+                    benefInput.value = "0";
+                    actualizarBeneficiarios();
+                    setFormFromObject(form, { mandante: { numeroBeneficiarios: "0" } });
+                  }
                 } catch (_e) {
                   // Si algo falla en el prellenado de beneficiarios, no bloquear el formulario
                 }
