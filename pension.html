@@ -1527,14 +1527,80 @@
         URL.revokeObjectURL(url);
       }
 
-      // Escritorio: .doc. Móvil: intenta PDF vía html2pdf.js; si falla, .html.
+      /**
+       * Inserta pie con campos Word PAGE / NUMPAGES ("Página X de Y") para .doc abiertos en Microsoft Word.
+       * Tras abrir el archivo: Vista → Diseño de impresión; si no se actualiza, seleccionar todo y F9.
+       */
+      function prepararHtmlWordConPiePagina(htmlString) {
+        var s = String(htmlString || "");
+        if (!/<body/i.test(s)) return s;
+
+        s = s.replace(/<html(\s[^>]*)?>/i, function (full, rest) {
+          rest = rest != null ? String(rest).trim() : "";
+          if (/xmlns:\s*w=/i.test(full)) return full;
+          var ns = ' xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"';
+          if (rest) return "<html " + rest + ns + ">";
+          return "<html" + ns + ">";
+        });
+
+        var pieStyle =
+          '<style type="text/css">' +
+          "<!--\n@page { mso-footer-margin: 11mm; }\n-->" +
+          "</style>";
+
+        var officeHead =
+          pieStyle +
+          '<meta name="ProgId" content="Word.Document">' +
+          '<meta name="Generator" content="Microsoft Word 15">' +
+          '<!--[if gte mso 9]><xml><w:WordDocument xmlns:w="urn:schemas-microsoft-com:office:word"><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]-->';
+
+        if (/<meta\s+charset\s*=\s*["']?utf-8["']?\s*\/?>/i.test(s)) {
+          s = s.replace(/<meta\s+charset\s*=\s*["']?utf-8["']?\s*\/?>/i, function (m) {
+            return m + officeHead;
+          });
+        } else if (/<head[^>]*>/i.test(s)) {
+          s = s.replace(/<head[^>]*>/i, function (h) {
+            return h + officeHead;
+          });
+        }
+
+        function wordField(instr, placeholder) {
+          return (
+            "<!--[if supportFields]>" +
+            '<span style="mso-element:field-begin"></span>' +
+            instr +
+            '<span style="mso-element:field-separator"></span>' +
+            '<span style="mso-no-proof:yes">' +
+            placeholder +
+            "</span>" +
+            '<span style="mso-element:field-end"></span>' +
+            "<![endif]-->"
+          );
+        }
+
+        var pie =
+          '<div style="mso-element:footer" id="HablemosPiePag1">' +
+          '<p class="MsoFooter" align="center" style="margin:0;text-align:center;font-size:9pt;font-family:Arial;color:#444">' +
+          "P\u00e1gina " +
+          wordField("PAGE", "1") +
+          " de " +
+          wordField("NUMPAGES", "1") +
+          "</p>" +
+          "</div>";
+
+        s = s.replace(/<\/body>/i, pie + "</body>");
+        return s;
+      }
+
+      // Escritorio: .doc (con pie Word). Móvil: PDF con numeración; si falla, .html con pie Word.
       function descargarDocumentoWordCompat(html, baseName) {
         const ua = navigator.userAgent || "";
         const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
         const safeBase = truncarBaseNombreArchivo(String(baseName || "documento").replace(/[/\\:*?"<>|]/g, "_"));
+        const htmlWord = prepararHtmlWordConPiePagina(html);
 
         if (!isMobile) {
-          const blob = new Blob(["\ufeff", html], { type: "application/msword" });
+          const blob = new Blob(["\ufeff", htmlWord], { type: "application/msword" });
           const url = URL.createObjectURL(blob);
           const a = document.createElement("a");
           a.href = url;
@@ -1550,7 +1616,7 @@
           })
           .catch(function (err) {
             console.warn("PDF móvil no disponible, descargando HTML:", err);
-            descargarBlobHtmlFallback(html, safeBase);
+            descargarBlobHtmlFallback(htmlWord, safeBase);
           });
       }
 
