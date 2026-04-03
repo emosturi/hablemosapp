@@ -1364,17 +1364,34 @@
         return __html2pdfLoadPromise;
       }
 
-      /** Renderiza HTML completo en iframe oculto y lo descarga como PDF (pensado para móvil). */
+      /**
+       * PDF en móvil: WebKit (sobre todo iOS) no pinta bien iframes con opacity:0 u off-screen,
+       * y html2canvas termina con lienzo en blanco y varias páginas vacías. Se muestra un velo
+       * breve y el iframe visible en el viewport durante la captura.
+       */
       function descargarHtmlComoPdfMultipage(htmlString, safeBase) {
         return new Promise(function (resolve, reject) {
+          const ua = navigator.userAgent || "";
+          const isMobilePdf = /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
+          const isIOS = /iPhone|iPad|iPod/i.test(ua);
+
+          const veil = document.createElement("div");
+          veil.setAttribute("role", "status");
+          veil.setAttribute("aria-live", "polite");
+          veil.style.cssText =
+            "position:fixed;inset:0;background:rgba(255,255,255,0.94);z-index:2147483645;display:flex;align-items:center;justify-content:center;padding:1rem;font-family:system-ui,sans-serif;font-size:16px;color:#111;text-align:center;box-sizing:border-box;";
+          veil.textContent = "Generando PDF…";
+
           const iframe = document.createElement("iframe");
           iframe.setAttribute("title", "pdf-render");
-          iframe.setAttribute("sandbox", "allow-same-origin");
           iframe.style.cssText =
-            "position:fixed;left:-10000px;top:0;width:794px;max-width:100%;height:1600px;border:0;opacity:0;pointer-events:none;";
+            "position:fixed;left:0;top:0;width:794px;max-width:100vw;height:90vh;min-height:480px;border:0;z-index:2147483646;background:#fff;box-sizing:border-box;overflow:auto;-webkit-overflow-scrolling:touch;";
+
+          document.body.appendChild(veil);
           document.body.appendChild(iframe);
 
           function cleanup() {
+            if (veil.parentNode) veil.parentNode.removeChild(veil);
             if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
           }
 
@@ -1394,23 +1411,44 @@
               reject(new Error("PDF: contenido vacío"));
               return;
             }
+
+            try {
+              const head = doc.head;
+              if (head && !head.querySelector('meta[name="color-scheme"]')) {
+                const meta = doc.createElement("meta");
+                meta.setAttribute("name", "color-scheme");
+                meta.setAttribute("content", "light");
+                head.insertBefore(meta, head.firstChild);
+              }
+              doc.documentElement.style.backgroundColor = "#ffffff";
+              doc.documentElement.style.color = "#111111";
+              body.style.backgroundColor = "#ffffff";
+              body.style.color = "#111111";
+            } catch (_e) {}
+
             const dpr =
               typeof window.devicePixelRatio === "number" && window.devicePixelRatio > 0
                 ? window.devicePixelRatio
                 : 2;
+            const scale = isMobilePdf ? 1 : Math.min(2, dpr);
+
             const opt = {
               margin: [8, 8, 8, 8],
               filename: `${safeBase}.pdf`,
               image: { type: "jpeg", quality: 0.92 },
               html2canvas: {
-                scale: Math.min(2, dpr),
+                scale: scale,
                 useCORS: true,
                 logging: false,
                 letterRendering: true,
+                backgroundColor: "#ffffff",
+                scrollX: 0,
+                scrollY: 0,
               },
               jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
               pagebreak: { mode: ["css", "legacy"] },
             };
+
             html2pdf()
               .set(opt)
               .from(body)
@@ -1427,7 +1465,9 @@
 
           iframe.onload = function () {
             requestAnimationFrame(function () {
-              setTimeout(runPdf, 80);
+              requestAnimationFrame(function () {
+                setTimeout(runPdf, isIOS ? 400 : isMobilePdf ? 250 : 120);
+              });
             });
           };
           iframe.srcdoc = htmlString;
