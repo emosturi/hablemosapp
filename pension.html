@@ -1627,10 +1627,28 @@
         h2,h3{
         margin-top:20px;
         page-break-after:avoid;
+        text-align:center;
+        text-transform:uppercase;
         }
         h2{
-        text-transform:uppercase;
+        font-size:16pt;
+        font-weight:bold;
+        line-height:1.25;
         text-align:center;
+        text-transform:uppercase;
+        width:100%;
+        display:block;
+        }
+        h3{
+        font-size:12pt;
+        font-weight:bold;
+        line-height:1.3;
+        }
+        h3.mandato-encabezado-tipo{
+        font-size:11pt;
+        font-weight:normal;
+        line-height:1.3;
+        margin-top:10px;
         }
         .empleador-datos{
         text-align:left;
@@ -1663,8 +1681,8 @@
 
         <body>
 
-        <h2>MANDATO PARA INICIAR TRÁMITE DE ${aMayus(mandante.tipoPension)}</h2>
-        <h3 style="text-align:center">${aMayus(mandante.tipoPension)}</h3>
+        <h2 style="font-size:16pt;font-weight:bold;line-height:1.25;text-align:center;text-transform:uppercase;width:100%;display:block;margin-top:20px;">MANDATO PARA INICIAR TRÁMITE DE ${aMayus(mandante.tipoPension)}</h2>
+        <h3 class="mandato-encabezado-tipo" style="font-size:11pt;font-weight:normal;line-height:1.3;text-align:center;text-transform:uppercase;width:100%;display:block;margin-top:10px;">${aMayus(mandante.tipoPension)}</h3>
 
         <p>
         Con fecha ${fechaHoy} y por medio del siguiente instrumento, yo 
@@ -2043,8 +2061,8 @@
         td,th{ border:1px solid black; padding:4px; font-size:9pt; }
         .col-rut{ white-space:nowrap; width:1%; min-width:7em; }
         .col-respuesta{ min-width:8em; width:8em; white-space:nowrap; word-break:keep-all; }
-        h2,h3{ margin-top:20px; page-break-after:avoid; }
-        h2{ text-transform:uppercase; text-align:center; }
+        h2,h3{ margin-top:20px; page-break-after:avoid; text-align:center; text-transform:uppercase; }
+        h2{ text-align:center; text-transform:uppercase; width:100%; display:block; }
         .empleador-datos{ text-align:left; }
         .firmas{ margin-top:40px; overflow:hidden; width:100%; }
         .firma-izq{ float:left; width:45%; text-align:center; }
@@ -2054,7 +2072,7 @@
         </head>
         <body>
 
-        <h2>MANDATO PARA  ${aMayus(mandante.cambioModalidadTramite === "Sí" ? "INICIAR TRÁMITE DE CAMBIO DE MODALIDAD" : "RETIRAR CERTIFICADO DE SALDO")} DE ${aMayus(mandante.tipoPension)}</h2>
+        <h2 style="text-align:center;text-transform:uppercase;width:100%;display:block;margin-top:20px;">MANDATO PARA  ${aMayus(mandante.cambioModalidadTramite === "Sí" ? "INICIAR TRÁMITE DE CAMBIO DE MODALIDAD" : "RETIRAR CERTIFICADO DE SALDO")} DE ${aMayus(mandante.tipoPension)}</h2>
 
         <p>
         Con fecha ${fechaHoy} y por medio del siguiente instrumento, yo 
@@ -2186,6 +2204,11 @@
           ...(data.poliza && typeof data.poliza === "object" ? data.poliza : {}),
         };
 
+        const contratoH1Style =
+          "text-align:center;text-transform:uppercase;font-size:14pt;width:100%;display:block;margin:0 0 12px 0;page-break-after:avoid;";
+        const contratoH2Style =
+          "text-align:center;text-transform:uppercase;font-size:12pt;width:100%;display:block;margin-top:18px;page-break-after:avoid;";
+
         const anexosCfg = data.contratoAnexos;
         let anexosHtml = "";
         if (anexosCfg && anexosCfg.usar && Array.isArray(anexosCfg.textos)) {
@@ -2196,7 +2219,9 @@
               partes
                 .map((t, idx) => {
                   return (
-                    "<h2>ANEXO " +
+                    '<h2 style="' +
+                    contratoH2Style +
+                    '">ANEXO ' +
                     (idx + 1) +
                     '</h2><p style="text-align:justify;white-space:pre-wrap;">' +
                     escapeHtmlContrato(t) +
@@ -2223,12 +2248,17 @@
           text-align:center;
           text-transform:uppercase;
           page-break-after:avoid;
+          width:100%;
+          display:block;
         }
         h2{
           font-size:12pt;
           margin-top:18px;
+          text-align:center;
           text-transform:uppercase;
           page-break-after:avoid;
+          width:100%;
+          display:block;
         }
         p{
           text-align:justify;
@@ -2275,10 +2305,10 @@
         </head>
         <body>
 
-        <h1>CONTRATO DE PRESTACIÓN DE SERVICIOS DE ASESORÍA PARA<br/>
+        <h1 style="${contratoH1Style}">CONTRATO DE PRESTACIÓN DE SERVICIOS DE ASESORÍA PARA<br/>
         PENSIONARSE O CAMBIAR MODALIDAD DE PENSIÓN Nº <b>${numeroContrato}</b></h1>
 
-        <h2>INDIVIDUALIZACIÓN DE LAS PARTES</h2>
+        <h2 style="${contratoH2Style}">INDIVIDUALIZACIÓN DE LAS PARTES</h2>
 
         <p>
         En la Ciudad de <b>${aMayus(ciudad)}</b> a <b>${fechaActualTexto}</b>, suscriben el presente contrato, por una parte,
@@ -2295,7 +2325,7 @@
         Las partes acuerdan el siguiente contrato de asesoría para realizar trámite de <b>${aMayus(esCambioModalidad ? "cambio de modalidad para " + nombreTramite : nombreTramite)}</b>.
         </p>
 
-        <h2>ANTECEDENTES DEL GRUPO FAMILIAR CON DERECHO A PENSIÓN</h2>
+        <h2 style="${contratoH2Style}">ANTECEDENTES DEL GRUPO FAMILIAR CON DERECHO A PENSIÓN</h2>
 
         
 
@@ -2315,7 +2345,7 @@
         </table>
         ` : `<p><b>Sin beneficiarios legales</b></p>`}
 
-        <h2>NATURALEZA U OBJETO DEL CONTRATO</h2>
+        <h2 style="${contratoH2Style}">NATURALEZA U OBJETO DEL CONTRATO</h2>
 
         <p>
         El presente contrato de asesoría previsional, tiene por objeto otorgar información a los afiliados y
@@ -2336,7 +2366,7 @@
         percibir beneficios.
         </p>
 
-        <h2>OBLIGACIONES DE LAS ENTIDADES DE ASESORÍA PREVISIONAL O DEL ASESOR PREVISIONAL</h2>
+        <h2 style="${contratoH2Style}">OBLIGACIONES DE LAS ENTIDADES DE ASESORÍA PREVISIONAL O DEL ASESOR PREVISIONAL</h2>
 
         <p>
         - Otorgar información, asesorar y orientar al afiliado o sus beneficiarios, según corresponda, considerando
@@ -2377,7 +2407,7 @@
         opción.
         </p>
 
-        <h2>PÓLIZAS O BOLETA DE GARANTÍA BANCARIA COMPROMETIDAS</h2>
+        <h2 style="${contratoH2Style}">PÓLIZAS O BOLETA DE GARANTÍA BANCARIA COMPROMETIDAS</h2>
 
         <p>
         Para responder del correcto y cabal cumplimiento de todas las obligaciones emanadas de la actividad, el
@@ -2387,14 +2417,14 @@
         con fecha de vigencia a partir del <b>${aMayus(poliza.fechaInicio)}</b> y vencimiento el <b>${aMayus(poliza.fechaVencimiento)}</b>.
         </p>
 
-        <h2>VIGENCIA DEL CONTRATO</h2>
+        <h2 style="${contratoH2Style}">VIGENCIA DEL CONTRATO</h2>
 
         <p>
         Se entenderá terminada la vigencia de este contrato si el afiliado o beneficiario selecciona modalidad de
         pensión o se desistiese de pensionarse.
         </p>
 
-        <h2>HONORARIOS</h2>
+        <h2 style="${contratoH2Style}">HONORARIOS</h2>
 
         <p>
         Los honorarios brutos de Asesores Previsionales en Chile se ajustan al DL 3500 (art. 61bis  y art. 179).
@@ -2417,7 +2447,7 @@
         decida quedar pensionado.
         </p>
 
-        <h2>DERECHO A LA INFORMACIÓN</h2>
+        <h2 style="${contratoH2Style}">DERECHO A LA INFORMACIÓN</h2>
 
         <p>
         El contratante podrá requerir, en cualquier momento, información escrita respecto de las gestiones
@@ -2427,7 +2457,7 @@
         claramente la fecha en que se extendió y las firmas de las partes, las que podrán ser electrónicas.
         </p>
 
-        <h2>VOLUNTARIEDAD DEL CONTRATO DE ASESORÍA PREVISIONAL</h2>
+        <h2 style="${contratoH2Style}">VOLUNTARIEDAD DEL CONTRATO DE ASESORÍA PREVISIONAL</h2>
 
         <p>
         El presente Contrato se suscribe libre y voluntariamente, toda vez que para ejercer derechos previsionales
@@ -2443,14 +2473,14 @@
         que otorgue su pensión se tendrá por no escrita.
         </p>
 
-        <h2>PRIVACIDAD DE LA INFORMACIÓN</h2>
+        <h2 style="${contratoH2Style}">PRIVACIDAD DE LA INFORMACIÓN</h2>
 
         <p>
         El Asesor o la Entidad de Asesoría se obliga a resguardar la privacidad de toda la información a la que
         acceda producto del contrato.
         </p>
 
-        <h2>INDEPENDENCIA DEL ASESOR PREVISIONAL O DE LA ENTIDAD DE ASESORÍA PREVISIONAL</h2>
+        <h2 style="${contratoH2Style}">INDEPENDENCIA DEL ASESOR PREVISIONAL O DE LA ENTIDAD DE ASESORÍA PREVISIONAL</h2>
 
         <p>
         El Asesor Previsional, los directores, socios, accionistas, ejecutivos principales, gerentes, apoderados o
@@ -2461,7 +2491,7 @@
         independencia, no pudiendo condicionarla a otros productos o servicios propios o de una relacionada.
         </p>
 
-        <h2>PROHIBICIONES</h2>
+        <h2 style="${contratoH2Style}">PROHIBICIONES</h2>
 
         <p>
         Se encuentra prohibido limitar en forma alguna la libre elección del contratante respecto de tomar o no la
@@ -2469,7 +2499,7 @@
         beneficios adicionales al objetivo de la asesoría.
         </p>
 
-        <h2>TÉRMINO DEL CONTRATO</h2>
+        <h2 style="${contratoH2Style}">TÉRMINO DEL CONTRATO</h2>
 
         <p>
         El afiliado podrá poner término en cualquier momento al presente contrato, sin que se establezca el pago de
