@@ -1364,6 +1364,28 @@
         return __html2pdfLoadPromise;
       }
 
+      /** Escribe "Página n de m" al pie de cada hoja del PDF (jsPDF, tras html2pdf). */
+      function aplicarNumeracionHojasJsPDF(pdf) {
+        if (!pdf || !pdf.internal) return;
+        var total =
+          typeof pdf.getNumberOfPages === "function"
+            ? pdf.getNumberOfPages()
+            : typeof pdf.internal.getNumberOfPages === "function"
+              ? pdf.internal.getNumberOfPages()
+              : 0;
+        if (!total || total < 1) return;
+        var ps = pdf.internal.pageSize;
+        var pw = typeof ps.getWidth === "function" ? ps.getWidth() : ps.width;
+        var ph = typeof ps.getHeight === "function" ? ps.getHeight() : ps.height;
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(8);
+        pdf.setTextColor(82, 82, 82);
+        for (var i = 1; i <= total; i++) {
+          pdf.setPage(i);
+          pdf.text("Página " + i + " de " + total, pw / 2, ph - 4.5, { align: "center" });
+        }
+      }
+
       /**
        * PDF en móvil: WebKit (sobre todo iOS) no pinta bien iframes con opacity:0 u off-screen,
        * y html2canvas termina con lienzo en blanco y varias páginas vacías. Se muestra un velo
@@ -1464,6 +1486,15 @@
             html2pdf()
               .set(opt)
               .from(body)
+              .toPdf()
+              .get("pdf")
+              .then(function (pdf) {
+                try {
+                  aplicarNumeracionHojasJsPDF(pdf);
+                } catch (eNum) {
+                  console.warn("No se pudo numerar páginas del PDF:", eNum);
+                }
+              })
               .save()
               .then(function () {
                 cleanup();
