@@ -1,9 +1,10 @@
 /* Plataforma asesores: caché solo de estáticos propios. Sin HTML ni APIs. */
-const CACHE_NAME = "prevy-static-v7";
+const CACHE_NAME = "prevy-static-v8";
 const PRECACHE_URLS = [
   "/manifest.webmanifest",
   "/app-shell.css",
   "/theme-init.js",
+  "/reminder-browser-notify.js",
   "/icons/icon-192.png",
   "/icons/icon-512.png",
 ];
@@ -42,6 +43,25 @@ self.addEventListener("activate", function (event) {
 function isStaticAsset(pathname) {
   return /\.(css|js|png|svg|ico|woff2?|webmanifest)$/i.test(pathname);
 }
+
+self.addEventListener("notificationclick", function (event) {
+  event.notification.close();
+  var url = "/recordatorios.html";
+  try {
+    if (event.notification && event.notification.data && event.notification.data.url) {
+      url = String(event.notification.data.url);
+    }
+  } catch (_e) {}
+  event.waitUntil(
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then(function (list) {
+      for (var i = 0; i < list.length; i++) {
+        var c = list[i];
+        if (c.url && "focus" in c) return c.focus();
+      }
+      if (clients.openWindow) return clients.openWindow(url);
+    })
+  );
+});
 
 self.addEventListener("fetch", function (event) {
   if (event.request.method !== "GET") return;
