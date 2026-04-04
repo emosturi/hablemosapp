@@ -145,16 +145,32 @@
         right: 6px;
         top: 50%;
         transform: translateY(-50%);
+        width: 40px;
+        height: 40px;
         border: none;
         background: transparent;
-        padding: 8px;
+        padding: 0;
         cursor: pointer;
         color: var(--muted);
         border-radius: 10px;
         line-height: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+      }
+      .password-toggle .pw-toggle-icon {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+        display: block;
+      }
+      .password-toggle .pw-toggle-hide {
+        display: none;
+      }
+      .password-toggle.password-visible .pw-toggle-show {
+        display: none;
+      }
+      .password-toggle.password-visible .pw-toggle-hide {
+        display: block;
       }
       .password-toggle:hover {
         color: var(--text);
@@ -418,7 +434,6 @@
                     stroke-linecap="round"
                     stroke-linejoin="round"
                     aria-hidden="true"
-                    hidden
                   >
                     <path
                       d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
@@ -436,14 +451,14 @@
 
             <div class="error" id="error_general"></div>
 
-            <button type="submit" id="btnLogin">Entrar</button>
-            
             <div class="field field-keep-session">
               <label class="keep-session-label" for="keepSessionOnDevice">
                 <input type="checkbox" id="keepSessionOnDevice" checked />
                 <span>Mantener la sesión abierta</span>
               </label>
             </div>
+
+            <button type="submit" id="btnLogin">Entrar</button>
 
             <div class="oauth-divider">o</div>
             <button type="button" class="btn-google" id="btnGoogleLogin">
@@ -640,22 +655,18 @@
         var inputPassword = document.getElementById("password");
         var btnToggleLoginPassword = document.getElementById("toggleLoginPassword");
         if (inputPassword && btnToggleLoginPassword) {
-          var iconPwShow = btnToggleLoginPassword.querySelector(".pw-toggle-show");
-          var iconPwHide = btnToggleLoginPassword.querySelector(".pw-toggle-hide");
           btnToggleLoginPassword.addEventListener("click", function () {
             var showing = inputPassword.type === "text";
             if (showing) {
               inputPassword.type = "password";
+              btnToggleLoginPassword.classList.remove("password-visible");
               btnToggleLoginPassword.setAttribute("aria-pressed", "false");
               btnToggleLoginPassword.setAttribute("aria-label", "Mostrar contraseña");
-              if (iconPwShow) iconPwShow.removeAttribute("hidden");
-              if (iconPwHide) iconPwHide.setAttribute("hidden", "");
             } else {
               inputPassword.type = "text";
+              btnToggleLoginPassword.classList.add("password-visible");
               btnToggleLoginPassword.setAttribute("aria-pressed", "true");
               btnToggleLoginPassword.setAttribute("aria-label", "Ocultar contraseña");
-              if (iconPwShow) iconPwShow.setAttribute("hidden", "");
-              if (iconPwHide) iconPwHide.removeAttribute("hidden");
             }
           });
         }
