@@ -1459,7 +1459,8 @@
                 inj.textContent =
                   "table{page-break-inside:auto;}" +
                   "tr,thead,tfoot{page-break-inside:avoid!important;break-inside:avoid!important;-webkit-column-break-inside:avoid;}" +
-                  "h1,h2,h3,h4{page-break-after:avoid!important;break-after:avoid!important;}" +
+                  "h1,h2,h3,h4{page-break-after:avoid!important;break-after:avoid-page!important;}" +
+                  "h1+* ,h2+* ,h3+* ,h4+* {page-break-before:avoid!important;break-before:avoid-page!important;}" +
                   ".tabla-firmas,.firmas{page-break-inside:avoid!important;break-inside:avoid!important;}" +
                   "p{orphans:3;widows:3;}";
                 head.appendChild(inj);
@@ -1672,12 +1673,12 @@
         if ((b.observaciones || "").trim()) obs += (obs ? " " : "") + (b.observaciones || "").trim();
         beneficiarios += `
         <tr>
-        <td>${aMayus(nombreCompleto)}</td>
-        <td>${aMayus(b.sexo)}</td>
-        <td class="col-rut">${aMayus(b.rut)}</td>
-        <td>${aMayus(b.fechaNacimiento)}</td>
-        <td>${aMayus(b.parentesco)}</td>
-        <td>${aMayus(obs)}</td>
+        <td class="col-nombre-ben">${aMayus(nombreCompleto)}</td>
+        <td class="col-sexo-ben">${aMayus(b.sexo)}</td>
+        <td class="col-rut-ben">${aMayus(b.rut)}</td>
+        <td class="col-fnac-ben">${aMayus(b.fechaNacimiento)}</td>
+        <td class="col-parentesco-ben">${aMayus(b.parentesco)}</td>
+        <td class="col-obs-ben">${aMayus(obs)}</td>
         </tr>
         `;
         });
@@ -1726,7 +1727,22 @@
         border:1px solid black;
         padding:4px;
         font-size:9pt;
+        vertical-align:top;
         }
+        table.tabla-benef-mandato{
+        table-layout:fixed;
+        }
+        table.tabla-benef-mandato th,
+        table.tabla-benef-mandato td{
+        overflow-wrap:break-word;
+        word-wrap:break-word;
+        }
+        .col-nombre-ben{ width:26%; }
+        .col-sexo-ben{ width:7%; min-width:3em; }
+        .col-rut-ben{ width:13%; min-width:7.5em; white-space:nowrap; }
+        .col-fnac-ben{ width:11%; min-width:6.5em; white-space:nowrap; }
+        .col-parentesco-ben{ width:16%; min-width:5.5em; }
+        .col-obs-ben{ width:27%; font-size:8pt; line-height:1.25; }
         .col-rut{
         white-space:nowrap;
         width:1%;
@@ -1737,6 +1753,15 @@
         width:8em;
         white-space:nowrap;
         word-break:keep-all;
+        }
+
+        h1,h2,h3,h4{
+        page-break-after:avoid!important;
+        break-after:avoid-page!important;
+        }
+        h2 + *,h3 + *,h1 + *{
+        page-break-before:avoid!important;
+        break-before:avoid-page!important;
         }
 
         h2,h3{
@@ -1850,15 +1875,15 @@
         
         <h3>Beneficiarios</h3>
 
-        <table border="1" style="border-collapse:collapse;width:100%;">
+        <table class="tabla-benef-mandato" border="1" style="border-collapse:collapse;width:100%;">
 
         <tr>
-        <th>Nombre Completo</th>
-        <th>Sexo</th>
-        <th class="col-rut">Rut</th>
-        <th>Fecha de Nac.</th>
-        <th>Parentesco</th>
-        <th>Observaciones</th>
+        <th class="col-nombre-ben">Nombre Completo</th>
+        <th class="col-sexo-ben">Sexo</th>
+        <th class="col-rut-ben">Rut</th>
+        <th class="col-fnac-ben">Fecha de Nac.</th>
+        <th class="col-parentesco-ben">Parentesco</th>
+        <th class="col-obs-ben">Observaciones</th>
         </tr>
 
         ${beneficiarios}
@@ -2173,9 +2198,11 @@
         body{ font-family:Arial; font-size:12pt; line-height:1.5; margin:15px 12px; }
         p{ text-align:justify; }
         table{ border-collapse:collapse; width:100%; margin-top:10px; font-size:9pt; }
-        td,th{ border:1px solid black; padding:4px; font-size:9pt; }
+        td,th{ border:1px solid black; padding:4px; font-size:9pt; vertical-align:top; }
         .col-rut{ white-space:nowrap; width:1%; min-width:7em; }
         .col-respuesta{ min-width:8em; width:8em; white-space:nowrap; word-break:keep-all; }
+        h1,h2,h3,h4{ page-break-after:avoid!important; break-after:avoid-page!important; }
+        h2+*,h3+*,h1+*{ page-break-before:avoid!important; break-before:avoid-page!important; }
         h2,h3{ margin-top:20px; page-break-after:avoid; text-align:center; text-transform:uppercase; }
         h2{ text-align:center; text-transform:uppercase; width:100%; display:block; }
         .empleador-datos{ text-align:left; }
@@ -2304,11 +2331,11 @@
               `${b.nombres || ""} ${b.apellidoPaterno || ""} ${b.apellidoMaterno || ""}`.trim();
             filasBeneficiarios += `
         <tr>
-        <td>${aMayus(nombreBenef)}</td>
-        <td>${aMayus(b.parentesco)}</td>
-        <td>${aMayus(b.fechaNacimiento)}</td>
-        <td class="col-rut">${aMayus(b.rut)}</td>
-        <td>${aMayus(b.esInvalido != null && b.esInvalido !== "" ? b.esInvalido : b.es_invalido)}</td>
+        <td class="col-nombre-ben">${aMayus(nombreBenef)}</td>
+        <td class="col-parentesco-ben">${aMayus(b.parentesco)}</td>
+        <td class="col-fnac-ben">${aMayus(b.fechaNacimiento)}</td>
+        <td class="col-rut-ben">${aMayus(b.rut)}</td>
+        <td class="col-inval-ben">${aMayus(b.esInvalido != null && b.esInvalido !== "" ? b.esInvalido : b.es_invalido)}</td>
         </tr>
         `;
           });
@@ -2363,6 +2390,7 @@
           text-align:center;
           text-transform:uppercase;
           page-break-after:avoid;
+          break-after:avoid-page;
           width:100%;
           display:block;
         }
@@ -2372,8 +2400,13 @@
           text-align:center;
           text-transform:uppercase;
           page-break-after:avoid;
+          break-after:avoid-page;
           width:100%;
           display:block;
+        }
+        h1 + *,h2 + *{
+          page-break-before:avoid;
+          break-before:avoid-page;
         }
         p{
           text-align:justify;
@@ -2384,11 +2417,25 @@
           margin-top:8px;
           font-size:9pt;
         }
+        table.tabla-benef-contrato{
+          table-layout:fixed;
+        }
+        table.tabla-benef-contrato th,
+        table.tabla-benef-contrato td{
+          vertical-align:top;
+          overflow-wrap:break-word;
+          word-wrap:break-word;
+        }
         td,th{
           border:1px solid #000;
           padding:4px;
           font-size:9pt;
         }
+        .col-nombre-ben{ width:34%; }
+        .col-parentesco-ben{ width:18%; min-width:5em; }
+        .col-fnac-ben{ width:14%; min-width:6.5em; white-space:nowrap; }
+        .col-rut-ben{ width:18%; min-width:7.5em; white-space:nowrap; }
+        .col-inval-ben{ width:16%; min-width:3em; }
         .col-rut{
           white-space:nowrap;
           width:1%;
@@ -2448,13 +2495,13 @@
         <p>
         El Afiliado declara que la composición de su grupo familiar con derecho a pensión es:
         </p>
-        <table>
+        <table class="tabla-benef-contrato">
         <tr>
-          <th>Nombre completo</th>
-          <th>Parentesco</th>
-          <th>Fecha de nac.</th>
-          <th class="col-rut">Rut</th>
-          <th>Inválido</th>
+          <th class="col-nombre-ben">Nombre completo</th>
+          <th class="col-parentesco-ben">Parentesco</th>
+          <th class="col-fnac-ben">Fecha de nac.</th>
+          <th class="col-rut-ben">Rut</th>
+          <th class="col-inval-ben">Inválido</th>
         </tr>
         ${filasBeneficiarios}
         </table>
@@ -3755,30 +3802,6 @@
     <div class="error" data-error-for="beneficiarios.${i}.parentesco"></div>
   </div>
 
-  <div class="benef-matrimonio-fields col-12" id="benef_${i}_matrimonio" style="display:none;">
-    <div class="grid">
-      <div class="field col-4">
-        <label>Fecha de matrimonio/unión civil</label>
-        <div class="date-group">
-          <select id="benef_${i}_mat_dia">
-            <option value="" selected disabled>Día</option>
-          </select>
-          <select id="benef_${i}_mat_mes">
-            <option value="" selected disabled>Mes</option>
-          </select>
-          <select id="benef_${i}_mat_anio">
-            <option value="" selected disabled>Año</option>
-          </select>
-          <input type="hidden" name="beneficiarios.${i}.fechaMatrimonioUnionCivil" id="benef_${i}_mat_fecha" />
-        </div>
-      </div>
-      <div class="field col-4">
-        <label>Ciudad del matrimonio/unión civil</label>
-        <input name="beneficiarios.${i}.ciudadMatrimonioUnionCivil" />
-      </div>
-    </div>
-  </div>
-
   <div class="field col-4">
     <label>Beneficiario es inválido? <span class="req">*</span></label>
     <div class="radio-row" role="group" aria-label="Beneficiario inválido">
@@ -3814,6 +3837,30 @@
       />
     </div>
     <div class="error" data-error-for="beneficiarios.${i}.fechaNacimiento"></div>
+  </div>
+
+  <div class="benef-matrimonio-fields col-12" id="benef_${i}_matrimonio" style="display:none;">
+    <div class="grid">
+      <div class="field col-4">
+        <label>Fecha de matrimonio/unión civil</label>
+        <div class="date-group">
+          <select id="benef_${i}_mat_dia">
+            <option value="" selected disabled>Día</option>
+          </select>
+          <select id="benef_${i}_mat_mes">
+            <option value="" selected disabled>Mes</option>
+          </select>
+          <select id="benef_${i}_mat_anio">
+            <option value="" selected disabled>Año</option>
+          </select>
+          <input type="hidden" name="beneficiarios.${i}.fechaMatrimonioUnionCivil" id="benef_${i}_mat_fecha" />
+        </div>
+      </div>
+      <div class="field col-4">
+        <label>Ciudad del matrimonio/unión civil</label>
+        <input name="beneficiarios.${i}.ciudadMatrimonioUnionCivil" />
+      </div>
+    </div>
   </div>
 
   <div class="field col-12">
