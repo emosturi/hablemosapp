@@ -3080,6 +3080,19 @@
             if (par === "cónyuge" || par === "conyuge" || par.indexOf("conviviente") !== -1) {
               row.conyuge_fecha_matrimonio = ben.fecha_matrimonio_union_civil || null;
               row.conyuge_lugar_matrimonio = ben.ciudad_matrimonio_union_civil || null;
+              // Misma persona que en solicitud_beneficiarios: la ficha del cliente usa columnas conyuge_*.
+              if (ben.nombres != null && String(ben.nombres).trim()) row.conyuge_nombres = String(ben.nombres).trim();
+              if (ben.apellido_paterno != null && String(ben.apellido_paterno).trim()) {
+                row.conyuge_apellido_paterno = String(ben.apellido_paterno).trim();
+              }
+              if (ben.apellido_materno != null && String(ben.apellido_materno).trim()) {
+                row.conyuge_apellido_materno = String(ben.apellido_materno).trim();
+              }
+              if (ben.rut != null && String(ben.rut).trim()) row.conyuge_rut = String(ben.rut).trim().toUpperCase().replace(/[^0-9K]/g, "");
+              if (ben.fecha_nacimiento != null && String(ben.fecha_nacimiento).trim()) {
+                row.conyuge_fecha_nacimiento = String(ben.fecha_nacimiento).split("T")[0];
+              }
+              if (ben.sexo != null && String(ben.sexo).trim()) row.conyuge_sexo = String(ben.sexo).trim();
               break;
             }
           }
@@ -4476,21 +4489,56 @@
                       observaciones: ""
                     });
                   } else if (esCasadoOConviviente) {
-                    // Cliente casado/conviviente pero sin datos de cónyuge en BD: mostrar un beneficiario vacío para completar
+                    // Sin columnas conyuge_* (ej. pasó de soltero en registro a casado solo en pensión): usar solicitud_beneficiarios o plantilla vacía.
                     var parentescoVacio = estadoCivilStr.indexOf("conviviente") !== -1 ? "Conviviente civil" : "Cónyuge";
-                    beneficiarios.push({
-                      nombres: "",
-                      apellidoPaterno: "",
-                      apellidoMaterno: "",
-                      rut: "",
-                      sexo: "",
-                      parentesco: parentescoVacio,
-                      fechaNacimiento: "",
-                      fechaMatrimonioUnionCivil: "",
-                      ciudadMatrimonioUnionCivil: "",
-                      esInvalido: "No",
-                      observaciones: ""
-                    });
+                    var bbCony = null;
+                    if (c.solicitud_beneficiarios && Array.isArray(c.solicitud_beneficiarios)) {
+                      for (var ibc = 0; ibc < c.solicitud_beneficiarios.length; ibc++) {
+                        var bbc = c.solicitud_beneficiarios[ibc];
+                        var pbc = String(bbc.parentesco || "").toLowerCase();
+                        if (pbc === "cónyuge" || pbc === "conyuge" || pbc.indexOf("conviviente") !== -1) {
+                          bbCony = bbc;
+                          break;
+                        }
+                      }
+                    }
+                    function isoADdMmYyyy(isoRaw) {
+                      if (!isoRaw || typeof isoRaw !== "string") return "";
+                      var iso = isoRaw.split("T")[0];
+                      if (!iso || !iso.match(/^\d{4}-\d{2}-\d{2}$/)) return "";
+                      var p = iso.split("-");
+                      return p[2] + "-" + p[1] + "-" + p[0];
+                    }
+                    if (bbCony) {
+                      var rawInvBc = bbCony.es_invalido != null ? bbCony.es_invalido : bbCony.esInvalido;
+                      beneficiarios.push({
+                        nombres: bbCony.nombres || "",
+                        apellidoPaterno: bbCony.apellido_paterno || bbCony.apellidoPaterno || "",
+                        apellidoMaterno: bbCony.apellido_materno || bbCony.apellidoMaterno || "",
+                        rut: bbCony.rut || "",
+                        sexo: bbCony.sexo || "",
+                        parentesco: (bbCony.parentesco && String(bbCony.parentesco).trim()) || parentescoVacio,
+                        fechaNacimiento: isoADdMmYyyy(bbCony.fecha_nacimiento || ""),
+                        fechaMatrimonioUnionCivil: isoADdMmYyyy(bbCony.fecha_matrimonio_union_civil || ""),
+                        ciudadMatrimonioUnionCivil: (bbCony.ciudad_matrimonio_union_civil || bbCony.ciudadMatrimonioUnionCivil || "").trim(),
+                        esInvalido: benefEsInvalidoSiNo(rawInvBc),
+                        observaciones: (bbCony.observaciones || "").trim()
+                      });
+                    } else {
+                      beneficiarios.push({
+                        nombres: "",
+                        apellidoPaterno: "",
+                        apellidoMaterno: "",
+                        rut: "",
+                        sexo: "",
+                        parentesco: parentescoVacio,
+                        fechaNacimiento: "",
+                        fechaMatrimonioUnionCivil: "",
+                        ciudadMatrimonioUnionCivil: "",
+                        esInvalido: "No",
+                        observaciones: ""
+                      });
+                    }
                   }
                   // Hijos menores de 24 años
                   if (c.tiene_hijos_menores_24 && c.hijos && Array.isArray(c.hijos) && c.hijos.length > 0) {

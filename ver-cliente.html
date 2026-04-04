@@ -990,30 +990,41 @@
               if (x === "no") return "No";
               return s;
             }
-            function matrimonioConyugeDesdeBeneficiarios(cli) {
+            function primerBeneficiarioConyuge(cli) {
               var fb = cli.solicitud_beneficiarios;
-              if (!fb || !Array.isArray(fb)) return { fecha: null, lugar: null, es_invalido: null };
+              if (!fb || !Array.isArray(fb)) return null;
               for (var i = 0; i < fb.length; i++) {
                 var b = fb[i];
                 var p = String(b.parentesco || "").toLowerCase();
-                if (p === "cónyuge" || p === "conyuge" || p.indexOf("conviviente") !== -1) {
-                  return {
-                    fecha: b.fecha_matrimonio_union_civil || null,
-                    lugar: b.ciudad_matrimonio_union_civil || null,
-                    es_invalido: b.es_invalido != null ? b.es_invalido : b.esInvalido
-                  };
-                }
+                if (p === "cónyuge" || p === "conyuge" || p.indexOf("conviviente") !== -1) return b;
               }
-              return { fecha: null, lugar: null, es_invalido: null };
+              return null;
             }
+            function matrimonioConyugeDesdeBeneficiarios(cli) {
+              var b = primerBeneficiarioConyuge(cli);
+              if (!b) return { fecha: null, lugar: null, es_invalido: null };
+              return {
+                fecha: b.fecha_matrimonio_union_civil || null,
+                lugar: b.ciudad_matrimonio_union_civil || null,
+                es_invalido: b.es_invalido != null ? b.es_invalido : b.esInvalido
+              };
+            }
+            var benefCony = primerBeneficiarioConyuge(c);
             var matDesdeBenef = matrimonioConyugeDesdeBeneficiarios(c);
             var fechaMatDisplay = c.conyuge_fecha_matrimonio || matDesdeBenef.fecha;
             var lugarMatDisplay = c.conyuge_lugar_matrimonio || matDesdeBenef.lugar;
-            if (c.conyuge_nombres || c.conyuge_rut || lugarMatDisplay || c.conyuge_nacionalidad || c.conyuge_sexo) {
+            var conyNombres = c.conyuge_nombres || (benefCony && benefCony.nombres) || "";
+            var conyAp = c.conyuge_apellido_paterno || (benefCony && benefCony.apellido_paterno) || "";
+            var conyAm = c.conyuge_apellido_materno || (benefCony && benefCony.apellido_materno) || "";
+            var conyRutRaw = c.conyuge_rut || (benefCony && benefCony.rut) || "";
+            var conyNac = c.conyuge_nacionalidad || (benefCony && benefCony.nacionalidad) || "";
+            var conySexo = c.conyuge_sexo || (benefCony && benefCony.sexo) || "";
+            var conyFnac = c.conyuge_fecha_nacimiento || (benefCony && benefCony.fecha_nacimiento) || null;
+            if (conyNombres || conyRutRaw || lugarMatDisplay || conyNac || conySexo || conyAp || conyAm || fechaMatDisplay) {
               html += '<div class="section"><h2>Cónyuge / Conviviente civil</h2><div class="grid">';
-              html += item("Nombres", c.conyuge_nombres) + item("Apellido Paterno", c.conyuge_apellido_paterno) + item("Apellido Materno", c.conyuge_apellido_materno);
-              html += item("Nacionalidad", c.conyuge_nacionalidad) + item("Sexo", c.conyuge_sexo) + item("RUT", c.conyuge_rut ? formatRutDisplay(c.conyuge_rut) : c.conyuge_rut);
-              html += item("Fecha nacimiento", fmtDate(c.conyuge_fecha_nacimiento)) + item("Fecha matrimonio", fmtDate(fechaMatDisplay)) + item("Lugar matrimonio", lugarMatDisplay);
+              html += item("Nombres", conyNombres) + item("Apellido Paterno", conyAp) + item("Apellido Materno", conyAm);
+              html += item("Nacionalidad", conyNac) + item("Sexo", conySexo) + item("RUT", conyRutRaw ? formatRutDisplay(conyRutRaw) : conyRutRaw);
+              html += item("Fecha nacimiento", fmtDate(conyFnac)) + item("Fecha matrimonio", fmtDate(fechaMatDisplay)) + item("Lugar matrimonio", lugarMatDisplay);
               html += item("Inválido", textoEsInvalido(matDesdeBenef.es_invalido));
               html += "</div></div>";
             }
