@@ -13,7 +13,7 @@ window.SUPABASE_ANON_KEY = "tu-anon-key-aqui";
 //   MERCADOPAGO_ACCESS_TOKEN          — Access Token de la aplicación (producción o prueba).
 //   MERCADOPAGO_PLAN_MENSUAL_CLP      — Precio entero en pesos chilenos (ej. 15000).
 //   MERCADOPAGO_PLAN_ANUAL_CLP        — Precio entero en pesos chilenos.
-//   MERCADOPAGO_PUBLIC_SITE_URL       — URL base HTTPS de la app (ej. https://plataforma.tudominio.cl). Si omites, Netlify suele exponer URL.
+//   MERCADOPAGO_PUBLIC_SITE_URL       — URL base HTTPS de la app (ej. https://plataforma.prevy.cl). Si omites, Netlify suele exponer URL.
 //   MERCADOPAGO_WEBHOOK_BASE_URL      — Opcional: si el webhook debe registrarse con otra URL base que la de retorno al usuario.
 //   MERCADOPAGO_WEBHOOK_SECRET        — Firma del webhook en «Tus integraciones» (recomendado en producción).
 //   MERCADOPAGO_WEBHOOK_ALLOW_UNSIGNED_GET=1 — Solo si usas IPN GET legacy sin cabecera x-signature y tienes WEBHOOK_SECRET definido.

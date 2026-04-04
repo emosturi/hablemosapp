@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Prevy — Plataforma para asesores previsionales</title>
+    <meta name="description" content="Prevy: herramientas digitales para asesores de pensiones en Chile. Recordatorios, clientes, agenda y más. Instalable como app (PWA)." />
+    <meta name="application-name" content="Prevy" />
+    <meta property="og:site_name" content="Prevy" />
+    <meta property="og:title" content="Prevy — Plataforma para asesores previsionales" />
+    <meta property="og:description" content="Gestiona clientes, recordatorios y tu agenda desde una plataforma pensada para asesores previsionales." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Prevy" />
+    <link rel="stylesheet" href="/app-shell.css" />
+    <style>
+      html {
+        color-scheme: light;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        color: var(--text);
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, sans-serif;
+        background: radial-gradient(1000px 620px at 12% -8%, rgba(0, 223, 195, 0.14), transparent 58%),
+          radial-gradient(820px 520px at 92% 12%, rgba(1, 147, 145, 0.16), transparent 52%),
+          radial-gradient(700px 480px at 50% 100%, rgba(0, 96, 108, 0.08), transparent 55%),
+          var(--surface);
+      }
+      .pl-wrap {
+        max-width: 1040px;
+        margin: 0 auto;
+        padding: 0 18px 80px;
+      }
+      .pl-header {
+        position: sticky;
+        top: 0;
+        z-index: 40;
+        backdrop-filter: blur(12px);
+        background: color-mix(in oklab, var(--card) 90%, transparent);
+        border-bottom: 1px solid var(--border);
+      }
+      .pl-header-inner {
+        max-width: 1040px;
+        margin: 0 auto;
+        padding: 14px 18px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .pl-brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 800;
+        font-size: 1.15rem;
+        letter-spacing: -0.02em;
+        color: var(--text);
+      }
+      .pl-brand img {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+      }
+      .pl-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 18px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 14px;
+        text-decoration: none;
+        font-family: inherit;
+        border: 1px solid var(--border);
+        background: var(--card);
+        color: var(--text);
+        cursor: pointer;
+        transition: border-color 0.15s, background 0.15s;
+      }
+      .pl-btn:hover {
+        border-color: var(--primary-mid);
+      }
+      .pl-btn-primary {
+        background: var(--primary);
+        border-color: var(--primary);
+        color: #fff;
+      }
+      .pl-btn-primary:hover {
+        background: var(--primary-hover);
+        border-color: var(--primary-hover);
+        color: #fff;
+      }
+      .pl-hero {
+        padding: 44px 0 32px;
+        text-align: center;
+      }
+      .pl-hero h1 {
+        margin: 0;
+        font-size: clamp(1.65rem, 4vw, 2.35rem);
+        letter-spacing: -0.03em;
+        line-height: 1.15;
+        color: var(--text);
+      }
+      .pl-hero .lead {
+        margin: 16px auto 0;
+        max-width: 560px;
+        font-size: 1.05rem;
+        line-height: 1.55;
+        color: var(--muted);
+      }
+      .pl-hero-ctas {
+        margin-top: 28px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        justify-content: center;
+      }
+      .pl-section {
+        margin-top: 48px;
+      }
+      .pl-section h2 {
+        margin: 0 0 10px;
+        font-size: 1.25rem;
+        letter-spacing: -0.02em;
+        text-align: center;
+      }
+      .pl-section > p.sub {
+        margin: 0 auto 24px;
+        max-width: 520px;
+        text-align: center;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.5;
+      }
+      .pl-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 16px;
+      }
+      .pl-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 20px;
+        box-shadow: var(--shadow);
+      }
+      .pl-card h3 {
+        margin: 0 0 8px;
+        font-size: 1rem;
+        color: var(--text);
+      }
+      .pl-card p {
+        margin: 0;
+        font-size: 14px;
+        line-height: 1.5;
+        color: var(--muted);
+      }
+      .pl-pwa {
+        margin-top: 20px;
+        padding: 18px;
+        border-radius: var(--radius);
+        border: 1px solid var(--border);
+        background: color-mix(in oklab, var(--accent-bright) 12%, var(--card));
+        font-size: 14px;
+        line-height: 1.5;
+        color: var(--text);
+        text-align: center;
+      }
+      .pl-footer {
+        margin-top: 56px;
+        padding-top: 24px;
+        border-top: 1px solid var(--border);
+        font-size: 13px;
+        color: var(--muted);
+        line-height: 1.5;
+        text-align: center;
+      }
+      .pl-footer a {
+        color: var(--primary-mid);
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="pl-header">
+      <div class="pl-header-inner">
+        <div class="pl-brand">
+          <img src="/icons/icon-192.png" alt="" width="40" height="40" decoding="async" />
+          Prevy
+        </div>
+        <a class="pl-btn pl-btn-primary" href="https://plataforma.prevy.cl/login.html">Entrar a la plataforma</a>
+      </div>
+    </header>
+
+    <main class="pl-wrap">
+      <section class="pl-hero" aria-labelledby="pl-hero-title">
+        <h1 id="pl-hero-title">La plataforma para ordenar tu trabajo como asesor previsional</h1>
+        <p class="lead">
+          Clientes, recordatorios, agenda de llamadas, registro de afiliados y más en un solo lugar. Puedes usarla en el navegador o
+          <strong>instalarla como aplicación</strong> en tu móvil o escritorio (PWA).
+        </p>
+        <div class="pl-hero-ctas">
+          <a class="pl-btn pl-btn-primary" href="https://plataforma.prevy.cl/login.html">Acceder a Prevy</a>
+          <a class="pl-btn" href="#caracteristicas">Ver características</a>
+        </div>
+      </section>
+
+      <section id="caracteristicas" class="pl-section" aria-labelledby="pl-feat-title">
+        <h2 id="pl-feat-title">Qué incluye</h2>
+        <p class="sub">Pensada para el día a día del asesor: menos fricción y más claridad en el seguimiento.</p>
+        <div class="pl-grid">
+          <article class="pl-card">
+            <h3>Recordatorios</h3>
+            <p>Programa alertas por cliente y recibe avisos por Telegram cuando corresponda.</p>
+          </article>
+          <article class="pl-card">
+            <h3>Clientes y prospectos</h3>
+            <p>Listados, fichas, clientes potenciales y enlaces para registro o agenda pública.</p>
+          </article>
+          <article class="pl-card">
+            <h3>Agenda y disponibilidad</h3>
+            <p>Define tu disponibilidad y comparte un enlace para que reserven llamadas contigo.</p>
+          </article>
+          <article class="pl-card">
+            <h3>Formulario de pensión</h3>
+            <p>Flujo de trabajo digital alineado con tus procesos de asesoría.</p>
+          </article>
+          <article class="pl-card">
+            <h3>App instalable (PWA)</h3>
+            <p>Acceso rápido desde la pantalla de inicio, sin tienda de aplicaciones.</p>
+          </article>
+          <article class="pl-card">
+            <h3>Tema claro / oscuro</h3>
+            <p>Interfaz adaptable para trabajar cómodo en cualquier entorno.</p>
+          </article>
+        </div>
+        <div class="pl-pwa" role="note">
+          <strong>Instalar en el teléfono:</strong> abre Prevy en
+          <a href="https://plataforma.prevy.cl/login.html">plataforma.prevy.cl</a> con Chrome o Safari y usa «Añadir a pantalla de inicio» o «Instalar app» cuando el navegador lo ofrezca.
+        </div>
+      </section>
+
+      <footer class="pl-footer">
+        <p>
+          <strong>Información oficial:</strong> sobre pensiones en Chile consulta la
+          <a href="https://www.spensiones.cl" target="_blank" rel="noopener noreferrer">Superintendencia de Pensiones</a>.
+        </p>
+        <p style="margin-top: 12px">© Prevy — Herramientas para asesores previsionales.</p>
+      </footer>
+    </main>
+  </body>
+</html>

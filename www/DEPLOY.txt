@@ -1,22 +1,37 @@
-Landing (hablemosdepension.cl) y plataforma (plataforma.hablemosdepension.cl)
-==================================================================================
+Dominios Prevy (un solo sitio Netlify, ver netlify.toml)
+=========================================================
 
-Dominio plataforma.hablemosdepension.cl
-----------------------------------------
-1) Netlify → tu sitio → Domain management → Add domain alias → plataforma.hablemosdepension.cl
-2) DNS de hablemosdepension.cl → Add record:
-   - Hostname: plataforma
-   - Type: CNAME → tu-sitio.netlify.app (el mismo del sitio que despliega este repo)
-3) Espera SSL en verde y prueba https://plataforma.hablemosdepension.cl/
+Plataforma (PWA / app)
+----------------------
+- Host: https://plataforma.prevy.cl
+- Netlify → Domain management → Add domain alias → plataforma.prevy.cl
+- DNS zona prevy.cl: CNAME `plataforma` → tu-sitio.netlify.app (o lo que indique Netlify)
+- SSL en verde → probar https://plataforma.prevy.cl/
 
-netlify.toml: la raíz "/" en plataforma.* reescribe a /dashboard.html; en apex/www a /www/index.html (landing).
-www/site-urls.js → PREVY_PLATAFORMA_ORIGIN = https://plataforma.hablemosdepension.cl
+Landing marketing Prevy
+-----------------------
+- Hosts: https://www.prevy.cl y https://prevy.cl (apex)
+- Añadir ambos en Netlify; DNS: CNAME www → netlify; apex según proveedor (ALIAS/ANAME o A de Netlify)
 
-Dominio anterior (opcional, si sigue en uso)
---------------------------------------------
-Si mantienes plataforma.hablemospensiones.cl en Netlify y DNS, las reglas en netlify.toml siguen sirviendo el panel ahí también.
+Landing Hablemos depensión (sin cambios de contenido)
+-----------------------------------------------------
+- Hosts: https://www.hablemosdepension.cl y https://hablemosdepension.cl usan la misma landing /www/index.html que antes (catch-all).
+- El enlace «Acceso equipo» del pie usa PREVY_PLATAFORMA_ORIGIN → https://plataforma.prevy.cl (www/site-urls.js).
+
+Legacy (opcional mientras migres DNS)
+-------------------------------------
+- plataforma.hablemosdepension.cl / plataforma.hablemospensiones.cl siguen en netlify.toml → misma app.
+
+www/site-urls.js
+----------------
+PREVY_PLATAFORMA_ORIGIN = https://plataforma.prevy.cl
+(La landing en /www/index.html usa esto para data-app-href «Acceso equipo» en previews.)
 
 Supabase → Authentication → URL Configuration
-----------------------------------------------
-- Site URL: https://plataforma.hablemosdepension.cl
-- Redirect URLs: incluir al menos https://plataforma.hablemosdepension.cl/** (y la URL antigua si aún la usas)
+---------------------------------------------
+- Site URL recomendada: https://plataforma.prevy.cl
+- Redirect URLs: https://plataforma.prevy.cl/** y mantén las URLs antiguas hasta completar la migración.
+
+Mercado Pago / webhooks / Telegram
+----------------------------------
+- Actualizar URLs públicas a https://plataforma.prevy.cl donde corresponda.

@@ -1,12 +1,19 @@
-# Deploy desde la RAÍZ: la raíz del dominio (apex y www) muestra la landing en /www/index.html.
-# La app sigue en /dashboard.html, /login.html, etc.
-# Si más adelante usas un sitio Netlify solo para plataforma.*, allí puedes volver a poner / → dashboard.
+# Un solo deploy: app (PWA) + landings por host.
+#
+# Matriz de hosts (añade cada dominio en Netlify → Domain management + DNS):
+#   plataforma.prevy.cl          → app (raíz = dashboard)
+#   www.prevy.cl, prevy.cl       → landing comercial Prevy (/prevy-landing/)
+#   www.hablemosdepension.cl,
+#   hablemosdepension.cl         → misma landing larga /www/index.html (catch-all; «Acceso equipo» → plataforma.prevy.cl vía site-urls.js)
+#   plataforma.hablemosdepension.cl, plataforma.hablemospensiones.cl → app (legacy)
+#   *.netlify.app y otros alias  → landing /www/index.html
+#
+# Orden: reglas más específicas (host completo en `from`) antes que el catch-all `/`.
 
-# process-reminders: cada 5 min (pruebas); en producción cambiar a "*/15 * * * *"
 [functions."process-reminders"]
   schedule = "*/5 * * * *"
 
-# Enlaces antiguos: raíz con parámetros del formulario pensión
+# Raíz con parámetros del formulario pensión (cualquier host)
 [[redirects]]
   from = "/"
   to = "/pension.html"
@@ -19,7 +26,20 @@
   status = 302
   query = { imprimir = ":imprimir" }
 
-# Subdominio plataforma: raíz → panel (Host explícito; debe estar en DNS y como dominio del sitio en Netlify)
+# --- Plataforma Prevy (PWA) ---
+[[redirects]]
+  from = "https://plataforma.prevy.cl/"
+  to = "/dashboard.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "https://plataforma.prevy.cl/index.html"
+  to = "/dashboard.html"
+  status = 200
+  force = true
+
+# --- Plataforma legacy (mantener hasta migración DNS completa) ---
 [[redirects]]
   from = "https://plataforma.hablemosdepension.cl/"
   to = "/dashboard.html"
@@ -44,14 +64,38 @@
   status = 200
   force = true
 
-# Raíz en apex / www / *.netlify.app: landing
+# --- Landing marketing Prevy (www.prevy.cl + apex) ---
+[[redirects]]
+  from = "https://www.prevy.cl/"
+  to = "/prevy-landing/index.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "https://www.prevy.cl/index.html"
+  to = "/prevy-landing/index.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "https://prevy.cl/"
+  to = "/prevy-landing/index.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "https://prevy.cl/index.html"
+  to = "/prevy-landing/index.html"
+  status = 200
+  force = true
+
+# --- Default: landing larga /www/index.html (hablemosdepension.cl, netlify.app, etc.) ---
 [[redirects]]
   from = "/"
   to = "/www/index.html"
   status = 200
   force = true
 
-# Quien abra /index.html explícito también ve la landing
 [[redirects]]
   from = "/index.html"
   to = "/www/index.html"
