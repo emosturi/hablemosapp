@@ -10,6 +10,9 @@ window.SUPABASE_ANON_KEY = "tu-anon-key-aqui";
 // window.SESSION_IDLE_TIMEOUT_MS = 2 * 60 * 60 * 1000;
 //
 // Preferencia «mantener sesión» (login.html): localStorage clave prevy:session-persist = "0" = solo mientras dure la pestaña/app (sessionStorage).
+//
+// Recuperar contraseña: en Supabase → Authentication → URL configuration, añade a «Redirect URLs» la URL absoluta de
+// restablecer-contrasena.html (ej. https://plataforma.prevy.cl/restablecer-contrasena.html y la de preview Netlify si aplica).
 
 // Opcional: correo de soporte (enlace mailto en la página «Mi suscripción» del menú de usuario).
 // window.PREVY_SUPPORT_EMAIL = "soporte@tudominio.cl";

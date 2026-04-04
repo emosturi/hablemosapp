@@ -265,6 +265,19 @@
         color: var(--primary-mid);
       }
 
+      .forgot-password-link {
+        margin: -4px 0 12px;
+        text-align: right;
+      }
+      .forgot-password-link a {
+        font-size: 13px;
+        color: var(--primary-mid);
+        text-decoration: none;
+      }
+      .forgot-password-link a:hover {
+        text-decoration: underline;
+      }
+
       .hint {
         font-size: 12px;
         color: var(--muted);
@@ -350,6 +363,10 @@
               />
               <div class="error" id="error_password"></div>
             </div>
+
+            <p class="forgot-password-link">
+              <a href="recuperar-contrasena.html">¿Olvidaste tu contraseña?</a>
+            </p>
 
             <div class="error" id="error_general"></div>
 

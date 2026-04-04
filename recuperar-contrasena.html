@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Recuperar contraseña — Prevy</title>
+    <meta name="theme-color" content="#00696c" />
+    <link rel="stylesheet" href="app-shell.css" />
+    <script src="theme-init.js"></script>
+    <style>
+      body {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        background: radial-gradient(1000px 620px at 12% -8%, rgba(0, 223, 195, 0.14), transparent 58%),
+          radial-gradient(820px 520px at 92% 12%, rgba(1, 147, 145, 0.16), transparent 52%),
+          radial-gradient(700px 480px at 50% 100%, rgba(0, 96, 108, 0.08), transparent 55%),
+          var(--surface);
+      }
+      .page {
+        width: 100%;
+        max-width: 400px;
+      }
+      .panel {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 28px;
+      }
+      h1 {
+        font-size: 1.5rem;
+        margin: 0 0 8px;
+        text-align: center;
+        color: var(--text);
+      }
+      .subtitle {
+        margin: 0 0 20px;
+        color: var(--muted);
+        font-size: 14px;
+        text-align: center;
+        line-height: 1.4;
+      }
+      .field {
+        margin-bottom: 16px;
+      }
+      label {
+        display: block;
+        font-size: 13px;
+        color: var(--text);
+        margin-bottom: 6px;
+      }
+      input {
+        width: 100%;
+        box-sizing: border-box;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        color: var(--text);
+        padding: 12px 14px;
+        font-size: 16px;
+        font-family: inherit;
+      }
+      input:focus {
+        outline: none;
+        border-color: var(--primary-mid);
+        box-shadow: 0 0 0 4px var(--accent-soft);
+      }
+      .error {
+        font-size: 12px;
+        color: var(--danger);
+        margin-top: 6px;
+      }
+      .success {
+        font-size: 14px;
+        color: var(--primary);
+        line-height: 1.45;
+        margin-bottom: 16px;
+      }
+      button[type="submit"] {
+        width: 100%;
+        padding: 14px;
+        border-radius: var(--radius-sm);
+        border: none;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-mid) 70%, var(--accent-bright) 160%);
+        color: #fff;
+        font-family: inherit;
+        margin-top: 4px;
+      }
+      button[type="submit"]:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+      .back {
+        margin-top: 20px;
+        text-align: center;
+      }
+      .back a {
+        color: var(--muted);
+        font-size: 14px;
+        text-decoration: none;
+      }
+      .back a:hover {
+        color: var(--primary-mid);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <div class="panel">
+        <h1>Recuperar contraseña</h1>
+        <p class="subtitle">
+          Te enviaremos un enlace para elegir una contraseña nueva (revisa también spam).
+        </p>
+
+        <div id="successBox" class="success" hidden role="status"></div>
+
+        <form id="recoverForm" novalidate>
+          <div class="field">
+            <label for="recoverEmail">Email de tu cuenta</label>
+            <input id="recoverEmail" name="email" type="email" autocomplete="email" required />
+            <div class="error" id="error_recover_email"></div>
+          </div>
+          <div class="error" id="error_recover_general"></div>
+          <button type="submit" id="btnRecover">Enviar enlace</button>
+        </form>
+
+        <p class="back"><a href="login.html">← Volver al inicio de sesión</a></p>
+      </div>
+    </div>
+
+    <script src="supabase-config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script>
+      (function () {
+        var form = document.getElementById("recoverForm");
+        var successBox = document.getElementById("successBox");
+        var input = document.getElementById("recoverEmail");
+        var errEmail = document.getElementById("error_recover_email");
+        var errGen = document.getElementById("error_recover_general");
+        var btn = document.getElementById("btnRecover");
+
+        function normalizarEmail(s) {
+          return String(s || "")
+            .trim()
+            .toLowerCase();
+        }
+        function emailPareceValido(e) {
+          return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
+        }
+        function mapErr(msg) {
+          if (!msg) return "No se pudo enviar el correo. Intenta más tarde.";
+          var m = String(msg).toLowerCase();
+          if (m.indexOf("rate") !== -1 || m.indexOf("limit") !== -1) {
+            return "Demasiados intentos. Espera unos minutos y prueba de nuevo.";
+          }
+          return msg;
+        }
+
+        form.addEventListener("submit", function (e) {
+          e.preventDefault();
+          errEmail.textContent = "";
+          errGen.textContent = "";
+          successBox.hidden = true;
+
+          var url = window.SUPABASE_URL;
+          var key = window.SUPABASE_ANON_KEY;
+          if (!url || !key || url.indexOf("TU_PROYECTO") !== -1) {
+            errGen.textContent = "Falta configurar Supabase (supabase-config.js).";
+            return;
+          }
+
+          var email = normalizarEmail(input.value);
+          input.value = email;
+          if (!email) {
+            errEmail.textContent = "Ingresa tu email";
+            return;
+          }
+          if (!emailPareceValido(email)) {
+            errEmail.textContent = "Email inválido";
+            return;
+          }
+
+          var client = window.createPrevySupabaseClient
+            ? window.createPrevySupabaseClient(url, key)
+            : window.supabase && window.supabase.createClient(url, key);
+          if (!client) {
+            errGen.textContent = "No se pudo iniciar el cliente.";
+            return;
+          }
+
+          var redirectTo =
+            window.location.origin.replace(/\/$/, "") + "/restablecer-contrasena.html";
+
+          btn.disabled = true;
+          errGen.textContent = "Enviando…";
+
+          client.auth
+            .resetPasswordForEmail(email, { redirectTo: redirectTo })
+            .then(function (res) {
+              btn.disabled = false;
+              errGen.textContent = "";
+              if (res.error) {
+                errGen.textContent = mapErr(res.error.message);
+                return;
+              }
+              form.hidden = true;
+              successBox.hidden = false;
+              successBox.textContent =
+                "Si ese email está registrado en Prevy, recibirás un mensaje con un enlace para restablecer la contraseña. " +
+                "El enlace caduca pasado un tiempo; si no ves el correo, revisa la carpeta de spam.";
+            })
+            .catch(function (err) {
+              btn.disabled = false;
+              errGen.textContent = mapErr(err && err.message);
+            });
+        });
+      })();
+    </script>
+  </body>
+</html>
