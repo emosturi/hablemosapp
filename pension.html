@@ -1462,8 +1462,15 @@
                   "h1,h2,h3,h4{page-break-after:avoid!important;break-after:avoid-page!important;}" +
                   "h1+* ,h2+* ,h3+* ,h4+* {page-break-before:avoid!important;break-before:avoid-page!important;}" +
                   ".tabla-firmas,.firmas{page-break-inside:avoid!important;break-inside:avoid!important;}" +
-                  "p{text-align:justify!important;orphans:3;widows:3;}" +
-                  ".tabla-firmas td p{text-align:center!important;}";
+                  "body{text-align:justify!important;}" +
+                  "p,li{text-align:justify!important;orphans:3;widows:3;}" +
+                  "h1,h2,h3,h4,th{text-align:center!important;}" +
+                  "td{text-align:justify!important;}" +
+                  "td.col-respuesta,.tabla-firmas td,.tabla-firmas td p{text-align:center!important;}" +
+                  "table.tabla-benef-mandato th{font-size:9pt!important;text-align:center!important;}" +
+                  "table.tabla-benef-mandato td{font-size:7pt!important;line-height:1.2!important;text-align:justify!important;}" +
+                  "table.tabla-benef-contrato th{text-align:center!important;}" +
+                  "table.tabla-benef-contrato td{text-align:justify!important;}";
                 head.appendChild(inj);
               }
             } catch (_e) {}
@@ -1711,9 +1718,10 @@
         font-size:12pt;
         line-height:1.5;
         margin:15px 12px;
+        text-align:justify;
         }
 
-        p{
+        p,li{
         text-align:justify;
         }
         .tabla-firmas td p{
@@ -1733,6 +1741,15 @@
         font-size:9pt;
         vertical-align:top;
         }
+        th{
+        text-align:center;
+        }
+        td{
+        text-align:justify;
+        }
+        td.col-respuesta{
+        text-align:center;
+        }
         table.tabla-benef-mandato{
         table-layout:fixed;
         }
@@ -1741,13 +1758,22 @@
         overflow-wrap:break-word;
         word-wrap:break-word;
         }
+        table.tabla-benef-mandato th{
+        font-size:9pt;
+        text-align:center;
+        }
+        table.tabla-benef-mandato td{
+        font-size:7pt;
+        line-height:1.2;
+        text-align:justify;
+        }
         /* Anchos: sexo/rut/fnac ×1,3; parentesco ×1,5; obs ×0,7 vs base anterior; nombre absorbe el resto hasta 100%. */
         .col-nombre-ben{ width:17%; }
         .col-sexo-ben{ width:9%; min-width:3.9em; }
         .col-rut-ben{ width:17%; min-width:9.75em; white-space:nowrap; }
         .col-fnac-ben{ width:14%; min-width:8.45em; white-space:nowrap; }
         .col-parentesco-ben{ width:24%; min-width:8.25em; }
-        .col-obs-ben{ width:19%; font-size:8pt; line-height:1.25; }
+        .col-obs-ben{ width:19%; }
         .col-rut{
         white-space:nowrap;
         width:1%;
@@ -2200,18 +2226,21 @@
         <head>
         <meta charset="utf-8">
         <style>
-        body{ font-family:Arial; font-size:12pt; line-height:1.5; margin:15px 12px; }
-        p{ text-align:justify; }
+        body{ font-family:Arial; font-size:12pt; line-height:1.5; margin:15px 12px; text-align:justify; }
+        p,li{ text-align:justify; }
         .tabla-firmas td p{ text-align:center; }
         table{ border-collapse:collapse; width:100%; margin-top:10px; font-size:9pt; }
         td,th{ border:1px solid black; padding:4px; font-size:9pt; vertical-align:top; }
+        th{ text-align:center; }
+        td{ text-align:justify; }
+        td.col-respuesta{ text-align:center; }
         .col-rut{ white-space:nowrap; width:1%; min-width:7em; }
         .col-respuesta{ min-width:8em; width:8em; white-space:nowrap; word-break:keep-all; }
         h1,h2,h3,h4{ page-break-after:avoid!important; break-after:avoid-page!important; }
         h2+*,h3+*,h1+*{ page-break-before:avoid!important; break-before:avoid-page!important; }
         h2,h3{ margin-top:20px; page-break-after:avoid; text-align:center; text-transform:uppercase; }
         h2{ text-align:center; text-transform:uppercase; width:100%; display:block; }
-        .empleador-datos{ text-align:left; }
+        .empleador-datos{ text-align:justify; }
         .firmas{ margin-top:40px; overflow:hidden; width:100%; }
         .firma-izq{ float:left; width:45%; text-align:center; }
         .firma-der{ float:right; width:45%; text-align:center; }
@@ -2390,6 +2419,7 @@
           font-size:11pt;
           line-height:1.4;
           margin:15px 12px;
+          text-align:justify;
         }
         h1{
           font-size:14pt;
@@ -2414,7 +2444,7 @@
           page-break-before:avoid;
           break-before:avoid-page;
         }
-        p{
+        p,li{
           text-align:justify;
         }
         .tabla-firmas td p{
@@ -2425,6 +2455,18 @@
           width:100%;
           margin-top:8px;
           font-size:9pt;
+        }
+        th{
+          text-align:center;
+        }
+        td{
+          text-align:justify;
+        }
+        table.tabla-benef-contrato th{
+          text-align:center;
+        }
+        table.tabla-benef-contrato td{
+          text-align:justify;
         }
         table.tabla-benef-contrato{
           table-layout:fixed;
