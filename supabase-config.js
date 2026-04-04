@@ -92,3 +92,69 @@ window.installInactivityAutoLogout = function (supabaseClient, options) {
     // No bloquear la app si falla el control de inactividad.
   }
 };
+
+// Preferencia «mantener sesión en este dispositivo»: localStorage (persistente) vs sessionStorage (se pierde al cerrar pestaña/app).
+// Valor en localStorage: "0" = no mantener; ausente u otro = mantener (por defecto).
+window.PREVY_SESSION_PERSIST_KEY = "prevy:session-persist";
+
+window.isPrevySessionPersistent = function () {
+  try {
+    return window.localStorage.getItem(window.PREVY_SESSION_PERSIST_KEY) !== "0";
+  } catch (_e) {
+    return true;
+  }
+};
+
+window.setPrevySessionPersistPreference = function (keepOpenOnDevice) {
+  try {
+    if (keepOpenOnDevice) window.localStorage.removeItem(window.PREVY_SESSION_PERSIST_KEY);
+    else window.localStorage.setItem(window.PREVY_SESSION_PERSIST_KEY, "0");
+  } catch (_e) {}
+};
+
+window.prevySupabaseAuthStorageKeys = function (supabaseUrl) {
+  try {
+    var a = document.createElement("a");
+    a.href = supabaseUrl || window.SUPABASE_URL || "";
+    var host = a.hostname || "";
+    var ref = host.split(".")[0] || "";
+    if (!ref) return null;
+    var base = "sb-" + ref + "-auth-token";
+    return { main: base, user: base + "-user", verifier: base + "-code-verifier" };
+  } catch (_e) {
+    return null;
+  }
+};
+
+window.clearPrevySupabaseAuthInStorage = function (storage, supabaseUrl) {
+  var keys = window.prevySupabaseAuthStorageKeys(supabaseUrl);
+  if (!keys || !storage) return;
+  try {
+    storage.removeItem(keys.main);
+    storage.removeItem(keys.user);
+    storage.removeItem(keys.verifier);
+  } catch (_e) {}
+};
+
+/** Antes de login/registro/OAuth: guarda la preferencia y borra tokens del otro almacenamiento para no mezclar sesiones. */
+window.applyPrevySessionPersistenceChoice = function (keepOpenOnDevice, supabaseUrl) {
+  var url = supabaseUrl || window.SUPABASE_URL;
+  window.setPrevySessionPersistPreference(!!keepOpenOnDevice);
+  if (keepOpenOnDevice) window.clearPrevySupabaseAuthInStorage(window.sessionStorage, url);
+  else window.clearPrevySupabaseAuthInStorage(window.localStorage, url);
+};
+
+window.createPrevySupabaseClient = function (optionalUrl, optionalKey) {
+  var url = optionalUrl || window.SUPABASE_URL;
+  var key = optionalKey || window.SUPABASE_ANON_KEY;
+  if (!url || !key || !window.supabase || !window.supabase.createClient) return null;
+  var storage = window.isPrevySessionPersistent() ? window.localStorage : window.sessionStorage;
+  return window.supabase.createClient(url, key, {
+    auth: {
+      storage: storage,
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+    },
+  });
+};

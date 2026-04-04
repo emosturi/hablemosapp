@@ -162,7 +162,7 @@
           return;
         }
 
-        var supabase = window.supabase.createClient(url, key);
+        var supabase = window.createPrevySupabaseClient(url, key);
         var cacheBloques = null;
         var cacheReservas = [];
         var rangoDesde = null;

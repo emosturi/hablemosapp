@@ -8,6 +8,8 @@ window.SUPABASE_ANON_KEY = "tu-anon-key-aqui";
 
 // Opcional: tiempo máximo sin interacción con la app en primer plano antes de cerrar sesión (por defecto 1 h en supabase-config.js).
 // window.SESSION_IDLE_TIMEOUT_MS = 2 * 60 * 60 * 1000;
+//
+// Preferencia «mantener sesión» (login.html): localStorage clave prevy:session-persist = "0" = solo mientras dure la pestaña/app (sessionStorage).
 
 // Opcional: correo de soporte (enlace mailto en la página «Mi suscripción» del menú de usuario).
 // window.PREVY_SUPPORT_EMAIL = "soporte@tudominio.cl";

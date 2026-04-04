@@ -271,6 +271,31 @@
         margin: -8px 0 16px;
         line-height: 1.4;
       }
+
+      .field-keep-session {
+        margin: 0 0 18px;
+      }
+      .keep-session-label {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        font-size: 14px;
+        color: var(--text);
+        cursor: pointer;
+        margin: 0;
+        font-weight: 500;
+      }
+      .keep-session-label input {
+        margin-top: 3px;
+        width: auto;
+        flex-shrink: 0;
+      }
+      .keep-session-hint {
+        font-size: 12px;
+        color: var(--muted);
+        margin: 8px 0 0 28px;
+        line-height: 1.4;
+      }
     </style>
   </head>
   <body>
@@ -288,6 +313,16 @@
           <button type="button" class="auth-tab" id="tabRegister" role="tab" aria-selected="false" aria-controls="paneRegister">
             Nuevo asesor
           </button>
+        </div>
+
+        <div class="field field-keep-session">
+          <label class="keep-session-label" for="keepSessionOnDevice">
+            <input type="checkbox" id="keepSessionOnDevice" checked />
+            <span>Mantener la sesión abierta en este dispositivo</span>
+          </label>
+          <p class="keep-session-hint">
+            Si lo desmarcas, al cerrar el navegador o la app tendrás que volver a iniciar sesión.
+          </p>
         </div>
 
         <div id="paneLogin" class="auth-pane active" role="tabpanel" aria-labelledby="tabLogin">
@@ -442,7 +477,9 @@
             var u = window.SUPABASE_URL;
             var k = window.SUPABASE_ANON_KEY;
             if (!u || !k || u.indexOf("TU_PROYECTO") !== -1 || !window.supabase || !window.supabase.createClient) return;
-            var prefill = window.supabase.createClient(u, k);
+            var prefill = window.createPrevySupabaseClient
+              ? window.createPrevySupabaseClient(u, k)
+              : window.supabase.createClient(u, k);
             prefill.auth.getSession().then(function (res) {
               var s = res && res.data && res.data.session;
               if (s && s.user) window.location.replace("dashboard.html");
@@ -456,6 +493,21 @@
             return s && String(s).length >= 4 ? String(s) : "";
           } catch (e) {
             return "";
+          }
+        }
+
+        function readKeepSessionChoice() {
+          var el = document.getElementById("keepSessionOnDevice");
+          return !el || el.checked;
+        }
+
+        function syncKeepSessionCheckbox() {
+          var el = document.getElementById("keepSessionOnDevice");
+          if (!el) return;
+          try {
+            el.checked = window.localStorage.getItem("prevy:session-persist") !== "0";
+          } catch (_e) {
+            el.checked = true;
           }
         }
 
@@ -647,7 +699,14 @@
           if (!url || !key || url.indexOf("TU_PROYECTO") !== -1) {
             return { error: "Configura supabase-config.js con tu URL y anon key de Supabase." };
           }
-          return { client: window.supabase.createClient(url, key) };
+          if (!window.supabase || !window.supabase.createClient) {
+            return { error: "No se pudo cargar el cliente de Supabase." };
+          }
+          var client = window.createPrevySupabaseClient
+            ? window.createPrevySupabaseClient(url, key)
+            : window.supabase.createClient(url, key);
+          if (!client) return { error: "No se pudo crear el cliente de Supabase." };
+          return { client: client };
         }
 
         function mapAuthError(msg) {
@@ -679,6 +738,9 @@
         }
 
         function iniciarGoogle(mode) {
+          if (typeof window.applyPrevySessionPersistenceChoice === "function") {
+            window.applyPrevySessionPersistenceChoice(readKeepSessionChoice());
+          }
           var sb = getSupabase();
           if (sb.error) {
             if (mode === "register") errorRegisterGeneral.textContent = sb.error;
@@ -754,6 +816,9 @@
             return;
           }
 
+          if (typeof window.applyPrevySessionPersistenceChoice === "function") {
+            window.applyPrevySessionPersistenceChoice(readKeepSessionChoice());
+          }
           var sb = getSupabase();
           if (sb.error) {
             errorGeneral.textContent = sb.error;
@@ -853,6 +918,9 @@
             }
           }
 
+          if (typeof window.applyPrevySessionPersistenceChoice === "function") {
+            window.applyPrevySessionPersistenceChoice(readKeepSessionChoice());
+          }
           var sb = getSupabase();
           if (sb.error) {
             errorRegisterGeneral.textContent = sb.error;
@@ -1009,6 +1077,7 @@
           });
         })();
 
+        syncKeepSessionCheckbox();
         setupRegisterPolicyUi();
       })();
     </script>

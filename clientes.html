@@ -664,7 +664,7 @@
         var url = window.SUPABASE_URL,
           key = window.SUPABASE_ANON_KEY;
         if (!url || !key || url.indexOf("TU_PROYECTO") !== -1) return;
-        pageSupabaseClient = window.supabase.createClient(url, key);
+        pageSupabaseClient = window.createPrevySupabaseClient(url, key);
         if (typeof window.wireAppShellLogout === "function") window.wireAppShellLogout(pageSupabaseClient);
         if (typeof window.installInactivityAutoLogout === "function") {
           window.installInactivityAutoLogout(pageSupabaseClient, {
@@ -821,7 +821,7 @@
         if (registroAfiliadosRefValido(ref)) {
           return;
         }
-        var sb = pageSupabaseClient || window.supabase.createClient(u, k);
+        var sb = pageSupabaseClient || window.createPrevySupabaseClient(u, k);
         sb.auth.getSession().then(function (r) {
           if (r.data.session) return;
           var form = document.getElementById("clienteForm");
@@ -1362,7 +1362,7 @@
           return;
         }
         setStatus("Guardando…");
-        var supabase = pageSupabaseClient || window.supabase.createClient(url, key);
+        var supabase = pageSupabaseClient || window.createPrevySupabaseClient(url, key);
         var refToken = new URLSearchParams(window.location.search).get("ref");
         var notifyOwnerUserId = null;
         var notifyInviteToken = null;

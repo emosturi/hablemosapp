@@ -631,7 +631,7 @@
         var u = window.SUPABASE_URL,
           k = window.SUPABASE_ANON_KEY;
         if (!u || !k || u.indexOf("TU_PROYECTO") !== -1 || !window.supabase || !window.supabase.createClient) return;
-        var supNav = window.supabase.createClient(u, k);
+        var supNav = window.createPrevySupabaseClient(u, k);
         if (typeof window.wireAppShellLogout === "function") window.wireAppShellLogout(supNav);
         supNav.auth.getSession().then(function (r) {
           if (r.data && r.data.session && typeof window.applyAppShellUser === "function") {
@@ -1207,7 +1207,7 @@
       if (clientId) {
         var url = window.SUPABASE_URL, key = window.SUPABASE_ANON_KEY;
         if (url && key && url.indexOf("TU_PROYECTO") === -1) {
-          var supabaseEdit = window.supabase.createClient(url, key);
+          var supabaseEdit = window.createPrevySupabaseClient(url, key);
           if (typeof window.installInactivityAutoLogout === "function") {
             window.installInactivityAutoLogout(supabaseEdit, { timeoutMs: window.SESSION_IDLE_TIMEOUT_MS, redirectTo: "login.html" });
           }
@@ -1480,7 +1480,7 @@
 
           setStatus("Guardando…");
           if (btnSubmit) btnSubmit.disabled = true;
-          var supabase = window.supabase.createClient(url, key);
+          var supabase = window.createPrevySupabaseClient(url, key);
         if (typeof window.installInactivityAutoLogout === "function") {
           window.installInactivityAutoLogout(supabase, { timeoutMs: window.SESSION_IDLE_TIMEOUT_MS, redirectTo: "login.html" });
         }

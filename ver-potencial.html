@@ -404,7 +404,7 @@
           window.location.replace("login.html");
           return;
         }
-        var supabase = window.supabase.createClient(url, key);
+        var supabase = window.createPrevySupabaseClient(url, key);
         if (typeof window.wireAppShellLogout === "function") window.wireAppShellLogout(supabase);
         if (typeof window.installInactivityAutoLogout === "function") {
           window.installInactivityAutoLogout(supabase, { timeoutMs: window.SESSION_IDLE_TIMEOUT_MS, redirectTo: "login.html" });

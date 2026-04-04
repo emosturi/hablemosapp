@@ -256,7 +256,7 @@
         var shareMail = document.getElementById("shareMail");
         var shareNative = document.getElementById("shareNative");
 
-        var supabase = window.supabase.createClient(cfgUrl, cfgKey);
+        var supabase = window.createPrevySupabaseClient(cfgUrl, cfgKey);
         if (typeof window.wireAppShellLogout === "function") window.wireAppShellLogout(supabase);
         if (typeof window.installInactivityAutoLogout === "function") {
           window.installInactivityAutoLogout(supabase, { timeoutMs: window.SESSION_IDLE_TIMEOUT_MS, redirectTo: "login.html" });

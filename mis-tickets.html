@@ -164,7 +164,7 @@
         var ticketCancelBtn = document.getElementById("ticketCancelBtn");
         var ticketSendBtn = document.getElementById("ticketSendBtn");
         var ticketFormMsg = document.getElementById("ticketFormMsg");
-        var sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+        var sb = window.createPrevySupabaseClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
         if (typeof window.wireAppShellLogout === "function") window.wireAppShellLogout(sb);
         var currentUser = null;
 

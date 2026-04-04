@@ -188,7 +188,7 @@
         var ticketRows = document.getElementById("ticketRows");
         var ticketMsg = document.getElementById("ticketMsg");
         var advisorSearch = document.getElementById("advisorSearch");
-        var sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+        var sb = window.createPrevySupabaseClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
         if (typeof window.wireAppShellLogout === "function") window.wireAppShellLogout(sb);
         var allAdvisors = [];
 
