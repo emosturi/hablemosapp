@@ -11,6 +11,46 @@
       header.page-h { margin: 10px 0 18px; }
       h1 { font-size: clamp(22px, 2.6vw, 28px); margin: 0; letter-spacing: -0.02em; }
       .subtitle { margin: 8px 0 0; color: var(--muted); font-size: 14px; line-height: 1.45; }
+      .telegram-json-cta {
+        display: none;
+        margin: 12px 0 0;
+        font-size: 14px;
+        line-height: 1.5;
+        color: var(--text);
+        max-width: 640px;
+      }
+      .telegram-json-cta .btn-tg-config {
+        display: inline-flex;
+        align-items: center;
+        margin-left: 6px;
+        padding: 8px 14px;
+        border-radius: 10px;
+        border: none;
+        background: #ea580c;
+        color: #fff;
+        font-size: 14px;
+        font-weight: 700;
+        text-decoration: none;
+        font-family: inherit;
+        cursor: pointer;
+        vertical-align: middle;
+      }
+      .telegram-json-cta .btn-tg-config:hover {
+        background: #c2410c;
+        color: #fff;
+      }
+      .telegram-json-cta .btn-tg-config:focus-visible {
+        outline: 2px solid var(--primary-mid);
+        outline-offset: 2px;
+      }
+      html[data-theme="dark"] .telegram-json-cta .btn-tg-config {
+        background: #f97316;
+        color: #0f172a;
+      }
+      html[data-theme="dark"] .telegram-json-cta .btn-tg-config:hover {
+        background: #fb923c;
+        color: #0f172a;
+      }
       a.back { display: inline-block; margin-bottom: 14px; color: var(--muted); text-decoration: none; font-size: 14px; }
       a.back:hover { color: var(--primary); }
       .week-bar {
@@ -169,6 +209,10 @@
             <a href="dashboard.html" class="back">← Dashboard</a>
             <header class="page-h">
               <h1>Mi agenda de llamadas</h1>
+              <p id="telegramConfigureCta" class="telegram-json-cta" aria-hidden="true">
+                Para recibir recordatorios por Telegram debes
+                <a href="configuracion-telegram.html" class="btn-tg-config">Configurar Telegram</a>
+              </p>
               <p class="subtitle">
                 Reservas hechas por clientes con su enlace público. Semanas en horario <strong>Chile (America/Santiago)</strong>, de lunes a domingo.
               </p>
@@ -218,6 +262,17 @@
         if (typeof window.installInactivityAutoLogout === "function") {
           window.installInactivityAutoLogout(supabase, { timeoutMs: window.SESSION_IDLE_TIMEOUT_MS, redirectTo: "login.html" });
         }
+
+        function syncTelegramConfigureCta() {
+          var el = document.getElementById("telegramConfigureCta");
+          if (!el) return;
+          var show = window.PREVY_SHOW_TELEGRAM_CONFIGURE_CTA === true;
+          el.style.display = show ? "block" : "none";
+          el.setAttribute("aria-hidden", show ? "false" : "true");
+        }
+        Promise.resolve(window.__prevyWhenSubscriptionReady && window.__prevyWhenSubscriptionReady()).then(function () {
+          syncTelegramConfigureCta();
+        });
 
         var weekOffset = 0;
         var weekMon = "";

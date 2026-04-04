@@ -225,11 +225,6 @@
             <button type="button" id="shareNative" class="share-native" style="display: none">Compartir en el dispositivo</button>
           </div>
         </div>
-
-        <p class="hint">
-          Si no aparece el enlace, ejecute en Supabase la migración
-          <code style="color: var(--primary-mid); font-weight: 600">supabase-migration-registro-afiliados-enlace-publico.sql</code>.
-        </p>
       </div>
           </div>
         </div>
@@ -345,7 +340,7 @@
               if (q.error) {
                 statusMsg.textContent =
                   q.error.message ||
-                  "No se pudo cargar el enlace. Ejecuta la migración registro-afiliados-enlace-publico.sql en Supabase.";
+                  "No se pudo cargar el enlace. Si el problema continúa, contacta al administrador.";
                 statusMsg.className = "msg err";
                 actualizarHrefCompartir("");
                 return;
@@ -358,7 +353,7 @@
                 .then(function (ins) {
                   if (ins.error) {
                     statusMsg.textContent =
-                      ins.error.message || "No se pudo crear el enlace. Revisa la migración SQL en Supabase.";
+                      ins.error.message || "No se pudo crear el enlace. Si el problema continúa, contacta al administrador.";
                     statusMsg.className = "msg err";
                     actualizarHrefCompartir("");
                     return;

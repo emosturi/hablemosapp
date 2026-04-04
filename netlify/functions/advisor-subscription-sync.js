@@ -1,7 +1,18 @@
 const { requireAdvisorSession } = require("./advisor-session-auth");
-const { loadTelegramChatByPhoneMap, resolveAdvisorTelegramChatId } = require("./telegram-advisor-route");
+const {
+  loadTelegramChatByPhoneMap,
+  resolveAdvisorTelegramChatId,
+  isAdvisorTelegramMapConfigured,
+  normalizarTelefonoE164,
+  normalizarChatIdUsuario,
+} = require("./telegram-advisor-route");
 
-async function computeTelegramLinked(supabase, userId, dbTelegramChatId) {
+/**
+ * telegram_linked: hay chat_id (BD o mapa JSON).
+ * show_telegram_configure_cta: mapa JSON en Netlify tiene entradas, el teléfono del asesor no está en ese mapa
+ * y aún no hay chat resuelto (debe usar Configuración Telegram / BD).
+ */
+async function computeTelegramBundle(supabase, userId, dbTelegramChatId, telegramRemindersEnabled) {
   const map = loadTelegramChatByPhoneMap();
   const cache = new Map();
   const chatId = await resolveAdvisorTelegramChatId(
@@ -12,7 +23,29 @@ async function computeTelegramLinked(supabase, userId, dbTelegramChatId) {
     "[advisor-subscription-sync]",
     dbTelegramChatId
   );
-  return !!chatId;
+  const tgLinked = !!chatId;
+  const mapConfigured = isAdvisorTelegramMapConfigured(map);
+  let phoneInMap = false;
+  if (mapConfigured) {
+    try {
+      const userRes = await supabase.auth.admin.getUserById(userId);
+      let phone = "";
+      if (!userRes.error && userRes.data && userRes.data.user) {
+        const meta = userRes.data.user.user_metadata || {};
+        phone = normalizarTelefonoE164(meta.telefono || meta.phone || "");
+      }
+      phoneInMap = !!(phone && map[phone] && normalizarChatIdUsuario(map[phone]));
+    } catch (_e) {
+      phoneInMap = false;
+    }
+  }
+  const tgOn = telegramRemindersEnabled !== false;
+  return {
+    telegram_linked: tgLinked,
+    telegram_json_map_configured: mapConfigured,
+    telegram_advisor_phone_in_json_map: phoneInMap,
+    show_telegram_configure_cta: tgOn && mapConfigured && !phoneInMap && !tgLinked,
+  };
 }
 
 const corsHeaders = {
@@ -134,7 +167,7 @@ exports.handler = async function (event) {
       updated_at: now.toISOString(),
     });
     if (ins.error) return json(500, { error: ins.error.message || "No se pudo crear la cuenta de asesor" });
-    const tgNew = await computeTelegramLinked(supabase, userId, null);
+    const tgBundle = await computeTelegramBundle(supabase, userId, null, true);
     return json(200, {
       ok: true,
       created: true,
@@ -144,13 +177,21 @@ exports.handler = async function (event) {
       current_period_end: trialEnd,
       subscription_grace_until: null,
       lock_navigation: false,
-      telegram_linked: tgNew,
       telegram_reminders_enabled: true,
+      telegram_linked: tgBundle.telegram_linked,
+      telegram_json_map_configured: tgBundle.telegram_json_map_configured,
+      telegram_advisor_phone_in_json_map: tgBundle.telegram_advisor_phone_in_json_map,
+      show_telegram_configure_cta: tgBundle.show_telegram_configure_cta,
     });
   }
 
   if (row.account_enabled === false) {
-    const tgOff = await computeTelegramLinked(supabase, userId, row.telegram_chat_id);
+    const tgBundleOff = await computeTelegramBundle(
+      supabase,
+      userId,
+      row.telegram_chat_id,
+      row.telegram_reminders_enabled
+    );
     return json(200, {
       ok: true,
       account_enabled: false,
@@ -159,8 +200,11 @@ exports.handler = async function (event) {
       current_period_end: row.current_period_end,
       subscription_grace_until: row.subscription_grace_until,
       lock_navigation: true,
-      telegram_linked: tgOff,
       telegram_reminders_enabled: row.telegram_reminders_enabled !== false,
+      telegram_linked: tgBundleOff.telegram_linked,
+      telegram_json_map_configured: tgBundleOff.telegram_json_map_configured,
+      telegram_advisor_phone_in_json_map: tgBundleOff.telegram_advisor_phone_in_json_map,
+      show_telegram_configure_cta: tgBundleOff.show_telegram_configure_cta,
     });
   }
 
@@ -182,8 +226,13 @@ exports.handler = async function (event) {
   const st = fresh && fresh.subscription_status;
   const bypass = !!(fresh && fresh.subscription_bypass);
   const lock = !bypass && st === "canceled";
-  const tgLinked = await computeTelegramLinked(supabase, userId, fresh && fresh.telegram_chat_id);
   const tgEnabled = fresh ? fresh.telegram_reminders_enabled !== false : true;
+  const tgBundle = await computeTelegramBundle(
+    supabase,
+    userId,
+    fresh && fresh.telegram_chat_id,
+    fresh ? fresh.telegram_reminders_enabled : true
+  );
 
   return json(200, {
     ok: true,
@@ -193,7 +242,10 @@ exports.handler = async function (event) {
     current_period_end: fresh && fresh.current_period_end,
     subscription_grace_until: fresh && fresh.subscription_grace_until,
     lock_navigation: lock,
-    telegram_linked: tgLinked,
     telegram_reminders_enabled: tgEnabled,
+    telegram_linked: tgBundle.telegram_linked,
+    telegram_json_map_configured: tgBundle.telegram_json_map_configured,
+    telegram_advisor_phone_in_json_map: tgBundle.telegram_advisor_phone_in_json_map,
+    show_telegram_configure_cta: tgBundle.show_telegram_configure_cta,
   });
 };

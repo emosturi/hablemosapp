@@ -183,6 +183,7 @@
       delete window.PREVY_SYNC_SUBSCRIPTION;
       delete window.PREVY_TELEGRAM_LINKED;
       delete window.PREVY_TELEGRAM_REMINDERS_ENABLED;
+      delete window.PREVY_SHOW_TELEGRAM_CONFIGURE_CTA;
     } catch (eClr) {}
   }
 
@@ -204,6 +205,7 @@
     window.PREVY_SYNC_SUBSCRIPTION = j;
     window.PREVY_TELEGRAM_LINKED = j.telegram_linked === true;
     window.PREVY_TELEGRAM_REMINDERS_ENABLED = j.telegram_reminders_enabled !== false;
+    window.PREVY_SHOW_TELEGRAM_CONFIGURE_CTA = j.show_telegram_configure_cta === true;
 
     var base = (file || "").split("?")[0].trim();
     var st = j.subscription_status;
@@ -267,7 +269,8 @@
 
     if (
       (base === "recordatorios.html" || base === "mi-agenda-llamadas.html") &&
-      j.telegram_reminders_enabled !== false
+      j.telegram_reminders_enabled !== false &&
+      j.show_telegram_configure_cta !== true
     ) {
       var content = document.querySelector(".layout .main .content");
       if (content && !document.getElementById("prevyTelegramSetupBar")) {

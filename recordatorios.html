@@ -21,6 +21,47 @@
         letter-spacing: -0.02em;
         margin: 0;
       }
+      .telegram-json-cta {
+        display: none;
+        margin: 12px 0 0;
+        font-size: 14px;
+        line-height: 1.5;
+        color: var(--text);
+        max-width: 640px;
+      }
+      .telegram-json-cta .btn-tg-config {
+        display: inline-flex;
+        align-items: center;
+        margin-left: 6px;
+        padding: 8px 14px;
+        border-radius: 10px;
+        border: none;
+        background: #ea580c;
+        color: #fff;
+        font-size: 14px;
+        font-weight: 700;
+        text-decoration: none;
+        font-family: inherit;
+        cursor: pointer;
+        vertical-align: middle;
+        box-shadow: none;
+      }
+      .telegram-json-cta .btn-tg-config:hover {
+        background: #c2410c;
+        color: #fff;
+      }
+      .telegram-json-cta .btn-tg-config:focus-visible {
+        outline: 2px solid var(--primary-mid);
+        outline-offset: 2px;
+      }
+      html[data-theme="dark"] .telegram-json-cta .btn-tg-config {
+        background: #f97316;
+        color: #0f172a;
+      }
+      html[data-theme="dark"] .telegram-json-cta .btn-tg-config:hover {
+        background: #fb923c;
+        color: #0f172a;
+      }
       .subtitle {
         margin: 8px 0 0;
         color: var(--muted);
@@ -84,17 +125,6 @@
       .empty {
         color: var(--muted);
         padding: 20px;
-      }
-      .hint-enviado {
-        font-size: 12px;
-        color: var(--muted);
-        margin: 8px 0 12px;
-        max-width: 560px;
-        line-height: 1.45;
-      }
-      .hint-enviado a {
-        color: var(--primary-mid);
-        font-weight: 600;
       }
       .banner-tg-off {
         margin: 0 0 14px;
@@ -227,16 +257,14 @@
           <div class="page">
             <header>
               <h1>Recordatorios</h1>
+              <p id="telegramConfigureCta" class="telegram-json-cta" aria-hidden="true">
+                Para recibir recordatorios por Telegram debes
+                <a href="configuracion-telegram.html" class="btn-tg-config">Configurar Telegram</a>
+              </p>
               <p class="subtitle">Recordatorios programados: cuando Telegram está habilitado para tu cuenta, se envían en la fecha y hora indicadas.</p>
               <div id="tgBanner" class="banner-tg-off" style="display: none" role="status">
                 Los recordatorios automáticos por Telegram están desactivados para tu cuenta. Puedes seguir usando esta pantalla; cuando se configure el envío (chat del asesor), el propietario de la plataforma podrá volver a habilitarlo.
               </div>
-              <p class="hint-enviado">
-                Al llegar la fecha, cada recordatorio se envía por Telegram al <strong>chat personal del asesor</strong>.
-                Si falta vincular Telegram, verás un <strong>aviso rojo arriba</strong> con el enlace para configurarlo (esta pantalla y la agenda de llamadas).
-                El teléfono de tu cuenta debe coincidir con el que usas en Telegram; la plataforma también puede usar el mapa
-                <code style="font-size:12px">TELEGRAM_CHAT_BY_PHONE_JSON</code> en Netlify.
-              </p>
               <a href="revisar-clientes.html" class="back">← Volver al listado de clientes</a>
             </header>
 
@@ -283,6 +311,17 @@
         if (typeof window.installInactivityAutoLogout === "function") {
           window.installInactivityAutoLogout(supabase, { timeoutMs: window.SESSION_IDLE_TIMEOUT_MS, redirectTo: "login.html" });
         }
+
+        function syncTelegramConfigureCta() {
+          var el = document.getElementById("telegramConfigureCta");
+          if (!el) return;
+          var show = window.PREVY_SHOW_TELEGRAM_CONFIGURE_CTA === true;
+          el.style.display = show ? "block" : "none";
+          el.setAttribute("aria-hidden", show ? "false" : "true");
+        }
+        Promise.resolve(window.__prevyWhenSubscriptionReady && window.__prevyWhenSubscriptionReady()).then(function () {
+          syncTelegramConfigureCta();
+        });
 
         supabase.auth.getSession().then(function (r) {
           if (!r.data.session) {
