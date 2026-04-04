@@ -25,7 +25,8 @@ window.REMINDER_FUNCTION_URL =
 window.ASESOR_REGISTRO_HABILITADO = true; // false = cerrado
 //window.ASESOR_REGISTRO_DOMINIOS = ["gmail.com", "asesores.tuempresa.cl"]; // opcional
 
-// Cierre automático por inactividad (1 hora).
+// Cierre automático por inactividad (1 hora sin uso con la app visible).
+// Puedes subir el valor (p. ej. 2h) si lo necesitas; en Supabase → Auth → JWT también puedes revisar caducidad del access token.
 window.SESSION_IDLE_TIMEOUT_MS = 60 * 60 * 1000;
 window.installInactivityAutoLogout = function (supabaseClient, options) {
   try {
@@ -50,9 +51,7 @@ window.installInactivityAutoLogout = function (supabaseClient, options) {
         localStorage.removeItem(legacyActivityKey);
       } catch (_ls) {}
     }
-    function logoutIfExpired() {
-      var elapsed = nowMs() - getLastActivity();
-      if (elapsed < timeoutMs) return;
+    function signOutIdle() {
       supabaseClient.auth.getSession().then(function (r) {
         var hasSession = !!(r && r.data && r.data.session);
         if (!hasSession) return;
@@ -61,16 +60,34 @@ window.installInactivityAutoLogout = function (supabaseClient, options) {
         });
       });
     }
+    function runIdleLogoutIfNeeded() {
+      // No cerrar sesión en segundo plano: en móvil el intervalo sigue corriendo y el tiempo en otra app
+      // no debería consumir el temporizador de inactividad; además evita condiciones de carrera al volver.
+      if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
+      var elapsed = nowMs() - getLastActivity();
+      if (elapsed < timeoutMs) return;
+      signOutIdle();
+    }
 
     ["click", "keydown", "mousemove", "scroll", "touchstart", "focus"].forEach(function (evName) {
       window.addEventListener(evName, setLastActivity, { passive: true });
     });
     document.addEventListener("visibilitychange", function () {
-      if (document.visibilityState === "visible") setLastActivity();
+      if (document.visibilityState !== "visible") return;
+      var elapsed = nowMs() - getLastActivity();
+      if (elapsed < timeoutMs) {
+        setLastActivity();
+        // Tras estar en segundo plano Supabase pausa el auto-refresh del JWT; un refresh explícito reduce sesiones “perdidas” al volver.
+        setTimeout(function () {
+          supabaseClient.auth.refreshSession().catch(function () {});
+        }, 300);
+        return;
+      }
+      signOutIdle();
     });
 
     setLastActivity();
-    setInterval(logoutIfExpired, 60 * 1000);
+    setInterval(runIdleLogoutIfNeeded, 60 * 1000);
   } catch (_e) {
     // No bloquear la app si falla el control de inactividad.
   }

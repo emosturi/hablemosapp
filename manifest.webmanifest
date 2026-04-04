@@ -2,7 +2,7 @@
   "name": "Prevy — para Asesores Previsionales",
   "short_name": "Prevy",
   "description": "para Asesores Previsionales",
-  "start_url": "/login.html",
+  "start_url": "/dashboard.html",
   "scope": "/",
   "display": "standalone",
   "background_color": "#f4f7f8",

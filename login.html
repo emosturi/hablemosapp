@@ -432,6 +432,24 @@
           if (raw.length >= 4) sessionStorage.setItem("prevy_ref", raw.slice(0, 16));
         } catch (eRefUrl) {}
 
+        // Si ya hay sesión guardada (p. ej. tras cerrar y volver a abrir la PWA), ir al panel; no confundir con «sesión cerrada».
+        // No aplicar en retorno OAuth ni cuando venimos de un cierre por inactividad u otro motivo explícito (?reason=).
+        (function redirectIfAlreadySignedIn() {
+          try {
+            var spCheck = new URLSearchParams(window.location.search || "");
+            if (spCheck.get("oauth") === "google") return;
+            if (spCheck.has("reason")) return;
+            var u = window.SUPABASE_URL;
+            var k = window.SUPABASE_ANON_KEY;
+            if (!u || !k || u.indexOf("TU_PROYECTO") !== -1 || !window.supabase || !window.supabase.createClient) return;
+            var prefill = window.supabase.createClient(u, k);
+            prefill.auth.getSession().then(function (res) {
+              var s = res && res.data && res.data.session;
+              if (s && s.user) window.location.replace("dashboard.html");
+            });
+          } catch (_e) {}
+        })();
+
         function getPendingRefCode() {
           try {
             var s = sessionStorage.getItem("prevy_ref") || sessionStorage.getItem("hablemos_ref");
