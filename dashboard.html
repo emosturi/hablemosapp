@@ -52,15 +52,19 @@
 
       .kpi-grid {
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
         gap: 14px;
         margin-bottom: 22px;
       }
-      @media (max-width: 1100px) {
-        .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+      a.kpi-card {
+        text-decoration: none;
+        color: inherit;
+        cursor: pointer;
+        transition: transform 0.12s ease, border-color 0.12s;
       }
-      @media (max-width: 520px) {
-        .kpi-grid { grid-template-columns: 1fr; }
+      a.kpi-card:hover {
+        transform: translateY(-2px);
+        border-color: rgba(0, 96, 108, 0.35);
       }
       .kpi-card {
         background: var(--card);
@@ -295,6 +299,11 @@
           </div>
 
           <div class="kpi-grid" id="kpiGrid">
+            <a class="kpi-card" href="mi-agenda-llamadas.html" id="kpiAgendaLink" aria-label="Ir a mi agenda de llamadas">
+              <div class="kpi-label">Notificaciones</div>
+              <div class="kpi-value" id="kpiAgendaHoy">—</div>
+              <div class="kpi-hint">Llamadas agendadas para hoy</div>
+            </a>
             <div class="kpi-card featured">
               <div class="kpi-label">Alertas próximas (7 días)</div>
               <div class="kpi-value" id="kpiProx7">—</div>
@@ -402,6 +411,10 @@
           return y + "-" + m + "-" + day;
         }
 
+        function todayChileYmd() {
+          return new Date().toLocaleDateString("en-CA", { timeZone: "America/Santiago" });
+        }
+
         function addDaysISO(isoStr, days) {
           var p = String(isoStr || "").split("-");
           if (p.length !== 3) return isoStr;
@@ -473,6 +486,8 @@
 
             var today = localISODate(new Date());
             var weekEnd = addDaysISO(today, 6);
+            var todayAgenda = todayChileYmd();
+            var uid = r.data.session.user.id;
 
             Promise.all([
             supabase
@@ -482,12 +497,31 @@
               .order("fecha", { ascending: true })
               .order("hora", { ascending: true }),
             supabase.from("clientes_potenciales").select("id, nombre, telefono, created_at").order("created_at", { ascending: false }),
+            supabase
+              .from("agenda_reservas")
+              .select("id", { count: "exact", head: true })
+              .eq("owner_user_id", uid)
+              .eq("fecha", todayAgenda),
             ]).then(function (results) {
             var recRes = results[0];
             var potRes = results[1];
+            var agendaRes = results[2];
 
             if (recRes.error) showErr("Recordatorios: " + (recRes.error.message || "error"));
             if (potRes.error) showErr((document.getElementById("dashError").textContent ? " · " : "") + "Prospectos: " + (potRes.error.message || "error"));
+            if (agendaRes.error) {
+              showErr(
+                (document.getElementById("dashError").textContent ? " · " : "") +
+                  "Agenda: " +
+                  (agendaRes.error.message || "error")
+              );
+            }
+
+            var kpiAg = document.getElementById("kpiAgendaHoy");
+            if (kpiAg) {
+              kpiAg.textContent =
+                agendaRes.error || agendaRes.count == null ? "—" : String(agendaRes.count);
+            }
 
             var reminders = (recRes.data || []).filter(function (x) {
               var env = x.enviado === true || x.enviado === "true" || x.enviado === 1;
