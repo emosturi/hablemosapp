@@ -134,6 +134,37 @@
         box-shadow: 0 0 0 4px var(--accent-soft);
       }
 
+      .password-wrap {
+        position: relative;
+      }
+      .password-wrap input {
+        padding-right: 46px;
+      }
+      .password-toggle {
+        position: absolute;
+        right: 6px;
+        top: 50%;
+        transform: translateY(-50%);
+        border: none;
+        background: transparent;
+        padding: 8px;
+        cursor: pointer;
+        color: var(--muted);
+        border-radius: 10px;
+        line-height: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .password-toggle:hover {
+        color: var(--text);
+        background: color-mix(in oklab, var(--border) 45%, transparent);
+      }
+      .password-toggle:focus-visible {
+        outline: 2px solid var(--primary-mid);
+        outline-offset: 1px;
+      }
+
       select {
         width: 100%;
         background: var(--surface);
@@ -344,21 +375,59 @@
 
             <div class="field">
               <label for="password">Contraseña</label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autocomplete="current-password"
-                required
-              />
+              <div class="password-wrap">
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  autocomplete="current-password"
+                  required
+                />
+                <button
+                  type="button"
+                  class="password-toggle"
+                  id="toggleLoginPassword"
+                  aria-label="Mostrar contraseña"
+                  aria-pressed="false"
+                >
+                  <svg
+                    class="pw-toggle-icon pw-toggle-show"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="22"
+                    height="22"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                  <svg
+                    class="pw-toggle-icon pw-toggle-hide"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="22"
+                    height="22"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                    hidden
+                  >
+                    <path
+                      d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+                    />
+                    <line x1="1" y1="1" x2="23" y2="23" />
+                  </svg>
+                </button>
+              </div>
               <div class="error" id="error_password"></div>
-            </div>
-
-            <div class="field field-keep-session">
-              <label class="keep-session-label" for="keepSessionOnDevice">
-                <input type="checkbox" id="keepSessionOnDevice" checked />
-                <span>Mantener la sesión abierta</span>
-              </label>
             </div>
 
             <p class="forgot-password-link">
@@ -368,6 +437,14 @@
             <div class="error" id="error_general"></div>
 
             <button type="submit" id="btnLogin">Entrar</button>
+            
+            <div class="field field-keep-session">
+              <label class="keep-session-label" for="keepSessionOnDevice">
+                <input type="checkbox" id="keepSessionOnDevice" checked />
+                <span>Mantener la sesión abierta</span>
+              </label>
+            </div>
+
             <div class="oauth-divider">o</div>
             <button type="button" class="btn-google" id="btnGoogleLogin">
               <svg class="google-icon" viewBox="0 0 24 24" aria-hidden="true">
@@ -561,6 +638,27 @@
         var formRegister = document.getElementById("registerForm");
         var inputEmail = document.getElementById("email");
         var inputPassword = document.getElementById("password");
+        var btnToggleLoginPassword = document.getElementById("toggleLoginPassword");
+        if (inputPassword && btnToggleLoginPassword) {
+          var iconPwShow = btnToggleLoginPassword.querySelector(".pw-toggle-show");
+          var iconPwHide = btnToggleLoginPassword.querySelector(".pw-toggle-hide");
+          btnToggleLoginPassword.addEventListener("click", function () {
+            var showing = inputPassword.type === "text";
+            if (showing) {
+              inputPassword.type = "password";
+              btnToggleLoginPassword.setAttribute("aria-pressed", "false");
+              btnToggleLoginPassword.setAttribute("aria-label", "Mostrar contraseña");
+              if (iconPwShow) iconPwShow.removeAttribute("hidden");
+              if (iconPwHide) iconPwHide.setAttribute("hidden", "");
+            } else {
+              inputPassword.type = "text";
+              btnToggleLoginPassword.setAttribute("aria-pressed", "true");
+              btnToggleLoginPassword.setAttribute("aria-label", "Ocultar contraseña");
+              if (iconPwShow) iconPwShow.setAttribute("hidden", "");
+              if (iconPwHide) iconPwHide.removeAttribute("hidden");
+            }
+          });
+        }
         var errorGeneral = document.getElementById("error_general");
 
         var regEmail = document.getElementById("regEmail");
