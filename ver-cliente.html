@@ -152,13 +152,197 @@
       .checklist .checklist-sub { color: var(--muted); font-size: 12px; margin-top: 2px; }
       .checklist .group-label { margin: 14px 0 8px; color: var(--muted); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; }
       .checklist .checklist-upload-row { margin-top: 8px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-      .checklist .checklist-upload-row input[type="file"] { max-width: 280px; margin-bottom: 0; font-size: 12px; padding: 6px 8px; }
+      .checklist .checklist-upload-row input.checklist-file-input-docs {
+        max-width: 280px;
+        margin-bottom: 0;
+        font-size: 12px;
+        padding: 6px 8px;
+      }
+      .checklist .checklist-file-native.checklist-file-camera {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
       .checklist .checklist-file-meta { font-size: 12px; color: var(--muted); }
       .checklist .checklist-file-link { font-size: 12px; color: var(--primary-mid); font-weight: 600; text-decoration: none; }
       .checklist .checklist-file-link:hover { text-decoration: underline; }
+      .checklist-upload-buttons { display: none; }
+      .btn-checklist-upload {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        min-height: 44px;
+        padding: 10px 14px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text);
+        font-size: 14px;
+        font-weight: 600;
+        font-family: inherit;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .btn-checklist-upload:active {
+        transform: scale(0.98);
+      }
+      .btn-checklist-upload--primary {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-mid) 100%);
+        border-color: transparent;
+        color: #fff;
+      }
+      .btn-checklist-upload--primary:active {
+        opacity: 0.92;
+      }
       #modalChecklist { align-items: flex-start; overflow-y: auto; }
-      #modalChecklist .modal { max-height: calc(100dvh - 32px); overflow-y: auto; margin: 8px 0; }
+      #modalChecklist .modal.modal-checklist { max-height: calc(100dvh - 32px); overflow-y: auto; margin: 8px 0; }
+      #modalChecklist .modal-checklist-header h3 {
+        margin: 0 0 8px;
+        font-size: 18px;
+      }
+      #modalChecklist .modal-checklist-header p {
+        margin: 0;
+        font-size: 13px;
+        line-height: 1.45;
+        color: var(--muted);
+      }
+      #modalChecklist .modal-checklist-footer {
+        margin-top: 4px;
+      }
+      #modalChecklist .modal-checklist-footer .modal-feedback {
+        margin-bottom: 8px;
+      }
       #modalChecklist .modal-actions { position: sticky; bottom: 0; background: var(--card); padding-top: 10px; border-top: 1px solid var(--border); }
+      @media (max-width: 720px) {
+        #modalChecklist.modal-overlay {
+          align-items: stretch;
+          justify-content: flex-end;
+          padding: 0;
+          background: rgba(15, 23, 23, 0.62);
+        }
+        #modalChecklist .modal.modal-checklist {
+          max-width: none;
+          width: 100%;
+          max-height: min(100dvh, 100%);
+          min-height: 88dvh;
+          margin: 0;
+          border-radius: 18px 18px 0 0;
+          padding: 0;
+          display: flex;
+          flex-direction: column;
+          box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.18);
+          border: 1px solid var(--border);
+          border-bottom: none;
+        }
+        html[data-theme="dark"] #modalChecklist.modal-overlay {
+          background: rgba(0, 0, 0, 0.72);
+        }
+        #modalChecklist .modal-checklist-header {
+          flex-shrink: 0;
+          padding: 14px 16px 12px;
+          border-bottom: 1px solid var(--border);
+          background: color-mix(in oklab, var(--primary) 6%, var(--card));
+        }
+        #modalChecklist .modal-checklist-header h3 {
+          margin: 0 0 6px;
+          font-size: 1.15rem;
+          letter-spacing: -0.02em;
+        }
+        #modalChecklist .modal-checklist-header p {
+          margin: 0;
+          font-size: 13px;
+          line-height: 1.45;
+          color: var(--muted);
+        }
+        #modalChecklist .modal-checklist-body {
+          flex: 1;
+          overflow-y: auto;
+          padding: 12px 14px 8px;
+          -webkit-overflow-scrolling: touch;
+        }
+        #modalChecklist .modal-checklist-body .checklist > li,
+        #modalChecklist .modal-checklist-body .checklist li {
+          flex-wrap: wrap;
+          background: var(--surface);
+          border: 1px solid var(--border);
+          border-radius: 14px;
+          padding: 12px 12px 12px 10px;
+          margin-bottom: 10px;
+          box-shadow: 0 1px 0 rgba(0, 96, 108, 0.06);
+        }
+        #modalChecklist .modal-checklist-body .checklist li:hover {
+          background: var(--surface);
+        }
+        #modalChecklist .modal-checklist-body .checklist input[type="checkbox"] {
+          width: 22px;
+          height: 22px;
+          margin-top: 4px;
+        }
+        #modalChecklist .modal-checklist-body .checklist .checklist-title {
+          font-size: 14px;
+          line-height: 1.35;
+        }
+        #modalChecklist .modal-checklist-body .group-label {
+          margin-top: 8px;
+          padding: 0 4px;
+        }
+        #modalChecklist .checklist-upload-row {
+          width: 100%;
+          flex-direction: column;
+          align-items: stretch;
+          gap: 10px;
+          margin-top: 10px;
+        }
+        #modalChecklist .checklist-upload-row .checklist-file-native {
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          padding: 0;
+          margin: -1px;
+          overflow: hidden;
+          clip: rect(0, 0, 0, 0);
+          white-space: nowrap;
+          border: 0;
+        }
+        #modalChecklist .checklist-upload-buttons {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 10px;
+          width: 100%;
+        }
+        #modalChecklist .checklist-file-meta,
+        #modalChecklist .checklist-file-link {
+          font-size: 13px;
+        }
+        #modalChecklist .modal-checklist-footer {
+          flex-shrink: 0;
+          padding: 12px 14px calc(14px + env(safe-area-inset-bottom, 0px));
+          border-top: 1px solid var(--border);
+          background: var(--card);
+        }
+        #modalChecklist .modal-checklist-footer .modal-actions {
+          position: static;
+          border: none;
+          padding: 0;
+          margin: 0;
+          gap: 10px;
+        }
+        #modalChecklist .modal-checklist-footer .modal-actions button {
+          min-height: 48px;
+          font-size: 15px;
+          font-weight: 600;
+        }
+        #modalChecklist .modal-checklist-footer .modal-feedback {
+          margin: 0 0 10px;
+        }
+      }
       .timeline-hint { font-size: 13px; color: var(--muted); margin: 0 0 14px; line-height: 1.4; }
       .timeline-controls { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; margin-bottom: 20px; padding: 12px; background: var(--surface); border-radius: 12px; border: 1px solid var(--border); }
       .timeline-controls label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; width: 100%; }
@@ -387,12 +571,12 @@
     </div>
 
     <div class="modal-overlay" id="modalChecklist" role="dialog" aria-labelledby="modalChecklistTitulo" aria-modal="true">
-      <div class="modal">
-        <h3 id="modalChecklistTitulo">Checklist del caso</h3>
-        <p style="margin: 0 0 14px; font-size: 13px; line-height: 1.45; color: var(--muted);">
-          Marca lo que ya está recibido/firmado.
-        </p>
-
+      <div class="modal modal-checklist">
+        <div class="modal-checklist-header">
+          <h3 id="modalChecklistTitulo">Checklist del caso</h3>
+          <p>Marca lo que ya está recibido o firmado. En el móvil puedes subir un archivo o tomar una foto.</p>
+        </div>
+        <div class="modal-checklist-body">
         <ul class="checklist" aria-label="Checklist de documentos y pasos">
           <li><input type="checkbox" id="chk_copia_ci" /><div><div class="checklist-title"><label for="chk_copia_ci">COPIA CI</label></div></div></li>
           <li><input type="checkbox" id="chk_contrato_firmado" /><div><div class="checklist-title"><label for="chk_contrato_firmado">CONTRATO FIRMADO</label></div></div></li>
@@ -414,12 +598,14 @@
             </div>
           </li>
         </ul>
-
-        <div class="modal-actions">
-          <button type="button" id="btnCerrarModalChecklist" class="btn-secondary">Cerrar</button>
-          <button type="button" id="btnGuardarChecklist" class="btn-primary">Guardar</button>
         </div>
-        <div class="modal-feedback" id="modalChecklistFeedback" style="display:none;"></div>
+        <div class="modal-checklist-footer">
+          <div class="modal-feedback" id="modalChecklistFeedback" style="display:none;"></div>
+          <div class="modal-actions">
+            <button type="button" id="btnCerrarModalChecklist" class="btn-secondary">Cerrar</button>
+            <button type="button" id="btnGuardarChecklist" class="btn-primary">Guardar</button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1595,15 +1781,50 @@
                 if (!checkbox) return;
                 var wrap = checkbox.parentElement ? checkbox.parentElement.querySelector("div") : null;
                 if (!wrap) return;
-                if (document.getElementById("chk_file_input_" + it.key)) return;
+                var oldRow = wrap.querySelector(".checklist-upload-row");
+                if (oldRow && document.getElementById("chk_file_camera_" + it.key)) return;
+                if (oldRow) oldRow.remove();
 
                 var row = document.createElement("div");
                 row.className = "checklist-upload-row";
 
-                var input = document.createElement("input");
-                input.type = "file";
-                input.id = "chk_file_input_" + it.key;
-                input.setAttribute("data-check-key", it.key);
+                var inputDocs = document.createElement("input");
+                inputDocs.type = "file";
+                inputDocs.id = "chk_file_input_" + it.key;
+                inputDocs.className = "checklist-file-native checklist-file-input-docs";
+                inputDocs.setAttribute("data-check-key", it.key);
+                inputDocs.setAttribute(
+                  "accept",
+                  ".pdf,.jpg,.jpeg,.png,.webp,.gif,.heic,.doc,.docx,application/pdf,image/*"
+                );
+
+                var inputCam = document.createElement("input");
+                inputCam.type = "file";
+                inputCam.id = "chk_file_camera_" + it.key;
+                inputCam.className = "checklist-file-native checklist-file-camera";
+                inputCam.setAttribute("data-check-key", it.key);
+                inputCam.setAttribute("accept", "image/*");
+                inputCam.setAttribute("capture", "environment");
+
+                var btnRow = document.createElement("div");
+                btnRow.className = "checklist-upload-buttons";
+                var btnFile = document.createElement("button");
+                btnFile.type = "button";
+                btnFile.className = "btn-checklist-upload";
+                btnFile.setAttribute("aria-label", "Subir archivo para este ítem");
+                btnFile.textContent = "Subir archivo";
+                var btnCam = document.createElement("button");
+                btnCam.type = "button";
+                btnCam.className = "btn-checklist-upload btn-checklist-upload--primary";
+                btnCam.setAttribute("aria-label", "Tomar foto con la cámara");
+                btnCam.textContent = "Tomar foto";
+                btnRow.appendChild(btnFile);
+                btnRow.appendChild(btnCam);
+
+                var meta = document.createElement("span");
+                meta.id = "chk_file_meta_" + it.key;
+                meta.className = "checklist-file-meta";
+                meta.textContent = "Sin archivo";
 
                 var link = document.createElement("a");
                 link.href = "#";
@@ -1612,62 +1833,98 @@
                 link.textContent = "Ver archivo";
                 link.style.display = "none";
 
-                var meta = document.createElement("span");
-                meta.id = "chk_file_meta_" + it.key;
-                meta.className = "checklist-file-meta";
-                meta.textContent = "Sin archivo";
-
-                row.appendChild(input);
-                row.appendChild(link);
+                row.appendChild(inputDocs);
+                row.appendChild(inputCam);
+                row.appendChild(btnRow);
                 row.appendChild(meta);
+                row.appendChild(link);
                 wrap.appendChild(row);
 
-                input.addEventListener("change", function (ev) {
-                  var f = ev.target && ev.target.files && ev.target.files[0] ? ev.target.files[0] : null;
+                function runChecklistUpload(f, inputEl) {
                   if (!f) return;
                   var checkEl = document.getElementById(it.id);
                   if (checkEl) checkEl.checked = true;
-
                   var currentBools = getChecklistObjFromDom();
                   var filesMap = getChecklistFilesMap(c.checklist_caso);
                   var keyForFile = it.key;
                   var now = Date.now();
-                  supabase.auth.getSession().then(function (sessRes) {
-                    var uid = sessRes && sessRes.data && sessRes.data.session && sessRes.data.session.user && sessRes.data.session.user.id;
-                    if (!uid) throw new Error("No hay sesión activa para subir archivos.");
-                    var filePath = uid + "/" + id + "/" + keyForFile + "/" + now + "-" + safeFileBase(f.name) + extFromFilename(f.name);
-                    mostrarChecklistFeedback("Subiendo archivo…", false);
-                    return supabase.storage
-                      .from(CHECKLIST_STORAGE_BUCKET)
-                      .upload(filePath, f, { upsert: false, contentType: f.type || undefined })
-                      .then(function (upRes) {
-                        if (upRes.error) throw upRes.error;
-                        filesMap[keyForFile] = {
-                          path: filePath,
-                          name: f.name,
-                          size: f.size,
-                          content_type: f.type || null,
-                          uploaded_at: new Date().toISOString(),
-                        };
-                        var payload = composeChecklistPayload(currentBools, filesMap);
-                        return supabase
-                          .from("clientes")
-                          .update({ checklist_caso: payload })
-                          .eq("id", id)
-                          .select("checklist_caso")
-                          .single();
-                      })
-                      .then(function (dbRes) {
-                        if (dbRes.error) throw dbRes.error;
-                        c.checklist_caso = (dbRes.data && dbRes.data.checklist_caso) ? dbRes.data.checklist_caso : composeChecklistPayload(currentBools, filesMap);
-                        renderChecklistFileMeta();
-                        mostrarChecklistFeedback("Archivo subido y checklist actualizado.", false);
-                        ev.target.value = "";
-                      });
-                  }).catch(function (errUp) {
-                    mostrarChecklistFeedback((errUp && errUp.message) ? errUp.message : "No se pudo subir el archivo.", true);
-                    ev.target.value = "";
-                  });
+                  var displayName = f.name || "foto.jpg";
+                  supabase.auth
+                    .getSession()
+                    .then(function (sessRes) {
+                      var uid =
+                        sessRes &&
+                        sessRes.data &&
+                        sessRes.data.session &&
+                        sessRes.data.session.user &&
+                        sessRes.data.session.user.id;
+                      if (!uid) throw new Error("No hay sesión activa para subir archivos.");
+                      var filePath =
+                        uid +
+                        "/" +
+                        id +
+                        "/" +
+                        keyForFile +
+                        "/" +
+                        now +
+                        "-" +
+                        safeFileBase(displayName) +
+                        extFromFilename(displayName);
+                      mostrarChecklistFeedback("Subiendo archivo…", false);
+                      return supabase.storage
+                        .from(CHECKLIST_STORAGE_BUCKET)
+                        .upload(filePath, f, { upsert: false, contentType: f.type || undefined })
+                        .then(function (upRes) {
+                          if (upRes.error) throw upRes.error;
+                          filesMap[keyForFile] = {
+                            path: filePath,
+                            name: displayName,
+                            size: f.size,
+                            content_type: f.type || null,
+                            uploaded_at: new Date().toISOString(),
+                          };
+                          var payload = composeChecklistPayload(currentBools, filesMap);
+                          return supabase
+                            .from("clientes")
+                            .update({ checklist_caso: payload })
+                            .eq("id", id)
+                            .select("checklist_caso")
+                            .single();
+                        })
+                        .then(function (dbRes) {
+                          if (dbRes.error) throw dbRes.error;
+                          c.checklist_caso =
+                            dbRes.data && dbRes.data.checklist_caso
+                              ? dbRes.data.checklist_caso
+                              : composeChecklistPayload(currentBools, filesMap);
+                          renderChecklistFileMeta();
+                          mostrarChecklistFeedback("Archivo subido y checklist actualizado.", false);
+                          if (inputEl) inputEl.value = "";
+                        });
+                    })
+                    .catch(function (errUp) {
+                      mostrarChecklistFeedback(
+                        errUp && errUp.message ? errUp.message : "No se pudo subir el archivo.",
+                        true
+                      );
+                      if (inputEl) inputEl.value = "";
+                    });
+                }
+
+                inputDocs.addEventListener("change", function (ev) {
+                  var f = ev.target && ev.target.files && ev.target.files[0] ? ev.target.files[0] : null;
+                  runChecklistUpload(f, ev.target);
+                });
+                inputCam.addEventListener("change", function (ev) {
+                  var f = ev.target && ev.target.files && ev.target.files[0] ? ev.target.files[0] : null;
+                  runChecklistUpload(f, ev.target);
+                });
+
+                btnFile.addEventListener("click", function () {
+                  inputDocs.click();
+                });
+                btnCam.addEventListener("click", function () {
+                  inputCam.click();
                 });
 
                 link.addEventListener("click", function (ev) {
@@ -1680,13 +1937,19 @@
                     .createSignedUrl(info.path, 300)
                     .then(function (r) {
                       if (r.error || !r.data || !r.data.signedUrl) {
-                        mostrarChecklistFeedback((r.error && r.error.message) ? r.error.message : "No se pudo obtener enlace del archivo.", true);
+                        mostrarChecklistFeedback(
+                          r.error && r.error.message ? r.error.message : "No se pudo obtener enlace del archivo.",
+                          true
+                        );
                         return;
                       }
                       window.open(r.data.signedUrl, "_blank", "noopener,noreferrer");
                     })
                     .catch(function (e) {
-                      mostrarChecklistFeedback((e && e.message) ? e.message : "No se pudo abrir el archivo.", true);
+                      mostrarChecklistFeedback(
+                        e && e.message ? e.message : "No se pudo abrir el archivo.",
+                        true
+                      );
                     });
                 });
               });
