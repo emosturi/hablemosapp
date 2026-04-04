@@ -1065,6 +1065,10 @@
         color: var(--text);
         background: color-mix(in oklab, var(--border) 50%, transparent);
       }
+      #pwa-install-from-landing.pwa-install-success {
+        border-top-color: var(--primary-mid);
+        background: color-mix(in oklab, var(--primary) 8%, var(--card));
+      }
     </style>
     <script>
       (function () {
@@ -1080,18 +1084,44 @@
           var dismiss = document.getElementById("pwa-install-from-landing-dismiss");
           if (!wrap || !msg || !btn || !dismiss) return;
 
+          var hintTimer = null;
+          var installedUiShown = false;
+
+          function clearHintTimer() {
+            if (hintTimer) {
+              clearTimeout(hintTimer);
+              hintTimer = null;
+            }
+          }
+
+          function showInstalledBanner() {
+            if (installedUiShown) return;
+            installedUiShown = true;
+            clearHintTimer();
+            wrap.classList.add("pwa-install-success");
+            msg.innerHTML =
+              "<strong>App instalada.</strong> Ábrela desde el icono de Prevy en tu pantalla de inicio para usarla sin la barra del navegador.";
+            btn.hidden = true;
+            wrap.removeAttribute("hidden");
+            wrap.classList.add("is-visible");
+          }
+
+          window.addEventListener("appinstalled", showInstalledBanner);
+
           var ua = navigator.userAgent || "";
           var isIOS =
             /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 
           function closeBanner() {
-            wrap.classList.remove("is-visible");
+            clearHintTimer();
+            wrap.classList.remove("is-visible", "pwa-install-success");
             wrap.setAttribute("hidden", "");
           }
 
           dismiss.addEventListener("click", closeBanner);
 
           if (isIOS) {
+            window.removeEventListener("appinstalled", showInstalledBanner);
             msg.innerHTML =
               "En <strong>Safari</strong>, pulsa <strong>Compartir</strong> y elige <strong>Añadir a pantalla de inicio</strong> para instalar Prevy.";
             wrap.removeAttribute("hidden");
@@ -1105,6 +1135,7 @@
             deferred = e;
             msg.textContent = "Puedes instalar Prevy como app en tu teléfono para abrirla más rápido.";
             btn.hidden = false;
+            wrap.classList.remove("pwa-install-success");
             wrap.removeAttribute("hidden");
             wrap.classList.add("is-visible");
           });
@@ -1112,13 +1143,21 @@
           btn.addEventListener("click", function () {
             if (!deferred) return;
             deferred.prompt();
-            deferred.userChoice.finally(function () {
+            deferred.userChoice.then(function (choice) {
               deferred = null;
-              closeBanner();
+              if (choice.outcome === "dismissed") {
+                closeBanner();
+                return;
+              }
+              setTimeout(function () {
+                if (!installedUiShown) showInstalledBanner();
+              }, 2500);
             });
           });
 
-          setTimeout(function () {
+          hintTimer = setTimeout(function () {
+            hintTimer = null;
+            if (installedUiShown) return;
             if (deferred !== null || wrap.classList.contains("is-visible")) return;
             msg.textContent =
               "Si tu navegador lo permite, usa el menú (⋮) y «Instalar app» o «Añadir a pantalla de inicio».";
