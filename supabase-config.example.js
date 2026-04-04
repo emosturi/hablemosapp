@@ -21,6 +21,12 @@ window.SUPABASE_ANON_KEY = "tu-anon-key-aqui";
 //   MERCADOPAGO_STATEMENT_DESCRIPTOR — Opcional: texto en el extracto (máx. ~22 caracteres). Si no lo defines, no se envía.
 // En Supabase, ejecutar supabase-migration-mercadopago-asesor-cuentas.sql para la columna mercadopago_last_payment_id.
 
+// Web Push (recordatorios en PWA): clave pública VAPID (la privada solo en Netlify).
+// Genera par: npx web-push generate-vapid-keys
+// Netlify → Environment: VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT (mailto:tusoporte@dominio.cl o https://plataforma.tudominio.cl)
+// Supabase: ejecutar supabase-migration-push-subscriptions.sql
+// window.PREVY_VAPID_PUBLIC_KEY = "B...clave-publica-base64url...";
+
 // Opcional: notificación Telegram al registrar cliente (Netlify Function).
 // Recomendado: misma URL que el sitio (evita CORS si usas dominio custom en plataforma.*).
 // window.NOTIFY_FUNCTION_URL = window.location.origin + "/.netlify/functions/notify-telegram";

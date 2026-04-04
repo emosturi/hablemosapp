@@ -4,17 +4,6 @@
  * Invitado (p. ej. clientes.html): setAppShellGuest(true);
  */
 (function () {
-  (function injectReminderNotifyScript() {
-    try {
-      if (document.querySelector("script[data-prevy-reminder-notify='1']")) return;
-      var s = document.createElement("script");
-      s.src = "/reminder-browser-notify.js";
-      s.async = true;
-      s.setAttribute("data-prevy-reminder-notify", "1");
-      (document.head || document.documentElement).appendChild(s);
-    } catch (_e) {}
-  })();
-
   (function injectPwaHead() {
     try {
       var theme = "#00696c";
@@ -479,9 +468,6 @@
       document.documentElement.setAttribute("data-shell-page", (file.split("?")[0] || "").trim());
 
       if (!uid) {
-        if (typeof window.__prevyReminderNotifyCleanup === "function") {
-          window.__prevyReminderNotifyCleanup();
-        }
         ensureAdvisorTicketsMenuLink(false);
         ensureOwnerMenuLink(false);
         ensureAyudaMenuLink(false);
@@ -490,18 +476,6 @@
         finishSubscriptionGuard();
         return;
       }
-
-      (function scheduleReminderBrowserNotify() {
-        var tries = 0;
-        function attempt() {
-          if (typeof window.initReminderBrowserNotify === "function") {
-            window.initReminderBrowserNotify(supabase, uid);
-            return;
-          }
-          if (++tries < 120) setTimeout(attempt, 25);
-        }
-        attempt();
-      })();
 
       var skipAccountGuard = file === "login.html" || file === "cuenta-suspendida.html";
 

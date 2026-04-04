@@ -5,6 +5,9 @@
 window.SUPABASE_URL = "https://ndxelneraoabehyrplrv.supabase.co";
 window.SUPABASE_ANON_KEY = "sb_publishable_G3-iWOKWSEq84ndlF3kViw_msMmwBT9";
 
+// Web Push (PWA): misma clave que VAPID_PUBLIC_KEY en Netlify. Generar con: npx web-push generate-vapid-keys
+window.PREVY_VAPID_PUBLIC_KEY = "BEtksq2xG0MhQo5jb8X_xjHVenWE3U4FAHV81n5aP7S1K7wVIa4HfUJieJtK7EwzRVrWlcaQdlsBRnjdwoKVsZw";
+
 // Opcional: enlace mailto en «Mi suscripción» (menú usuario).
 // window.PREVY_SUPPORT_EMAIL = "soporte@ejemplo.cl";
 

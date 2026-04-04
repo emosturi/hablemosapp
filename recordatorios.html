@@ -137,63 +137,6 @@
         line-height: 1.45;
         max-width: 640px;
       }
-      .prevy-browser-notify-bar {
-        margin: 0 0 16px;
-        padding: 14px 16px;
-        border-radius: var(--radius);
-        border: 1px solid rgba(14, 165, 233, 0.4);
-        background: color-mix(in oklab, #0ea5e9 10%, var(--card));
-        color: var(--text);
-        font-size: 14px;
-        line-height: 1.5;
-        max-width: 640px;
-      }
-      html[data-theme="dark"] .prevy-browser-notify-bar {
-        border-color: rgba(56, 189, 248, 0.45);
-        background: color-mix(in oklab, #38bdf8 14%, var(--card));
-      }
-      .prevy-browser-notify-bar p {
-        margin: 0 0 10px;
-      }
-      .prevy-browser-notify-bar p:last-child {
-        margin-bottom: 0;
-      }
-      .prevy-browser-notify-actions {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 10px;
-      }
-      .btn-browser-notify {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        padding: 9px 16px;
-        border-radius: 10px;
-        border: none;
-        background: #0ea5e9;
-        color: #fff;
-        font-size: 14px;
-        font-weight: 600;
-        font-family: inherit;
-        cursor: pointer;
-      }
-      .btn-browser-notify:hover {
-        background: #0284c7;
-        color: #fff;
-      }
-      .btn-browser-notify:focus-visible {
-        outline: 2px solid var(--primary-mid);
-        outline-offset: 2px;
-      }
-      html[data-theme="dark"] .btn-browser-notify {
-        background: #38bdf8;
-        color: #0f172a;
-      }
-      html[data-theme="dark"] .btn-browser-notify:hover {
-        background: #7dd3fc;
-        color: #0f172a;
-      }
       .btn-borrar {
         padding: 6px 10px;
         font-size: 12px;
@@ -319,13 +262,6 @@
                 <a href="configuracion-telegram.html" class="btn-tg-config">Configurar Telegram</a>
               </p>
               <p class="subtitle">Recordatorios programados: cuando Telegram está habilitado para tu cuenta, se envían en la fecha y hora indicadas.</p>
-              <div id="prevyBrowserNotifyBar" class="prevy-browser-notify-bar" style="display: none" role="region" aria-labelledby="prevyBrowserNotifyTitle">
-                <p id="prevyBrowserNotifyTitle"><strong>Avisos en el navegador</strong></p>
-                <p id="prevyBrowserNotifyStatus"></p>
-                <div class="prevy-browser-notify-actions">
-                  <button type="button" class="btn-browser-notify" id="prevyBrowserNotifyBtn">Permitir avisos con sonido</button>
-                </div>
-              </div>
               <div id="tgBanner" class="banner-tg-off" style="display: none" role="status">
                 Los recordatorios automáticos por Telegram están desactivados para tu cuenta. Puedes seguir usando esta pantalla; cuando se configure el envío (chat del asesor), el propietario de la plataforma podrá volver a habilitarlo.
               </div>
@@ -387,45 +323,6 @@
           syncTelegramConfigureCta();
         });
 
-        function syncBrowserNotifyBar() {
-          var wrap = document.getElementById("prevyBrowserNotifyBar");
-          var statusEl = document.getElementById("prevyBrowserNotifyStatus");
-          var btn = document.getElementById("prevyBrowserNotifyBtn");
-          if (!wrap || !statusEl || !btn) return;
-          if (typeof Notification === "undefined") {
-            wrap.style.display = "none";
-            return;
-          }
-          wrap.style.display = "block";
-          var p = Notification.permission;
-          if (p === "granted") {
-            statusEl.textContent =
-              "Activado: cuando un recordatorio se envía (misma hora que el aviso por Telegram, si lo tienes), verás una notificación del navegador y sonido del sistema. Deja esta pestaña o la app abierta para comprobarlo a tiempo.";
-            btn.style.display = "none";
-          } else if (p === "denied") {
-            statusEl.textContent =
-              "El navegador bloqueó las notificaciones. Para activarlas, cambia el permiso del sitio en la configuración del navegador (icono del candado o del sitio).";
-            btn.style.display = "none";
-          } else {
-            statusEl.textContent =
-              "Puedes recibir aquí un aviso con sonido cuando llegue la hora de un recordatorio (además de Telegram, si lo usas). Haz clic para conceder permiso.";
-            btn.style.display = "inline-flex";
-          }
-        }
-
-        var prevyBrowserNotifyBtn = document.getElementById("prevyBrowserNotifyBtn");
-        if (prevyBrowserNotifyBtn) {
-          prevyBrowserNotifyBtn.addEventListener("click", function () {
-            if (typeof window.prevyRequestReminderNotifications !== "function") return;
-            window.prevyRequestReminderNotifications().then(function (perm) {
-              syncBrowserNotifyBar();
-              if (perm === "denied") {
-                alert("Las notificaciones están bloqueadas. Actívalas en la configuración del sitio en tu navegador.");
-              }
-            });
-          });
-        }
-
         supabase.auth.getSession().then(function (r) {
           if (!r.data.session) {
             window.location.replace("login.html");
@@ -434,8 +331,6 @@
 
           if (typeof window.applyAppShellUser === "function") window.applyAppShellUser(r.data.session.user);
           if (typeof window.setAppShellGuest === "function") window.setAppShellGuest(false);
-
-          syncBrowserNotifyBar();
 
           var tgBanner = document.getElementById("tgBanner");
           supabase
@@ -580,10 +475,7 @@
           cargarLista();
 
           document.addEventListener("visibilitychange", function () {
-            if (document.visibilityState === "visible") {
-              cargarLista();
-              syncBrowserNotifyBar();
-            }
+            if (document.visibilityState === "visible") cargarLista();
           });
           window.addEventListener("pageshow", function (e) {
             if (e.persisted) cargarLista();

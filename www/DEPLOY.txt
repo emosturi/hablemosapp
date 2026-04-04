@@ -35,3 +35,11 @@ Supabase → Authentication → URL Configuration
 Mercado Pago / webhooks / Telegram
 ----------------------------------
 - Actualizar URLs públicas a https://plataforma.prevy.cl donde corresponda.
+
+Web Push (recordatorios PWA)
+----------------------------
+- Supabase SQL: supabase-migration-push-subscriptions.sql
+- Netlify → Environment: VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT (mailto:… o https://…)
+- Generar claves: npx web-push generate-vapid-keys
+- supabase-config.js: window.PREVY_VAPID_PUBLIC_KEY = (misma clave pública que en Netlify)
+- Tras login, el dashboard pide permiso la primera vez por usuario/navegador y guarda la suscripción vía save-push-subscription.

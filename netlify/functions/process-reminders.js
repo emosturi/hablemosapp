@@ -7,6 +7,7 @@
 const { createClient } = require("@supabase/supabase-js");
 const { loadTelegramChatByPhoneMap } = require("./telegram-advisor-route");
 const { sendTelegramToAdvisor } = require("./telegram-send");
+const { sendReminderPushToUser } = require("./reminder-webpush");
 
 exports.config = {
   schedule: "*/5 * * * *", // Cada 5 min (pruebas); en producción usar "*/15 * * * *"
@@ -22,6 +23,23 @@ function ahoraChileHHmm() {
   const h = (parts[0] || "0").padStart(2, "0");
   const m = (parts[1] || "0").padStart(2, "0");
   return h + ":" + m;
+}
+
+function buildReminderPushPayload(r) {
+  const msg = (r.mensaje || "").trim();
+  let body = msg || "Tienes un recordatorio.";
+  if (r.cliente_nombre) body = r.cliente_nombre + (body ? " — " + body : "");
+  if (r.hora) {
+    const ht = String(r.hora).length >= 5 ? String(r.hora).slice(0, 5) : r.hora;
+    body = ht + " · " + body;
+  }
+  if (body.length > 180) body = body.slice(0, 178) + "…";
+  return {
+    title: "Recordatorio Prevy",
+    body,
+    url: "/recordatorios.html",
+    tag: "prevy-r-" + r.id,
+  };
 }
 
 exports.handler = async function (event, context) {
@@ -116,6 +134,8 @@ exports.handler = async function (event, context) {
       try {
         await supabase.from("recordatorios").update({ enviado: true }).eq("id", r.id);
         console.log("[process-reminders] Marcado enviado (sin Telegram):", r.id);
+        const wpOff = await sendReminderPushToUser(supabase, uid, buildReminderPushPayload(r));
+        if (wpOff && wpOff.sent) console.log("[process-reminders] Web Push enviados:", wpOff.sent, "user:", uid);
       } catch (err) {
         console.error("[process-reminders] Error marcando recordatorio:", r.id, err.message);
       }
@@ -147,6 +167,8 @@ exports.handler = async function (event, context) {
       await supabase.from("recordatorios").update({ enviado: true }).eq("id", r.id);
       console.log("[process-reminders] Enviado:", r.id);
       enviados += 1;
+      const wpOk = await sendReminderPushToUser(supabase, uid, buildReminderPushPayload(r));
+      if (wpOk && wpOk.sent) console.log("[process-reminders] Web Push enviados:", wpOk.sent, "user:", uid);
     } catch (err) {
       console.error("[process-reminders] Error para", r.id, err.message);
     }

@@ -1,10 +1,10 @@
-/* Plataforma asesores: caché solo de estáticos propios. Sin HTML ni APIs. */
-const CACHE_NAME = "prevy-static-v8";
+/* Plataforma asesores: caché solo de estáticos propios. Sin HTML ni APIs. Web Push para recordatorios. */
+const CACHE_NAME = "prevy-static-v9";
 const PRECACHE_URLS = [
   "/manifest.webmanifest",
   "/app-shell.css",
   "/theme-init.js",
-  "/reminder-browser-notify.js",
+  "/pwa-push-register.js",
   "/icons/icon-192.png",
   "/icons/icon-512.png",
 ];
@@ -40,9 +40,28 @@ self.addEventListener("activate", function (event) {
   );
 });
 
-function isStaticAsset(pathname) {
-  return /\.(css|js|png|svg|ico|woff2?|webmanifest)$/i.test(pathname);
-}
+self.addEventListener("push", function (event) {
+  var data = { title: "Prevy", body: "", url: "/recordatorios.html", tag: "prevy-reminder" };
+  try {
+    if (event.data) {
+      var j = event.data.json();
+      if (j.title) data.title = j.title;
+      if (j.body) data.body = j.body;
+      if (j.url) data.url = j.url;
+      if (j.tag) data.tag = j.tag;
+    }
+  } catch (_e) {}
+  var opts = {
+    body: data.body,
+    icon: "/icons/icon-192.png",
+    badge: "/icons/icon-192.png",
+    tag: data.tag,
+    renotify: true,
+    silent: false,
+    data: { url: data.url },
+  };
+  event.waitUntil(self.registration.showNotification(data.title, opts));
+});
 
 self.addEventListener("notificationclick", function (event) {
   event.notification.close();
@@ -52,16 +71,29 @@ self.addEventListener("notificationclick", function (event) {
       url = String(event.notification.data.url);
     }
   } catch (_e) {}
+  var abs = new URL(url, self.location.origin).href;
   event.waitUntil(
     clients.matchAll({ type: "window", includeUncontrolled: true }).then(function (list) {
       for (var i = 0; i < list.length; i++) {
         var c = list[i];
-        if (c.url && "focus" in c) return c.focus();
+        if (c.url && "focus" in c) {
+          c.focus();
+          if (typeof c.navigate === "function") {
+            try {
+              c.navigate(abs);
+            } catch (_nav) {}
+          }
+          return;
+        }
       }
-      if (clients.openWindow) return clients.openWindow(url);
+      if (clients.openWindow) return clients.openWindow(abs);
     })
   );
 });
+
+function isStaticAsset(pathname) {
+  return /\.(css|js|png|svg|ico|woff2?|webmanifest)$/i.test(pathname);
+}
 
 self.addEventListener("fetch", function (event) {
   if (event.request.method !== "GET") return;
