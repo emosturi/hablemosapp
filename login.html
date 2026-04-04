@@ -994,5 +994,139 @@
         setupRegisterPolicyUi();
       })();
     </script>
+    <div id="pwa-install-from-landing" hidden aria-live="polite">
+      <p id="pwa-install-from-landing-msg" class="pwa-install-from-landing-text"></p>
+      <button type="button" id="pwa-install-from-landing-action" class="pwa-install-from-landing-btn" hidden>
+        Instalar Prevy
+      </button>
+      <button type="button" id="pwa-install-from-landing-dismiss" class="pwa-install-from-landing-dismiss" aria-label="Cerrar">
+        ×
+      </button>
+    </div>
+    <style>
+      #pwa-install-from-landing {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 10050;
+        display: none;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: center;
+        padding: 12px 44px 12px 14px;
+        background: var(--card);
+        border-top: 1px solid var(--border);
+        box-shadow: 0 -6px 28px rgba(0, 0, 0, 0.1);
+      }
+      #pwa-install-from-landing.is-visible {
+        display: flex;
+      }
+      #pwa-install-from-landing[hidden] {
+        display: none !important;
+      }
+      .pwa-install-from-landing-text {
+        margin: 0;
+        flex: 1 1 200px;
+        font-size: 14px;
+        line-height: 1.45;
+        color: var(--text);
+      }
+      .pwa-install-from-landing-btn {
+        padding: 10px 16px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 14px;
+        font-family: inherit;
+        border: none;
+        cursor: pointer;
+        background: var(--primary);
+        color: #fff;
+      }
+      .pwa-install-from-landing-btn:hover {
+        background: var(--primary-hover);
+      }
+      .pwa-install-from-landing-dismiss {
+        position: absolute;
+        top: 6px;
+        right: 8px;
+        width: 36px;
+        height: 36px;
+        border: none;
+        background: transparent;
+        color: var(--muted);
+        font-size: 22px;
+        line-height: 1;
+        cursor: pointer;
+        border-radius: 8px;
+      }
+      .pwa-install-from-landing-dismiss:hover {
+        color: var(--text);
+        background: color-mix(in oklab, var(--border) 50%, transparent);
+      }
+    </style>
+    <script>
+      (function () {
+        try {
+          var params = new URLSearchParams(window.location.search);
+          if (!params.has("instalar")) return;
+          if (window.matchMedia("(display-mode: standalone)").matches) return;
+          if (window.navigator.standalone === true) return;
+
+          var wrap = document.getElementById("pwa-install-from-landing");
+          var msg = document.getElementById("pwa-install-from-landing-msg");
+          var btn = document.getElementById("pwa-install-from-landing-action");
+          var dismiss = document.getElementById("pwa-install-from-landing-dismiss");
+          if (!wrap || !msg || !btn || !dismiss) return;
+
+          var ua = navigator.userAgent || "";
+          var isIOS =
+            /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+          function closeBanner() {
+            wrap.classList.remove("is-visible");
+            wrap.setAttribute("hidden", "");
+          }
+
+          dismiss.addEventListener("click", closeBanner);
+
+          if (isIOS) {
+            msg.innerHTML =
+              "En <strong>Safari</strong>, pulsa <strong>Compartir</strong> y elige <strong>Añadir a pantalla de inicio</strong> para instalar Prevy.";
+            wrap.removeAttribute("hidden");
+            wrap.classList.add("is-visible");
+            return;
+          }
+
+          var deferred = null;
+          window.addEventListener("beforeinstallprompt", function (e) {
+            e.preventDefault();
+            deferred = e;
+            msg.textContent = "Puedes instalar Prevy como app en tu teléfono para abrirla más rápido.";
+            btn.hidden = false;
+            wrap.removeAttribute("hidden");
+            wrap.classList.add("is-visible");
+          });
+
+          btn.addEventListener("click", function () {
+            if (!deferred) return;
+            deferred.prompt();
+            deferred.userChoice.finally(function () {
+              deferred = null;
+              closeBanner();
+            });
+          });
+
+          setTimeout(function () {
+            if (deferred !== null || wrap.classList.contains("is-visible")) return;
+            msg.textContent =
+              "Si tu navegador lo permite, usa el menú (⋮) y «Instalar app» o «Añadir a pantalla de inicio».";
+            wrap.removeAttribute("hidden");
+            wrap.classList.add("is-visible");
+          }, 12000);
+        } catch (_) {}
+      })();
+    </script>
   </body>
 </html>

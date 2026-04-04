@@ -1,7 +1,7 @@
 {
   "name": "Prevy — Plataforma asesores",
   "short_name": "Prevy",
-  "description": "Prevy: plataforma de asesores previsionales (fuera de la landing en www/).",
+  "description": "para Asesores Previsionales",
   "start_url": "/login.html",
   "scope": "/",
   "display": "standalone",

@@ -181,6 +181,15 @@
         color: var(--primary-mid);
         font-weight: 600;
       }
+      /* Botón instalar: solo móvil / pantalla estrecha */
+      .pl-mobile-only {
+        display: none;
+      }
+      @media (max-width: 720px) {
+        .pl-mobile-only {
+          display: contents;
+        }
+      }
     </style>
   </head>
   <body>
@@ -203,6 +212,9 @@
         </p>
         <div class="pl-hero-ctas">
           <a class="pl-btn pl-btn-primary" href="https://plataforma.prevy.cl/login.html">Acceder a Prevy</a>
+          <span class="pl-mobile-only">
+            <a class="pl-btn" href="https://plataforma.prevy.cl/login.html?instalar=1">Instalar la app</a>
+          </span>
           <a class="pl-btn" href="#caracteristicas">Ver características</a>
         </div>
       </section>
