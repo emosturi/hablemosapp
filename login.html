@@ -328,13 +328,6 @@
           </button>
         </div>
 
-        <div class="field field-keep-session">
-          <label class="keep-session-label" for="keepSessionOnDevice">
-            <input type="checkbox" id="keepSessionOnDevice" checked />
-            <span>Mantener la sesión abierta</span>
-          </label>
-        </div>
-
         <div id="paneLogin" class="auth-pane active" role="tabpanel" aria-labelledby="tabLogin">
           <form id="loginForm" novalidate>
             <div class="field">
@@ -359,6 +352,13 @@
                 required
               />
               <div class="error" id="error_password"></div>
+            </div>
+
+            <div class="field field-keep-session">
+              <label class="keep-session-label" for="keepSessionOnDevice">
+                <input type="checkbox" id="keepSessionOnDevice" checked />
+                <span>Mantener la sesión abierta</span>
+              </label>
             </div>
 
             <p class="forgot-password-link">
