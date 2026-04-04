@@ -50,6 +50,9 @@
         box-shadow: var(--shadow);
         padding: 18px;
       }
+      #formPerfil.panel {
+        margin-bottom: 40px;
+      }
       .grid {
         display: grid;
         grid-template-columns: 1fr;
@@ -138,7 +141,7 @@
       /* Panel sensible: contraseña al final de la página (empuja al fondo si sobra alto) */
       .sensitive-panel {
         margin-top: auto;
-        padding-top: 32px;
+        padding-top: 28px;
         border-color: color-mix(in oklab, #d97706 42%, var(--border));
         background: color-mix(in oklab, #f59e0b 7%, var(--card));
         box-shadow: 0 0 0 1px color-mix(in oklab, #d97706 18%, transparent);
@@ -388,8 +391,10 @@
             <section class="panel sensitive-panel" id="seguridad-cuenta" aria-labelledby="seguridadTitulo">
               <h2 id="seguridadTitulo">Contraseña de acceso</h2>
               <p class="sensitive-lead">
-                Zona sensible: solo desbloquea si estás en un entorno privado. Si no recuerdas la contraseña, usa
-                <a href="recuperar-contrasena.html">recuperar contraseña</a> desde el inicio de sesión.
+                Zona sensible: solo desbloquea si estás en un entorno privado. Debes escribir tu <strong>contraseña
+                actual</strong> para poder definir una nueva. Si entraste solo con Google y no tienes contraseña, usa
+                <a href="recuperar-contrasena.html">recuperar contraseña</a> desde el inicio de sesión. Si no recuerdas
+                la actual, también puedes usar ese enlace.
               </p>
               <div class="sensitive-unlock-row">
                 <label class="sensitive-switch-label" for="togglePasswordUnlock">
@@ -402,13 +407,18 @@
                 <form id="formPassword" novalidate>
                   <fieldset id="passwordFieldset" disabled>
                     <div class="grid">
+                      <div style="grid-column: 1 / -1">
+                        <label for="pwd_current">Contraseña actual</label>
+                        <input id="pwd_current" type="password" autocomplete="current-password" />
+                        <div class="error-msg" id="err_pwd0"></div>
+                      </div>
                       <div>
                         <label for="pwd_new1">Nueva contraseña</label>
                         <input id="pwd_new1" type="password" autocomplete="new-password" minlength="6" />
                         <div class="error-msg" id="err_pwd1"></div>
                       </div>
                       <div>
-                        <label for="pwd_new2">Confirmar contraseña</label>
+                        <label for="pwd_new2">Confirmar nueva contraseña</label>
                         <input id="pwd_new2" type="password" autocomplete="new-password" minlength="6" />
                         <div class="error-msg" id="err_pwd2"></div>
                       </div>
@@ -509,8 +519,10 @@
         var fieldsetPwd = document.getElementById("passwordFieldset");
         var blurPwd = document.getElementById("passwordBlurWrap");
         var unlockPwd = document.getElementById("togglePasswordUnlock");
+        var pwd0 = document.getElementById("pwd_current");
         var pwd1 = document.getElementById("pwd_new1");
         var pwd2 = document.getElementById("pwd_new2");
+        var errPwd0 = document.getElementById("err_pwd0");
         var errPwd1 = document.getElementById("err_pwd1");
         var errPwd2 = document.getElementById("err_pwd2");
         var errPwdGen = document.getElementById("err_pwd_general");
@@ -524,8 +536,10 @@
           unlockPwd.checked = !locked;
           unlockPwd.setAttribute("aria-checked", locked ? "false" : "true");
           if (locked) {
+            if (pwd0) pwd0.value = "";
             if (pwd1) pwd1.value = "";
             if (pwd2) pwd2.value = "";
+            if (errPwd0) errPwd0.textContent = "";
             if (errPwd1) errPwd1.textContent = "";
             if (errPwd2) errPwd2.textContent = "";
             if (errPwdGen) errPwdGen.textContent = "";
@@ -544,42 +558,79 @@
           formPwd.addEventListener("submit", function (e) {
             e.preventDefault();
             if (!fieldsetPwd || fieldsetPwd.disabled) return;
+            if (errPwd0) errPwd0.textContent = "";
             if (errPwd1) errPwd1.textContent = "";
             if (errPwd2) errPwd2.textContent = "";
             if (errPwdGen) errPwdGen.textContent = "";
             if (statusPwd) statusPwd.textContent = "";
 
+            var oldP = (pwd0 && pwd0.value) || "";
             var a = (pwd1 && pwd1.value) || "";
             var b = (pwd2 && pwd2.value) || "";
+            if (!oldP) {
+              if (errPwd0) errPwd0.textContent = "Ingresa tu contraseña actual.";
+              return;
+            }
             if (a.length < 6) {
               if (errPwd1) errPwd1.textContent = "Mínimo 6 caracteres (o lo que exija tu proyecto en Supabase).";
               return;
             }
             if (a !== b) {
-              if (errPwd2) errPwd2.textContent = "Las contraseñas no coinciden.";
+              if (errPwd2) errPwd2.textContent = "Las contraseñas nuevas no coinciden.";
+              return;
+            }
+            if (oldP === a) {
+              if (errPwd1) errPwd1.textContent = "La nueva contraseña debe ser distinta de la actual.";
               return;
             }
 
             btnPwd.disabled = true;
-            if (statusPwd) statusPwd.textContent = "Actualizando…";
+            if (statusPwd) statusPwd.textContent = "Comprobando contraseña actual…";
 
-            supabase.auth
-              .updateUser({ password: a })
-              .then(function (r) {
-                btnPwd.disabled = false;
-                if (r.error) {
-                  if (errPwdGen) errPwdGen.textContent = r.error.message || "No se pudo actualizar.";
-                  if (statusPwd) statusPwd.textContent = "";
-                  return;
-                }
-                if (statusPwd) statusPwd.textContent = "Contraseña actualizada.";
-                setPasswordSectionLocked(true);
-              })
-              .catch(function (err) {
+            supabase.auth.getSession().then(function (sr) {
+              var user = sr && sr.data && sr.data.session && sr.data.session.user;
+              var email = user && user.email ? String(user.email).trim() : "";
+              if (!email) {
                 btnPwd.disabled = false;
                 if (statusPwd) statusPwd.textContent = "";
-                if (errPwdGen) errPwdGen.textContent = (err && err.message) || "Error al actualizar.";
-              });
+                if (errPwdGen) errPwdGen.textContent = "No se pudo obtener el email de la sesión.";
+                return;
+              }
+
+              supabase.auth
+                .signInWithPassword({ email: email, password: oldP })
+                .then(function (chk) {
+                  if (chk.error) {
+                    btnPwd.disabled = false;
+                    if (statusPwd) statusPwd.textContent = "";
+                    if (errPwd0) {
+                      errPwd0.textContent =
+                        chk.error.message && String(chk.error.message).toLowerCase().indexOf("invalid") !== -1
+                          ? "La contraseña actual no es correcta."
+                          : chk.error.message || "No se pudo verificar la contraseña actual.";
+                    }
+                    return;
+                  }
+                  if (statusPwd) statusPwd.textContent = "Actualizando…";
+                  return supabase.auth.updateUser({ password: a });
+                })
+                .then(function (r) {
+                  if (r === undefined) return;
+                  btnPwd.disabled = false;
+                  if (r && r.error) {
+                    if (errPwdGen) errPwdGen.textContent = r.error.message || "No se pudo actualizar.";
+                    if (statusPwd) statusPwd.textContent = "";
+                    return;
+                  }
+                  if (statusPwd) statusPwd.textContent = "Contraseña actualizada.";
+                  setPasswordSectionLocked(true);
+                })
+                .catch(function (err) {
+                  btnPwd.disabled = false;
+                  if (statusPwd) statusPwd.textContent = "";
+                  if (errPwdGen) errPwdGen.textContent = (err && err.message) || "Error al actualizar.";
+                });
+            });
           });
         }
 
