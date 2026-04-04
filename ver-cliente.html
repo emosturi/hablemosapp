@@ -1842,6 +1842,27 @@
 
                 function runChecklistUpload(f, inputEl) {
                   if (!f) return;
+                  var filesMapBefore = getChecklistFilesMap(c.checklist_caso);
+                  var prevFile = filesMapBefore[it.key];
+                  var oldPathToRemove =
+                    prevFile && typeof prevFile.path === "string" && prevFile.path.length > 0
+                      ? prevFile.path
+                      : null;
+                  if (oldPathToRemove) {
+                    var prevLabel = String(prevFile.name || "archivo anterior")
+                      .replace(/[\r\n"]/g, " ")
+                      .trim()
+                      .slice(0, 80);
+                    var msg =
+                      "Ya hay un documento en este ítem" +
+                      (prevLabel ? " («" + prevLabel + "»)" : "") +
+                      ". ¿Deseas reemplazarlo por el nuevo?";
+                    if (!window.confirm(msg)) {
+                      if (inputEl) inputEl.value = "";
+                      return;
+                    }
+                  }
+
                   var checkEl = document.getElementById(it.id);
                   if (checkEl) checkEl.checked = true;
                   var currentBools = getChecklistObjFromDom();
@@ -1889,7 +1910,25 @@
                             .update({ checklist_caso: payload })
                             .eq("id", id)
                             .select("checklist_caso")
-                            .single();
+                            .single()
+                            .then(function (dbRes) {
+                              if (dbRes.error) throw dbRes.error;
+                              if (
+                                oldPathToRemove &&
+                                oldPathToRemove !== filePath
+                              ) {
+                                return supabase.storage
+                                  .from(CHECKLIST_STORAGE_BUCKET)
+                                  .remove([oldPathToRemove])
+                                  .then(function () {
+                                    return dbRes;
+                                  })
+                                  .catch(function () {
+                                    return dbRes;
+                                  });
+                              }
+                              return dbRes;
+                            });
                         })
                         .then(function (dbRes) {
                           if (dbRes.error) throw dbRes.error;
