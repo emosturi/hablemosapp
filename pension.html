@@ -302,6 +302,84 @@
         display: flex;
         flex-wrap: wrap;
         gap: 10px;
+        align-items: center;
+      }
+
+      .btns-limpiar-pdf {
+        display: inline-flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px;
+      }
+
+      /* Switch «Versión PDF»: solo vista de escritorio ancha (móvil ya usa PDF por defecto). */
+      .pdf-desktop-switch {
+        display: none;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--muted);
+        cursor: pointer;
+        user-select: none;
+        margin: 0;
+      }
+
+      @media (min-width: 769px) {
+        .pdf-desktop-switch {
+          display: inline-flex;
+        }
+      }
+
+      .pdf-desktop-switch input {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+        margin: 0;
+      }
+
+      .pdf-desktop-switch-ui {
+        width: 40px;
+        height: 22px;
+        background: var(--border);
+        border-radius: 11px;
+        position: relative;
+        transition: background 0.2s ease;
+        flex-shrink: 0;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+      }
+
+      .pdf-desktop-switch-ui::after {
+        content: "";
+        position: absolute;
+        width: 18px;
+        height: 18px;
+        background: #fff;
+        border-radius: 50%;
+        top: 1px;
+        left: 2px;
+        transition: transform 0.2s ease;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+      }
+
+      .pdf-desktop-switch input:checked + .pdf-desktop-switch-ui {
+        background: var(--primary-mid, #009391);
+        border-color: transparent;
+      }
+
+      .pdf-desktop-switch input:checked + .pdf-desktop-switch-ui::after {
+        transform: translateX(17px);
+      }
+
+      .pdf-desktop-switch input:focus-visible + .pdf-desktop-switch-ui {
+        outline: 2px solid var(--primary, #00606c);
+        outline-offset: 2px;
+      }
+
+      .pdf-desktop-switch__text {
+        color: var(--text);
+        font-weight: 650;
       }
 
       button {
@@ -1173,7 +1251,14 @@
               <button type="button" id="btnMandatoSimple">Generar Mandato</button>
               <button type="button" id="btnMandatoCorto">Generar Mandato Corto</button>
               <button type="button" id="btnContrato">Generar Contrato</button>
-              <button type="button" id="btnLimpiar" class="danger">Limpiar</button>
+              <span class="btns-limpiar-pdf">
+                <button type="button" id="btnLimpiar" class="danger">Limpiar</button>
+                <label class="pdf-desktop-switch" for="switchPdfDesktop">
+                  <input type="checkbox" id="switchPdfDesktop" role="switch" aria-label="Descargar mandato y contrato en PDF en lugar de Word" />
+                  <span class="pdf-desktop-switch-ui" aria-hidden="true"></span>
+                  <span class="pdf-desktop-switch__text">Versión PDF</span>
+                </label>
+              </span>
             </div>
             <div id="status" class="status" aria-live="polite"></div>
           </div>
@@ -1718,12 +1803,18 @@
       }
 
       // Escritorio: .doc (con pie Word). Móvil: PDF con numeración; si falla, .html con pie Word.
-      // Prueba en escritorio mismo PDF que móvil: abre la página con ?pdf=1 (o ?pdf=true).
+      // Mismo PDF en escritorio: interruptor «Versión PDF» o ?pdf=1 / ?pdf=true en la URL.
+      function preferPdfDesktopFromUi() {
+        const sw = document.getElementById("switchPdfDesktop");
+        return !!(sw && sw.checked);
+      }
+
       function descargarDocumentoWordCompat(html, baseName) {
         const ua = navigator.userAgent || "";
         const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
         const sp = new URLSearchParams(window.location.search || "");
-        const forcePdfDesktop = sp.get("pdf") === "1" || sp.get("pdf") === "true";
+        const forcePdfDesktop =
+          sp.get("pdf") === "1" || sp.get("pdf") === "true" || preferPdfDesktopFromUi();
         const usePdf = isMobile || forcePdfDesktop;
         const safeBase = truncarBaseNombreArchivo(String(baseName || "documento").replace(/[/\\:*?"<>|]/g, "_"));
         const htmlWord = prepararHtmlWordConPiePagina(html);
@@ -4351,6 +4442,20 @@
             const btnMandatoSimple = document.getElementById("btnMandatoSimple");
             const btnMandatoCorto = document.getElementById("btnMandatoCorto");
             const btnContrato = document.getElementById("btnContrato");
+            const switchPdfDesktop = document.getElementById("switchPdfDesktop");
+            if (switchPdfDesktop) {
+              try {
+                const spPdf = new URLSearchParams(window.location.search || "");
+                if (spPdf.get("pdf") === "1" || spPdf.get("pdf") === "true") {
+                  switchPdfDesktop.checked = true;
+                }
+              } catch (_e) {}
+              function syncPdfSwitchAria() {
+                switchPdfDesktop.setAttribute("aria-checked", switchPdfDesktop.checked ? "true" : "false");
+              }
+              syncPdfSwitchAria();
+              switchPdfDesktop.addEventListener("change", syncPdfSwitchAria);
+            }
             const supabaseClient = window.SUPABASE_URL && window.SUPABASE_ANON_KEY && window.SUPABASE_URL.indexOf("TU_PROYECTO") === -1
               ? window.createPrevySupabaseClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY)
               : null;
