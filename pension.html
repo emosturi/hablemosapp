@@ -1402,7 +1402,8 @@
           "h1,h2,h3,h4{page-break-after:avoid!important;break-after:avoid-page!important;}" +
           "h1+*,h2+*,h3+*,h4+*{page-break-before:avoid!important;break-before:avoid-page!important;}" +
           ".tabla-firmas,.firmas{page-break-inside:avoid!important;break-inside:avoid!important;}" +
-          "body{font-family:Arial,Helvetica,sans-serif!important;text-align:justify!important;background:#fff!important;color:#111!important;margin:12px!important;}" +
+          "html{box-sizing:border-box!important;min-width:794px!important;}" +
+          "body{font-family:Arial,Helvetica,sans-serif!important;text-align:justify!important;background:#fff!important;color:#111!important;margin:12px!important;box-sizing:border-box!important;min-width:794px!important;width:100%!important;}" +
           "p,li{text-align:justify!important;}" +
           "h1,h2,h3,h4,th{text-align:center!important;}" +
           "table{border-collapse:collapse!important;width:100%!important;}" +
@@ -1452,8 +1453,10 @@
 
           const iframe = document.createElement("iframe");
           iframe.setAttribute("title", "pdf-render");
+          // Sin max-width:100vw: en móvil el iframe quedaba ~ancho pantalla y el body se maquetaba estrecho;
+          // html2canvas capturaba solo ese ancho y el PDF salía cortado por la derecha (tablas a 100% de A4).
           iframe.style.cssText =
-            "position:fixed;left:0;top:0;width:794px;max-width:100vw;height:90vh;min-height:480px;border:0;z-index:2147483646;background:#fff;box-sizing:border-box;overflow:auto;-webkit-overflow-scrolling:touch;";
+            "position:fixed;left:0;top:0;width:794px;min-width:794px;max-width:none;height:90vh;min-height:480px;border:0;z-index:2147483646;background:#fff;box-sizing:border-box;overflow:auto;-webkit-overflow-scrolling:touch;";
 
           document.body.appendChild(veil);
           document.body.appendChild(iframe);
