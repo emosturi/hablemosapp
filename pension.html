@@ -1323,6 +1323,7 @@
       const certificadosItems = [
         { key: "historicoCotizaciones", label: "Histórico de cotizaciones" },
         { key: "antecedentePrevisional", label: "Antecedente previsional" },
+        { key: "certificadoAnosCotizados", label: "¿Solicitar certificado de años cotizados?" },
         { key: "certificadoTrabajoPesado", label: "Certificado de trabajo pesado" },
         { key: "certificadoVacacionesProgresivas", label: "Certificado de vacaciones progresivas" },
         { key: "certificadoEstadoCuentas", label: "Certificado de estado de cuentas" },
@@ -1371,6 +1372,7 @@
       const certificadosMandateLabels = {
         historicoCotizaciones: "Certificado histórico de cotizaciones",
         antecedentePrevisional: "Certificado de antecedente previsional",
+        certificadoAnosCotizados: "Certificado de años cotizados",
         certificadoTrabajoPesado: "Certificado de trabajo pesado",
         certificadoVacacionesProgresivas: "Certificado de vacaciones progresivas",
         certificadoEstadoCuentas: "Certificado de estado de cuentas",
@@ -2228,6 +2230,11 @@
         <tr>
         <td>Certificado de antecedente previsional</td>
         <td class="col-respuesta"><span style="white-space:nowrap">${certificados.antecedentePrevisional === "Sí" ? "Sí" : "No"}</span></td>
+        </tr>
+
+        <tr>
+        <td>Certificado de años cotizados</td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${certificados.certificadoAnosCotizados === "Sí" ? "Sí" : "No"}</span></td>
         </tr>
 
         <tr>
