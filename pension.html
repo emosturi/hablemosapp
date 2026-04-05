@@ -1597,9 +1597,8 @@
       }
 
       /**
-       * PDF en móvil: WebKit (sobre todo iOS) no pinta bien iframes con opacity:0 u off-screen,
-       * y html2canvas termina con lienzo en blanco y varias páginas vacías. Se muestra un velo
-       * breve y el iframe visible en el viewport durante la captura.
+       * PDF: html2canvas rasteriza el HTML; escala y calidad JPEG definen nitidez (también al imprimir desde el móvil).
+       * WebKit (iOS) no pinta bien iframes ocultos: se usa iframe visible + velo durante la captura.
        */
       function descargarHtmlComoPdfMultipage(htmlString, safeBase) {
         return new Promise(function (resolve, reject) {
@@ -1673,13 +1672,22 @@
             const dpr =
               typeof window.devicePixelRatio === "number" && window.devicePixelRatio > 0
                 ? window.devicePixelRatio
-                : 2;
-            const scale = isMobilePdf ? 1 : Math.min(2, dpr);
+                : 1;
+            // Escala mínima ~2 en móvil para impresión/PDF legible; tope para no reventar memoria en teléfonos.
+            var scale;
+            var jpegQuality;
+            if (isMobilePdf) {
+              scale = Math.min(3, Math.max(2, dpr * 1.1));
+              jpegQuality = 0.96;
+            } else {
+              scale = Math.min(4, Math.max(2.5, dpr * 1.2));
+              jpegQuality = 0.97;
+            }
 
             const opt = {
               margin: [8, 8, 8, 8],
               filename: `${safeBase}.pdf`,
-              image: { type: "jpeg", quality: 0.92 },
+              image: { type: "jpeg", quality: jpegQuality },
               html2canvas: {
                 scale: scale,
                 useCORS: true,
