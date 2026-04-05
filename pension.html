@@ -257,6 +257,25 @@
         min-height: 16px;
       }
 
+      .section-hidden {
+        display: none;
+      }
+
+      .hijo-block {
+        margin-bottom: 14px;
+        padding-bottom: 14px;
+        border-bottom: 1px solid var(--border);
+      }
+      .hijo-block:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+      }
+      .hijo-num {
+        font-size: 12px;
+        color: var(--muted);
+        margin-bottom: 6px;
+      }
+
       .pension-field--error {
         outline: 2px solid var(--danger-text, #b91c1c);
         outline-offset: 3px;
@@ -672,7 +691,7 @@
                   <option value="" selected disabled>Selecciona…</option>
                   <option>Soltero/a</option>
                   <option>Casado/a</option>
-                  <option>Conviviente Civil</option>
+                  <option value="Conviviente civil">Conviviente civil</option>
                   <option>Divorciado/a</option>
                   <option>Viudo/a</option>
                   <option>Separado/a</option>
@@ -736,30 +755,130 @@
                 </select>
                 <div class="error" data-error-for="mandante_salud"></div>
               </div>
+            </div>
+          </div>
 
-              <div class="field col-6">
-                <label for="mandante_benef">N° de Beneficiarios <span class="req">*</span></label>
-                <input
-                  id="mandante_benef"
-                  name="mandante.numeroBeneficiarios"
-                  type="number"
-                  min="0"
-                  step="1"
-                  required
-                  inputmode="numeric"
-                />
-                <div class="error" data-error-for="mandante_benef"></div>
+          <div class="section section-hidden" id="sectionConyuge" aria-labelledby="pensionConyugeTitle">
+            <div class="section-title">
+              <h2 id="pensionConyugeTitle">Datos del cónyuge / conviviente civil</h2>
+              <span class="hint">Visible si el estado civil es casado/a o conviviente civil</span>
+            </div>
+            <div class="grid">
+              <div class="field col-4">
+                <label for="conyuge_nombres">Nombres <span class="req">*</span></label>
+                <input id="conyuge_nombres" name="conyuge.nombres" autocomplete="given-name" />
+                <div class="error" data-error-for="conyuge_nombres"></div>
+              </div>
+              <div class="field col-4">
+                <label for="conyuge_apPaterno">Apellido Paterno <span class="req">*</span></label>
+                <input id="conyuge_apPaterno" name="conyuge.apellidoPaterno" autocomplete="family-name" />
+                <div class="error" data-error-for="conyuge_apPaterno"></div>
+              </div>
+              <div class="field col-4">
+                <label for="conyuge_apMaterno">Apellido Materno <span class="req">*</span></label>
+                <input id="conyuge_apMaterno" name="conyuge.apellidoMaterno" autocomplete="family-name" />
+                <div class="error" data-error-for="conyuge_apMaterno"></div>
+              </div>
+              <div class="field col-4">
+                <label for="conyuge_nacionalidad">Nacionalidad <span class="req">*</span></label>
+                <input id="conyuge_nacionalidad" name="conyuge.nacionalidad" placeholder="Ej. Chilena" autocomplete="country-name" />
+                <div class="error" data-error-for="conyuge_nacionalidad"></div>
+              </div>
+              <div class="field col-4">
+                <label for="conyuge_rut">RUT <span class="req">*</span></label>
+                <input id="conyuge_rut" name="conyuge.rut" class="rut-input" placeholder="12.345.678-5" inputmode="text" />
+                <div class="error" data-error-for="conyuge_rut"></div>
+              </div>
+              <div class="field col-4">
+                <label>Sexo <span class="req">*</span></label>
+                <div class="radio-row" role="group" aria-label="Sexo cónyuge/conviviente">
+                  <label class="radio-pill">
+                    <input type="radio" name="conyuge.sexo" value="Masculino" />
+                    Masculino
+                  </label>
+                  <label class="radio-pill">
+                    <input type="radio" name="conyuge.sexo" value="Femenino" />
+                    Femenino
+                  </label>
+                </div>
+                <div class="error" data-error-for="conyuge_sexo"></div>
+              </div>
+              <div class="field col-4">
+                <label for="conyuge_fechaNac">Fecha de nacimiento <span class="req">*</span></label>
+                <div class="date-group">
+                  <select id="conyuge_fechaNac_dia"><option value="" selected disabled>Día</option></select>
+                  <select id="conyuge_fechaNac_mes"><option value="" selected disabled>Mes</option></select>
+                  <select id="conyuge_fechaNac_anio"><option value="" selected disabled>Año</option></select>
+                  <input type="hidden" id="conyuge_fechaNac" name="conyuge.fechaNacimiento" />
+                </div>
+                <div class="error" data-error-for="conyuge_fechaNac"></div>
+              </div>
+              <div class="field col-12">
+                <label>¿El cónyuge o conviviente civil es inválido? <span class="req">*</span></label>
+                <div class="radio-row" role="group" aria-label="Cónyuge inválido">
+                  <label class="radio-pill">
+                    <input type="radio" name="conyuge.esInvalido" value="Sí" />
+                    Sí
+                  </label>
+                  <label class="radio-pill">
+                    <input type="radio" name="conyuge.esInvalido" value="No" />
+                    No
+                  </label>
+                </div>
+                <div class="error" data-error-for="conyuge_esInvalido"></div>
+              </div>
+              <div class="field col-4">
+                <label>Fecha de matrimonio / unión civil</label>
+                <div class="date-group">
+                  <select id="conyuge_mat_dia"><option value="" selected disabled>Día</option></select>
+                  <select id="conyuge_mat_mes"><option value="" selected disabled>Mes</option></select>
+                  <select id="conyuge_mat_anio"><option value="" selected disabled>Año</option></select>
+                  <input type="hidden" id="conyuge_mat_fecha" name="conyuge.fechaMatrimonioUnionCivil" />
+                </div>
+              </div>
+              <div class="field col-4">
+                <label for="conyuge_ciudad_mat">Ciudad del matrimonio / unión civil</label>
+                <input id="conyuge_ciudad_mat" name="conyuge.ciudadMatrimonioUnionCivil" autocomplete="address-level2" />
               </div>
             </div>
           </div>
 
-          <div class="section" id="beneficiariosSection" style="display:none">
+          <div class="section" aria-labelledby="pensionHijosTitle">
             <div class="section-title">
-              <h2>Datos de Beneficiarios</h2>
-              <span class="hint">Completa los datos de cada beneficiario</span>
+              <h2 id="pensionHijosTitle">¿Tiene hijos menores de 24 años?</h2>
             </div>
-          
-            <div id="beneficiariosContainer"></div>
+            <div class="radio-row" role="group" aria-label="Hijos menores 24">
+              <label class="radio-pill">
+                <input type="radio" name="tieneHijosMenores24" value="Sí" />
+                Sí
+              </label>
+              <label class="radio-pill">
+                <input type="radio" name="tieneHijosMenores24" value="No" checked />
+                No
+              </label>
+            </div>
+            <div class="section-hidden" id="sectionHijosBloque">
+              <div class="field" style="margin-top: 12px">
+                <label for="numHijos">Número de hijos menores de 24 años <span class="req">*</span></label>
+                <select id="numHijos" aria-describedby="hintNumHijosPension">
+                  <option value="1" selected>1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                  <option value="6">6</option>
+                  <option value="7">7</option>
+                  <option value="8">8</option>
+                  <option value="9">9</option>
+                  <option value="10">10</option>
+                </select>
+                <p class="hint" id="hintNumHijosPension" style="margin: 6px 0 0">
+                  Si indicó que tiene hijos menores de 24 años, debe registrar al menos uno (mínimo 1).
+                </p>
+                <div class="error" data-error-for="numHijos"></div>
+              </div>
+              <div id="hijosContainer"></div>
+            </div>
           </div>
 
           <div class="section collapsible collapsed" aria-labelledby="mandatarioTitle">
@@ -1888,7 +2007,7 @@
         <p>
         Para efectos de la suscripción de la pensión antes mencionada, declaro conocer que tienen la calidad de beneficiarios de pensión de sobrevivencia: el cónyuge, los hijos, la madre o padre de hijos de filiación no matrimonial y, a falta de todos los anteriores, los padres. En consecuencia, efectúo la siguiente declaración de beneficiarios:
         </p> 
-        ${parseInt(mandante.numeroBeneficiarios || 0, 10) > 0 ? `
+        ${data.beneficiarios && Object.keys(data.beneficiarios).length > 0 ? `
         
           
     
@@ -3083,6 +3202,146 @@
         return siguiente;
       }
 
+      /** Misma regla que en registro público (clientes.html): casado/a o conviviente civil. */
+      function pensionEsConyugePorEstadoCivil(estado) {
+        var v = (estado || "").toLowerCase();
+        return v.indexOf("casado") !== -1 || v.indexOf("conviviente") !== -1;
+      }
+
+      /**
+       * A partir del DOM (cónyuge + hijos como en clientes.html), arma data.beneficiarios para PDF/contrato,
+       * pensionSolicitudBeneficiariosSnapshot / pensionHijosDb / pensionTieneHijosMenores24 para BD (mismas columnas que registro público).
+       */
+      function enrichDataConyugeHijosBeneficiarios(form, data) {
+        if (!form || !data) return;
+        data.mandante = data.mandante || {};
+        var mand = data.mandante;
+        var ec = (mand.estadoCivil || "").trim();
+        var showConyuge = pensionEsConyugePorEstadoCivil(ec);
+        data.conyuge = data.conyuge || {};
+        var co = data.conyuge;
+
+        var tieneRadio = form.querySelector("input[name='tieneHijosMenores24']:checked");
+        var tieneHijosSi = tieneRadio && tieneRadio.value === "Sí";
+        data.pensionTieneHijosMenores24 = tieneHijosSi;
+
+        var numHijosSel = document.getElementById("numHijos");
+        var numH = 0;
+        if (tieneHijosSi && numHijosSel) {
+          numH = parseInt(numHijosSel.value || "0", 10);
+          if (!Number.isFinite(numH) || numH < 1) numH = 0;
+        }
+
+        var hijosDb = [];
+        if (tieneHijosSi && numH >= 1) {
+          for (var i = 0; i < numH; i++) {
+            var dia = (form.querySelector("select[name='hijo_" + i + "_dia']") || {}).value;
+            var mes = (form.querySelector("select[name='hijo_" + i + "_mes']") || {}).value;
+            var anio = (form.querySelector("select[name='hijo_" + i + "_anio']") || {}).value;
+            var fNac = dia && mes && anio ? anio + "-" + mes + "-" + dia : null;
+            var invH = form.querySelector("input[name='hijo_" + i + "_esInvalido']:checked");
+            var nombres = (form.querySelector("input[name='hijo_" + i + "_nombres']") || {}).value;
+            var apP = (form.querySelector("input[name='hijo_" + i + "_apellidoPaterno']") || {}).value;
+            var apM = (form.querySelector("input[name='hijo_" + i + "_apellidoMaterno']") || {}).value;
+            var nac = (form.querySelector("input[name='hijo_" + i + "_nacionalidad']") || {}).value;
+            var rut = (form.querySelector("input[name='hijo_" + i + "_rut']") || {}).value;
+            var sexo = (form.querySelector("select[name='hijo_" + i + "_sexo']") || {}).value;
+            hijosDb.push({
+              nombres: (nombres || "").trim() || null,
+              apellido_paterno: (apP || "").trim() || null,
+              apellido_materno: (apM || "").trim() || null,
+              rut: rutToCanonical(rut) || null,
+              fecha_nacimiento: fNac,
+              nacionalidad: (nac || "").trim() || null,
+              sexo: (sexo || "").trim() || null,
+              es_invalido: invH ? invH.value : null,
+            });
+          }
+        }
+        data.pensionHijosDb = hijosDb;
+
+        var solicitudBenef = [];
+        var benefEnumerado = {};
+        var idx = 0;
+
+        if (showConyuge) {
+          var parentescoConyuge = ec.toLowerCase().indexOf("conviviente") !== -1 ? "Conviviente civil" : "Cónyuge";
+          var fecNacConyIso = co.fechaNacimiento && parseDDMMYYYY(co.fechaNacimiento) ? parseDDMMYYYY(co.fechaNacimiento).iso : null;
+          var fecMatIso =
+            co.fechaMatrimonioUnionCivil && parseDDMMYYYY(co.fechaMatrimonioUnionCivil)
+              ? parseDDMMYYYY(co.fechaMatrimonioUnionCivil).iso
+              : null;
+          solicitudBenef.push({
+            nombres: (co.nombres || "").trim() || null,
+            apellido_paterno: (co.apellidoPaterno || "").trim() || null,
+            apellido_materno: (co.apellidoMaterno || "").trim() || null,
+            rut: rutToCanonical(co.rut) || null,
+            fecha_nacimiento: fecNacConyIso,
+            parentesco: parentescoConyuge,
+            sexo: (co.sexo || "").trim() || null,
+            fecha_matrimonio_union_civil: fecMatIso,
+            ciudad_matrimonio_union_civil: (co.ciudadMatrimonioUnionCivil || "").trim() || null,
+            es_invalido: (co.esInvalido || "").trim() || null,
+            observaciones: null,
+          });
+
+          var ddMmConyNac = (co.fechaNacimiento || "").trim();
+          benefEnumerado[String(idx)] = {
+            nombres: co.nombres || "",
+            apellidoPaterno: co.apellidoPaterno || "",
+            apellidoMaterno: co.apellidoMaterno || "",
+            rut: co.rut || "",
+            sexo: co.sexo || "",
+            parentesco: parentescoConyuge,
+            fechaNacimiento: ddMmConyNac,
+            fechaMatrimonioUnionCivil: (co.fechaMatrimonioUnionCivil || "").trim(),
+            ciudadMatrimonioUnionCivil: (co.ciudadMatrimonioUnionCivil || "").trim(),
+            esInvalido: co.esInvalido || "",
+            observaciones: "",
+          };
+          idx++;
+        }
+
+        hijosDb.forEach(function (h) {
+          var fnDd = "";
+          if (h.fecha_nacimiento && /^\d{4}-\d{2}-\d{2}$/.test(h.fecha_nacimiento)) {
+            var px = h.fecha_nacimiento.split("-");
+            fnDd = px[2] + "-" + px[1] + "-" + px[0];
+          }
+          solicitudBenef.push({
+            nombres: h.nombres,
+            apellido_paterno: h.apellido_paterno,
+            apellido_materno: h.apellido_materno,
+            rut: h.rut,
+            fecha_nacimiento: h.fecha_nacimiento,
+            parentesco: "Hijo/a",
+            sexo: h.sexo,
+            fecha_matrimonio_union_civil: null,
+            ciudad_matrimonio_union_civil: null,
+            es_invalido: h.es_invalido || null,
+            observaciones: null,
+          });
+          benefEnumerado[String(idx)] = {
+            nombres: h.nombres || "",
+            apellidoPaterno: h.apellido_paterno || "",
+            apellidoMaterno: h.apellido_materno || "",
+            rut: h.rut || "",
+            sexo: h.sexo || "",
+            parentesco: "Hijo/a",
+            fechaNacimiento: fnDd,
+            fechaMatrimonioUnionCivil: "",
+            ciudadMatrimonioUnionCivil: "",
+            esInvalido: h.es_invalido || "No",
+            observaciones: "",
+          };
+          idx++;
+        });
+
+        data.beneficiarios = benefEnumerado;
+        data.mandante.numeroBeneficiarios = String(solicitudBenef.length);
+        data.pensionSolicitudBeneficiariosSnapshot = solicitudBenef;
+      }
+
       // Construye el objeto fila para la tabla clientes a partir de los datos del formulario de pensión (mandato).
       function buildClienteRowFromMandatoData(data, userId) {
         const mandante = data.mandante || {};
@@ -3132,36 +3391,46 @@
           solicitud_certificados: certificados && typeof certificados === "object" ? certificados : {},
         };
 
-        const numBenef = parseInt(mandante.numeroBeneficiarios || 0, 10);
-        row.solicitud_numero_beneficiarios = isNaN(numBenef) ? 0 : numBenef;
+        row.tiene_hijos_menores_24 = data.pensionTieneHijosMenores24 === true;
+        row.hijos = Array.isArray(data.pensionHijosDb) ? data.pensionHijosDb.slice() : [];
 
-        const beneficiariosData = data.beneficiarios;
-        if (beneficiariosData && typeof beneficiariosData === "object") {
-          const lista = Object.values(beneficiariosData);
-          row.solicitud_beneficiarios = lista.map(function (b) {
-            const f = (b.fechaNacimiento && parseDDMMYYYY(b.fechaNacimiento)) ? parseDDMMYYYY(b.fechaNacimiento).iso : null;
-            var invRaw = (b.esInvalido != null ? b.esInvalido : b.es_invalido);
-            var invStr = (invRaw === true || String(invRaw).toLowerCase() === "sí" || String(invRaw).toLowerCase() === "si") ? "Sí"
-              : (invRaw === false || String(invRaw).toLowerCase() === "no") ? "No" : null;
+        if (Array.isArray(data.pensionSolicitudBeneficiariosSnapshot)) {
+          row.solicitud_beneficiarios = data.pensionSolicitudBeneficiariosSnapshot.map(function (b) {
             return {
-              nombres: (b.nombres || "").trim() || null,
-              apellido_paterno: (b.apellidoPaterno || "").trim() || null,
-              apellido_materno: (b.apellidoMaterno || "").trim() || null,
-              rut: (rutToCanonical(b.rut) || null),
-              fecha_nacimiento: f,
-              parentesco: (b.parentesco || "").trim() || null,
-              sexo: (b.sexo || "").trim() || null,
-              fecha_matrimonio_union_civil: (b.fechaMatrimonioUnionCivil && parseDDMMYYYY(b.fechaMatrimonioUnionCivil)) ? parseDDMMYYYY(b.fechaMatrimonioUnionCivil).iso : null,
-              ciudad_matrimonio_union_civil: (b.ciudadMatrimonioUnionCivil || "").trim() || null,
-              es_invalido: invStr,
-              observaciones: (b.observaciones || "").trim() || null,
+              nombres: b.nombres,
+              apellido_paterno: b.apellido_paterno,
+              apellido_materno: b.apellido_materno,
+              rut: b.rut,
+              fecha_nacimiento: b.fecha_nacimiento,
+              parentesco: b.parentesco,
+              sexo: b.sexo,
+              fecha_matrimonio_union_civil: b.fecha_matrimonio_union_civil,
+              ciudad_matrimonio_union_civil: b.ciudad_matrimonio_union_civil,
+              es_invalido: b.es_invalido,
+              observaciones: b.observaciones,
             };
           });
         } else {
           row.solicitud_beneficiarios = [];
         }
+        row.solicitud_numero_beneficiarios = row.solicitud_beneficiarios.length;
 
         aplicarConyugeColumnasDesdeBeneficiarios(row);
+
+        if (!pensionEsConyugePorEstadoCivil(mandante.estadoCivil)) {
+          row.conyuge_nombres = null;
+          row.conyuge_apellido_paterno = null;
+          row.conyuge_apellido_materno = null;
+          row.conyuge_rut = null;
+          row.conyuge_fecha_nacimiento = null;
+          row.conyuge_nacionalidad = null;
+          row.conyuge_sexo = null;
+          row.conyuge_fecha_matrimonio = null;
+          row.conyuge_lugar_matrimonio = null;
+        } else {
+          var co2 = data.conyuge || {};
+          row.conyuge_nacionalidad = (co2.nacionalidad || "").trim() || row.conyuge_nacionalidad || null;
+        }
 
         return row;
       }
@@ -3248,6 +3517,7 @@
           rowNew.solicitud_certificados = shallowMergeNonEmptyJson({}, incoming.solicitud_certificados);
           var bn = (incoming.solicitud_beneficiarios || []).filter(beneficiarioFilaTieneDatos);
           rowNew.solicitud_beneficiarios = bn;
+          rowNew.solicitud_numero_beneficiarios = bn.length;
           aplicarConyugeColumnasDesdeBeneficiarios(rowNew);
           return rowNew;
         }
@@ -3287,6 +3557,8 @@
           "conyuge_fecha_nacimiento",
           "conyuge_fecha_matrimonio",
           "conyuge_lugar_matrimonio",
+          "conyuge_nacionalidad",
+          "conyuge_sexo",
         ];
         scalarText.forEach(function (k) {
           var v = incoming[k];
@@ -3331,6 +3603,25 @@
           merged.solicitud_beneficiarios = incBen;
           merged.solicitud_numero_beneficiarios = incoming.solicitud_numero_beneficiarios;
           aplicarConyugeColumnasDesdeBeneficiarios(merged);
+        }
+
+        if (incoming.tiene_hijos_menores_24 !== undefined && incoming.tiene_hijos_menores_24 !== null) {
+          merged.tiene_hijos_menores_24 = incoming.tiene_hijos_menores_24;
+        }
+        if (Array.isArray(incoming.hijos)) {
+          merged.hijos = incoming.hijos;
+        }
+
+        if (incoming.estado_civil && !pensionEsConyugePorEstadoCivil(incoming.estado_civil)) {
+          merged.conyuge_nombres = null;
+          merged.conyuge_apellido_paterno = null;
+          merged.conyuge_apellido_materno = null;
+          merged.conyuge_rut = null;
+          merged.conyuge_fecha_nacimiento = null;
+          merged.conyuge_nacionalidad = null;
+          merged.conyuge_sexo = null;
+          merged.conyuge_fecha_matrimonio = null;
+          merged.conyuge_lugar_matrimonio = null;
         }
 
         return merged;
@@ -3843,16 +4134,55 @@
           }
         }
 
-        // Validar RUT de beneficiarios
-        for (const input of form.querySelectorAll(".rut-benef")) {
-          const v = String(input.value || "").trim();
-          if (!v) continue;
-          input.value = normalizeRut(v);
-          if (!rutIsValid(input.value)) {
+        // Cónyuge / conviviente civil (alineado con registro público)
+        var sectionConyugeEl = document.getElementById("sectionConyuge");
+        var showConyugeVal = sectionConyugeEl && !sectionConyugeEl.classList.contains("section-hidden");
+        if (showConyugeVal) {
+          var coRutIn = document.getElementById("conyuge_rut");
+          if (coRutIn) {
+            coRutIn.value = normalizeRut(String(coRutIn.value || "").trim());
+            if (!rutIsValid(coRutIn.value)) {
+              ok = false;
+              coRutIn.setAttribute("aria-invalid", "true");
+              setError(form, "conyuge_rut", "RUT inválido (cónyuge/conviviente).");
+            }
+          }
+          var coFechaH = document.getElementById("conyuge_fechaNac");
+          if (!coFechaH || !String(coFechaH.value || "").trim() || !/^\d{2}-\d{2}-\d{4}$/.test(coFechaH.value)) {
             ok = false;
-            input.setAttribute("aria-invalid", "true");
-            const name = input.getAttribute("name");
-            if (name) setError(form, name, "RUT inválido (Beneficiario).");
+            if (coFechaH) coFechaH.setAttribute("aria-invalid", "true");
+            setError(form, "conyuge_fechaNac", "Seleccione la fecha de nacimiento del cónyuge/conviviente.");
+          }
+        }
+
+        // Hijos menores de 24 años
+        var tieneHijosRad = form.querySelector("input[name='tieneHijosMenores24']:checked");
+        var tieneHijosSiForm = tieneHijosRad && tieneHijosRad.value === "Sí";
+        if (tieneHijosSiForm) {
+          var numHijosSelV = document.getElementById("numHijos");
+          var nH = parseInt(numHijosSelV && numHijosSelV.value ? numHijosSelV.value : "0", 10);
+          if (!nH || nH < 1 || isNaN(nH)) {
+            ok = false;
+            setError(form, "numHijos", "Si tiene hijos menores de 24 años, indique al menos uno (mínimo 1).");
+          } else {
+            for (var hi = 0; hi < nH; hi++) {
+              var hrIn = form.querySelector("input[name='hijo_" + hi + "_rut']");
+              if (hrIn) {
+                hrIn.value = normalizeRut(String(hrIn.value || "").trim());
+                if (!rutIsValid(hrIn.value)) {
+                  ok = false;
+                  hrIn.setAttribute("aria-invalid", "true");
+                  setError(form, "hijo_" + hi + "_rut", "RUT del hijo/a inválido u obligatorio.");
+                }
+              }
+              var dH = (form.querySelector("select[name='hijo_" + hi + "_dia']") || {}).value;
+              var mH = (form.querySelector("select[name='hijo_" + hi + "_mes']") || {}).value;
+              var yH = (form.querySelector("select[name='hijo_" + hi + "_anio']") || {}).value;
+              if (!dH || !mH || !yH) {
+                ok = false;
+                setError(form, "hijo_" + hi + "_fechaNac", "Seleccione la fecha de nacimiento completa del hijo/a " + (hi + 1) + ".");
+              }
+            }
           }
         }
 
@@ -3950,232 +4280,6 @@
         return { ok, parsedBirth: parsed };
       }
 
-      // Crea dinámicamente el bloque de campos para un beneficiario (incluyendo su fecha y RUT).
-      function crearBeneficiario(i){
-
-        const div = document.createElement("div");
-        div.className = "section";
-
-        div.innerHTML = `
-
-<div class="section-title">
-  <h2>Beneficiario ${i+1}</h2>
-  <span class="hint">Datos del beneficiario</span>
-</div>
-
-<div class="grid">
-
-  <div class="field col-4">
-    <label>Nombres <span class="req">*</span></label>
-    <input name="beneficiarios.${i}.nombres" required>
-    <div class="error" data-error-for="beneficiarios.${i}.nombres"></div>
-  </div>
-
-  <div class="field col-4">
-    <label>Apellido Paterno <span class="req">*</span></label>
-    <input name="beneficiarios.${i}.apellidoPaterno" required>
-    <div class="error" data-error-for="beneficiarios.${i}.apellidoPaterno"></div>
-  </div>
-
-  <div class="field col-4">
-    <label>Apellido Materno <span class="req">*</span></label>
-    <input name="beneficiarios.${i}.apellidoMaterno" required>
-    <div class="error" data-error-for="beneficiarios.${i}.apellidoMaterno"></div>
-  </div>
-
-  <div class="field col-4">
-    <label>RUT <span class="req">*</span></label>
-    <input class="rut-benef" name="beneficiarios.${i}.rut" placeholder="12.345.678-5" required>
-    <div class="error" data-error-for="beneficiarios.${i}.rut"></div>
-  </div>
-
-  <div class="field col-4">
-    <label>Sexo <span class="req">*</span></label>
-    <select name="beneficiarios.${i}.sexo" required>
-      <option value="" selected disabled>Selecciona…</option>
-      <option>Masculino</option>
-      <option>Femenino</option>
-    </select>
-    <div class="error" data-error-for="beneficiarios.${i}.sexo"></div>
-  </div>
-
-  <div class="field col-4">
-    <label>Parentesco <span class="req">*</span></label>
-    <select name="beneficiarios.${i}.parentesco" required class="benef-parentesco">
-      <option value="" selected disabled>Selecciona…</option>
-      <option value="Cónyuge">Cónyuge</option>
-      <option value="Conviviente civil">Conviviente civil</option>
-      <option value="MPHFNM">MPHFNM</option>
-      <option value="Hijo/a">Hijo/a</option>
-      <option value="Madre">Madre</option>
-      <option value="Padre">Padre</option>
-    </select>
-    <div class="error" data-error-for="beneficiarios.${i}.parentesco"></div>
-  </div>
-
-  <div class="field col-4">
-    <label>Beneficiario es inválido? <span class="req">*</span></label>
-    <div class="radio-row" role="group" aria-label="Beneficiario inválido">
-      <label class="radio-pill">
-        <input type="radio" name="beneficiarios.${i}.esInvalido" value="Sí" required />
-        Sí
-      </label>
-      <label class="radio-pill">
-        <input type="radio" name="beneficiarios.${i}.esInvalido" value="No" required />
-        No
-      </label>
-    </div>
-    <div class="error" data-error-for="beneficiarios.${i}.esInvalido"></div>
-  </div>
-
-  <div class="field col-4">
-    <label>Fecha nacimiento <span class="req">*</span></label>
-    <div class="date-group">
-      <select id="benef_${i}_dia">
-        <option value="" selected disabled>Día</option>
-      </select>
-      <select id="benef_${i}_mes">
-        <option value="" selected disabled>Mes</option>
-      </select>
-      <select id="benef_${i}_anio">
-        <option value="" selected disabled>Año</option>
-      </select>
-      <input
-        type="hidden"
-        id="benef_${i}_fecha"
-        name="beneficiarios.${i}.fechaNacimiento"
-        required
-      />
-    </div>
-    <div class="error" data-error-for="beneficiarios.${i}.fechaNacimiento"></div>
-  </div>
-
-  <div class="benef-matrimonio-fields col-12" id="benef_${i}_matrimonio" style="display:none;">
-    <div class="grid">
-      <div class="field col-4">
-        <label>Fecha de matrimonio/unión civil</label>
-        <div class="date-group">
-          <select id="benef_${i}_mat_dia">
-            <option value="" selected disabled>Día</option>
-          </select>
-          <select id="benef_${i}_mat_mes">
-            <option value="" selected disabled>Mes</option>
-          </select>
-          <select id="benef_${i}_mat_anio">
-            <option value="" selected disabled>Año</option>
-          </select>
-          <input type="hidden" name="beneficiarios.${i}.fechaMatrimonioUnionCivil" id="benef_${i}_mat_fecha" />
-        </div>
-      </div>
-      <div class="field col-4">
-        <label>Ciudad del matrimonio/unión civil</label>
-        <input name="beneficiarios.${i}.ciudadMatrimonioUnionCivil" />
-      </div>
-    </div>
-  </div>
-
-  <div class="field col-12">
-    <label>Observaciones</label>
-    <textarea name="beneficiarios.${i}.observaciones"></textarea>
-    <div class="error" data-error-for="beneficiarios.${i}.observaciones"></div>
-  </div>
-
-</div>
-`;
-
-        const diaSel = div.querySelector(`#benef_${i}_dia`);
-        const mesSel = div.querySelector(`#benef_${i}_mes`);
-        const anioSel = div.querySelector(`#benef_${i}_anio`);
-        const hidden = div.querySelector(`#benef_${i}_fecha`);
-
-        if (diaSel && mesSel && anioSel && hidden) {
-          for (let d = 1; d <= 31; d++) {
-            const opt = document.createElement("option");
-            opt.value = String(d).padStart(2, "0");
-            opt.textContent = String(d);
-            diaSel.appendChild(opt);
-          }
-          const meses = [
-            "01","02","03","04","05","06","07","08","09","10","11","12"
-          ];
-          meses.forEach((m, idx) => {
-            const opt = document.createElement("option");
-            opt.value = m;
-            opt.textContent = `${idx + 1}`.padStart(2, "0");
-            mesSel.appendChild(opt);
-          });
-          const currentYear = new Date().getFullYear();
-          for (let y = currentYear; y >= 1900; y--) {
-            const opt = document.createElement("option");
-            opt.value = String(y);
-            opt.textContent = String(y);
-            anioSel.appendChild(opt);
-          }
-
-          const updateHidden = () => {
-            const d = diaSel.value;
-            const m = mesSel.value;
-            const y = anioSel.value;
-            if (d && m && y) {
-              hidden.value = `${d}-${m}-${y}`;
-            } else {
-              hidden.value = "";
-            }
-          };
-
-          diaSel.addEventListener("change", updateHidden);
-          mesSel.addEventListener("change", updateHidden);
-          anioSel.addEventListener("change", updateHidden);
-        }
-
-        // Mostrar/ocultar campos de matrimonio/unión civil según parentesco
-        const parentescoSel = div.querySelector(`select[name="beneficiarios.${i}.parentesco"]`);
-        const matrimonioBlock = div.querySelector(`#benef_${i}_matrimonio`);
-        if (parentescoSel && matrimonioBlock) {
-          const toggleMatrimonio = () => {
-            const v = parentescoSel.value;
-            matrimonioBlock.style.display = (v === "Cónyuge" || v === "Conviviente civil") ? "" : "none";
-          };
-          parentescoSel.addEventListener("change", toggleMatrimonio);
-        }
-
-        // Fecha de matrimonio/unión civil: dropdowns + hidden
-        const matDia = div.querySelector(`#benef_${i}_mat_dia`);
-        const matMes = div.querySelector(`#benef_${i}_mat_mes`);
-        const matAnio = div.querySelector(`#benef_${i}_mat_anio`);
-        const matHidden = div.querySelector(`#benef_${i}_mat_fecha`);
-        if (matDia && matMes && matAnio && matHidden) {
-          for (let d = 1; d <= 31; d++) {
-            const opt = document.createElement("option");
-            opt.value = String(d).padStart(2, "0");
-            opt.textContent = String(d);
-            matDia.appendChild(opt);
-          }
-          ["01","02","03","04","05","06","07","08","09","10","11","12"].forEach((m, idx) => {
-            const opt = document.createElement("option");
-            opt.value = m;
-            opt.textContent = String(idx + 1).padStart(2, "0");
-            matMes.appendChild(opt);
-          });
-          const currentYear = new Date().getFullYear();
-          for (let y = currentYear; y >= 1900; y--) {
-            const opt = document.createElement("option");
-            opt.value = String(y);
-            opt.textContent = String(y);
-            matAnio.appendChild(opt);
-          }
-          const updateMatHidden = () => {
-            const d = matDia.value, m = matMes.value, y = matAnio.value;
-            matHidden.value = (d && m && y) ? `${d}-${m}-${y}` : "";
-          };
-          matDia.addEventListener("change", updateMatHidden);
-          matMes.addEventListener("change", updateMatHidden);
-          matAnio.addEventListener("change", updateMatHidden);
-        }
-
-        return div;
-      }
-
       // Línea base del formulario de pensión para detectar cambios sin guardar en BD (solo «Guardar en BD» persiste).
       var pensionFormBaselineSnapshot = "";
       var pensionFormBaselineIgnore = false;
@@ -4183,7 +4287,9 @@
 
       function pensionFormDataSignature(formEl) {
         try {
-          return JSON.stringify(formDataToObject(formEl));
+          var raw = formDataToObject(formEl);
+          enrichDataConyugeHijosBeneficiarios(formEl, raw);
+          return JSON.stringify(raw);
         } catch (_e) {
           return "";
         }
@@ -4241,9 +4347,6 @@
             const cuentaBanco = document.getElementById("cuenta_banco");
             const cuentaTipo = document.getElementById("cuenta_tipo");
             const cuentaInput = document.getElementById("cuenta_bancaria");
-            const benefInput = document.getElementById("mandante_benef");
-            const benefSection = document.getElementById("beneficiariosSection");
-            const benefContainer = document.getElementById("beneficiariosContainer");
             const mandanteDia = document.getElementById("mandante_fechaNac_dia");
             const mandanteMes = document.getElementById("mandante_fechaNac_mes");
             const mandanteAnio = document.getElementById("mandante_fechaNac_anio");
@@ -4276,6 +4379,7 @@
                 return;
               }
               const data = formDataToObject(form);
+              enrichDataConyugeHijosBeneficiarios(form, data);
               if (supabaseClient) {
                 try {
                   await markClienteDocumentoGenerado(supabaseClient, data.mandante && data.mandante.rut, { tiene_mandato_largo: true });
@@ -4302,6 +4406,7 @@
                   return;
                 }
                 const data = formDataToObject(form);
+                enrichDataConyugeHijosBeneficiarios(form, data);
                 const anexosSnap = collectContratoAnexosForData(form);
                 btnGuardarBD.disabled = true;
                 setStatus("Guardando en la base de datos…");
@@ -4327,6 +4432,7 @@
                 return;
               }
               const data = formDataToObject(form);
+              enrichDataConyugeHijosBeneficiarios(form, data);
               if (supabaseClient) {
                 try {
                   await markClienteDocumentoGenerado(supabaseClient, data.mandante && data.mandante.rut, { tiene_mandato_corto: true });
@@ -4358,6 +4464,7 @@
             }
 
             const data = formDataToObject(form);
+            enrichDataConyugeHijosBeneficiarios(form, data);
             const anexosSnap = collectContratoAnexosForData(form);
             data.contratoAnexos = anexosSnap;
             try {
@@ -4400,33 +4507,180 @@
           mandanteAnio.addEventListener("change", updateMandanteFecha);
         }
 
-          function actualizarBeneficiarios(){
+            const estadoCivilSel = document.getElementById("mandante_estadoCivil");
+            const sectionConyuge = document.getElementById("sectionConyuge");
+            const radiosHijos = form.querySelectorAll("input[name='tieneHijosMenores24']");
+            const sectionHijosBloque = document.getElementById("sectionHijosBloque");
+            const numHijosSel = document.getElementById("numHijos");
+            const hijosContainer = document.getElementById("hijosContainer");
 
-            const n = parseInt(benefInput.value || 0);
-            const actual = benefContainer.children.length;
-
-            if(n > 0){
-              benefSection.style.display = "block";
-            }else{
-              benefSection.style.display = "none";
+            function crearPensionHijoBlock(index) {
+              var div = document.createElement("div");
+              div.className = "hijo-block";
+              div.setAttribute("data-hijo-index", index);
+              div.innerHTML =
+                '<span class="hijo-num">Hijo/a ' +
+                (index + 1) +
+                "</span>" +
+                '<div class="grid">' +
+                '<div class="field col-4"><label>Nombres <span class="req">*</span></label><input name="hijo_' +
+                index +
+                '_nombres" required autocomplete="given-name" /><div class="error" data-error-for="hijo_' +
+                index +
+                '_nombres"></div></div>' +
+                '<div class="field col-4"><label>Apellido Paterno <span class="req">*</span></label><input name="hijo_' +
+                index +
+                '_apellidoPaterno" required autocomplete="family-name" /><div class="error" data-error-for="hijo_' +
+                index +
+                '_apellidoPaterno"></div></div>' +
+                '<div class="field col-4"><label>Apellido Materno <span class="req">*</span></label><input name="hijo_' +
+                index +
+                '_apellidoMaterno" required autocomplete="family-name" /><div class="error" data-error-for="hijo_' +
+                index +
+                '_apellidoMaterno"></div></div>' +
+                '<div class="field col-4"><label>Nacionalidad <span class="req">*</span></label><input name="hijo_' +
+                index +
+                '_nacionalidad" placeholder="Ej. Chilena" required /><div class="error" data-error-for="hijo_' +
+                index +
+                '_nacionalidad"></div></div>' +
+                '<div class="field col-4"><label>RUT <span class="req">*</span></label><input name="hijo_' +
+                index +
+                '_rut" class="rut-input" placeholder="12.345.678-5" required /><div class="error" data-error-for="hijo_' +
+                index +
+                '_rut"></div></div>' +
+                '<div class="field col-4"><label>Sexo <span class="req">*</span></label><select name="hijo_' +
+                index +
+                '_sexo" required><option value="">Selecciona…</option><option>Masculino</option><option>Femenino</option></select><div class="error" data-error-for="hijo_' +
+                index +
+                '_sexo"></div></div>' +
+                '<div class="field col-12"><label>¿Es inválido? <span class="req">*</span></label>' +
+                '<div class="radio-row" role="group" aria-label="Hijo inválido ' +
+                (index + 1) +
+                '">' +
+                '<label class="radio-pill"><input type="radio" name="hijo_' +
+                index +
+                '_esInvalido" value="Sí" required /> Sí</label>' +
+                '<label class="radio-pill"><input type="radio" name="hijo_' +
+                index +
+                '_esInvalido" value="No" required /> No</label>' +
+                '</div><div class="error" data-error-for="hijo_' +
+                index +
+                '_esInvalido"></div></div>' +
+                '<div class="field col-4"><label>Fecha de nacimiento <span class="req">*</span></label>' +
+                '<div class="date-group">' +
+                '<select name="hijo_' +
+                index +
+                '_dia"><option value="">Día</option></select>' +
+                '<select name="hijo_' +
+                index +
+                '_mes"><option value="">Mes</option></select>' +
+                '<select name="hijo_' +
+                index +
+                '_anio"><option value="">Año</option></select>' +
+                '</div><div class="error" data-error-for="hijo_' +
+                index +
+                '_fechaNac"></div></div>' +
+                "</div>";
+              var diaS = div.querySelector("select[name='hijo_" + index + "_dia']");
+              var mesS = div.querySelector("select[name='hijo_" + index + "_mes']");
+              var anioS = div.querySelector("select[name='hijo_" + index + "_anio']");
+              llenarSelectFecha(diaS, mesS, anioS, 1900);
+              return div;
             }
 
-            if(n > actual){
-              for(let i = actual; i < n; i++){
-                benefContainer.appendChild(crearBeneficiario(i));
+            function actualizarHijosPension() {
+              if (!numHijosSel || !hijosContainer) return;
+              var n = parseInt(numHijosSel.value || "1", 10);
+              if (isNaN(n) || n < 1) n = 1;
+              var actual = hijosContainer.children.length;
+              if (n > actual) {
+                for (var i = actual; i < n; i++) hijosContainer.appendChild(crearPensionHijoBlock(i));
+              }
+              if (n < actual) {
+                while (hijosContainer.children.length > n) hijosContainer.removeChild(hijosContainer.lastChild);
               }
             }
 
-            if(n < actual){
-              for(let i = actual; i > n; i--){
-                benefContainer.removeChild(benefContainer.lastChild);
+            if (estadoCivilSel && sectionConyuge) {
+              function toggleConyugePension() {
+                var v = (estadoCivilSel.value || "").toLowerCase();
+                var visible = v.indexOf("casado") !== -1 || v.indexOf("conviviente") !== -1;
+                sectionConyuge.classList.toggle("section-hidden", !visible);
+                ["conyuge_nombres", "conyuge_apPaterno", "conyuge_apMaterno", "conyuge_nacionalidad", "conyuge_rut", "conyuge_fechaNac"].forEach(
+                  function (id) {
+                    var el = document.getElementById(id);
+                    if (!el) return;
+                    if (visible) el.setAttribute("required", "true");
+                    else el.removeAttribute("required");
+                  }
+                );
+                form.querySelectorAll('input[name="conyuge.sexo"]').forEach(function (r) {
+                  if (visible) r.setAttribute("required", "true");
+                  else r.removeAttribute("required");
+                });
+                form.querySelectorAll('input[name="conyuge.esInvalido"]').forEach(function (r) {
+                  if (visible) r.setAttribute("required", "true");
+                  else r.removeAttribute("required");
+                });
               }
+              estadoCivilSel.addEventListener("change", toggleConyugePension);
+              toggleConyugePension();
             }
 
-          }
+            var conyugeDia = document.getElementById("conyuge_fechaNac_dia");
+            var conyugeMes = document.getElementById("conyuge_fechaNac_mes");
+            var conyugeAnio = document.getElementById("conyuge_fechaNac_anio");
+            var conyugeHidden = document.getElementById("conyuge_fechaNac");
+            if (conyugeDia && conyugeMes && conyugeAnio && conyugeHidden) {
+              llenarSelectFecha(conyugeDia, conyugeMes, conyugeAnio, 1900);
+              function updateConyugeFechaHidden() {
+                var d = conyugeDia.value,
+                  m = conyugeMes.value,
+                  y = conyugeAnio.value;
+                conyugeHidden.value = d && m && y ? d + "-" + m + "-" + y : "";
+              }
+              conyugeDia.addEventListener("change", updateConyugeFechaHidden);
+              conyugeMes.addEventListener("change", updateConyugeFechaHidden);
+              conyugeAnio.addEventListener("change", updateConyugeFechaHidden);
+            }
 
-        benefInput.addEventListener("input", actualizarBeneficiarios);
-        
+            var cMatDia = document.getElementById("conyuge_mat_dia");
+            var cMatMes = document.getElementById("conyuge_mat_mes");
+            var cMatAnio = document.getElementById("conyuge_mat_anio");
+            var cMatHidden = document.getElementById("conyuge_mat_fecha");
+            if (cMatDia && cMatMes && cMatAnio && cMatHidden) {
+              llenarSelectFecha(cMatDia, cMatMes, cMatAnio, 1900);
+              function updateConyugeMatHidden() {
+                var d = cMatDia.value,
+                  m = cMatMes.value,
+                  y = cMatAnio.value;
+                cMatHidden.value = d && m && y ? d + "-" + m + "-" + y : "";
+              }
+              cMatDia.addEventListener("change", updateConyugeMatHidden);
+              cMatMes.addEventListener("change", updateConyugeMatHidden);
+              cMatAnio.addEventListener("change", updateConyugeMatHidden);
+            }
+
+            if (radiosHijos.length && sectionHijosBloque) {
+              function toggleHijosBloquePension() {
+                var si = form.querySelector("input[name='tieneHijosMenores24']:checked");
+                var show = si && si.value === "Sí";
+                sectionHijosBloque.classList.toggle("section-hidden", !show);
+                if (show && numHijosSel) {
+                  var vx = parseInt(numHijosSel.value, 10);
+                  if (!vx || vx < 1 || isNaN(vx)) numHijosSel.value = "1";
+                  actualizarHijosPension();
+                } else if (hijosContainer) {
+                  hijosContainer.innerHTML = "";
+                }
+              }
+              radiosHijos.forEach(function (r) {
+                r.addEventListener("change", toggleHijosBloquePension);
+              });
+              if (numHijosSel) numHijosSel.addEventListener("change", actualizarHijosPension);
+              toggleHijosBloquePension();
+            }
+
         renderYesNo(document.getElementById("antecedentesQuestions"), "antecedentes", antecedentesItems);
         let refreshAntecedentesApvApvcDetalle = function () {};
         (function setupAntecedentesApvApvcDetalle() {
@@ -4555,6 +4809,13 @@
                 if (!confirm("¿Seguro que quieres limpiar el formulario?")) return;
                 form.reset();
                 clearErrors(form);
+                var ecReset = document.getElementById("mandante_estadoCivil");
+                if (ecReset) ecReset.dispatchEvent(new Event("change", { bubbles: true }));
+                var rHNo = form.querySelector("input[name='tieneHijosMenores24'][value='No']");
+                if (rHNo) {
+                  rHNo.checked = true;
+                  rHNo.dispatchEvent(new Event("change", { bubbles: true }));
+                }
                 out.hidden = true;
                 preview.textContent = "";
                 setStatus("Formulario limpio.");
@@ -4733,8 +4994,7 @@
                   elegirOpcion(cuentaBanco, c.banco, aliasBanco);
                   elegirOpcion(cuentaTipo, c.tipo_cuenta, aliasTipo);
                 }
-                // Autorrellenar beneficiarios en base a cónyuge/conviviente e hijos menores de 24 años.
-                // Si el cliente es casado o conviviente civil, desplegar al menos un beneficiario (cónyuge) aunque no haya datos en BD.
+                // Cónyuge / hijos: mismo modelo que registro público (secciones sectionConyuge + hijosContainer).
                 try {
                   function benefEsInvalidoSiNo(v) {
                     if (v === true) return "Sí";
@@ -4745,64 +5005,19 @@
                     if (x === "no") return "No";
                     return "No";
                   }
-                  var beneficiarios = [];
+                  function isoADdMmYyyy(isoRaw) {
+                    if (!isoRaw || typeof isoRaw !== "string") return "";
+                    var iso = isoRaw.split("T")[0];
+                    if (!iso || !iso.match(/^\d{4}-\d{2}-\d{2}$/)) return "";
+                    var p = iso.split("-");
+                    return p[2] + "-" + p[1] + "-" + p[0];
+                  }
                   var estadoCivilStr = (c.estado_civil || "").toLowerCase();
                   var esCasadoOConviviente = estadoCivilStr.indexOf("casado") !== -1 || estadoCivilStr.indexOf("conviviente") !== -1;
-                  // Cónyuge / conviviente civil
-                  if (c.conyuge_nombres || c.conyuge_rut || c.conyuge_apellido_paterno || c.conyuge_apellido_materno) {
-                    var fechaConyuge = "";
-                    if (c.conyuge_fecha_nacimiento && typeof c.conyuge_fecha_nacimiento === "string") {
-                      var isoCon = c.conyuge_fecha_nacimiento.split("T")[0];
-                      if (isoCon && isoCon.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                        var pc = isoCon.split("-");
-                        fechaConyuge = pc[2] + "-" + pc[1] + "-" + pc[0];
-                      }
-                    }
-                    var fechaMat = "";
-                    var isoMatOrigen = c.conyuge_fecha_matrimonio;
-                    var lugarMatOrigen = c.conyuge_lugar_matrimonio;
-                    var esInvCony = "No";
-                    if (c.solicitud_beneficiarios && Array.isArray(c.solicitud_beneficiarios)) {
-                      for (var ib = 0; ib < c.solicitud_beneficiarios.length; ib++) {
-                        var bb = c.solicitud_beneficiarios[ib];
-                        var pb = String(bb.parentesco || "").toLowerCase();
-                        if (pb === "cónyuge" || pb === "conyuge" || pb.indexOf("conviviente") !== -1) {
-                          if (!isoMatOrigen) isoMatOrigen = bb.fecha_matrimonio_union_civil;
-                          if (!lugarMatOrigen) lugarMatOrigen = bb.ciudad_matrimonio_union_civil;
-                          var rawInvC = bb.es_invalido != null ? bb.es_invalido : bb.esInvalido;
-                          if (rawInvC !== undefined && rawInvC !== null && String(rawInvC).trim() !== "") {
-                            esInvCony = benefEsInvalidoSiNo(rawInvC);
-                          }
-                          break;
-                        }
-                      }
-                    }
-                    if (isoMatOrigen && typeof isoMatOrigen === "string") {
-                      var isoMat = isoMatOrigen.split("T")[0];
-                      if (isoMat && isoMat.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                        var pm = isoMat.split("-");
-                        fechaMat = pm[2] + "-" + pm[1] + "-" + pm[0];
-                      }
-                    }
-                    var parentescoConyuge = (c.estado_civil || "").toLowerCase().indexOf("conviviente") !== -1
-                      ? "Conviviente civil"
-                      : "Cónyuge";
-                    beneficiarios.push({
-                      nombres: c.conyuge_nombres || "",
-                      apellidoPaterno: c.conyuge_apellido_paterno || "",
-                      apellidoMaterno: c.conyuge_apellido_materno || "",
-                      rut: c.conyuge_rut || "",
-                      sexo: c.conyuge_sexo || "",
-                      parentesco: parentescoConyuge,
-                      fechaNacimiento: fechaConyuge,
-                      fechaMatrimonioUnionCivil: fechaMat,
-                      ciudadMatrimonioUnionCivil: lugarMatOrigen || "",
-                      esInvalido: esInvCony,
-                      observaciones: ""
-                    });
-                  } else if (esCasadoOConviviente) {
-                    // Sin columnas conyuge_* (ej. pasó de soltero en registro a casado solo en pensión): usar solicitud_beneficiarios o plantilla vacía.
-                    var parentescoVacio = estadoCivilStr.indexOf("conviviente") !== -1 ? "Conviviente civil" : "Cónyuge";
+                  var ecSelP = document.getElementById("mandante_estadoCivil");
+                  if (ecSelP) ecSelP.dispatchEvent(new Event("change", { bubbles: true }));
+
+                  if (esCasadoOConviviente) {
                     var bbCony = null;
                     if (c.solicitud_beneficiarios && Array.isArray(c.solicitud_beneficiarios)) {
                       for (var ibc = 0; ibc < c.solicitud_beneficiarios.length; ibc++) {
@@ -4814,143 +5029,128 @@
                         }
                       }
                     }
-                    function isoADdMmYyyy(isoRaw) {
-                      if (!isoRaw || typeof isoRaw !== "string") return "";
-                      var iso = isoRaw.split("T")[0];
-                      if (!iso || !iso.match(/^\d{4}-\d{2}-\d{2}$/)) return "";
-                      var p = iso.split("-");
-                      return p[2] + "-" + p[1] + "-" + p[0];
+                    var fechaConyuge = "";
+                    if (c.conyuge_fecha_nacimiento && typeof c.conyuge_fecha_nacimiento === "string") {
+                      var isoCon = c.conyuge_fecha_nacimiento.split("T")[0];
+                      if (isoCon && isoCon.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                        var pc = isoCon.split("-");
+                        fechaConyuge = pc[2] + "-" + pc[1] + "-" + pc[0];
+                      }
+                    } else if (bbCony) {
+                      fechaConyuge = isoADdMmYyyy(bbCony.fecha_nacimiento || "");
                     }
+                    var isoMatOrigen = c.conyuge_fecha_matrimonio;
+                    var lugarMatOrigen = c.conyuge_lugar_matrimonio || "";
+                    var esInvCony = "No";
                     if (bbCony) {
+                      if (!isoMatOrigen) isoMatOrigen = bbCony.fecha_matrimonio_union_civil;
+                      if (!lugarMatOrigen) lugarMatOrigen = bbCony.ciudad_matrimonio_union_civil || bbCony.ciudadMatrimonioUnionCivil || "";
                       var rawInvBc = bbCony.es_invalido != null ? bbCony.es_invalido : bbCony.esInvalido;
-                      beneficiarios.push({
-                        nombres: bbCony.nombres || "",
-                        apellidoPaterno: bbCony.apellido_paterno || bbCony.apellidoPaterno || "",
-                        apellidoMaterno: bbCony.apellido_materno || bbCony.apellidoMaterno || "",
-                        rut: bbCony.rut || "",
-                        sexo: bbCony.sexo || "",
-                        parentesco: (bbCony.parentesco && String(bbCony.parentesco).trim()) || parentescoVacio,
-                        fechaNacimiento: isoADdMmYyyy(bbCony.fecha_nacimiento || ""),
-                        fechaMatrimonioUnionCivil: isoADdMmYyyy(bbCony.fecha_matrimonio_union_civil || ""),
-                        ciudadMatrimonioUnionCivil: (bbCony.ciudad_matrimonio_union_civil || bbCony.ciudadMatrimonioUnionCivil || "").trim(),
-                        esInvalido: benefEsInvalidoSiNo(rawInvBc),
-                        observaciones: (bbCony.observaciones || "").trim()
-                      });
-                    } else {
-                      beneficiarios.push({
-                        nombres: "",
-                        apellidoPaterno: "",
-                        apellidoMaterno: "",
-                        rut: "",
-                        sexo: "",
-                        parentesco: parentescoVacio,
-                        fechaNacimiento: "",
-                        fechaMatrimonioUnionCivil: "",
-                        ciudadMatrimonioUnionCivil: "",
-                        esInvalido: "No",
-                        observaciones: ""
-                      });
+                      if (rawInvBc !== undefined && rawInvBc !== null && String(rawInvBc).trim() !== "") {
+                        esInvCony = benefEsInvalidoSiNo(rawInvBc);
+                      }
+                    }
+                    var fechaMat = "";
+                    if (isoMatOrigen && typeof isoMatOrigen === "string") {
+                      var isoMat = isoMatOrigen.split("T")[0];
+                      if (isoMat && isoMat.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                        var pm = isoMat.split("-");
+                        fechaMat = pm[2] + "-" + pm[1] + "-" + pm[0];
+                      }
+                    }
+                    setFormFromObject(form, {
+                      conyuge: {
+                        nombres: c.conyuge_nombres || (bbCony && bbCony.nombres) || "",
+                        apellidoPaterno: c.conyuge_apellido_paterno || (bbCony && (bbCony.apellido_paterno || bbCony.apellidoPaterno)) || "",
+                        apellidoMaterno: c.conyuge_apellido_materno || (bbCony && (bbCony.apellido_materno || bbCony.apellidoMaterno)) || "",
+                        nacionalidad: c.conyuge_nacionalidad || "",
+                        rut: c.conyuge_rut || (bbCony && bbCony.rut) || "",
+                        sexo: c.conyuge_sexo || (bbCony && bbCony.sexo) || "",
+                        fechaNacimiento: fechaConyuge,
+                        fechaMatrimonioUnionCivil: fechaMat,
+                        ciudadMatrimonioUnionCivil: (lugarMatOrigen || "").trim(),
+                        esInvalido: esInvCony,
+                      },
+                    });
+                    var mFc = fechaConyuge && fechaConyuge.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+                    if (mFc) {
+                      var cfd = document.getElementById("conyuge_fechaNac_dia");
+                      var cfm = document.getElementById("conyuge_fechaNac_mes");
+                      var cfy = document.getElementById("conyuge_fechaNac_anio");
+                      var cfh = document.getElementById("conyuge_fechaNac");
+                      if (cfd && cfm && cfy) {
+                        cfd.value = mFc[1];
+                        cfm.value = mFc[2];
+                        cfy.value = mFc[3];
+                        if (cfh) cfh.value = fechaConyuge;
+                      }
+                    }
+                    var mFm = fechaMat && fechaMat.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+                    if (mFm) {
+                      var md = document.getElementById("conyuge_mat_dia");
+                      var mm = document.getElementById("conyuge_mat_mes");
+                      var my = document.getElementById("conyuge_mat_anio");
+                      var mh = document.getElementById("conyuge_mat_fecha");
+                      if (md && mm && my) {
+                        md.value = mFm[1];
+                        mm.value = mFm[2];
+                        my.value = mFm[3];
+                        if (mh) mh.value = fechaMat;
+                      }
                     }
                   }
-                  // Hijos menores de 24 años
+
+                  var radSi = form.querySelector("input[name='tieneHijosMenores24'][value='Sí']");
+                  var radNo = form.querySelector("input[name='tieneHijosMenores24'][value='No']");
+                  var nhp = document.getElementById("numHijos");
                   if (c.tiene_hijos_menores_24 && c.hijos && Array.isArray(c.hijos) && c.hijos.length > 0) {
-                    c.hijos.forEach(function (h) {
-                      if (!h) return;
-                      var fechaHijo = "";
-                      if (h.fecha_nacimiento && typeof h.fecha_nacimiento === "string") {
-                        var isoH = h.fecha_nacimiento.split("T")[0];
+                    if (radSi) radSi.checked = true;
+                    if (nhp) nhp.value = String(Math.min(10, Math.max(1, c.hijos.length)));
+                    if (radSi) radSi.dispatchEvent(new Event("change", { bubbles: true }));
+                    for (var ih = 0; ih < c.hijos.length; ih++) {
+                      var hh = c.hijos[ih];
+                      if (!hh) continue;
+                      var fnDd = "";
+                      if (hh.fecha_nacimiento && typeof hh.fecha_nacimiento === "string") {
+                        var isoH = hh.fecha_nacimiento.split("T")[0];
                         if (isoH && isoH.match(/^\d{4}-\d{2}-\d{2}$/)) {
                           var ph = isoH.split("-");
-                          fechaHijo = ph[2] + "-" + ph[1] + "-" + ph[0];
+                          fnDd = ph[2] + "-" + ph[1] + "-" + ph[0];
                         }
                       }
-                      beneficiarios.push({
-                        nombres: h.nombres || "",
-                        apellidoPaterno: h.apellido_paterno || "",
-                        apellidoMaterno: h.apellido_materno || "",
-                        rut: h.rut || "",
-                        sexo: h.sexo || "",
-                        parentesco: "Hijo/a",
-                        fechaNacimiento: fechaHijo,
-                        fechaMatrimonioUnionCivil: "",
-                        ciudadMatrimonioUnionCivil: "",
-                        esInvalido: benefEsInvalidoSiNo(h.es_invalido != null ? h.es_invalido : h.esInvalido),
-                        observaciones: ""
-                      });
-                    });
-                  }
-                  if (beneficiarios.length > 0 && benefInput && typeof actualizarBeneficiarios === "function") {
-                    benefInput.value = String(beneficiarios.length);
-                    actualizarBeneficiarios();
-                    var benefObj = {};
-                    beneficiarios.forEach(function (b, idx) {
-                      benefObj[idx] = b;
-                      // También intentar reflejar la fecha en los selects visibles si existen
-                      if (b.fechaNacimiento) {
-                        var mFecha = b.fechaNacimiento.match(/^(\d{2})-(\d{2})-(\d{4})$/);
-                        if (mFecha) {
-                          var dSel = document.getElementById("benef_" + idx + "_dia");
-                          var mSel = document.getElementById("benef_" + idx + "_mes");
-                          var ySel = document.getElementById("benef_" + idx + "_anio");
-                          var hInput = document.getElementById("benef_" + idx + "_fecha");
-                          if (dSel && mSel && ySel) {
-                            dSel.value = mFecha[1];
-                            mSel.value = mFecha[2];
-                            ySel.value = mFecha[3];
-                            if (hInput) hInput.value = b.fechaNacimiento;
-                          }
-                        }
+                      var inN = form.querySelector("input[name='hijo_" + ih + "_nombres']");
+                      var inAp = form.querySelector("input[name='hijo_" + ih + "_apellidoPaterno']");
+                      var inAm = form.querySelector("input[name='hijo_" + ih + "_apellidoMaterno']");
+                      var inNa = form.querySelector("input[name='hijo_" + ih + "_nacionalidad']");
+                      var inR = form.querySelector("input[name='hijo_" + ih + "_rut']");
+                      var selS = form.querySelector("select[name='hijo_" + ih + "_sexo']");
+                      if (inN) inN.value = hh.nombres || "";
+                      if (inAp) inAp.value = hh.apellido_paterno || "";
+                      if (inAm) inAm.value = hh.apellido_materno || "";
+                      if (inNa) inNa.value = hh.nacionalidad || "";
+                      if (inR) inR.value = hh.rut ? normalizeRut(hh.rut) : "";
+                      if (selS) selS.value = hh.sexo || "";
+                      var invVal = benefEsInvalidoSiNo(hh.es_invalido != null ? hh.es_invalido : hh.esInvalido);
+                      var invS = form.querySelector("input[name='hijo_" + ih + "_esInvalido'][value='Sí']");
+                      var invN = form.querySelector("input[name='hijo_" + ih + "_esInvalido'][value='No']");
+                      if (invVal === "Sí" && invS) invS.checked = true;
+                      else if (invN) invN.checked = true;
+                      var mH = fnDd.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+                      if (mH) {
+                        var sd = form.querySelector("select[name='hijo_" + ih + "_dia']");
+                        var sm = form.querySelector("select[name='hijo_" + ih + "_mes']");
+                        var sy = form.querySelector("select[name='hijo_" + ih + "_anio']");
+                        if (sd) sd.value = mH[1];
+                        if (sm) sm.value = mH[2];
+                        if (sy) sy.value = mH[3];
                       }
-                      if (b.fechaMatrimonioUnionCivil) {
-                        var mMat = b.fechaMatrimonioUnionCivil.match(/^(\d{2})-(\d{2})-(\d{4})$/);
-                        if (mMat) {
-                          var mdSel = document.getElementById("benef_" + idx + "_mat_dia");
-                          var mmSel = document.getElementById("benef_" + idx + "_mat_mes");
-                          var mySel = document.getElementById("benef_" + idx + "_mat_anio");
-                          var mhInput = document.getElementById("benef_" + idx + "_mat_fecha");
-                          if (mdSel && mmSel && mySel) {
-                            mdSel.value = mMat[1];
-                            mmSel.value = mMat[2];
-                            mySel.value = mMat[3];
-                            if (mhInput) mhInput.value = b.fechaMatrimonioUnionCivil;
-                          }
-                        }
-                      }
-                      // Mostrar bloque de matrimonio/unión civil si el beneficiario es cónyuge o conviviente civil
-                      if (b.parentesco === "Cónyuge" || b.parentesco === "Conviviente civil") {
-                        var matBlock = document.getElementById("benef_" + idx + "_matrimonio");
-                        if (matBlock) matBlock.style.display = "";
-                        var ciudadInput = form.querySelector('input[name="beneficiarios.' + idx + '.ciudadMatrimonioUnionCivil"]');
-                        if (ciudadInput && (b.ciudadMatrimonioUnionCivil || "").trim()) ciudadInput.value = b.ciudadMatrimonioUnionCivil;
-                      }
-                    });
-                    setFormFromObject(form, { beneficiarios: benefObj, mandante: { numeroBeneficiarios: String(beneficiarios.length) } });
-                  }
-                  // Si el cliente es casado/conviviente y no teníamos datos de cónyuge, igual desplegar la sección con 1 beneficiario
-                  else if (esCasadoOConviviente && benefInput && typeof actualizarBeneficiarios === "function") {
-                    benefInput.value = "1";
-                    actualizarBeneficiarios();
-                    var parentescoVacio = estadoCivilStr.indexOf("conviviente") !== -1 ? "Conviviente civil" : "Cónyuge";
-                    setFormFromObject(form, {
-                      beneficiarios: {
-                        0: {
-                          parentesco: parentescoVacio,
-                          esInvalido: "No"
-                        }
-                      },
-                      mandante: { numeroBeneficiarios: "1" }
-                    });
-                    var matBlock0 = document.getElementById("benef_0_matrimonio");
-                    if (matBlock0) matBlock0.style.display = "";
-                  }
-                  // Sin cargas: no hay cónyuge/conviviente ni hijos menores de 24 en BD, y no aplica el placeholder de cónyuge.
-                  else if (benefInput && typeof actualizarBeneficiarios === "function") {
-                    benefInput.value = "0";
-                    actualizarBeneficiarios();
-                    setFormFromObject(form, { mandante: { numeroBeneficiarios: "0" } });
+                    }
+                  } else {
+                    if (radNo) radNo.checked = true;
+                    if (radNo) radNo.dispatchEvent(new Event("change", { bubbles: true }));
                   }
                 } catch (_e) {
-                  // Si algo falla en el prellenado de beneficiarios, no bloquear el formulario
+                  // Si algo falla en el prellenado de cónyuge/hijos, no bloquear el formulario
                 }
                 scheduleSetPensionFormBaseline(form, 100);
                 var finalizarPrefill = function (msg) {
@@ -4960,6 +5160,7 @@
 
                 if (autoDoc) {
                   var dataAuto = formDataToObject(form);
+                  enrichDataConyugeHijosBeneficiarios(form, dataAuto);
                   if (autoDoc === "mandato_largo") {
                     generarMandatoSimple(dataAuto);
                     finalizarPrefill("Mandato descargado.");
@@ -5007,9 +5208,9 @@
 
                 init(); // Arranca la configuración del formulario al cargar el script.
 
-      // Autoformatea y valida el RUT de cada beneficiario cuando el campo pierde el foco.
+      // Autoformatea RUT en campos .rut-input (incl. hijos) al perder el foco.
       document.addEventListener("focusout", function (e) {
-        if (!e.target.classList.contains("rut-benef")) return;
+        if (!e.target.classList.contains("rut-input")) return;
 
         e.target.value = normalizeRut(e.target.value);
         if (rutIsValid(e.target.value)) {
