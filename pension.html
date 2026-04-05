@@ -3161,45 +3161,197 @@
           row.solicitud_beneficiarios = [];
         }
 
-        var benefList = row.solicitud_beneficiarios;
-        if (benefList && benefList.length) {
-          for (var bi = 0; bi < benefList.length; bi++) {
-            var ben = benefList[bi];
-            var par = String(ben.parentesco || "").toLowerCase();
-            if (par === "cónyuge" || par === "conyuge" || par.indexOf("conviviente") !== -1) {
-              row.conyuge_fecha_matrimonio = ben.fecha_matrimonio_union_civil || null;
-              row.conyuge_lugar_matrimonio = ben.ciudad_matrimonio_union_civil || null;
-              // Misma persona que en solicitud_beneficiarios: la ficha del cliente usa columnas conyuge_*.
-              if (ben.nombres != null && String(ben.nombres).trim()) row.conyuge_nombres = String(ben.nombres).trim();
-              if (ben.apellido_paterno != null && String(ben.apellido_paterno).trim()) {
-                row.conyuge_apellido_paterno = String(ben.apellido_paterno).trim();
-              }
-              if (ben.apellido_materno != null && String(ben.apellido_materno).trim()) {
-                row.conyuge_apellido_materno = String(ben.apellido_materno).trim();
-              }
-              if (ben.rut != null && String(ben.rut).trim()) row.conyuge_rut = String(ben.rut).trim().toUpperCase().replace(/[^0-9K]/g, "");
-              if (ben.fecha_nacimiento != null && String(ben.fecha_nacimiento).trim()) {
-                row.conyuge_fecha_nacimiento = String(ben.fecha_nacimiento).split("T")[0];
-              }
-              if (ben.sexo != null && String(ben.sexo).trim()) row.conyuge_sexo = String(ben.sexo).trim();
-              break;
-            }
-          }
-        }
+        aplicarConyugeColumnasDesdeBeneficiarios(row);
 
         return row;
       }
 
-      // Guarda o actualiza el cliente en Supabase a partir de los datos del formulario de pensión (mandato).
-      // Usa RUT como clave; si ya existe el cliente se actualiza.
+      /** Copia datos del cónyuge/conviviente desde solicitud_beneficiarios a columnas conyuge_*. */
+      function aplicarConyugeColumnasDesdeBeneficiarios(row) {
+        if (!row || !row.solicitud_beneficiarios || !row.solicitud_beneficiarios.length) return;
+        for (var bi = 0; bi < row.solicitud_beneficiarios.length; bi++) {
+          var ben = row.solicitud_beneficiarios[bi];
+          var par = String(ben.parentesco || "").toLowerCase();
+          if (par === "cónyuge" || par === "conyuge" || par.indexOf("conviviente") !== -1) {
+            row.conyuge_fecha_matrimonio = ben.fecha_matrimonio_union_civil || null;
+            row.conyuge_lugar_matrimonio = ben.ciudad_matrimonio_union_civil || null;
+            if (ben.nombres != null && String(ben.nombres).trim()) row.conyuge_nombres = String(ben.nombres).trim();
+            if (ben.apellido_paterno != null && String(ben.apellido_paterno).trim()) {
+              row.conyuge_apellido_paterno = String(ben.apellido_paterno).trim();
+            }
+            if (ben.apellido_materno != null && String(ben.apellido_materno).trim()) {
+              row.conyuge_apellido_materno = String(ben.apellido_materno).trim();
+            }
+            if (ben.rut != null && String(ben.rut).trim()) row.conyuge_rut = String(ben.rut).trim().toUpperCase().replace(/[^0-9K]/g, "");
+            if (ben.fecha_nacimiento != null && String(ben.fecha_nacimiento).trim()) {
+              row.conyuge_fecha_nacimiento = String(ben.fecha_nacimiento).split("T")[0];
+            }
+            if (ben.sexo != null && String(ben.sexo).trim()) row.conyuge_sexo = String(ben.sexo).trim();
+            break;
+          }
+        }
+      }
+
+      function shallowMergeNonEmptyJson(existingObj, incomingObj) {
+        var ex = existingObj && typeof existingObj === "object" && !Array.isArray(existingObj) ? existingObj : {};
+        var inc = incomingObj && typeof incomingObj === "object" && !Array.isArray(incomingObj) ? incomingObj : {};
+        var out = Object.assign({}, ex);
+        Object.keys(inc).forEach(function (k) {
+          var v = inc[k];
+          if (v == null) return;
+          if (typeof v === "string" && v.trim() === "") return;
+          out[k] = v;
+        });
+        return out;
+      }
+
+      function beneficiarioFilaTieneDatos(b) {
+        if (!b || typeof b !== "object") return false;
+        var keys = [
+          "nombres",
+          "apellido_paterno",
+          "apellido_materno",
+          "rut",
+          "parentesco",
+          "sexo",
+          "fecha_nacimiento",
+          "fecha_matrimonio_union_civil",
+          "ciudad_matrimonio_union_civil",
+          "observaciones",
+        ];
+        for (var i = 0; i < keys.length; i++) {
+          var x = b[keys[i]];
+          if (x != null && String(x).trim() !== "") return true;
+        }
+        if (b.es_invalido != null && String(b.es_invalido).trim() !== "") return true;
+        return false;
+      }
+
+      /**
+       * Combina fila existente (p. ej. registro público) con lo capturado en el formulario de pensión.
+       * No borra datos previos si el formulario trae campos vacíos; JSON por clave; beneficiarios solo si hay filas con datos.
+       */
+      function mergeClienteRowPensionSave(existing, incoming, rawData) {
+        rawData = rawData || {};
+        var mand = rawData.mandante || {};
+        var ant = rawData.antecedentes || {};
+
+        if (!existing) {
+          var rowNew = Object.assign({}, incoming);
+          rowNew.solicitud_antecedentes = shallowMergeNonEmptyJson({}, incoming.solicitud_antecedentes);
+          rowNew.solicitud_autorizaciones = Object.assign({}, incoming.solicitud_autorizaciones || {});
+          var tieneBancoN =
+            (rowNew.solicitud_autorizaciones.banco || rowNew.solicitud_autorizaciones.tipoCuenta || rowNew.solicitud_autorizaciones.numeroCuenta || "").toString().trim();
+          rowNew.solicitud_autorizaciones.ingresarDatosCuentaBancaria = tieneBancoN ? "Sí" : "No";
+          rowNew.solicitud_certificados = shallowMergeNonEmptyJson({}, incoming.solicitud_certificados);
+          var bn = (incoming.solicitud_beneficiarios || []).filter(beneficiarioFilaTieneDatos);
+          rowNew.solicitud_beneficiarios = bn;
+          aplicarConyugeColumnasDesdeBeneficiarios(rowNew);
+          return rowNew;
+        }
+
+        var merged = Object.assign({}, existing);
+        if (incoming.user_id) merged.user_id = incoming.user_id;
+        if (incoming.rut) merged.rut = incoming.rut;
+
+        var scalarText = [
+          "nombres",
+          "apellido_paterno",
+          "apellido_materno",
+          "fecha_nacimiento",
+          "estado_civil",
+          "domicilio",
+          "comuna",
+          "ciudad",
+          "profesion_oficio",
+          "telefono",
+          "email",
+          "afp",
+          "institucion_salud",
+          "nacionalidad",
+          "sexo",
+          "empleador_razon_social",
+          "empleador_rut",
+          "empleador_direccion",
+          "empleador_telefono",
+          "empleador_email",
+          "banco",
+          "tipo_cuenta",
+          "numero_cuenta",
+          "conyuge_nombres",
+          "conyuge_apellido_paterno",
+          "conyuge_apellido_materno",
+          "conyuge_rut",
+          "conyuge_fecha_nacimiento",
+          "conyuge_fecha_matrimonio",
+          "conyuge_lugar_matrimonio",
+        ];
+        scalarText.forEach(function (k) {
+          var v = incoming[k];
+          if (v != null && v !== "") merged[k] = v;
+        });
+
+        if (mand.cambioModalidadTramite != null && String(mand.cambioModalidadTramite).trim() !== "") {
+          merged.solicitud_cambio_modalidad_tramite = incoming.solicitud_cambio_modalidad_tramite;
+        }
+        if (mand.tipoPension != null && String(mand.tipoPension).trim() !== "") {
+          merged.solicitud_tipo_pension = incoming.solicitud_tipo_pension;
+        }
+        if (ant.poseeBonoReconocimiento != null && String(ant.poseeBonoReconocimiento).trim() !== "") {
+          merged.posee_bono_reconocimiento = incoming.posee_bono_reconocimiento;
+        }
+
+        merged.solicitud_antecedentes = shallowMergeNonEmptyJson(existing.solicitud_antecedentes, incoming.solicitud_antecedentes);
+        merged.solicitud_certificados = shallowMergeNonEmptyJson(existing.solicitud_certificados, incoming.solicitud_certificados);
+        merged.solicitud_autorizaciones = shallowMergeNonEmptyJson(existing.solicitud_autorizaciones, incoming.solicitud_autorizaciones);
+        var tieneBanco =
+          (merged.solicitud_autorizaciones.banco || merged.solicitud_autorizaciones.tipoCuenta || merged.solicitud_autorizaciones.numeroCuenta || "").toString().trim();
+        merged.solicitud_autorizaciones = Object.assign({}, merged.solicitud_autorizaciones);
+        merged.solicitud_autorizaciones.ingresarDatosCuentaBancaria = tieneBanco ? "Sí" : "No";
+
+        var incBen = (incoming.solicitud_beneficiarios || []).filter(beneficiarioFilaTieneDatos);
+        if (incBen.length > 0) {
+          merged.solicitud_beneficiarios = incBen;
+          aplicarConyugeColumnasDesdeBeneficiarios(merged);
+          merged.solicitud_numero_beneficiarios = incoming.solicitud_numero_beneficiarios;
+        }
+
+        return merged;
+      }
+
+      /** Validación mínima para persistir: solo RUT mandante válido (guardado parcial del resto). */
+      function validatePensionFormForDbSave(form) {
+        clearErrors(form);
+        var rutEl = document.getElementById("mandante_rut");
+        if (!rutEl) return { ok: false, message: "No se encontró el RUT del mandante." };
+        var v = String(rutEl.value || "").trim();
+        rutEl.value = normalizeRut(v);
+        if (!rutIsValid(rutEl.value)) {
+          rutEl.setAttribute("aria-invalid", "true");
+          setError(form, "mandante_rut", "RUT del mandante inválido. Es obligatorio para guardar en la base de datos.");
+          return { ok: false, message: "RUT del mandante inválido u obligatorio para guardar." };
+        }
+        return { ok: true };
+      }
+
+      // Guarda o actualiza el cliente en Supabase (solo debe llamarse desde «Guardar en BD»).
+      // Hace merge con la fila existente para no borrar datos del registro público ni campos no reenviados.
       async function saveClienteFromMandatoData(supabaseClient, data) {
         if (!supabaseClient) return;
         const sess = await supabaseClient.auth.getSession();
         const uid = sess && sess.data && sess.data.session && sess.data.session.user && sess.data.session.user.id;
         if (!uid) throw new Error("No hay sesión activa. Vuelve a iniciar sesión.");
-        const row = buildClienteRowFromMandatoData(data, uid);
-        if (!row.rut) return;
-        const { error } = await supabaseClient.from("clientes").upsert(row, { onConflict: "user_id,rut" });
+        const incoming = buildClienteRowFromMandatoData(data, uid);
+        if (!incoming.rut) throw new Error("RUT del mandante obligatorio para guardar.");
+        const fetchRes = await supabaseClient
+          .from("clientes")
+          .select("*")
+          .eq("user_id", uid)
+          .eq("rut", incoming.rut)
+          .maybeSingle();
+        if (fetchRes.error) throw fetchRes.error;
+        const merged = mergeClienteRowPensionSave(fetchRes.data, incoming, data);
+        const { error } = await supabaseClient.from("clientes").upsert(merged, { onConflict: "user_id,rut" });
         if (error) throw error;
       }
 
@@ -4060,13 +4212,9 @@
               const data = formDataToObject(form);
               if (supabaseClient) {
                 try {
-                  await saveClienteFromMandatoData(supabaseClient, data);
-                  await saveAsesorMandatarioPerfil(supabaseClient, data);
                   await markClienteDocumentoGenerado(supabaseClient, data.mandante && data.mandante.rut, { tiene_mandato_largo: true });
-                  setStatus("Cliente actualizado. Generando mandato…");
                 } catch (e) {
-                  console.error("Error al guardar cliente:", e);
-                  setStatus("No se pudo guardar el cliente en la base de datos. " + (e.message || ""));
+                  console.warn("No se pudo marcar mandato largo en BD:", e);
                 }
               }
               generarMandatoSimple(data);
@@ -4075,9 +4223,12 @@
 
             if (btnGuardarBD) {
               btnGuardarBD.addEventListener("click", async function () {
-                const result = validate(form);
-                if (!result.ok) {
-                  setStatus("Debes completar el formulario primero");
+                const vdb = validatePensionFormForDbSave(form);
+                if (!vdb.ok) {
+                  setStatus(vdb.message || "Revisa el RUT del mandante.");
+                  requestAnimationFrame(function () {
+                    applyPensionFormErrorUX(form);
+                  });
                   return;
                 }
                 if (!supabaseClient) {
@@ -4085,15 +4236,16 @@
                   return;
                 }
                 const data = formDataToObject(form);
+                const anexosSnap = collectContratoAnexosForData(form);
                 btnGuardarBD.disabled = true;
-                setStatus("Guardando cliente en la base de datos…");
+                setStatus("Guardando en la base de datos…");
                 try {
                   await saveClienteFromMandatoData(supabaseClient, data);
-                  await saveAsesorMandatarioPerfil(supabaseClient, data);
-                  setStatus("Cliente guardado/actualizado correctamente (sin generar descarga).");
+                  await saveAsesorMandatarioPerfil(supabaseClient, data, { contrato_anexos: anexosSnap });
+                  setStatus("Datos guardados correctamente. Puedes generar documentos cuando quieras.");
                 } catch (e) {
                   console.error("Error al guardar cliente:", e);
-                  setStatus("No se pudo guardar el cliente en la base de datos. " + (e && e.message ? e.message : ""));
+                  setStatus("No se pudo guardar en la base de datos. " + (e && e.message ? e.message : ""));
                 } finally {
                   btnGuardarBD.disabled = false;
                 }
@@ -4109,13 +4261,9 @@
               const data = formDataToObject(form);
               if (supabaseClient) {
                 try {
-                  await saveClienteFromMandatoData(supabaseClient, data);
-                  await saveAsesorMandatarioPerfil(supabaseClient, data);
                   await markClienteDocumentoGenerado(supabaseClient, data.mandante && data.mandante.rut, { tiene_mandato_corto: true });
-                  setStatus("Cliente actualizado. Generando mandato corto…");
                 } catch (e) {
-                  console.error("Error al guardar cliente:", e);
-                  setStatus("No se pudo guardar el cliente en la base de datos. " + (e.message || ""));
+                  console.warn("No se pudo marcar mandato corto en BD:", e);
                 }
               }
               generarMandatoCorto(data);
@@ -4144,10 +4292,6 @@
             const anexosSnap = collectContratoAnexosForData(form);
             data.contratoAnexos = anexosSnap;
             try {
-              if (supabaseClient) {
-                await saveClienteFromMandatoData(supabaseClient, data);
-                await saveAsesorMandatarioPerfil(supabaseClient, data, { contrato_anexos: anexosSnap });
-              }
               data.numeroContratoSecuencial = supabaseClient
                 ? await getOrAssignNumeroContrato(supabaseClient, data)
                 : "NNN";
