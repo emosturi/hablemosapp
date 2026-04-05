@@ -1791,12 +1791,12 @@
         if ((b.observaciones || "").trim()) obs += (obs ? " " : "") + (b.observaciones || "").trim();
         beneficiarios += `
         <tr>
-        <td class="col-nombre-ben">${aMayus(nombreCompleto)}</td>
-        <td class="col-sexo-ben">${aMayus(b.sexo)}</td>
-        <td class="col-rut-ben">${aMayus(b.rut)}</td>
-        <td class="col-fnac-ben">${aMayus(b.fechaNacimiento)}</td>
-        <td class="col-parentesco-ben">${aMayus(b.parentesco)}</td>
-        <td class="col-obs-ben">${aMayus(obs)}</td>
+        <td class="col-nombre-ben" style="font-size:6pt;line-height:1.2;text-align:center;">${aMayus(nombreCompleto)}</td>
+        <td class="col-sexo-ben" style="font-size:6pt;line-height:1.2;text-align:center;">${aMayus(b.sexo)}</td>
+        <td class="col-rut-ben" style="font-size:6pt;line-height:1.2;text-align:center;">${aMayus(b.rut)}</td>
+        <td class="col-fnac-ben" style="font-size:6pt;line-height:1.2;text-align:center;">${aMayus(b.fechaNacimiento)}</td>
+        <td class="col-parentesco-ben" style="font-size:6pt;line-height:1.2;text-align:center;">${aMayus(b.parentesco)}</td>
+        <td class="col-obs-ben" style="font-size:6pt;line-height:1.2;text-align:center;">${aMayus(obs)}</td>
         </tr>
         `;
         });
@@ -1875,7 +1875,7 @@
         table.tabla-benef-mandato td{
         font-size:6pt;
         line-height:1.2;
-        text-align:justify;
+        text-align:center;
         }
         /* Anchos: sexo/rut/fnac ×1,3; parentesco ×1,5; obs ×0,7 vs base anterior; nombre absorbe el resto hasta 100%. */
         .col-nombre-ben{ width:17%; }
@@ -2016,15 +2016,15 @@
         
         <h3>Beneficiarios</h3>
 
-        <table class="tabla-benef-mandato" border="1" style="border-collapse:collapse;width:100%;">
+        <table class="tabla-benef-mandato" border="1" style="border-collapse:collapse;width:100%;font-size:6pt;">
 
         <tr>
-        <th class="col-nombre-ben">Nombre Completo</th>
-        <th class="col-sexo-ben">Sexo</th>
-        <th class="col-rut-ben">Rut</th>
-        <th class="col-fnac-ben">Fecha de Nac.</th>
-        <th class="col-parentesco-ben">Parentesco</th>
-        <th class="col-obs-ben">Observaciones</th>
+        <th class="col-nombre-ben" style="font-size:9pt;text-align:center;">Nombre Completo</th>
+        <th class="col-sexo-ben" style="font-size:9pt;text-align:center;">Sexo</th>
+        <th class="col-rut-ben" style="font-size:9pt;text-align:center;">Rut</th>
+        <th class="col-fnac-ben" style="font-size:9pt;text-align:center;">Fecha de Nac.</th>
+        <th class="col-parentesco-ben" style="font-size:9pt;text-align:center;">Parentesco</th>
+        <th class="col-obs-ben" style="font-size:9pt;text-align:center;">Observaciones</th>
         </tr>
 
         ${beneficiarios}
