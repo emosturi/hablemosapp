@@ -4159,6 +4159,54 @@
         return div;
       }
 
+      // Línea base del formulario de pensión para detectar cambios sin guardar en BD (solo «Guardar en BD» persiste).
+      var pensionFormBaselineSnapshot = "";
+      var pensionFormBaselineIgnore = false;
+      var pensionFormBaselineTimer = null;
+
+      function pensionFormDataSignature(formEl) {
+        try {
+          return JSON.stringify(formDataToObject(formEl));
+        } catch (_e) {
+          return "";
+        }
+      }
+
+      function setPensionFormBaselineNow(formEl) {
+        if (!formEl) return;
+        pensionFormBaselineIgnore = true;
+        pensionFormBaselineSnapshot = pensionFormDataSignature(formEl);
+        requestAnimationFrame(function () {
+          pensionFormBaselineIgnore = false;
+        });
+      }
+
+      function scheduleSetPensionFormBaseline(formEl, delayMs) {
+        if (!formEl) return;
+        var d = delayMs == null ? 280 : delayMs;
+        clearTimeout(pensionFormBaselineTimer);
+        pensionFormBaselineTimer = setTimeout(function () {
+          pensionFormBaselineTimer = null;
+          setPensionFormBaselineNow(formEl);
+        }, d);
+      }
+
+      function pensionFormHasUnsavedChanges(formEl) {
+        if (!formEl || pensionFormBaselineIgnore) return false;
+        if (pensionFormBaselineSnapshot === "") return false;
+        return pensionFormDataSignature(formEl) !== pensionFormBaselineSnapshot;
+      }
+
+      function blockIfPensionFormUnsaved(formEl) {
+        if (!pensionFormHasUnsavedChanges(formEl)) return false;
+        window.alert(
+          "Hay modificaciones en el formulario que no han sido guardadas en la base de datos. Presiona «Guardar en BD» antes de seguir."
+        );
+        var st = document.getElementById("status");
+        if (st) st.textContent = "Hay cambios sin guardar en la base de datos.";
+        return true;
+      }
+
       // Inicializa todos los manejadores de eventos y estado inicial del formulario.
       function init() {
             const form = document.getElementById("pensionForm");
@@ -4204,6 +4252,7 @@
             });
 
             btnMandatoSimple.addEventListener("click", async function () {
+              if (blockIfPensionFormUnsaved(form)) return;
               const result = validate(form);
               if (!result.ok) {
                 setStatus("Debes completar el formulario primero");
@@ -4242,6 +4291,7 @@
                 try {
                   await saveClienteFromMandatoData(supabaseClient, data);
                   await saveAsesorMandatarioPerfil(supabaseClient, data, { contrato_anexos: anexosSnap });
+                  setPensionFormBaselineNow(form);
                   setStatus("Datos guardados correctamente. Puedes generar documentos cuando quieras.");
                 } catch (e) {
                   console.error("Error al guardar cliente:", e);
@@ -4253,6 +4303,7 @@
             }
 
             btnMandatoCorto.addEventListener("click", async function () {
+              if (blockIfPensionFormUnsaved(form)) return;
               const result = validate(form);
               if (!result.ok) {
                 setStatus("Debes completar el formulario primero");
@@ -4272,6 +4323,7 @@
 
         if (btnContrato) {
           btnContrato.addEventListener("click", async () => {
+            if (blockIfPensionFormUnsaved(form)) return;
             const cambioModalidadSeleccionado = form.querySelector('input[name="mandante.cambioModalidadTramite"]:checked');
             if (!cambioModalidadSeleccionado) {
               clearErrors(form);
@@ -4482,6 +4534,7 @@
               }
 
               btnLimpiar.addEventListener("click", () => {
+                if (blockIfPensionFormUnsaved(form)) return;
                 if (!confirm("¿Seguro que quieres limpiar el formulario?")) return;
                 form.reset();
                 clearErrors(form);
@@ -4504,10 +4557,14 @@
                     })
                     .catch(function () {
                       applyPolizaPerfilToForm(form, null);
+                    })
+                    .finally(function () {
+                      scheduleSetPensionFormBaseline(form, 120);
                     });
                 } else {
                   applyPolizaPerfilToForm(form, null);
                   resetContratoAnexosUiDefault(form);
+                  scheduleSetPensionFormBaseline(form, 120);
                 }
               });
 
@@ -4534,15 +4591,20 @@
                 })
                 .catch(function () {
                   resetContratoAnexosUiDefault(form);
+                })
+                .finally(function () {
+                  scheduleSetPensionFormBaseline(form, 120);
                 });
             } else {
               resetContratoAnexosUiDefault(form);
+              scheduleSetPensionFormBaseline(form, 120);
             }
             if (clienteId && supabaseClient) {
               supabaseClient.from("clientes").select("*").eq("id", clienteId).single().then(function (r) {
                 if (r.error || !r.data) {
                   setStatus("No se pudieron cargar los datos del cliente. " + (r.error ? r.error.message : "Cliente no encontrado."));
                   if (r.error) console.error("Prefill cliente:", r.error);
+                  scheduleSetPensionFormBaseline(form, 120);
                   return;
                 }
                 var c = r.data;
@@ -4873,6 +4935,7 @@
                 } catch (_e) {
                   // Si algo falla en el prellenado de beneficiarios, no bloquear el formulario
                 }
+                scheduleSetPensionFormBaseline(form, 100);
                 var finalizarPrefill = function (msg) {
                   history.replaceState({}, "", "pension.html");
                   setStatus(msg || "Datos del cliente cargados. Revisa y completa tipo de pensión, beneficiarios, etc.");
