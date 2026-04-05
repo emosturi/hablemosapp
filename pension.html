@@ -1718,13 +1718,17 @@
       }
 
       // Escritorio: .doc (con pie Word). Móvil: PDF con numeración; si falla, .html con pie Word.
+      // Prueba en escritorio mismo PDF que móvil: abre la página con ?pdf=1 (o ?pdf=true).
       function descargarDocumentoWordCompat(html, baseName) {
         const ua = navigator.userAgent || "";
         const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
+        const sp = new URLSearchParams(window.location.search || "");
+        const forcePdfDesktop = sp.get("pdf") === "1" || sp.get("pdf") === "true";
+        const usePdf = isMobile || forcePdfDesktop;
         const safeBase = truncarBaseNombreArchivo(String(baseName || "documento").replace(/[/\\:*?"<>|]/g, "_"));
         const htmlWord = prepararHtmlWordConPiePagina(html);
 
-        if (!isMobile) {
+        if (!usePdf) {
           const blob = new Blob(["\ufeff", htmlWord], { type: "application/msword" });
           const url = URL.createObjectURL(blob);
           const a = document.createElement("a");
@@ -1740,7 +1744,7 @@
             return descargarHtmlComoPdfMultipage(html, safeBase);
           })
           .catch(function (err) {
-            console.warn("PDF móvil no disponible, descargando HTML:", err);
+            console.warn("PDF no disponible, descargando HTML:", err);
             descargarBlobHtmlFallback(htmlWord, safeBase);
           });
       }
