@@ -25,16 +25,16 @@ window.REMINDER_FUNCTION_URL =
 window.ASESOR_REGISTRO_HABILITADO = true; // false = cerrado
 //window.ASESOR_REGISTRO_DOMINIOS = ["gmail.com", "asesores.tuempresa.cl"]; // opcional
 
-// Cierre automático por inactividad (1 hora sin uso con la app visible).
-// Puedes subir el valor (p. ej. 2h) si lo necesitas; en Supabase → Auth → JWT también puedes revisar caducidad del access token.
-window.SESSION_IDLE_TIMEOUT_MS = 60 * 60 * 1000;
+// Cierre automático por inactividad (24 h sin uso con la app visible; clics, teclado, scroll, etc. reinician el contador).
+// En Supabase → Auth → JWT puedes revisar caducidad del access token si ves cierres por token y no por inactividad.
+window.SESSION_IDLE_TIMEOUT_MS = 24 * 60 * 60 * 1000;
 window.installInactivityAutoLogout = function (supabaseClient, options) {
   try {
     if (!supabaseClient || !supabaseClient.auth || !window || !window.document) return;
     if (window.__inactivityLogoutInstalled) return;
     window.__inactivityLogoutInstalled = true;
 
-    var timeoutMs = (options && options.timeoutMs) || window.SESSION_IDLE_TIMEOUT_MS || (60 * 60 * 1000);
+    var timeoutMs = (options && options.timeoutMs) || window.SESSION_IDLE_TIMEOUT_MS || (24 * 60 * 60 * 1000);
     var redirectTo = (options && options.redirectTo) || "login.html";
     var key = "prevy:last-activity-at";
     var legacyActivityKey = "hablemosapp:last-activity-at";

@@ -7,7 +7,7 @@ window.SUPABASE_URL = "https://TU_PROYECTO.supabase.co";
 window.SUPABASE_ANON_KEY = "tu-anon-key-aqui";
 
 // Opcional: tiempo máximo sin interacción con la app en primer plano antes de cerrar sesión (por defecto 1 h en supabase-config.js).
-// window.SESSION_IDLE_TIMEOUT_MS = 2 * 60 * 60 * 1000;
+// window.SESSION_IDLE_TIMEOUT_MS = 24 * 60 * 60 * 1000; // cierre por inactividad (por defecto en supabase-config.js)
 //
 // Preferencia «mantener sesión» (login.html): localStorage clave prevy:session-persist = "0" = solo mientras dure la pestaña/app (sessionStorage).
 //
