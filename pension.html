@@ -1597,6 +1597,20 @@
       }
 
       /**
+       * html2canvas suele ignorar text-align:justify si solo viene en hojas del documento original.
+       * Reglas !important + repetición en el clon (onclone) alinean el PDF con Word/HTML.
+       */
+      const PDF_TEXT_JUSTIFY_INJECTION =
+        "body{text-align:justify!important;text-justify:inter-word;-moz-text-align-last:auto;text-align-last:auto;}" +
+        "body p,body li{text-align:justify!important;text-justify:inter-word!important;}" +
+        ".empleador-datos{text-align:justify!important;}" +
+        "table td:not(.col-respuesta){text-align:justify!important;text-justify:inter-word!important;}" +
+        "table th,td.col-respuesta{text-align:center!important;}" +
+        "table.tabla-benef-mandato th,table.tabla-benef-mandato td{text-align:center!important;}" +
+        "h1,h2,h3,h4{text-align:center!important;}" +
+        ".tabla-firmas td,.tabla-firmas td p{text-align:center!important;}";
+
+      /**
        * PDF: html2canvas rasteriza el HTML; escala y calidad JPEG definen nitidez (también al imprimir desde el móvil).
        * WebKit (iOS) no pinta bien iframes ocultos: se usa iframe visible + velo durante la captura.
        */
@@ -1667,6 +1681,12 @@
                   "p{orphans:3;widows:3;}";
                 head.appendChild(inj);
               }
+              if (head && !head.querySelector("style[data-prevy-pdf-justify]")) {
+                const jSt = doc.createElement("style");
+                jSt.setAttribute("data-prevy-pdf-justify", "1");
+                jSt.textContent = PDF_TEXT_JUSTIFY_INJECTION;
+                head.appendChild(jSt);
+              }
             } catch (_e) {}
 
             const dpr =
@@ -1696,6 +1716,16 @@
                 backgroundColor: "#ffffff",
                 scrollX: 0,
                 scrollY: 0,
+                onclone: function (clonedDoc) {
+                  try {
+                    var cHead = clonedDoc.head;
+                    if (!cHead || cHead.querySelector("style[data-prevy-pdf-justify-clone]")) return;
+                    var cSt = clonedDoc.createElement("style");
+                    cSt.setAttribute("data-prevy-pdf-justify-clone", "1");
+                    cSt.textContent = PDF_TEXT_JUSTIFY_INJECTION;
+                    cHead.appendChild(cSt);
+                  } catch (_e2) {}
+                },
               },
               jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
               pagebreak: { mode: ["avoid-all", "css", "legacy"] },
