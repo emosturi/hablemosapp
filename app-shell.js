@@ -610,7 +610,7 @@
         return;
       }
       if (q.indexOf("form") !== -1 || q.indexOf("pens") !== -1) {
-        window.location.href = "revisar-clientes.html";
+        window.location.href = "pension.html";
         return;
       }
       if (q.indexOf("dash") !== -1 || q.indexOf("inicio") !== -1) {
