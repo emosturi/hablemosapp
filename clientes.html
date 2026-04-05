@@ -509,10 +509,9 @@
             </div>
             <div class="section-hidden" id="sectionHijosBloque">
               <div class="field" style="margin-top: 12px;">
-                <label for="numHijos">Número de hijos menores de 24 años</label>
-                <select id="numHijos">
-                  <option value="0">0</option>
-                  <option value="1">1</option>
+                <label for="numHijos">Número de hijos menores de 24 años <span class="req">*</span></label>
+                <select id="numHijos" aria-describedby="hintNumHijos">
+                  <option value="1" selected>1</option>
                   <option value="2">2</option>
                   <option value="3">3</option>
                   <option value="4">4</option>
@@ -523,6 +522,8 @@
                   <option value="9">9</option>
                   <option value="10">10</option>
                 </select>
+                <p class="hint" id="hintNumHijos" style="margin: 6px 0 0">Si indicó que tiene hijos menores de 24 años, debe registrar al menos uno.</p>
+                <div class="error" data-error-for="numHijos"></div>
               </div>
               <div id="hijosContainer"></div>
             </div>
@@ -617,7 +618,7 @@
 
           <div class="actions">
             <div class="btns">
-              <button type="submit">Guardar cliente</button>
+              <button type="submit">Enviar Datos</button>
               <button type="button" id="btnLimpiar">Limpiar</button>
             </div>
             <div id="status" class="status" aria-live="polite"></div>
@@ -1000,7 +1001,15 @@
       if (radiosHijos.length && sectionHijosBloque) {
         function toggleHijos() {
           var si = form.querySelector("input[name='tieneHijosMenores24']:checked");
-          sectionHijosBloque.classList.toggle("section-hidden", !si || si.value !== "Sí");
+          var show = !!(si && si.value === "Sí");
+          sectionHijosBloque.classList.toggle("section-hidden", !show);
+          if (show && numHijosSel) {
+            var v = parseInt(numHijosSel.value, 10);
+            if (!v || v < 1 || isNaN(v)) {
+              numHijosSel.value = "1";
+            }
+            if (typeof actualizarHijos === "function") actualizarHijos();
+          }
         }
         radiosHijos.forEach(function(r) { r.addEventListener("change", toggleHijos); });
         toggleHijos();
@@ -1028,23 +1037,23 @@
         div.innerHTML =
           '<span class="hijo-num">Hijo/a ' + (index + 1) + '</span>' +
           '<div class="grid">' +
-          '<div class="field col-4"><label>Nombres</label><input name="hijo_' + index + '_nombres" /></div>' +
-          '<div class="field col-4"><label>Apellido Paterno</label><input name="hijo_' + index + '_apellidoPaterno" /></div>' +
-          '<div class="field col-4"><label>Apellido Materno</label><input name="hijo_' + index + '_apellidoMaterno" /></div>' +
-          '<div class="field col-4"><label>Nacionalidad</label><input name="hijo_' + index + '_nacionalidad" placeholder="Ej. Chilena" /></div>' +
-          '<div class="field col-4"><label>RUT</label><input name="hijo_' + index + '_rut" class="rut-input" placeholder="12.345.678-5" /></div>' +
-          '<div class="field col-4"><label>Sexo</label><select name="hijo_' + index + '_sexo"><option value="">Selecciona…</option><option>Masculino</option><option>Femenino</option></select></div>' +
+          '<div class="field col-4"><label>Nombres <span class="req">*</span></label><input name="hijo_' + index + '_nombres" autocomplete="given-name" /><div class="error" data-error-for="hijo_' + index + '_nombres"></div></div>' +
+          '<div class="field col-4"><label>Apellido Paterno <span class="req">*</span></label><input name="hijo_' + index + '_apellidoPaterno" autocomplete="family-name" /><div class="error" data-error-for="hijo_' + index + '_apellidoPaterno"></div></div>' +
+          '<div class="field col-4"><label>Apellido Materno <span class="req">*</span></label><input name="hijo_' + index + '_apellidoMaterno" autocomplete="family-name" /><div class="error" data-error-for="hijo_' + index + '_apellidoMaterno"></div></div>' +
+          '<div class="field col-4"><label>Nacionalidad <span class="req">*</span></label><input name="hijo_' + index + '_nacionalidad" placeholder="Ej. Chilena" /><div class="error" data-error-for="hijo_' + index + '_nacionalidad"></div></div>' +
+          '<div class="field col-4"><label>RUT <span class="req">*</span></label><input name="hijo_' + index + '_rut" class="rut-input" placeholder="12.345.678-5" /><div class="error" data-error-for="hijo_' + index + '_rut"></div></div>' +
+          '<div class="field col-4"><label>Sexo <span class="req">*</span></label><select name="hijo_' + index + '_sexo"><option value="">Selecciona…</option><option>Masculino</option><option>Femenino</option></select><div class="error" data-error-for="hijo_' + index + '_sexo"></div></div>' +
           '<div class="field col-12"><label>¿Es inválido? <span class="req">*</span></label>' +
           '<div class="radio-row" role="group" aria-label="Hijo inválido ' + (index + 1) + '">' +
           '<label class="radio-pill"><input type="radio" name="hijo_' + index + '_esInvalido" value="Sí" /> Sí</label>' +
           '<label class="radio-pill"><input type="radio" name="hijo_' + index + '_esInvalido" value="No" /> No</label>' +
           '</div><div class="error" data-error-for="hijo_' + index + '_esInvalido"></div></div>' +
-          '<div class="field col-4"><label>Fecha nacimiento</label>' +
+          '<div class="field col-4"><label>Fecha de nacimiento <span class="req">*</span></label>' +
           '<div class="date-group">' +
           '<select name="hijo_' + index + '_dia"><option value="">Día</option></select>' +
           '<select name="hijo_' + index + '_mes"><option value="">Mes</option></select>' +
           '<select name="hijo_' + index + '_anio"><option value="">Año</option></select>' +
-          '</div></div>' +
+          '</div><div class="error" data-error-for="hijo_' + index + '_fechaNac"></div></div>' +
           '</div>';
         var diaS = div.querySelector("select[name='hijo_" + index + "_dia']");
         var mesS = div.querySelector("select[name='hijo_" + index + "_mes']");
@@ -1053,7 +1062,8 @@
         return div;
       }
       function actualizarHijos() {
-        var n = parseInt(numHijosSel.value || 0, 10);
+        var n = parseInt(numHijosSel.value || "1", 10);
+        if (isNaN(n) || n < 1) n = 1;
         var actual = hijosContainer.children.length;
         if (n > actual) {
           for (var i = actual; i < n; i++) hijosContainer.appendChild(crearHijoBlock(i));
@@ -1243,21 +1253,67 @@
         row.tiene_hijos_menores_24 = tieneHijos && tieneHijos.value === "Sí";
         var hijosArr = [];
         if (row.tiene_hijos_menores_24 && hijosContainer) {
-          var numH = parseInt(numHijosSel.value || 0, 10);
+          var numH = parseInt(numHijosSel.value || "0", 10);
+          if (!numH || numH < 1 || isNaN(numH)) {
+            setError(form, "numHijos", "Si tiene hijos menores de 24 años, indique al menos uno.");
+            if (numHijosSel) numHijosSel.focus();
+            return;
+          }
           for (var i = 0; i < numH; i++) {
-            var nombres = (form.querySelector("input[name='hijo_" + i + "_nombres']") || {}).value;
-            var apP = (form.querySelector("input[name='hijo_" + i + "_apellidoPaterno']") || {}).value;
-            var apM = (form.querySelector("input[name='hijo_" + i + "_apellidoMaterno']") || {}).value;
-            var nac = (form.querySelector("input[name='hijo_" + i + "_nacionalidad']") || {}).value;
-            var rut = (form.querySelector("input[name='hijo_" + i + "_rut']") || {}).value;
-            var sexo = (form.querySelector("select[name='hijo_" + i + "_sexo']") || {}).value;
+            var inNombres = form.querySelector("input[name='hijo_" + i + "_nombres']");
+            var inApP = form.querySelector("input[name='hijo_" + i + "_apellidoPaterno']");
+            var inApM = form.querySelector("input[name='hijo_" + i + "_apellidoMaterno']");
+            var inNac = form.querySelector("input[name='hijo_" + i + "_nacionalidad']");
+            var inRut = form.querySelector("input[name='hijo_" + i + "_rut']");
+            var selSexo = form.querySelector("select[name='hijo_" + i + "_sexo']");
+            var nombres = (inNombres || {}).value;
+            var apP = (inApP || {}).value;
+            var apM = (inApM || {}).value;
+            var nac = (inNac || {}).value;
+            var rut = (inRut || {}).value;
+            var sexo = (selSexo || {}).value;
             var dia = (form.querySelector("select[name='hijo_" + i + "_dia']") || {}).value;
             var mes = (form.querySelector("select[name='hijo_" + i + "_mes']") || {}).value;
             var anio = (form.querySelector("select[name='hijo_" + i + "_anio']") || {}).value;
             var fNac = (dia && mes && anio) ? anio + "-" + mes + "-" + dia : null;
             var invHijo = form.querySelector("input[name='hijo_" + i + "_esInvalido']:checked");
+
+            if (!String(nombres || "").trim()) {
+              setError(form, "hijo_" + i + "_nombres", "Los nombres del hijo/a son obligatorios.");
+              if (inNombres) inNombres.focus();
+              return;
+            }
+            if (!String(apP || "").trim()) {
+              setError(form, "hijo_" + i + "_apellidoPaterno", "El apellido paterno del hijo/a es obligatorio.");
+              if (inApP) inApP.focus();
+              return;
+            }
+            if (!String(apM || "").trim()) {
+              setError(form, "hijo_" + i + "_apellidoMaterno", "El apellido materno del hijo/a es obligatorio.");
+              if (inApM) inApM.focus();
+              return;
+            }
+            if (!String(nac || "").trim()) {
+              setError(form, "hijo_" + i + "_nacionalidad", "La nacionalidad del hijo/a es obligatoria.");
+              if (inNac) inNac.focus();
+              return;
+            }
+            if (!rutIsValid(rut || "")) {
+              setError(form, "hijo_" + i + "_rut", "RUT del hijo/a inválido u obligatorio.");
+              if (inRut) inRut.focus();
+              return;
+            }
+            if (!String(sexo || "").trim()) {
+              setError(form, "hijo_" + i + "_sexo", "Seleccione el sexo del hijo/a.");
+              if (selSexo) selSexo.focus();
+              return;
+            }
+            if (!fNac || !/^\d{4}-\d{2}-\d{2}$/.test(fNac)) {
+              setError(form, "hijo_" + i + "_fechaNac", "Seleccione la fecha de nacimiento completa del hijo/a.");
+              return;
+            }
             if (!invHijo) {
-              setError(form, "hijo_" + i + "_esInvalido", "Indique si el hijo o la hija es inválido/a");
+              setError(form, "hijo_" + i + "_esInvalido", "Indique si el hijo o la hija es inválido/a.");
               return;
             }
             hijosArr.push({
@@ -1369,7 +1425,7 @@
           setStatus("Cliente guardado correctamente.");
           form.reset();
           if (hiddenFecha) hiddenFecha.value = "";
-          if (numHijosSel) numHijosSel.value = "0";
+          if (numHijosSel) numHijosSel.value = "1";
           hijosContainer.innerHTML = "";
           if (typeof actualizarHijos === "function") actualizarHijos();
           if (sectionConyuge) sectionConyuge.classList.add("section-hidden");
@@ -1488,7 +1544,7 @@
         if (hiddenFecha) hiddenFecha.value = "";
         if (sectionConyuge) sectionConyuge.classList.add("section-hidden");
         if (sectionHijosBloque) sectionHijosBloque.classList.add("section-hidden");
-        if (numHijosSel) numHijosSel.value = "0";
+        if (numHijosSel) numHijosSel.value = "1";
         hijosContainer.innerHTML = "";
         actualizarHijos();
       });
