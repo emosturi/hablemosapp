@@ -8,7 +8,7 @@ create table if not exists public.asesor_mandatario_perfil (
 );
 
 comment on table public.asesor_mandatario_perfil is
-  'JSON datos del asesor para pension.html: campos mandatario (rut, nombres, etc.), opcional poliza (registroPoliza, compania, numeroPoliza, fechas), contrato_anexos.';
+  'JSON datos del asesor para pension.html: campos mandatario (rut, nombres, etc.), opcional poliza (registroPoliza, compania, numeroPoliza, fechas), contrato_anexos, incluirCodigoAsesorEnNumeroContrato (boolean).';
 
 alter table public.asesor_mandatario_perfil enable row level security;
 

@@ -382,6 +382,92 @@
         font-weight: 650;
       }
 
+      .mandatario-registro-inline {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: flex-end;
+      }
+
+      .mandatario-registro-inline__input {
+        flex: 1 1 10rem;
+        min-width: 0;
+        display: grid;
+        gap: 6px;
+      }
+
+      .mandatario-registro-inline__switch {
+        flex: 0 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        align-items: flex-start;
+        padding-bottom: 2px;
+      }
+
+      .mandatario-codigo-contrato-switch__title {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--muted);
+        line-height: 1.25;
+        max-width: 11rem;
+      }
+
+      .mandatario-codigo-contrato-switch {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        user-select: none;
+        margin: 0;
+      }
+
+      .mandatario-codigo-contrato-switch input {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+        margin: 0;
+      }
+
+      .mandatario-codigo-contrato-switch-ui {
+        width: 40px;
+        height: 22px;
+        background: var(--border);
+        border-radius: 11px;
+        position: relative;
+        transition: background 0.2s ease;
+        flex-shrink: 0;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+      }
+
+      .mandatario-codigo-contrato-switch-ui::after {
+        content: "";
+        position: absolute;
+        width: 18px;
+        height: 18px;
+        background: #fff;
+        border-radius: 50%;
+        top: 1px;
+        left: 2px;
+        transition: transform 0.2s ease;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+      }
+
+      .mandatario-codigo-contrato-switch input:checked + .mandatario-codigo-contrato-switch-ui {
+        background: var(--primary-mid, #009391);
+        border-color: transparent;
+      }
+
+      .mandatario-codigo-contrato-switch input:checked + .mandatario-codigo-contrato-switch-ui::after {
+        transform: translateX(17px);
+      }
+
+      .mandatario-codigo-contrato-switch input:focus-visible + .mandatario-codigo-contrato-switch-ui {
+        outline: 2px solid var(--primary, #00606c);
+        outline-offset: 2px;
+      }
+
       button {
         border: 1px solid var(--border);
         background: var(--surface);
@@ -990,8 +1076,25 @@
 
               <div class="field col-4">
                 <label for="mandatario_registro">N° Registro de Asesor Previsional (Opcional)</label>
-                <input id="mandatario_registro" name="mandatario.numeroRegistroAsesorPrevisional" autocomplete="off" />
-                <div class="error" data-error-for="mandatario_registro"></div>
+                <div class="mandatario-registro-inline">
+                  <div class="mandatario-registro-inline__input">
+                    <input id="mandatario_registro" name="mandatario.numeroRegistroAsesorPrevisional" autocomplete="off" />
+                    <div class="error" data-error-for="mandatario_registro"></div>
+                  </div>
+                  <div class="mandatario-registro-inline__switch">
+                    <span class="mandatario-codigo-contrato-switch__title" id="lblIncluirCodigoContrato">¿Incluir código de asesor en el N° del contrato?</span>
+                    <label class="mandatario-codigo-contrato-switch" for="switchIncluirCodigoAsesorContrato">
+                      <input
+                        type="checkbox"
+                        id="switchIncluirCodigoAsesorContrato"
+                        role="switch"
+                        checked
+                        aria-labelledby="lblIncluirCodigoContrato"
+                      />
+                      <span class="mandatario-codigo-contrato-switch-ui" aria-hidden="true"></span>
+                    </label>
+                  </div>
+                </div>
               </div>
 
               <div class="field col-4">
@@ -1546,6 +1649,32 @@
         if (!raw) return "sin_numero";
         const seg = segmentoNombreArchivo(raw.replace(/\./g, "").replace(/-/g, "_"));
         return seg || "sin_numero";
+      }
+
+      /** Lee el switch del formulario (sin name: no va al JSON del cliente). */
+      function aplicarPreferenciaIncluirCodigoAsesorContratoDesdeSwitch(data) {
+        if (!data || typeof data !== "object") return;
+        const sw = document.getElementById("switchIncluirCodigoAsesorContrato");
+        data.incluirCodigoAsesorEnNumeroContrato = !sw || !!sw.checked;
+      }
+
+      /**
+       * N° mostrado en el contrato y en el nombre de archivo.
+       * Si el switch está apagado: solo correlativo. Si está encendido: códigoRegistro-correlativo (si hay código).
+       */
+      function construirTextoNumeroContratoParaDocumento(data) {
+        if (!data || typeof data !== "object") return "NNN";
+        if (data.numeroContrato != null && String(data.numeroContrato).trim() !== "") {
+          return String(data.numeroContrato).trim();
+        }
+        const seq = data.numeroContratoSecuencial != null ? String(data.numeroContratoSecuencial) : "NNN";
+        const incluir =
+          data.incluirCodigoAsesorEnNumeroContrato !== false && data.incluirCodigoAsesorEnNumeroContrato !== "No";
+        const mand = data.mandatario || {};
+        const reg = String(mand.numeroRegistroAsesorPrevisional || "").trim();
+        if (!incluir) return seq;
+        if (reg) return `${reg}-${seq}`;
+        return seq;
       }
 
       function truncarBaseNombreArchivo(base, maxLen = 180) {
@@ -2602,9 +2731,8 @@
         const nombreTramite = mandante.tipoPension || "";
         const esCambioModalidad = (mandante.cambioModalidadTramite || "").trim() === "Sí";
 
-        // Número de contrato: registro asesor + número secuencial (asignado por RUT del mandante al pulsar Generar Contrato)
-        const numeroSecuencial = data.numeroContratoSecuencial ?? "NNN";
-        const numeroContrato = data.numeroContrato || `${mandatario.numeroRegistroAsesorPrevisional || ""}-${numeroSecuencial}`;
+        aplicarPreferenciaIncluirCodigoAsesorContratoDesdeSwitch(data);
+        const numeroContrato = construirTextoNumeroContratoParaDocumento(data);
 
         let filasBeneficiarios = "";
         if (beneficiariosData && typeof beneficiariosData === "object") {
@@ -3872,6 +4000,10 @@
             merged[k] = datosPatch[k];
           }
         }
+        const swCodContrato = document.getElementById("switchIncluirCodigoAsesorContrato");
+        if (swCodContrato) {
+          merged.incluirCodigoAsesorEnNumeroContrato = !!swCodContrato.checked;
+        }
         const { error } = await supabaseClient.from("asesor_mandatario_perfil").upsert(
           { user_id: uid, datos: merged, updated_at: new Date().toISOString() },
           { onConflict: "user_id" }
@@ -3902,6 +4034,16 @@
         setFormFromObject(form, { mandatario: m });
         const mr = document.getElementById("mandatario_rut");
         if (mr && mr.value) mr.value = normalizeRut(mr.value);
+        const swCod = document.getElementById("switchIncluirCodigoAsesorContrato");
+        if (swCod) {
+          if (Object.prototype.hasOwnProperty.call(datos, "incluirCodigoAsesorEnNumeroContrato")) {
+            const v = datos.incluirCodigoAsesorEnNumeroContrato;
+            swCod.checked = v !== false && v !== "No" && v !== 0;
+          } else {
+            swCod.checked = true;
+          }
+          swCod.setAttribute("aria-checked", swCod.checked ? "true" : "false");
+        }
       }
 
       function applyPolizaPerfilToForm(form, datos) {
@@ -4494,6 +4636,17 @@
               syncPdfSwitchAria();
               switchPdfDesktop.addEventListener("change", syncPdfSwitchAria);
             }
+            const switchIncluirCodigoContrato = document.getElementById("switchIncluirCodigoAsesorContrato");
+            if (switchIncluirCodigoContrato) {
+              function syncContratoCodigoSwitchAria() {
+                switchIncluirCodigoContrato.setAttribute(
+                  "aria-checked",
+                  switchIncluirCodigoContrato.checked ? "true" : "false"
+                );
+              }
+              syncContratoCodigoSwitchAria();
+              switchIncluirCodigoContrato.addEventListener("change", syncContratoCodigoSwitchAria);
+            }
             const supabaseClient = window.SUPABASE_URL && window.SUPABASE_ANON_KEY && window.SUPABASE_URL.indexOf("TU_PROYECTO") === -1
               ? window.createPrevySupabaseClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY)
               : null;
@@ -4969,6 +5122,11 @@
                 if (rHNo) {
                   rHNo.checked = true;
                   rHNo.dispatchEvent(new Event("change", { bubbles: true }));
+                }
+                var swCodContr = document.getElementById("switchIncluirCodigoAsesorContrato");
+                if (swCodContr) {
+                  swCodContr.checked = true;
+                  swCodContr.setAttribute("aria-checked", "true");
                 }
                 out.hidden = true;
                 preview.textContent = "";

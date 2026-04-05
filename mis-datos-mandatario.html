@@ -138,6 +138,77 @@
         margin-top: 4px;
       }
 
+      .perfil-codigo-contrato-cell {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        justify-content: flex-end;
+        padding-bottom: 2px;
+      }
+
+      .perfil-codigo-contrato-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--muted);
+        line-height: 1.25;
+        max-width: 20rem;
+      }
+
+      .perfil-codigo-contrato-switch {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        user-select: none;
+        margin: 0;
+      }
+
+      .perfil-codigo-contrato-switch input {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+        margin: 0;
+      }
+
+      .perfil-codigo-contrato-switch-ui {
+        width: 40px;
+        height: 22px;
+        background: var(--border);
+        border-radius: 11px;
+        position: relative;
+        transition: background 0.2s ease;
+        flex-shrink: 0;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+      }
+
+      .perfil-codigo-contrato-switch-ui::after {
+        content: "";
+        position: absolute;
+        width: 18px;
+        height: 18px;
+        background: #fff;
+        border-radius: 50%;
+        top: 1px;
+        left: 2px;
+        transition: transform 0.2s ease;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+      }
+
+      .perfil-codigo-contrato-switch input:checked + .perfil-codigo-contrato-switch-ui {
+        background: var(--primary-mid, #009391);
+        border-color: transparent;
+      }
+
+      .perfil-codigo-contrato-switch input:checked + .perfil-codigo-contrato-switch-ui::after {
+        transform: translateX(17px);
+      }
+
+      .perfil-codigo-contrato-switch input:focus-visible + .perfil-codigo-contrato-switch-ui {
+        outline: 2px solid var(--primary, #00606c);
+        outline-offset: 2px;
+      }
+
       /* Panel sensible: contraseña al final de la página (empuja al fondo si sobra alto) */
       .sensitive-panel {
         margin-top: auto;
@@ -346,7 +417,19 @@
                   <label for="f_registro">N° registro asesor previsional <span class="req">(opcional)</span></label>
                   <input id="f_registro" name="numeroRegistroAsesorPrevisional" autocomplete="off" />
                 </div>
-                <div></div>
+                <div class="perfil-codigo-contrato-cell">
+                  <span class="perfil-codigo-contrato-label" id="lbl_f_incluir_codigo_contrato">¿Incluir código de asesor en el N° del contrato?</span>
+                  <label class="perfil-codigo-contrato-switch" for="f_incluir_codigo_contrato">
+                    <input
+                      type="checkbox"
+                      id="f_incluir_codigo_contrato"
+                      role="switch"
+                      checked
+                      aria-labelledby="lbl_f_incluir_codigo_contrato"
+                    />
+                    <span class="perfil-codigo-contrato-switch-ui" aria-hidden="true"></span>
+                  </label>
+                </div>
                 <div>
                   <label for="f_nombres">Nombres <span class="req">*</span></label>
                   <input id="f_nombres" name="nombres" required autocomplete="off" />
@@ -512,6 +595,12 @@
         var btnGuardar = document.getElementById("btnGuardar");
         var errRut = document.getElementById("err_rut");
         var fRut = document.getElementById("f_rut");
+        var fIncluirCodigoContrato = document.getElementById("f_incluir_codigo_contrato");
+        if (fIncluirCodigoContrato) {
+          fIncluirCodigoContrato.addEventListener("change", function () {
+            fIncluirCodigoContrato.setAttribute("aria-checked", fIncluirCodigoContrato.checked ? "true" : "false");
+          });
+        }
 
         var formPwd = document.getElementById("formPassword");
         var fieldsetPwd = document.getElementById("passwordFieldset");
@@ -644,6 +733,16 @@
             if (el && datos[k] != null) el.value = String(datos[k]);
           });
           if (fRut.value) fRut.value = normalizeRut(fRut.value);
+          var swIncl = document.getElementById("f_incluir_codigo_contrato");
+          if (swIncl) {
+            if (Object.prototype.hasOwnProperty.call(datos, "incluirCodigoAsesorEnNumeroContrato")) {
+              var v = datos.incluirCodigoAsesorEnNumeroContrato;
+              swIncl.checked = v !== false && v !== "No" && v !== 0;
+            } else {
+              swIncl.checked = true;
+            }
+            swIncl.setAttribute("aria-checked", swIncl.checked ? "true" : "false");
+          }
         }
 
         function readForm() {
@@ -739,17 +838,44 @@
             perfil.rut = normalizeRut(perfil.rut || fRut.value);
             supabase
               .from("asesor_mandatario_perfil")
-              .upsert(
-                { user_id: uid, datos: perfil, updated_at: new Date().toISOString() },
-                { onConflict: "user_id" }
-              )
+              .select("datos")
+              .eq("user_id", uid)
+              .maybeSingle()
+              .then(function (prevRes) {
+                if (prevRes.error) {
+                  btnGuardar.disabled = false;
+                  setStatus(prevRes.error.message || "No se pudo leer el perfil actual.", "err");
+                  return null;
+                }
+                var mergedDatos = {};
+                if (
+                  prevRes.data &&
+                  prevRes.data.datos &&
+                  typeof prevRes.data.datos === "object" &&
+                  !Array.isArray(prevRes.data.datos)
+                ) {
+                  mergedDatos = Object.assign({}, prevRes.data.datos);
+                }
+                Object.assign(mergedDatos, perfil);
+                var swIncl = document.getElementById("f_incluir_codigo_contrato");
+                mergedDatos.incluirCodigoAsesorEnNumeroContrato = !!(swIncl && swIncl.checked);
+                return supabase.from("asesor_mandatario_perfil").upsert(
+                  { user_id: uid, datos: mergedDatos, updated_at: new Date().toISOString() },
+                  { onConflict: "user_id" }
+                );
+              })
               .then(function (res) {
+                if (res === null) return;
                 btnGuardar.disabled = false;
                 if (res.error) {
                   setStatus(res.error.message || "No se pudo guardar.", "err");
                   return;
                 }
                 setStatus("Guardado. Se aplicará al abrir el formulario de pensión.", "ok");
+              })
+              .catch(function (err) {
+                btnGuardar.disabled = false;
+                setStatus((err && err.message) || "Error al guardar.", "err");
               });
           });
         });
