@@ -541,7 +541,7 @@
     <div class="modal-overlay" id="modalPensionado" role="dialog" aria-labelledby="modalPensionadoTitulo" aria-modal="true">
       <div class="modal">
         <h3 id="modalPensionadoTitulo">Finalización: marcar como pensionado</h3>
-        <p style="margin: 0 0 18px; font-size: 14px; line-height: 1.45; color: var(--text);">
+        <p id="modalPensionadoIntro" style="margin: 0 0 18px; font-size: 14px; line-height: 1.45; color: var(--text);">
           Al completar la etapa final de la línea de tiempo, registra los datos de pensión para el cliente.
         </p>
         <form id="formPensionado">
@@ -649,6 +649,7 @@
           "Recepción de certificado de ofertas original (correo personal afiliado)",
           "Análisis y selección de ofertas",
           "Solicitud de remate (opcional)",
+          "Preparación de carpeta de cierre",
           "Día del cierre (afp)",
           "Entrega de carpeta de cierre (compañía aseguradora)",
           "Verificación del primer pago",
@@ -739,21 +740,22 @@
             var dueRemate7 = addBusinessDays(etapa8, 7);
             if (dueRemate7) out.push({ key: "e8_venc_remate_7hb", due: dueRemate7, msg: "Alerta: vencimiento para solicitud de remate." });
           }
-          var etapa11 = fechasEtapas["11"];
-          if (etapa11) {
-            var dueFondos = addBusinessDays(etapa11, 12);
+          // Etapa 12 = «Día del cierre (afp)» (tras etapa 11 preparación de carpeta).
+          var etapaCierreAfp = fechasEtapas["12"];
+          if (etapaCierreAfp) {
+            var dueFondos = addBusinessDays(etapaCierreAfp, 12);
             if (dueFondos) {
-              out.push({ key: "e11_fondos_compania_12hb", due: dueFondos, msg: "Seguimiento: traspaso de fondos a la compañía (12 días hábiles desde Día de cierre)." });
+              out.push({ key: "e12_fondos_compania_12hb", due: dueFondos, msg: "Seguimiento: traspaso de fondos a la compañía (12 días hábiles desde Día de cierre)." });
               var duePrimerPago = addCalendarDays(dueFondos, 10);
-              if (duePrimerPago) out.push({ key: "e11_primer_pago_10d_post_fondos", due: duePrimerPago, msg: "Verificar primer pago (10 días después de recepción de fondos en compañía)." });
+              if (duePrimerPago) out.push({ key: "e12_primer_pago_10d_post_fondos", due: duePrimerPago, msg: "Verificar primer pago (10 días después de recepción de fondos en compañía)." });
             }
             if (yesNo(ant, "deseoPensionPreliminar")) {
-              var nextMonth = nextMonthFirstDay(etapa11);
+              var nextMonth = nextMonthFirstDay(etapaCierreAfp);
               var duePagoPreliminar = nextMonth ? addBusinessDays(nextMonth, 10) : null;
               if (duePagoPreliminar) {
-                out.push({ key: "e11_pago_preliminar_10hb_mes_sig", due: duePagoPreliminar, msg: "Seguimiento pago preliminar: primeros 10 días hábiles del mes siguiente." });
+                out.push({ key: "e12_pago_preliminar_10hb_mes_sig", due: duePagoPreliminar, msg: "Seguimiento pago preliminar: primeros 10 días hábiles del mes siguiente." });
                 var duePrimerPagoPre = addCalendarDays(duePagoPreliminar, 10);
-                if (duePrimerPagoPre) out.push({ key: "e11_primer_pago_10d_post_preliminar", due: duePrimerPagoPre, msg: "Verificar primer pago (10 días después de fondos en compañía, caso pago preliminar)." });
+                if (duePrimerPagoPre) out.push({ key: "e12_primer_pago_10d_post_preliminar", due: duePrimerPagoPre, msg: "Verificar primer pago (10 días después de fondos en compañía, caso pago preliminar)." });
               }
             }
           }
@@ -1189,9 +1191,11 @@
                         msgNuevo.textContent = "Guardado correctamente. Recordatorios automáticos actualizados.";
                         msgNuevo.className = "ok";
                       }
-                      // Si el cliente llegó al final de la línea de tiempo, abrir formulario de pensionado.
-                      if (nuevo >= 13) {
-                        abrirModalPensionadoSiCorresponde();
+                      // Etapa 11 (preparación carpeta cierre): datos de pensión sin marcar pensionado aún.
+                      if (nuevo === 11 && !esPensionadoFlag(c.pensionado)) {
+                        abrirModalPensionadoSiCorresponde("preparacion");
+                      } else if (nuevo >= 14 && !esPensionadoFlag(c.pensionado)) {
+                        abrirModalPensionadoSiCorresponde("final");
                       }
                     })
                     .catch(function (errAuto) {
@@ -1460,17 +1464,22 @@
             }
 
             // =========================
-            // Modal de Pensionado (etapa 13)
+            // Modal pensión: etapa 11 = solo datos; etapa 14 = marcar pensionado
             // =========================
             var modalPensionado = document.getElementById("modalPensionado");
             var formPensionado = document.getElementById("formPensionado");
+            var modalPensionadoTitulo = document.getElementById("modalPensionadoTitulo");
+            var modalPensionadoIntro = document.getElementById("modalPensionadoIntro");
             var btnCerrarModalPensionado = document.getElementById("btnCerrarModalPensionado");
+            var btnGuardarPensionado = document.getElementById("btnGuardarPensionado");
             var modalPensionadoFeedback = document.getElementById("modalPensionadoFeedback");
             var selCompania = document.getElementById("pensionCompania");
             var inputMonto = document.getElementById("pensionMonto");
             var selModalidad = document.getElementById("pensionModalidad");
             var wrapPeriodo = document.getElementById("pensionPeriodoWrap");
             var selPeriodoGarantizado = document.getElementById("pensionPeriodoGarantizado");
+            /** "preparacion" | "final" — controla copy del modal y si se envía pensionado: true */
+            var pensionModalModo = "final";
 
             function esPensionadoFlag(v) {
               return v === true || v === "true" || v === "Sí" || v === "SI" || v === "si";
@@ -1479,6 +1488,14 @@
             function modalidadTieneRentaVitalicia(mod) {
               var m = (mod || "").toString().toLowerCase();
               return m.indexOf("renta vitalicia") !== -1;
+            }
+
+            function datosPensionIncompletos(cRow) {
+              if (!cRow) return true;
+              var comp = (cRow.pension_compania || "").toString().trim();
+              var monto = cRow.pension_monto;
+              var montoOk = monto !== null && monto !== undefined && String(monto).trim() !== "";
+              return !comp || !montoOk;
             }
 
             function mostrarFeedbackPension(msg, esError) {
@@ -1551,13 +1568,45 @@
             }
 
             var pensionModalAbierta = false;
-            function abrirModalPensionadoSiCorresponde() {
+            /**
+             * @param {string} [proposito] "preparacion" | "final" — si falta, se infiere al cargar la página
+             */
+            function abrirModalPensionadoSiCorresponde(proposito) {
               if (!modalPensionado) return;
               if (pensionModalAbierta) return;
               if (esPensionadoFlag(c.pensionado)) return;
 
               var etapa = parseInt(c.tramite_etapa_actual, 10);
-              if (isNaN(etapa) || etapa < 13) return;
+              var modo;
+              if (proposito === "preparacion" || proposito === "final") {
+                modo = proposito;
+              } else {
+                if (!isNaN(etapa) && etapa >= 14) modo = "final";
+                else if (etapa === 11 && datosPensionIncompletos(c)) modo = "preparacion";
+                else return;
+              }
+
+              if (modo === "preparacion" && (isNaN(etapa) || etapa < 11)) return;
+              if (modo === "final" && (isNaN(etapa) || etapa < 14)) return;
+
+              pensionModalModo = modo;
+
+              if (modalPensionadoTitulo) {
+                modalPensionadoTitulo.textContent =
+                  modo === "preparacion"
+                    ? "Preparación de cierre: datos de pensión"
+                    : "Finalización: marcar como pensionado";
+              }
+              if (modalPensionadoIntro) {
+                modalPensionadoIntro.textContent =
+                  modo === "preparacion"
+                    ? "En la etapa de preparación de carpeta de cierre, registra la compañía, el monto, la modalidad y el período garantizado cuando corresponda. Al completar la última etapa de la línea de tiempo se marcará al cliente como pensionado."
+                    : "Confirma o completa los datos de pensión y marca al cliente como pensionado.";
+              }
+              if (btnGuardarPensionado) {
+                btnGuardarPensionado.textContent =
+                  modo === "preparacion" ? "Guardar datos" : "Guardar y marcar pensionado";
+              }
 
               cargarOpcionesPensionado();
 
@@ -1566,7 +1615,7 @@
                 var opt0 = selCompania.options && selCompania.options[0] ? selCompania.options[0] : null;
                 selCompania.value = c.pension_compania || (opt0 ? opt0.value : "");
               }
-              if (inputMonto) inputMonto.value = c.pension_monto || "";
+              if (inputMonto) inputMonto.value = c.pension_monto != null && c.pension_monto !== "" ? c.pension_monto : "";
               if (selModalidad) selModalidad.value = c.pension_modalidad || "";
 
               var requierePeriodo = modalidadTieneRentaVitalicia(selModalidad ? selModalidad.value : "");
@@ -1622,7 +1671,7 @@
                 if (!modalidad) return mostrarFeedbackPension("Selecciona la modalidad.", true);
                 if (requierePeriodo && !periodoStr) return mostrarFeedbackPension("Selecciona si tiene período garantizado.", true);
 
-                var btnGuardar = document.getElementById("btnGuardarPensionado");
+                var btnGuardar = btnGuardarPensionado || document.getElementById("btnGuardarPensionado");
                 if (btnGuardar) btnGuardar.disabled = true;
                 mostrarFeedbackPension("Guardando…", false);
 
@@ -1631,33 +1680,45 @@
                   periodoBool = periodoStr === "Sí";
                 }
 
+                var payload = {
+                  pension_compania: compania,
+                  pension_monto: monto,
+                  pension_modalidad: modalidad,
+                  pension_periodo_garantizado: requierePeriodo ? periodoBool : null,
+                };
+                if (pensionModalModo === "final") {
+                  payload.pensionado = true;
+                }
+
                 supabase
                   .from("clientes")
-                  .update({
-                    pensionado: true,
-                    pension_compania: compania,
-                    pension_monto: monto,
-                    pension_modalidad: modalidad,
-                    pension_periodo_garantizado: requierePeriodo ? periodoBool : null,
-                  })
+                  .update(payload)
                   .eq("id", id)
                   .select()
                   .single()
                   .then(function (up) {
                     if (btnGuardar) btnGuardar.disabled = false;
                     if (up.error) {
-                      mostrarFeedbackPension(up.error.message || "No se pudo guardar el pensionado.", true);
+                      mostrarFeedbackPension(
+                        up.error.message ||
+                          (pensionModalModo === "final" ? "No se pudo guardar el pensionado." : "No se pudieron guardar los datos."),
+                        true
+                      );
                       return;
                     }
 
-                    // Actualiza el cliente en memoria para no abrir el modal nuevamente.
-                    c.pensionado = true;
                     c.pension_compania = compania;
                     c.pension_monto = monto;
                     c.pension_modalidad = modalidad;
                     c.pension_periodo_garantizado = requierePeriodo ? periodoBool : null;
+                    if (pensionModalModo === "final") {
+                      c.pensionado = true;
+                    }
 
-                    mostrarFeedbackPension("Datos guardados correctamente.", false);
+                    mostrarFeedbackPension(
+                      pensionModalModo === "final" ? "Datos guardados correctamente." : "Datos de pensión guardados. En la última etapa se marcará como pensionado.",
+                      false
+                    );
                     setTimeout(function () {
                       pensionModalAbierta = false;
                       cerrarModalPensionado();
@@ -1670,7 +1731,7 @@
               });
             }
 
-            // Si ya venía en etapa 13 y no estaba marcado como pensionado, abrir al cargar.
+            // Etapa 11 sin datos completos, o etapa final sin marcar pensionado: abrir al cargar.
             setTimeout(function () {
               abrirModalPensionadoSiCorresponde();
             }, 0);

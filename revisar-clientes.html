@@ -502,14 +502,14 @@
             return String(rut).trim().toUpperCase().replace(/[^0-9K]/g, "");
           }
 
-          /** Etapa 11 = «Día del cierre (afp)» en ver-cliente (ETAPAS_TRAMITE). */
+          /** Etapa 12 = «Día del cierre (afp)» en ver-cliente (ETAPAS_TRAMITE). */
           function clientePostCierreAfp(row) {
             if (!row || row.tipo !== "cliente") return false;
             var n = parseInt(row.tramite_etapa_actual, 10);
-            if (!isNaN(n) && n >= 11) return true;
+            if (!isNaN(n) && n >= 12) return true;
             var f = row.tramite_etapas_fechas;
             if (f && typeof f === "object" && !Array.isArray(f)) {
-              if (f["11"] != null || f[11] != null) return true;
+              if (f["12"] != null || f[12] != null) return true;
             }
             return false;
           }
