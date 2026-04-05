@@ -1400,7 +1400,7 @@
         if (a.destinareApv !== "Sí") return "";
         const inst = a.apvNombreInstitucion != null ? String(a.apvNombreInstitucion) : "";
         const pct = a.apvPorcentajeTraspaso != null && String(a.apvPorcentajeTraspaso).trim() !== "" ? String(a.apvPorcentajeTraspaso) : "";
-        return `<tr><td>Nombre Institución APV:</td><td class="col-respuesta"><span style="white-space:nowrap">${inst}</span></td></tr>\n<tr><td>Porcentaje de APV a traspasar:</td><td class="col-respuesta"><span style="white-space:nowrap">${pct}</span></td></tr>\n`;
+        return `<tr><td>Nombre Institución APV:</td><td class="col-respuesta"><span style="white-space:nowrap">${inst}</span></td></tr>\n<tr><td>Porcentaje de APV a traspasar:</td><td class="col-respuesta"><span style="white-space:nowrap">${pct}%</span></td></tr>\n`;
       }
       function htmlFilasDetalleApvcMandato(antecedentes) {
         const a = antecedentes || {};
