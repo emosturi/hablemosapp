@@ -78,6 +78,23 @@
       .section.collapsible > .section-title {
         cursor: pointer;
         user-select: none;
+        justify-content: flex-start;
+        align-items: center;
+        flex-wrap: wrap;
+        column-gap: 10px;
+        row-gap: 6px;
+      }
+      .section.collapsible > .section-title .toggle-icon {
+        flex-shrink: 0;
+      }
+      .section.collapsible > .section-title h2 {
+        text-align: left;
+        flex: 0 1 auto;
+      }
+      .section.collapsible > .section-title .hint {
+        margin-left: auto;
+        text-align: right;
+        max-width: 100%;
       }
       .section.collapsible > .section-title:hover {
         opacity: 0.9;
