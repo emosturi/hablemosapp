@@ -3229,7 +3229,9 @@
 
       /**
        * Combina fila existente (p. ej. registro público) con lo capturado en el formulario de pensión.
-       * No borra datos previos si el formulario trae campos vacíos; JSON por clave; beneficiarios solo si hay filas con datos.
+       * No borra datos previos si el formulario trae campos vacíos; JSON por clave.
+       * Beneficiarios: si N°=0 se limpia la lista; si N°>0 y el formulario trae bloque beneficiarios (o filas con datos tras el filtro), se persiste ese resultado (puede ser [] si todas las filas quedan vacías).
+       * Si N°>0 pero no hay bloque en el payload ni filas válidas, no se toca solicitud_beneficiarios (evita borrar datos de BD por un fallo de serialización del formulario).
        */
       function mergeClienteRowPensionSave(existing, incoming, rawData) {
         rawData = rawData || {};
@@ -3310,10 +3312,25 @@
         merged.solicitud_autorizaciones.ingresarDatosCuentaBancaria = tieneBanco ? "Sí" : "No";
 
         var incBen = (incoming.solicitud_beneficiarios || []).filter(beneficiarioFilaTieneDatos);
-        if (incBen.length > 0) {
+        var nDecl = incoming.solicitud_numero_beneficiarios;
+        var nBen =
+          typeof nDecl === "number" && !isNaN(nDecl) ? nDecl : parseInt(String(nDecl == null ? 0 : nDecl), 10);
+        if (!Number.isFinite(nBen)) nBen = 0;
+        var rawBen = rawData.beneficiarios;
+        var hayBloqueBenefEnForm =
+          rawBen != null && typeof rawBen === "object" && Object.keys(rawBen).length > 0;
+
+        if (nBen === 0) {
+          merged.solicitud_beneficiarios = [];
+          merged.solicitud_numero_beneficiarios = 0;
+        } else if (incBen.length > 0) {
           merged.solicitud_beneficiarios = incBen;
-          aplicarConyugeColumnasDesdeBeneficiarios(merged);
           merged.solicitud_numero_beneficiarios = incoming.solicitud_numero_beneficiarios;
+          aplicarConyugeColumnasDesdeBeneficiarios(merged);
+        } else if (hayBloqueBenefEnForm) {
+          merged.solicitud_beneficiarios = incBen;
+          merged.solicitud_numero_beneficiarios = incoming.solicitud_numero_beneficiarios;
+          aplicarConyugeColumnasDesdeBeneficiarios(merged);
         }
 
         return merged;
