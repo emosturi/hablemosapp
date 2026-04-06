@@ -310,6 +310,78 @@
         color: var(--muted);
         line-height: 1.45;
       }
+      .referral-links-container {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 10px;
+      }
+      .referral-link-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .referral-link-row:last-child {
+        border-bottom: none;
+      }
+      .referral-link-row input {
+        flex: 1;
+        min-width: 200px;
+        padding: 8px 10px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text);
+        font-size: 13px;
+      }
+      .referral-link-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .btn-referral-sm {
+        padding: 8px 12px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: var(--card);
+        cursor: pointer;
+        font-size: 12px;
+      }
+      .btn-referral-sm:hover {
+        border-color: var(--primary-mid);
+      }
+      .btn-referral-sm.danger {
+        color: var(--danger, #b91c1c);
+        border-color: color-mix(in srgb, var(--danger, #b91c1c) 35%, var(--border));
+      }
+      .btn-add-referral-link {
+        margin-top: 10px;
+        padding: 10px 14px;
+        border-radius: 10px;
+        border: 1px dashed var(--border);
+        background: transparent;
+        color: var(--primary-mid);
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        width: 100%;
+      }
+      .btn-add-referral-link:hover:not(:disabled) {
+        border-color: var(--primary-mid);
+        background: color-mix(in srgb, var(--primary-mid) 8%, transparent);
+      }
+      .btn-add-referral-link:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      #referralLinksErr {
+        margin-top: 8px;
+        font-size: 12px;
+        color: var(--danger, #b91c1c);
+      }
       .ticket-link {
         display: inline-flex;
         align-items: center;
@@ -536,16 +608,19 @@
                   </label>
                 </div>
                 <div class="referral-box" id="referralBox" style="display: none">
-                  <h3>Tu enlace de referidos</h3>
+                  <h3>Tus enlaces de referidos</h3>
                   <p class="referral-hint" style="margin-top: 0">
-                    Comparte este enlace con otro asesor. Cuando se registre y pague su <strong>primera</strong> suscripción, recibes
-                    <strong>15% de descuento</strong> en el mismo tipo de plan (mensual o anual). Puedes acumularlo hasta
-                    <strong>5 veces</strong> (máximo <strong>75%</strong> por tipo de plan).
+                    Puedes tener hasta <strong>3 enlaces activos</strong> a la vez (por ejemplo para campañas distintas). Cada uno usa un código único en
+                    <code style="font-size: 11px">login.html?ref=</code>. Cuando un asesor se registre con uno de tus enlaces y pague su
+                    <strong>primera</strong> suscripción, recibes <strong>15% de descuento</strong> en el mismo tipo de plan (mensual o anual), con tope
+                    <strong>45%</strong> (3×15%) por tipo de plan.
                   </p>
-                  <div class="referral-url">
-                    <input type="text" id="referralUrlInput" readonly value="" aria-label="URL de referido" />
-                    <button type="button" class="btn-copy" id="btnCopyReferral">Copiar</button>
-                  </div>
+                  <p class="referral-hint" id="referralLinksLimit" style="margin-top: 6px"></p>
+                  <div class="referral-links-container" id="referralLinksContainer" aria-live="polite"></div>
+                  <p id="referralLinksErr" style="display: none"></p>
+                  <button type="button" class="btn-add-referral-link" id="btnAddReferralLink" style="display: none">
+                    Generar otro enlace activo
+                  </button>
                   <p class="referral-hint" id="referralDiscounts">—</p>
                 </div>
               </div>
@@ -678,9 +753,13 @@
         var btnPayAnual = document.getElementById("btnPayAnual");
         var termsAccepted = document.getElementById("termsAccepted");
         var referralBox = document.getElementById("referralBox");
-        var referralUrlInput = document.getElementById("referralUrlInput");
-        var btnCopyReferral = document.getElementById("btnCopyReferral");
+        var referralLinksContainer = document.getElementById("referralLinksContainer");
+        var referralLinksLimit = document.getElementById("referralLinksLimit");
+        var referralLinksErr = document.getElementById("referralLinksErr");
+        var btnAddReferralLink = document.getElementById("btnAddReferralLink");
         var referralDiscounts = document.getElementById("referralDiscounts");
+        var cachedAccountRow = null;
+        var referralAddWired = false;
         var openTicketLink = document.getElementById("openTicketLink");
         var ticketModalBackdrop = document.getElementById("ticketModalBackdrop");
         var ticketSubject = document.getElementById("ticketSubject");
@@ -713,6 +792,132 @@
 
         function preferenceFnUrl() {
           return window.location.origin + "/.netlify/functions/mercadopago-create-preference";
+        }
+
+        function showReferralErr(msg) {
+          if (!referralLinksErr) return;
+          referralLinksErr.style.display = msg ? "block" : "none";
+          referralLinksErr.textContent = msg || "";
+        }
+
+        function referralUrlForCode(code) {
+          return window.location.origin + "/login.html?ref=" + encodeURIComponent(code);
+        }
+
+        function renderReferralLinksList(links) {
+          if (!referralLinksContainer) return;
+          referralLinksContainer.innerHTML = "";
+          var active = (links || []).filter(function (l) {
+            return l.active;
+          });
+          if (referralLinksLimit) {
+            referralLinksLimit.textContent =
+              active.length + " de 3 enlaces activos" + (active.length >= 3 ? " (tope alcanzado)." : ".");
+          }
+          if (btnAddReferralLink) {
+            btnAddReferralLink.style.display = "block";
+            btnAddReferralLink.disabled = active.length >= 3;
+          }
+          active.forEach(function (ln) {
+            var row = document.createElement("div");
+            row.className = "referral-link-row";
+            var inp = document.createElement("input");
+            inp.type = "text";
+            inp.readOnly = true;
+            inp.value = referralUrlForCode(ln.code);
+            inp.setAttribute("aria-label", "URL de referido");
+            var actions = document.createElement("div");
+            actions.className = "referral-link-actions";
+            var btnCopy = document.createElement("button");
+            btnCopy.type = "button";
+            btnCopy.className = "btn-referral-sm";
+            btnCopy.textContent = "Copiar";
+            btnCopy.addEventListener("click", function () {
+              inp.select();
+              inp.setSelectionRange(0, 99999);
+              if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(inp.value).catch(function () {});
+              }
+            });
+            var btnOff = document.createElement("button");
+            btnOff.type = "button";
+            btnOff.className = "btn-referral-sm danger";
+            btnOff.textContent = "Desactivar";
+            btnOff.addEventListener("click", function () {
+              btnOff.disabled = true;
+              showReferralErr("");
+              supabase
+                .from("asesor_referral_links")
+                .update({ active: false })
+                .eq("id", ln.id)
+                .eq("user_id", currentUser.id)
+                .then(function (up) {
+                  btnOff.disabled = false;
+                  if (up.error) {
+                    showReferralErr(up.error.message || "No se pudo desactivar.");
+                    return;
+                  }
+                  loadReferralLinksSection(cachedAccountRow);
+                });
+            });
+            actions.appendChild(btnCopy);
+            actions.appendChild(btnOff);
+            row.appendChild(inp);
+            row.appendChild(actions);
+            referralLinksContainer.appendChild(row);
+          });
+        }
+
+        function loadReferralLinksSection(accountRow) {
+          if (!referralBox || !currentUser) return;
+          showReferralErr("");
+          supabase
+            .from("asesor_referral_links")
+            .select("id,code,active,created_at")
+            .eq("user_id", currentUser.id)
+            .order("created_at", { ascending: true })
+            .then(function (q) {
+              if (q.error) {
+                referralBox.style.display = "block";
+                if (btnAddReferralLink) btnAddReferralLink.style.display = "none";
+                var em = String(q.error.message || "");
+                var ec = String(q.error.code || "");
+                if (em.indexOf("asesor_referral_links") !== -1 || ec === "42P01" || em.indexOf("schema cache") !== -1) {
+                  showReferralErr(
+                    "Ejecuta en Supabase el script supabase-migration-referidos-tres-enlaces-45pct.sql para habilitar varios enlaces."
+                  );
+                } else {
+                  showReferralErr(em || "No se pudieron cargar los enlaces.");
+                }
+                return;
+              }
+              var links = q.data || [];
+              function finishRender(list) {
+                referralBox.style.display = "block";
+                renderReferralLinksList(list);
+              }
+              if (links.length === 0 && accountRow && accountRow.referral_code) {
+                supabase
+                  .from("asesor_referral_links")
+                  .insert({
+                    user_id: currentUser.id,
+                    code: String(accountRow.referral_code).trim().toUpperCase(),
+                    active: true,
+                  })
+                  .then(function () {
+                    supabase
+                      .from("asesor_referral_links")
+                      .select("id,code,active,created_at")
+                      .eq("user_id", currentUser.id)
+                      .order("created_at", { ascending: true })
+                      .then(function (q2) {
+                        finishRender(q2.data || []);
+                      });
+                  });
+                return;
+              }
+              finishRender(links);
+            });
         }
 
         function startMercadoPagoCheckout(plan) {
@@ -876,6 +1081,7 @@
                 return;
               }
               var row = res.data;
+              cachedAccountRow = row;
               vPlan.textContent = planLabel(row && row.subscription_plan);
               var st = row && row.subscription_status;
               vStatus.textContent = statusLabel(st);
@@ -911,10 +1117,8 @@
                 }
               }
               panels.style.display = "block";
-              if (referralBox && referralUrlInput && row && row.referral_code) {
-                referralBox.style.display = "block";
-                referralUrlInput.value =
-                  window.location.origin + "/login.html?ref=" + encodeURIComponent(row.referral_code);
+              if (referralBox && row) {
+                loadReferralLinksSection(row);
               }
               if (referralDiscounts && row) {
                 var dm = row.referral_discount_percent_mensual != null ? row.referral_discount_percent_mensual : 0;
@@ -924,15 +1128,30 @@
                   dm +
                   "% en plan mensual y " +
                   da +
-                  "% en plan anual (máximo 75% por tipo de plan, 5×15%; se aplica al pagar y luego se reinicia por tipo de plan).";
+                  "% en plan anual (máximo 45% por tipo de plan, 3×15%; se aplica al pagar y luego se reinicia por tipo de plan).";
               }
-              if (btnCopyReferral && referralUrlInput) {
-                btnCopyReferral.addEventListener("click", function () {
-                  referralUrlInput.select();
-                  referralUrlInput.setSelectionRange(0, 99999);
-                  if (navigator.clipboard && navigator.clipboard.writeText) {
-                    navigator.clipboard.writeText(referralUrlInput.value).catch(function () {});
-                  }
+              if (btnAddReferralLink && !referralAddWired) {
+                referralAddWired = true;
+                btnAddReferralLink.addEventListener("click", function () {
+                  if (!currentUser) return;
+                  btnAddReferralLink.disabled = true;
+                  showReferralErr("");
+                  supabase
+                    .from("asesor_referral_links")
+                    .insert({ user_id: currentUser.id, active: true })
+                    .then(function (ins) {
+                      if (ins.error) {
+                        btnAddReferralLink.disabled = false;
+                        var msg = ins.error.message || "No se pudo crear el enlace.";
+                        if (msg.indexOf("max_active_referral_links") !== -1) {
+                          msg = "Ya tienes 3 enlaces activos. Desactiva uno para generar otro.";
+                        }
+                        showReferralErr(msg);
+                        loadReferralLinksSection(cachedAccountRow);
+                        return;
+                      }
+                      loadReferralLinksSection(cachedAccountRow);
+                    });
                 });
               }
               if (btnPayMensual) {

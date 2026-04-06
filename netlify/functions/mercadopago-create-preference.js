@@ -74,7 +74,7 @@ exports.handler = async function (event) {
   const pctRaw = plan === "mensual" ? acctRow && acctRow.referral_discount_percent_mensual : acctRow && acctRow.referral_discount_percent_anual;
   let discountPct = parseInt(pctRaw, 10);
   if (!Number.isFinite(discountPct) || discountPct < 0) discountPct = 0;
-  if (discountPct > 75) discountPct = 75;
+  if (discountPct > 45) discountPct = 45;
 
   const basePrice = unitPrice;
   if (discountPct > 0) {

@@ -51,14 +51,27 @@ exports.handler = async function (event) {
     return json(200, { ok: true, already: true });
   }
 
-  const { data: refAccount, error: refErr } = await supabase.from("asesor_cuentas").select("user_id").eq("referral_code", code).maybeSingle();
-  if (refErr) return json(500, { error: refErr.message || "Error buscando código" });
-  if (!refAccount || !refAccount.user_id) return json(400, { error: "Código de referido inválido" });
-  if (refAccount.user_id === user.id) return json(400, { error: "No puedes usar tu propio código de referido" });
+  const { data: linkRow, error: linkErr } = await supabase
+    .from("asesor_referral_links")
+    .select("user_id")
+    .eq("code", code)
+    .eq("active", true)
+    .maybeSingle();
+  if (linkErr) return json(500, { error: linkErr.message || "Error buscando código" });
+
+  let referrerId = linkRow && linkRow.user_id ? linkRow.user_id : null;
+  if (!referrerId) {
+    const { data: refAccount, error: refErr } = await supabase.from("asesor_cuentas").select("user_id").eq("referral_code", code).maybeSingle();
+    if (refErr) return json(500, { error: refErr.message || "Error buscando código" });
+    if (!refAccount || !refAccount.user_id) return json(400, { error: "Código de referido inválido" });
+    referrerId = refAccount.user_id;
+  }
+
+  if (referrerId === user.id) return json(400, { error: "No puedes usar tu propio código de referido" });
 
   const ins = await supabase.from("referral_attributions").insert({
     referred_user_id: user.id,
-    referrer_user_id: refAccount.user_id,
+    referrer_user_id: referrerId,
     referral_code: code,
   });
   if (ins.error) {

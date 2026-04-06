@@ -134,7 +134,7 @@ async function creditReferrerFromPayment(supabase, referredUserId, paymentId, pl
   const col = plan === "mensual" ? "referral_discount_percent_mensual" : "referral_discount_percent_anual";
   const { data: acc } = await supabase.from("asesor_cuentas").select(col).eq("user_id", attr.referrer_user_id).maybeSingle();
   const cur = acc && typeof acc[col] === "number" ? acc[col] : 0;
-  const next = Math.min(75, cur + 15);
+  const next = Math.min(45, cur + 15);
 
   const { data: refAccRow } = await supabase.from("asesor_cuentas").select("user_id").eq("user_id", attr.referrer_user_id).maybeSingle();
   if (!refAccRow) {
