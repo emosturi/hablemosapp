@@ -1241,16 +1241,22 @@
                   <label for="cuenta_banco">Banco</label>
                   <select id="cuenta_banco" name="autorizaciones.banco">
                     <option value="" selected disabled>Selecciona…</option>
-                    <option>Banco de Chile</option>
-                    <option>Banco Santander Chile</option>
-                    <option>BCI</option>
-                    <option>Scotiabank Chile</option>
-                    <option>BancoEstado</option>
-                    <option>Banco Itaú Chile</option>
-                    <option>Banco BICE</option>
-                    <option>Banco Falabella</option>
-                    <option>Banco Ripley</option>
+                    <option>Banco BICE (incluye ex-Security)</option>
                     <option>Banco Consorcio</option>
+                    <option>Banco de Chile / Edwards</option>
+                    <option>Banco de Crédito e Inversiones (BCI)</option>
+                    <option>Banco Estado</option>
+                    <option>Banco Falabella</option>
+                    <option>Banco Internacional</option>
+                    <option>Banco Itaú</option>
+                    <option>Banco Ripley</option>
+                    <option>Banco Santander</option>
+                    <option>BCI / MACH</option>
+                    <option>HSBC Bank</option>
+                    <option>Mercado Pago</option>
+                    <option>Scotiabank</option>
+                    <option>Tanner Banco Digital</option>
+                    <option>Tenpo Bank</option>
                   </select>
                   <div class="error" data-error-for="cuenta_banco"></div>
                 </div>
@@ -5310,7 +5316,19 @@
                   });
                   if (typeof updateCuentaBancariaVisibility === "function") updateCuentaBancariaVisibility();
                   // Asignar explícitamente los selects: coincidencia insensible a mayúsculas y alias entre formularios
-                  var aliasBanco = { "Banco Estado": "BancoEstado", "Banco Santander": "Banco Santander Chile", "Scotiabank": "Scotiabank Chile", "Banco Itaú": "Banco Itaú Chile", "Banco Bice": "Banco BICE" };
+                  var aliasBanco = {
+                    BancoEstado: "Banco Estado",
+                    "Banco de Chile": "Banco de Chile / Edwards",
+                    "Banco Santander Chile": "Banco Santander",
+                    "Banco Santander": "Banco Santander",
+                    BCI: "Banco de Crédito e Inversiones (BCI)",
+                    "Scotiabank Chile": "Scotiabank",
+                    Scotiabank: "Scotiabank",
+                    "Banco Itaú Chile": "Banco Itaú",
+                    "Banco Itaú": "Banco Itaú",
+                    "Banco BICE": "Banco BICE (incluye ex-Security)",
+                    "Banco Bice": "Banco BICE (incluye ex-Security)",
+                  };
                   var aliasTipo = { "Cuenta vista": "Cuenta Vista/Cuenta RUT", "Cuenta Vista": "Cuenta Vista/Cuenta RUT", "Cuenta corriente": "Cuenta Corriente", "Cuenta de ahorro": "Cuenta de Ahorro" };
                   function elegirOpcion(selectEl, valorGuardado, aliasMap) {
                     if (!selectEl || !valorGuardado) return;
