@@ -1640,6 +1640,41 @@
         return `${d.getDate()} de ${MESES[d.getMonth()]} del ${d.getFullYear()}`;
       }
 
+      /** Fecha calendario Chile (America/Santiago) a partir de ISO UTC, mismo estilo que fechaHoyHablado (p. ej. contratos). */
+      function fechaContratoDocumentoDesdeAsignacionUtc(isoUtc) {
+        if (!isoUtc) return fechaHoyHablado();
+        const t = Date.parse(isoUtc);
+        if (!Number.isFinite(t)) return fechaHoyHablado();
+        const d = new Date(t);
+        var fmt;
+        try {
+          fmt = new Intl.DateTimeFormat("en-US", {
+            timeZone: "America/Santiago",
+            year: "numeric",
+            month: "numeric",
+            day: "numeric",
+          });
+        } catch (_e) {
+          return fechaHoyHablado();
+        }
+        var parts = fmt.formatToParts(d);
+        var yp = parts.find(function (p) {
+          return p.type === "year";
+        });
+        var mp = parts.find(function (p) {
+          return p.type === "month";
+        });
+        var dp = parts.find(function (p) {
+          return p.type === "day";
+        });
+        if (!yp || !mp || !dp) return fechaHoyHablado();
+        var year = parseInt(yp.value, 10);
+        var month = parseInt(mp.value, 10);
+        var day = parseInt(dp.value, 10);
+        if (!year || month < 1 || month > 12 || day < 1 || day > 31) return fechaHoyHablado();
+        return day + " de " + MESES[month - 1] + " del " + year;
+      }
+
       // Convierte cualquier valor a string en mayúsculas para mandato y contrato.
       function aMayus(s) {
         return String(s ?? "").toUpperCase();
@@ -2749,7 +2784,10 @@
         const nombreCompletoMandatario =
           `${mandatario.nombres || ""} ${mandatario.apellidoPaterno || ""} ${mandatario.apellidoMaterno || ""}`.trim();
 
-        const fechaActualTexto = fechaHoyHablado();
+        const fechaActualTexto =
+          data.contratoFechaDocumentoHablado && String(data.contratoFechaDocumentoHablado).trim()
+            ? String(data.contratoFechaDocumentoHablado).trim()
+            : fechaHoyHablado();
         const ciudad = mandante.ciudad || "";
         const nombreTramite = mandante.tipoPension || "";
         const esCambioModalidad = (mandante.cambioModalidadTramite || "").trim() === "Sí";
@@ -3441,23 +3479,36 @@
       // Si el mandante ya tiene número asignado, se reutiliza (no se incrementa al regenerar).
       // Si no tiene filas previas para el asesor, se pide el número inicial en un modal (solo la primera vez).
       // Si ya hay otros contratos del asesor, el siguiente es max + 1.
+      /**
+       * Asigna o reutiliza número de contrato por RUT mandante.
+       * @returns {{ secuencial: number|string, fechaContratoDocumentoHablado: string }}
+       */
       async function getOrAssignNumeroContrato(supabaseClient, data) {
         const mandante = data && data.mandante;
         const rutRaw = mandante && mandante.rut;
         const rutKey = String(rutRaw || "").toUpperCase().replace(/[^0-9K]/g, "");
-        if (!rutKey || rutKey.length < 2) return "NNN";
+        if (!rutKey || rutKey.length < 2) {
+          return { secuencial: "NNN", fechaContratoDocumentoHablado: fechaHoyHablado() };
+        }
 
         const sess = await supabaseClient.auth.getSession();
         const userId = sess && sess.data && sess.data.session && sess.data.session.user && sess.data.session.user.id;
-        if (!userId) return "NNN";
+        if (!userId) {
+          return { secuencial: "NNN", fechaContratoDocumentoHablado: fechaHoyHablado() };
+        }
 
         var res = await supabaseClient
           .from("numeros_contrato")
-          .select("numero_secuencial")
+          .select("numero_secuencial, created_at")
           .eq("user_id", userId)
           .eq("rut_mandante", rutKey)
           .maybeSingle();
-        if (res.data && res.data.numero_secuencial != null) return res.data.numero_secuencial;
+        if (res.data && res.data.numero_secuencial != null) {
+          return {
+            secuencial: res.data.numero_secuencial,
+            fechaContratoDocumentoHablado: fechaContratoDocumentoDesdeAsignacionUtc(res.data.created_at),
+          };
+        }
 
         var maxRes = await supabaseClient
           .from("numeros_contrato")
@@ -3478,19 +3529,29 @@
         var insertRes = await supabaseClient
           .from("numeros_contrato")
           .insert({ user_id: userId, rut_mandante: rutKey, numero_secuencial: siguiente })
-          .select("numero_secuencial")
+          .select("numero_secuencial, created_at")
           .maybeSingle();
         if (insertRes.error) {
           var again = await supabaseClient
             .from("numeros_contrato")
-            .select("numero_secuencial")
+            .select("numero_secuencial, created_at")
             .eq("user_id", userId)
             .eq("rut_mandante", rutKey)
             .maybeSingle();
-          if (again.data && again.data.numero_secuencial != null) return again.data.numero_secuencial;
-          return siguiente;
+          if (again.data && again.data.numero_secuencial != null) {
+            return {
+              secuencial: again.data.numero_secuencial,
+              fechaContratoDocumentoHablado: fechaContratoDocumentoDesdeAsignacionUtc(again.data.created_at),
+            };
+          }
+          return { secuencial: siguiente, fechaContratoDocumentoHablado: fechaHoyHablado() };
         }
-        return siguiente;
+        return {
+          secuencial: insertRes.data && insertRes.data.numero_secuencial != null ? insertRes.data.numero_secuencial : siguiente,
+          fechaContratoDocumentoHablado: fechaContratoDocumentoDesdeAsignacionUtc(
+            insertRes.data && insertRes.data.created_at ? insertRes.data.created_at : null
+          ),
+        };
       }
 
       /** Misma regla que en registro público (clientes.html): casado/a o conviviente civil. */
@@ -4798,9 +4859,14 @@
             const anexosSnap = collectContratoAnexosForData(form);
             data.contratoAnexos = anexosSnap;
             try {
-              data.numeroContratoSecuencial = supabaseClient
-                ? await getOrAssignNumeroContrato(supabaseClient, data)
-                : "NNN";
+              if (supabaseClient) {
+                var nc = await getOrAssignNumeroContrato(supabaseClient, data);
+                data.numeroContratoSecuencial = nc.secuencial;
+                data.contratoFechaDocumentoHablado = nc.fechaContratoDocumentoHablado;
+              } else {
+                data.numeroContratoSecuencial = "NNN";
+                data.contratoFechaDocumentoHablado = fechaHoyHablado();
+              }
             } catch (e) {
               if (e && e.message === NUMERO_CONTRATO_CANCELADO) {
                 setStatus("Generación de contrato cancelada.");
@@ -4808,6 +4874,7 @@
               }
               console.error("Error al preparar contrato:", e);
               data.numeroContratoSecuencial = "NNN";
+              data.contratoFechaDocumentoHablado = fechaHoyHablado();
             }
             try {
               if (supabaseClient) {
@@ -5529,7 +5596,9 @@
                       } catch (_e) {}
                       dataAuto.contratoAnexos = collectContratoAnexosForData(form);
                       try {
-                        dataAuto.numeroContratoSecuencial = await getOrAssignNumeroContrato(supabaseClient, dataAuto);
+                        var ncAuto = await getOrAssignNumeroContrato(supabaseClient, dataAuto);
+                        dataAuto.numeroContratoSecuencial = ncAuto.secuencial;
+                        dataAuto.contratoFechaDocumentoHablado = ncAuto.fechaContratoDocumentoHablado;
                       } catch (e) {
                         if (e && e.message === NUMERO_CONTRATO_CANCELADO) {
                           setStatus("Generación de contrato cancelada.");
@@ -5540,6 +5609,7 @@
                         }
                         console.error("Error al obtener número de contrato:", e);
                         dataAuto.numeroContratoSecuencial = "NNN";
+                        dataAuto.contratoFechaDocumentoHablado = fechaHoyHablado();
                       }
                       generarContrato(dataAuto);
                       finalizarPrefill("Contrato descargado.");
