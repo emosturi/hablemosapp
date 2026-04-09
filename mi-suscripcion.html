@@ -601,6 +601,7 @@
                 <p class="pay-note">
                   Si ya tienes un período vigente, un nuevo pago suma 1 mes o 12 meses desde la fecha de fin actual. Para factura, cambios administrativos o bajas, usa el contacto de abajo.
                 </p>
+                <p class="referral-hint" id="annualContractDiscountNote" style="display: none; margin-top: 8px"></p>
                 <div class="terms-consent">
                   <label for="termsAccepted">
                     <input type="checkbox" id="termsAccepted" />
@@ -1069,7 +1070,7 @@
           supabase
             .from("asesor_cuentas")
             .select(
-              "subscription_plan, subscription_status, current_period_end, subscription_grace_until, referral_code, referral_discount_percent_mensual, referral_discount_percent_anual"
+              "subscription_plan, subscription_status, current_period_end, subscription_grace_until, referral_code, referral_discount_percent_mensual, referral_discount_percent_anual, annual_contract_discount_percent"
             )
             .eq("user_id", r.data.session.user.id)
             .maybeSingle()
@@ -1129,6 +1130,20 @@
                   "% en plan mensual y " +
                   da +
                   "% en plan anual (máximo 45% por tipo de plan, 3×15%; se aplica al pagar y luego se reinicia por tipo de plan).";
+              }
+              var annualContractNote = document.getElementById("annualContractDiscountNote");
+              if (annualContractNote && row) {
+                var acp = row.annual_contract_discount_percent != null ? Number(row.annual_contract_discount_percent) : 0;
+                if (Number.isFinite(acp) && acp > 0) {
+                  annualContractNote.style.display = "block";
+                  annualContractNote.textContent =
+                    "Tienes un precio acordado para el plan anual: como mínimo un " +
+                    acp +
+                    "% de descuento sobre el precio listado anual. Si además tienes descuento por referidos, se aplica el monto más conveniente para ti (no se suman porcentajes). El total exacto lo verás en Mercado Pago al pagar el plan anual.";
+                } else {
+                  annualContractNote.style.display = "none";
+                  annualContractNote.textContent = "";
+                }
               }
               if (btnAddReferralLink && !referralAddWired) {
                 referralAddWired = true;

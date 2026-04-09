@@ -67,7 +67,7 @@ exports.handler = async function (event) {
 
   const { data: acctRow } = await auth.supabase
     .from("asesor_cuentas")
-    .select("referral_discount_percent_mensual, referral_discount_percent_anual")
+    .select("referral_discount_percent_mensual, referral_discount_percent_anual, annual_contract_discount_percent")
     .eq("user_id", userId)
     .maybeSingle();
 
@@ -76,9 +76,20 @@ exports.handler = async function (event) {
   if (!Number.isFinite(discountPct) || discountPct < 0) discountPct = 0;
   if (discountPct > 45) discountPct = 45;
 
+  let contractAnnualPct = 0;
+  if (plan === "anual" && acctRow && acctRow.annual_contract_discount_percent != null) {
+    const c = Number(acctRow.annual_contract_discount_percent);
+    if (Number.isFinite(c) && c > 0) contractAnnualPct = Math.min(100, c);
+  }
+
   const basePrice = unitPrice;
   if (discountPct > 0) {
     unitPrice = Math.max(1, Math.round((basePrice * (100 - discountPct)) / 100));
+  }
+  const priceAfterReferral = unitPrice;
+  if (contractAnnualPct > 0) {
+    const contractListPrice = Math.max(1, Math.round((basePrice * (100 - contractAnnualPct)) / 100));
+    unitPrice = Math.min(unitPrice, contractListPrice);
   }
 
   const title =
@@ -100,6 +111,8 @@ exports.handler = async function (event) {
       user_id: userId,
       base_price_clp: String(basePrice),
       referral_discount_percent: String(discountPct),
+      annual_contract_discount_percent: String(contractAnnualPct),
+      price_after_referral_clp: String(priceAfterReferral),
     },
     back_urls: {
       success: successUrl,

@@ -48,6 +48,14 @@ exports.handler = async function (event) {
   if (body.subscription_bypass === true) payload.subscription_bypass = true;
   else if (body.subscription_bypass === false) payload.subscription_bypass = false;
 
+  if (body.annual_contract_discount_percent !== undefined && body.annual_contract_discount_percent !== null) {
+    const n = Number(body.annual_contract_discount_percent);
+    if (!Number.isFinite(n) || n < 0 || n > 100) {
+      return json(400, { error: "annual_contract_discount_percent debe ser un número entre 0 y 100" });
+    }
+    payload.annual_contract_discount_percent = n;
+  }
+
   if (body.subscription_grace_until !== undefined) {
     payload.subscription_grace_until = body.subscription_grace_until || null;
   }
