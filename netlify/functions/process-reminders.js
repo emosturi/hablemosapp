@@ -152,23 +152,51 @@ exports.handler = async function (event, context) {
       logPrefix: "[process-reminders]",
       dbTelegramChatId: tgChatByUser[uid] || "",
     });
-    if (!envio.ok) {
+
+    let wpResult = null;
+    if (envio.ok) {
+      console.log("[process-reminders] Destino asesor chat_id:", envio.chatId, "recordatorio:", r.id);
+    } else {
       if (envio.reason === "no_telegram_route" || envio.reason === "missing_owner_user_id") {
         omitidosSinRuta += 1;
-        console.warn("[process-reminders] Sin ruta Telegram para recordatorio:", r.id, "user_id:", uid || "n/a");
+        console.warn("[process-reminders] Sin ruta Telegram para recordatorio:", r.id, "user_id:", uid || "n/a", "— se intenta Web Push");
       } else {
-        console.error("[process-reminders] Error de envío Telegram:", r.id, envio.reason, envio.error || "");
+        console.error("[process-reminders] Error de envío Telegram:", r.id, envio.reason, envio.error || "", "— se intenta Web Push");
       }
-      continue;
+      try {
+        wpResult = await sendReminderPushToUser(supabase, uid, buildReminderPushPayload(r));
+        if (wpResult && wpResult.sent > 0) {
+          console.log("[process-reminders] Web Push (sin Telegram previo):", wpResult.sent, "user:", uid, "recordatorio:", r.id);
+        }
+      } catch (err) {
+        console.error("[process-reminders] Web Push tras fallo Telegram:", r.id, err.message);
+      }
     }
-    console.log("[process-reminders] Destino asesor chat_id:", envio.chatId, "recordatorio:", r.id);
+
+    const entregadoTelegram = !!envio.ok;
+    const entregadoPush = wpResult && wpResult.sent > 0;
 
     try {
-      await supabase.from("recordatorios").update({ enviado: true }).eq("id", r.id);
-      console.log("[process-reminders] Enviado:", r.id);
-      enviados += 1;
-      const wpOk = await sendReminderPushToUser(supabase, uid, buildReminderPushPayload(r));
-      if (wpOk && wpOk.sent) console.log("[process-reminders] Web Push enviados:", wpOk.sent, "user:", uid);
+      if (entregadoTelegram) {
+        await supabase.from("recordatorios").update({ enviado: true }).eq("id", r.id);
+        console.log("[process-reminders] Enviado (Telegram):", r.id);
+        enviados += 1;
+        const wpOk = await sendReminderPushToUser(supabase, uid, buildReminderPushPayload(r));
+        if (wpOk && wpOk.sent) console.log("[process-reminders] Web Push enviados:", wpOk.sent, "user:", uid);
+      } else if (entregadoPush) {
+        await supabase.from("recordatorios").update({ enviado: true }).eq("id", r.id);
+        console.log("[process-reminders] Enviado (solo Web Push):", r.id);
+        enviados += 1;
+      } else {
+        console.error(
+          "[process-reminders] Recordatorio sin ningún canal: id=",
+          r.id,
+          "user_id=",
+          uid || "n/a",
+          "— configura Telegram (configuración Telegram / chat ID) o activa notificaciones PWA. Marcando enviado en BD para no reintentar en bucle."
+        );
+        await supabase.from("recordatorios").update({ enviado: true }).eq("id", r.id);
+      }
     } catch (err) {
       console.error("[process-reminders] Error para", r.id, err.message);
     }
