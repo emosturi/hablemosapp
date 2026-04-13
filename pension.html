@@ -485,6 +485,33 @@
         outline-offset: 2px;
       }
 
+      .section-mandatario-perfil input[readonly],
+      .section-mandatario-perfil textarea[readonly] {
+        background-color: rgba(0, 0, 0, 0.04);
+        cursor: default;
+        color: var(--text);
+      }
+
+      .mandatario-codigo-contrato-switch:has(input:disabled) {
+        cursor: not-allowed;
+        opacity: 0.88;
+      }
+
+      .mandatario-perfil-vacio-msg {
+        grid-column: 1 / -1;
+        margin: 0 0 10px;
+        padding: 10px 12px;
+        border-radius: 8px;
+        background: rgba(180, 100, 0, 0.12);
+        color: var(--text);
+        font-size: 14px;
+        line-height: 1.45;
+      }
+
+      .mandatario-perfil-vacio-msg a {
+        font-weight: 600;
+      }
+
       button {
         border: 1px solid var(--border);
         background: var(--surface);
@@ -1060,15 +1087,20 @@
             </div>
           </div>
 
-          <div class="section collapsible collapsed" aria-labelledby="mandatarioTitle">
+          <div class="section collapsible collapsed section-mandatario-perfil" aria-labelledby="mandatarioTitle">
             <div class="section-title" role="button" tabindex="0" aria-expanded="false">
               <span class="toggle-icon" aria-hidden="true">▼</span>
               <h2 id="mandatarioTitle">Mandatario</h2>
-              <span class="hint">Estos datos se guardan la primera vez que llenas el formulario</span>
+              <span class="hint">Solo lectura: vienen de <a href="mis-datos-mandatario.html">Mis datos (mandatario)</a></span>
             </div>
 
             <div class="section-body">
               <div class="grid">
+              <p id="mandatarioPerfilVacioMsg" class="mandatario-perfil-vacio-msg" hidden role="status">
+                Aún no hay datos de mandatario en tu perfil.
+                <a href="mis-datos-mandatario.html">Completa o edita «Mis datos (mandatario)»</a>
+                para poder usar este formulario.
+              </p>
               <div class="field col-4">
                 <label for="mandatario_rut">RUT <span class="req">*</span></label>
                 <input
@@ -1076,6 +1108,7 @@
                   name="mandatario.rut"
                   class="rut-input"
                   required
+                  readonly
                   inputmode="text"
                   autocomplete="off"
                   placeholder="12.345.678-5"
@@ -1085,7 +1118,7 @@
 
               <div class="field col-4">
                 <label for="mandatario_nacionalidad">Nacionalidad <span class="req">*</span></label>
-                <input id="mandatario_nacionalidad" name="mandatario.nacionalidad" required autocomplete="off" />
+                <input id="mandatario_nacionalidad" name="mandatario.nacionalidad" required readonly autocomplete="off" />
                 <div class="error" data-error-for="mandatario_nacionalidad"></div>
               </div>
 
@@ -1093,7 +1126,7 @@
                 <label for="mandatario_registro">N° Registro de Asesor Previsional (Opcional)</label>
                 <div class="mandatario-registro-inline">
                   <div class="mandatario-registro-inline__input">
-                    <input id="mandatario_registro" name="mandatario.numeroRegistroAsesorPrevisional" autocomplete="off" />
+                    <input id="mandatario_registro" name="mandatario.numeroRegistroAsesorPrevisional" readonly autocomplete="off" />
                     <div class="error" data-error-for="mandatario_registro"></div>
                   </div>
                   <div class="mandatario-registro-inline__switch">
@@ -1104,6 +1137,7 @@
                         id="switchIncluirCodigoAsesorContrato"
                         role="switch"
                         checked
+                        disabled
                         aria-labelledby="lblIncluirCodigoContrato"
                       />
                       <span class="mandatario-codigo-contrato-switch-ui" aria-hidden="true"></span>
@@ -1114,37 +1148,37 @@
 
               <div class="field col-4">
                 <label for="mandatario_nombres">Nombres <span class="req">*</span></label>
-                <input id="mandatario_nombres" name="mandatario.nombres" required autocomplete="off" />
+                <input id="mandatario_nombres" name="mandatario.nombres" required readonly autocomplete="off" />
                 <div class="error" data-error-for="mandatario_nombres"></div>
               </div>
 
               <div class="field col-4">
                 <label for="mandatario_apPaterno">Apellido Paterno <span class="req">*</span></label>
-                <input id="mandatario_apPaterno" name="mandatario.apellidoPaterno" required autocomplete="off" />
+                <input id="mandatario_apPaterno" name="mandatario.apellidoPaterno" required readonly autocomplete="off" />
                 <div class="error" data-error-for="mandatario_apPaterno"></div>
               </div>
 
               <div class="field col-4">
                 <label for="mandatario_apMaterno">Apellido Materno <span class="req">*</span></label>
-                <input id="mandatario_apMaterno" name="mandatario.apellidoMaterno" required autocomplete="off" />
+                <input id="mandatario_apMaterno" name="mandatario.apellidoMaterno" required readonly autocomplete="off" />
                 <div class="error" data-error-for="mandatario_apMaterno"></div>
               </div>
 
               <div class="field col-6">
                 <label for="mandatario_domicilio">Domicilio <span class="req">*</span></label>
-                <textarea id="mandatario_domicilio" name="mandatario.domicilio" required></textarea>
+                <textarea id="mandatario_domicilio" name="mandatario.domicilio" required readonly></textarea>
                 <div class="error" data-error-for="mandatario_domicilio"></div>
               </div>
 
               <div class="field col-3">
                 <label for="mandatario_comuna">Comuna <span class="req">*</span></label>
-                <input id="mandatario_comuna" name="mandatario.comuna" required autocomplete="off" />
+                <input id="mandatario_comuna" name="mandatario.comuna" required readonly autocomplete="off" />
                 <div class="error" data-error-for="mandatario_comuna"></div>
               </div>
 
               <div class="field col-3">
                 <label for="mandatario_ciudad">Ciudad <span class="req">*</span></label>
-                <input id="mandatario_ciudad" name="mandatario.ciudad" required autocomplete="off" />
+                <input id="mandatario_ciudad" name="mandatario.ciudad" required readonly autocomplete="off" />
                 <div class="error" data-error-for="mandatario_ciudad"></div>
               </div>
 
@@ -1154,6 +1188,7 @@
                   id="mandatario_telefono"
                   name="mandatario.telefono"
                   required
+                  readonly
                   inputmode="tel"
                   autocomplete="tel"
                   placeholder="+56 9 1234 5678"
@@ -1163,7 +1198,7 @@
 
               <div class="field col-6">
                 <label for="mandatario_email">Email (Opcional)</label>
-                <input id="mandatario_email" name="mandatario.email" inputmode="email" autocomplete="email" />
+                <input id="mandatario_email" name="mandatario.email" readonly inputmode="email" autocomplete="email" />
                 <div class="error" data-error-for="mandatario_email"></div>
               </div>
             </div>
@@ -4107,8 +4142,19 @@
         return data.datos;
       }
 
+      function updateMandatarioPerfilVacioUi(datos) {
+        const el = document.getElementById("mandatarioPerfilVacioMsg");
+        if (!el) return;
+        const rut = datos && String(datos.rut != null ? datos.rut : "").trim();
+        const nom = datos && String(datos.nombres != null ? datos.nombres : "").trim();
+        el.hidden = !!(rut && nom);
+      }
+
       function applyMandatarioPerfilToForm(form, datos) {
-        if (!form || !datos || typeof datos !== "object") return;
+        if (!form || !datos || typeof datos !== "object") {
+          updateMandatarioPerfilVacioUi(null);
+          return;
+        }
         const m = {};
         for (const k of MANDATARIO_PERFIL_KEYS) {
           if (Object.prototype.hasOwnProperty.call(datos, k)) m[k] = datos[k];
@@ -4126,6 +4172,7 @@
           }
           swCod.setAttribute("aria-checked", swCod.checked ? "true" : "false");
         }
+        updateMandatarioPerfilVacioUi(datos);
       }
 
       function applyPolizaPerfilToForm(form, datos) {
@@ -5229,11 +5276,13 @@
                         applyPolizaPerfilToForm(form, d);
                         applyContratoAnexosUiFromPerfil(d, form);
                       } else {
+                        applyMandatarioPerfilToForm(form, null);
                         applyPolizaPerfilToForm(form, null);
                         resetContratoAnexosUiDefault(form);
                       }
                     })
                     .catch(function () {
+                      applyMandatarioPerfilToForm(form, null);
                       applyPolizaPerfilToForm(form, null);
                     })
                     .finally(function () {
@@ -5264,16 +5313,19 @@
                     applyPolizaPerfilToForm(form, d);
                     applyContratoAnexosUiFromPerfil(d, form);
                   } else {
+                    applyMandatarioPerfilToForm(form, null);
                     resetContratoAnexosUiDefault(form);
                   }
                 })
                 .catch(function () {
+                  applyMandatarioPerfilToForm(form, null);
                   resetContratoAnexosUiDefault(form);
                 })
                 .finally(function () {
                   scheduleSetPensionFormBaseline(form, 120);
                 });
             } else {
+              applyMandatarioPerfilToForm(form, null);
               resetContratoAnexosUiDefault(form);
               scheduleSetPensionFormBaseline(form, 120);
             }
