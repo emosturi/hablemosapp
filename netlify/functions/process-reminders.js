@@ -18,10 +18,19 @@ function hoyChile() {
 }
 
 function ahoraChileHHmm() {
-  const s = new Date().toLocaleTimeString("es-CL", { timeZone: "America/Santiago", hour12: false, hour: "2-digit", minute: "2-digit" });
-  const parts = s.split(":");
-  const h = (parts[0] || "0").padStart(2, "0");
-  const m = (parts[1] || "0").padStart(2, "0");
+  const d = new Date();
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "America/Santiago",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(d);
+  let h = "00";
+  let m = "00";
+  for (let i = 0; i < parts.length; i++) {
+    if (parts[i].type === "hour") h = String(parts[i].value).padStart(2, "0");
+    if (parts[i].type === "minute") m = String(parts[i].value).padStart(2, "0");
+  }
   return h + ":" + m;
 }
 
@@ -54,10 +63,13 @@ exports.handler = async function (event, context) {
 
   const supabaseUrl = process.env.SUPABASE_URL;
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const telegramToken = process.env.TELEGRAM_BOT_TOKEN;
-  if (!supabaseUrl || !supabaseKey || !telegramToken) {
-    console.error("[process-reminders] Faltan variables (SUPABASE_*, TELEGRAM_BOT_TOKEN)");
+  const telegramToken = String(process.env.TELEGRAM_BOT_TOKEN || "").trim();
+  if (!supabaseUrl || !supabaseKey) {
+    console.error("[process-reminders] Faltan SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY");
     return { statusCode: 500, body: "Configuración incompleta" };
+  }
+  if (!telegramToken) {
+    console.warn("[process-reminders] TELEGRAM_BOT_TOKEN vacío: no habrá Telegram; se intentará solo Web Push.");
   }
 
   const hoy = hoyChile();

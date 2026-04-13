@@ -24,6 +24,7 @@ function ensureVapid() {
  */
 async function sendReminderPushToUser(supabase, userId, payload) {
   if (!ensureVapid()) {
+    console.warn("[reminder-webpush] Faltan VAPID_PUBLIC_KEY o VAPID_PRIVATE_KEY en Netlify; no se puede enviar push.");
     return { ok: false, reason: "no_vapid", sent: 0 };
   }
   const title = payload.title || "Prevy";
