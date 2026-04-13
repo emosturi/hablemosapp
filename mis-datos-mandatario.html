@@ -320,6 +320,77 @@
         padding: 0;
         min-width: 0;
       }
+
+      .mandatario-unlock-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 14px;
+        padding: 10px 12px;
+        border-radius: 12px;
+        background: color-mix(in oklab, var(--primary-mid, #009391) 10%, var(--surface));
+        border: 1px solid color-mix(in oklab, var(--primary-mid, #009391) 28%, var(--border));
+      }
+      .mandatario-blur-wrap {
+        border-radius: 12px;
+        overflow: hidden;
+        transition: filter 0.22s ease, opacity 0.22s ease;
+      }
+      .mandatario-blur-wrap.is-locked {
+        filter: blur(9px);
+        opacity: 0.5;
+        pointer-events: none;
+        user-select: none;
+      }
+      .mandatario-field-picker {
+        grid-column: 1 / -1;
+        margin-bottom: 4px;
+      }
+      .mandatario-field-picker label {
+        font-weight: 600;
+      }
+      .mandatario-field-picker select {
+        width: 100%;
+        max-width: 28rem;
+        box-sizing: border-box;
+        margin-top: 6px;
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text);
+        font-size: 14px;
+        font-family: inherit;
+      }
+      .mandatario-cooldown-msg {
+        grid-column: 1 / -1;
+        margin: 0 0 8px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        background: color-mix(in oklab, #d97706 12%, var(--surface));
+        border: 1px solid color-mix(in oklab, #d97706 25%, var(--border));
+        font-size: 13px;
+        line-height: 1.45;
+        color: var(--text);
+      }
+      .mandatario-save-warn {
+        flex: 1 1 220px;
+        margin: 0;
+        font-size: 13px;
+        line-height: 1.45;
+        color: var(--muted);
+        max-width: 36rem;
+      }
+      .actions {
+        align-items: flex-start;
+      }
+      input:disabled,
+      textarea:disabled {
+        opacity: 0.85;
+        cursor: not-allowed;
+      }
     </style>
   </head>
   <body>
@@ -398,12 +469,40 @@
             <header class="page-h">
               <h1>Mis datos (mandatario)</h1>
               <p class="subtitle">
-                Estos datos se usan para autorellenar la sección <strong>Mandatario</strong> en el formulario de pensión. Puedes completarlos aquí o la primera vez en el propio formulario.
+                Estos datos se usan para autorellenar la sección <strong>Mandatario</strong> en el formulario de pensión. Una vez completos, solo podrás corregir
+                <strong>un campo cada 15 días</strong> (desde aquí).
               </p>
             </header>
 
             <form id="formPerfil" class="panel" novalidate>
-              <div class="grid cols-2">
+              <div class="mandatario-unlock-row" id="mandatarioUnlockRow" hidden>
+                <label class="sensitive-switch-label" for="toggleMandatarioUnlock">
+                  <input type="checkbox" id="toggleMandatarioUnlock" role="switch" aria-checked="false" />
+                  <span class="sensitive-switch-ui" aria-hidden="true"></span>
+                  <span>Desbloquear para ver o editar datos del mandatario</span>
+                </label>
+              </div>
+              <p class="mandatario-cooldown-msg" id="mandatarioCooldownMsg" hidden role="status"></p>
+              <div class="mandatario-blur-wrap is-locked" id="mandatarioBlurWrap">
+                <div class="grid cols-2">
+                <div class="mandatario-field-picker" id="mandatarioFieldPicker" hidden>
+                  <label for="f_campo_unico">Campo a corregir <span class="req">(solo uno por guardado)</span></label>
+                  <select id="f_campo_unico" autocomplete="off">
+                    <option value="">— Elige qué dato corregir —</option>
+                    <option value="rut">RUT</option>
+                    <option value="nacionalidad">Nacionalidad</option>
+                    <option value="numeroRegistroAsesorPrevisional">N° registro asesor previsional</option>
+                    <option value="__incluir_codigo__">Incluir código de asesor en el N° del contrato</option>
+                    <option value="nombres">Nombres</option>
+                    <option value="apellidoPaterno">Apellido paterno</option>
+                    <option value="apellidoMaterno">Apellido materno</option>
+                    <option value="domicilio">Domicilio</option>
+                    <option value="comuna">Comuna</option>
+                    <option value="ciudad">Ciudad</option>
+                    <option value="telefono">Teléfono</option>
+                    <option value="email">Email</option>
+                  </select>
+                </div>
                 <div>
                   <label for="f_rut">RUT <span class="req">*</span></label>
                   <input id="f_rut" name="rut" required autocomplete="off" placeholder="12.345.678-5" />
@@ -463,8 +562,12 @@
                   <input id="f_email" name="email" type="email" inputmode="email" autocomplete="email" />
                 </div>
               </div>
+              </div>
               <div class="actions">
                 <button type="submit" class="btn" id="btnGuardar">Guardar</button>
+                <p class="mandatario-save-warn" id="mandatarioSaveWarn">
+                  Solo puedes editar <strong>un campo</strong> cada <strong>15 días</strong> (perfil mandatario ya completo). Para sustituciones grandes, contacta soporte.
+                </p>
                 <span class="status" id="statusMsg" aria-live="polite"></span>
               </div>
             </form>
@@ -602,6 +705,141 @@
           });
         }
 
+        var mandatarioBlurWrap = document.getElementById("mandatarioBlurWrap");
+        var mandatarioUnlockRow = document.getElementById("mandatarioUnlockRow");
+        var toggleMandatarioUnlock = document.getElementById("toggleMandatarioUnlock");
+        var mandatarioCooldownMsg = document.getElementById("mandatarioCooldownMsg");
+        var mandatarioFieldPicker = document.getElementById("mandatarioFieldPicker");
+        var fCampoUnico = document.getElementById("f_campo_unico");
+        var mandatarioSaveWarn = document.getElementById("mandatarioSaveWarn");
+
+        var MS_15_D = 15 * 24 * 60 * 60 * 1000;
+        var serverSnapshotDatos = null;
+        var mandatarioEditMode = "free";
+
+        function profileIsComplete(d) {
+          if (!d || typeof d !== "object") return false;
+          return !!(String(d.rut || "").trim() && String(d.nombres || "").trim());
+        }
+
+        function effectiveCheckpoint(row) {
+          if (!row) return null;
+          var cp = row.mandatario_datos_checkpoint_at;
+          if (cp) return cp;
+          if (row.updated_at && row.datos && profileIsComplete(row.datos)) return row.updated_at;
+          return null;
+        }
+
+        function setMandatarioFieldsDisabled(allDisabled, exceptKey) {
+          KEYS.forEach(function (k) {
+            var el = form.elements.namedItem(k);
+            if (!el) return;
+            if (!allDisabled) el.disabled = false;
+            else el.disabled = k !== exceptKey;
+          });
+          if (fIncluirCodigoContrato) {
+            if (!allDisabled) fIncluirCodigoContrato.disabled = false;
+            else fIncluirCodigoContrato.disabled = exceptKey !== "__incluir_codigo__";
+          }
+        }
+
+        function configureMandatarioUx(datos, row) {
+          var complete = profileIsComplete(datos);
+          if (mandatarioSaveWarn) mandatarioSaveWarn.hidden = !complete;
+
+          if (!complete) {
+            mandatarioEditMode = "free";
+            if (mandatarioUnlockRow) mandatarioUnlockRow.hidden = true;
+            if (mandatarioBlurWrap) mandatarioBlurWrap.classList.remove("is-locked");
+            if (toggleMandatarioUnlock) {
+              toggleMandatarioUnlock.checked = true;
+              toggleMandatarioUnlock.setAttribute("aria-checked", "true");
+            }
+            setMandatarioFieldsDisabled(false, null);
+            if (mandatarioFieldPicker) mandatarioFieldPicker.hidden = true;
+            if (fCampoUnico) fCampoUnico.value = "";
+            if (mandatarioCooldownMsg) mandatarioCooldownMsg.hidden = true;
+            return;
+          }
+
+          if (mandatarioUnlockRow) mandatarioUnlockRow.hidden = false;
+          if (mandatarioBlurWrap) mandatarioBlurWrap.classList.add("is-locked");
+          if (toggleMandatarioUnlock) {
+            toggleMandatarioUnlock.checked = false;
+            toggleMandatarioUnlock.setAttribute("aria-checked", "false");
+          }
+          setMandatarioFieldsDisabled(true, null);
+          if (mandatarioFieldPicker) mandatarioFieldPicker.hidden = true;
+          if (fCampoUnico) fCampoUnico.value = "";
+          if (mandatarioCooldownMsg) mandatarioCooldownMsg.hidden = true;
+
+          var cp = effectiveCheckpoint(row);
+          var elapsed = cp ? Date.now() - new Date(cp).getTime() : MS_15_D;
+          if (elapsed < MS_15_D) {
+            mandatarioEditMode = "view_only";
+            var rem = MS_15_D - elapsed;
+            var when = new Date(Date.now() + rem);
+            if (mandatarioCooldownMsg) {
+              mandatarioCooldownMsg.textContent =
+                "Podrás editar un campo a partir del " +
+                when.toLocaleString("es-CL", {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                  timeZone: "America/Santiago",
+                }) +
+                " (hora Chile). Hasta entonces los datos son solo lectura.";
+            }
+          } else {
+            mandatarioEditMode = "single_field";
+          }
+        }
+
+        function applyMandatarioUnlockState() {
+          if (!toggleMandatarioUnlock || !mandatarioBlurWrap) return;
+          var on = !!toggleMandatarioUnlock.checked;
+          toggleMandatarioUnlock.setAttribute("aria-checked", on ? "true" : "false");
+          if (!on) {
+            mandatarioBlurWrap.classList.add("is-locked");
+            if (mandatarioFieldPicker) mandatarioFieldPicker.hidden = true;
+            if (fCampoUnico) fCampoUnico.value = "";
+            setMandatarioFieldsDisabled(true, null);
+            if (mandatarioCooldownMsg) mandatarioCooldownMsg.hidden = true;
+            return;
+          }
+          mandatarioBlurWrap.classList.remove("is-locked");
+          if (mandatarioEditMode === "view_only") {
+            setMandatarioFieldsDisabled(true, null);
+            if (mandatarioFieldPicker) mandatarioFieldPicker.hidden = true;
+            if (mandatarioCooldownMsg) mandatarioCooldownMsg.hidden = false;
+            return;
+          }
+          if (mandatarioEditMode === "single_field") {
+            setMandatarioFieldsDisabled(true, null);
+            if (mandatarioFieldPicker) mandatarioFieldPicker.hidden = false;
+            if (mandatarioCooldownMsg) mandatarioCooldownMsg.hidden = true;
+            if (fCampoUnico) fCampoUnico.value = "";
+            return;
+          }
+          setMandatarioFieldsDisabled(false, null);
+          if (mandatarioFieldPicker) mandatarioFieldPicker.hidden = true;
+          if (mandatarioCooldownMsg) mandatarioCooldownMsg.hidden = true;
+        }
+
+        if (toggleMandatarioUnlock) {
+          toggleMandatarioUnlock.addEventListener("change", applyMandatarioUnlockState);
+        }
+        if (fCampoUnico) {
+          fCampoUnico.addEventListener("change", function () {
+            if (mandatarioEditMode !== "single_field" || !toggleMandatarioUnlock || !toggleMandatarioUnlock.checked) return;
+            var v = String(fCampoUnico.value || "");
+            if (!v) {
+              setMandatarioFieldsDisabled(true, null);
+              return;
+            }
+            setMandatarioFieldsDisabled(true, v);
+          });
+        }
+
         var formPwd = document.getElementById("formPassword");
         var fieldsetPwd = document.getElementById("passwordFieldset");
         var blurPwd = document.getElementById("passwordBlurWrap");
@@ -726,8 +964,12 @@
           statusMsg.className = "status" + (cls ? " " + cls : "");
         }
 
-        function fillForm(datos) {
-          if (!datos || typeof datos !== "object") return;
+        function incluirBoolFromDatos(v) {
+          return v !== false && v !== "No" && v !== 0 && v !== "0";
+        }
+
+        function fillForm(datos, rowForUx) {
+          if (!datos || typeof datos !== "object") datos = {};
           KEYS.forEach(function (k) {
             var el = form.elements.namedItem(k);
             if (el && datos[k] != null) el.value = String(datos[k]);
@@ -737,23 +979,39 @@
           if (swIncl) {
             if (Object.prototype.hasOwnProperty.call(datos, "incluirCodigoAsesorEnNumeroContrato")) {
               var v = datos.incluirCodigoAsesorEnNumeroContrato;
-              swIncl.checked = v !== false && v !== "No" && v !== 0;
+              swIncl.checked = incluirBoolFromDatos(v);
             } else {
               swIncl.checked = true;
             }
             swIncl.setAttribute("aria-checked", swIncl.checked ? "true" : "false");
           }
+          if (rowForUx !== undefined) configureMandatarioUx(datos, rowForUx);
         }
 
-        function readForm() {
+        function readFormFlat() {
           var out = {};
           KEYS.forEach(function (k) {
             var el = form.elements.namedItem(k);
-            if (!el) return;
-            var v = String(el.value || "").trim();
-            if (v) out[k] = v;
+            out[k] = el ? String(el.value || "").trim() : "";
           });
           return out;
+        }
+
+        function normKeyForDiff(k, v) {
+          if (k === "rut") return rutToCanonical(v);
+          if (v == null) return "";
+          return String(v).trim();
+        }
+
+        function countMandatarioChanges(prevDatos, flat, incluirChecked) {
+          var prev = prevDatos && typeof prevDatos === "object" ? prevDatos : {};
+          var n = 0;
+          KEYS.forEach(function (k) {
+            if (normKeyForDiff(k, prev[k]) !== normKeyForDiff(k, flat[k])) n++;
+          });
+          var pi = incluirBoolFromDatos(prev.incluirCodigoAsesorEnNumeroContrato);
+          if (pi !== incluirChecked) n++;
+          return n;
         }
 
         supabase.auth.getSession().then(function (r) {
@@ -776,6 +1034,8 @@
                 }
                 if (btnGuardar) btnGuardar.disabled = true;
               }
+              if (toggleMandatarioUnlock) toggleMandatarioUnlock.disabled = true;
+              if (fCampoUnico) fCampoUnico.disabled = true;
               setStatus(
                 "Suscripción pendiente: los datos de mandatario no se pueden editar hasta regularizar el pago en «Mi suscripción». Aun así puedes cambiar tu contraseña abajo.",
                 "err"
@@ -784,11 +1044,25 @@
 
             supabase
               .from("asesor_mandatario_perfil")
-              .select("datos")
+              .select("datos, updated_at, mandatario_datos_checkpoint_at")
               .eq("user_id", r.data.session.user.id)
               .maybeSingle()
               .then(function (res) {
-                if (res.data && res.data.datos) fillForm(res.data.datos);
+                if (res.error) {
+                  setStatus(
+                    res.error.message ||
+                      "No se pudo cargar el perfil (¿ejecutaste la migración de mandatario_datos_checkpoint_at?).",
+                    "err"
+                  );
+                  return;
+                }
+                if (res.data && res.data.datos && typeof res.data.datos === "object") {
+                  fillForm(res.data.datos, res.data);
+                } else if (res.data) {
+                  fillForm({}, res.data);
+                } else {
+                  fillForm({}, null);
+                }
               });
           });
         });
@@ -809,8 +1083,8 @@
             return;
           }
 
-          var perfil = readForm();
-          if (!perfil.nombres) {
+          var flat = readFormFlat();
+          if (!String(flat.nombres || "").trim()) {
             setStatus("Los nombres son obligatorios.", "err");
             return;
           }
@@ -835,10 +1109,10 @@
               setStatus("Renueva tu suscripción para guardar cambios.", "err");
               return;
             }
-            perfil.rut = normalizeRut(perfil.rut || fRut.value);
+            flat.rut = normalizeRut(flat.rut || fRut.value);
             supabase
               .from("asesor_mandatario_perfil")
-              .select("datos")
+              .select("datos, updated_at, mandatario_datos_checkpoint_at")
               .eq("user_id", uid)
               .maybeSingle()
               .then(function (prevRes) {
@@ -847,31 +1121,93 @@
                   setStatus(prevRes.error.message || "No se pudo leer el perfil actual.", "err");
                   return null;
                 }
-                var mergedDatos = {};
+                var prevRow = prevRes.data || null;
+                var prevDatos = {};
                 if (
-                  prevRes.data &&
-                  prevRes.data.datos &&
-                  typeof prevRes.data.datos === "object" &&
-                  !Array.isArray(prevRes.data.datos)
+                  prevRow &&
+                  prevRow.datos &&
+                  typeof prevRow.datos === "object" &&
+                  !Array.isArray(prevRow.datos)
                 ) {
-                  mergedDatos = Object.assign({}, prevRes.data.datos);
+                  prevDatos = Object.assign({}, prevRow.datos);
                 }
-                Object.assign(mergedDatos, perfil);
-                var swIncl = document.getElementById("f_incluir_codigo_contrato");
-                mergedDatos.incluirCodigoAsesorEnNumeroContrato = !!(swIncl && swIncl.checked);
-                return supabase.from("asesor_mandatario_perfil").upsert(
-                  { user_id: uid, datos: mergedDatos, updated_at: new Date().toISOString() },
-                  { onConflict: "user_id" }
-                );
+                var incluirChecked = !!(fIncluirCodigoContrato && fIncluirCodigoContrato.checked);
+                var wasComplete = profileIsComplete(prevDatos);
+                var changes = countMandatarioChanges(prevDatos, flat, incluirChecked);
+
+                if (wasComplete) {
+                  if (changes === 0) {
+                    btnGuardar.disabled = false;
+                    setStatus("No hay cambios que guardar.", "err");
+                    return null;
+                  }
+                  if (changes > 1) {
+                    btnGuardar.disabled = false;
+                    setStatus(
+                      "Con el perfil completo solo puedes modificar un dato por guardado (y una vez cada 15 días). Revierte los demás cambios o elige un solo campo.",
+                      "err"
+                    );
+                    return null;
+                  }
+                  var cp = effectiveCheckpoint(prevRow);
+                  if (cp && Date.now() - new Date(cp).getTime() < MS_15_D) {
+                    btnGuardar.disabled = false;
+                    var rem = MS_15_D - (Date.now() - new Date(cp).getTime());
+                    var when = new Date(Date.now() + rem);
+                    setStatus(
+                      "Deben pasar 15 días desde la última edición de estos datos. Podrás guardar de nuevo a partir del " +
+                        when.toLocaleString("es-CL", {
+                          dateStyle: "medium",
+                          timeStyle: "short",
+                          timeZone: "America/Santiago",
+                        }) +
+                        " (hora Chile).",
+                      "err"
+                    );
+                    return null;
+                  }
+                }
+
+                var mergedDatos = Object.assign({}, prevDatos);
+                KEYS.forEach(function (k) {
+                  mergedDatos[k] = flat[k];
+                });
+                mergedDatos.incluirCodigoAsesorEnNumeroContrato = incluirChecked;
+
+                var nowIso = new Date().toISOString();
+                var nowComplete = profileIsComplete(mergedDatos);
+                var prevCp = prevRow && prevRow.mandatario_datos_checkpoint_at;
+                var nextCp = prevCp || null;
+                if (!wasComplete && nowComplete) nextCp = nowIso;
+                else if (wasComplete && changes === 1) nextCp = nowIso;
+
+                var payload = {
+                  user_id: uid,
+                  datos: mergedDatos,
+                  updated_at: nowIso,
+                };
+                if (nextCp != null) payload.mandatario_datos_checkpoint_at = nextCp;
+
+                return supabase.from("asesor_mandatario_perfil").upsert(payload, { onConflict: "user_id" }).then(function (upRes) {
+                  return { upRes: upRes, mergedDatos: mergedDatos, nextCp: nextCp, nowIso: nowIso };
+                });
               })
-              .then(function (res) {
-                if (res === null) return;
+              .then(function (pack) {
+                if (pack === null) return;
                 btnGuardar.disabled = false;
-                if (res.error) {
-                  setStatus(res.error.message || "No se pudo guardar.", "err");
+                if (pack.upRes.error) {
+                  setStatus(pack.upRes.error.message || "No se pudo guardar.", "err");
                   return;
                 }
                 setStatus("Guardado. Se aplicará al abrir el formulario de pensión.", "ok");
+                var uxRow = {
+                  datos: pack.mergedDatos,
+                  updated_at: pack.nowIso,
+                  mandatario_datos_checkpoint_at: pack.nextCp,
+                };
+                fillForm(pack.mergedDatos, uxRow);
+                if (toggleMandatarioUnlock) toggleMandatarioUnlock.checked = false;
+                applyMandatarioUnlockState();
               })
               .catch(function (err) {
                 btnGuardar.disabled = false;
