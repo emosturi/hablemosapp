@@ -2,37 +2,24 @@
  * Netlify Scheduled Function: envía recordatorios por Telegram al chat del asesor (misma lógica que notify-telegram).
  * Cada fila en recordatorios.user_id define el dueño; TELEGRAM_CHAT_BY_PHONE_JSON + metadata.telefono del asesor.
  * Nunca usa TELEGRAM_CHAT_ID como grupo: todos los recordatorios van solo al chat del asesor dueño.
- * Se ejecuta cada 5 min (pruebas) o 15 min (producción). Solo envía cuando la hora Chile >= hora del recordatorio.
+ * Cron: cada 5 minutos. Con intervalos mayores (p. ej. 15 min) y slots de agenda en punto, el aviso
+ * "5 minutos antes" puede degradarse hasta coincidir con la hora de la llamada.
+ * Agenda (mensaje fijo desde SQL): envía cuando hora Chile >= (hora de la cita − 5 min), ver recordatorio-hora-chile.js.
  */
 const { createClient } = require("@supabase/supabase-js");
 const { loadTelegramChatByPhoneMap } = require("./telegram-advisor-route");
 const { sendTelegramToAdvisor } = require("./telegram-send");
 const { sendReminderPushToUser } = require("./reminder-webpush");
+const {
+  hoyChile,
+  ahoraChileHHmm,
+  addDaysYMD,
+  recordatorioDebeEnviarPorHora,
+} = require("./recordatorio-hora-chile");
 
 exports.config = {
-  schedule: "*/5 * * * *", // Cada 5 min (pruebas); en producción usar "*/15 * * * *"
+  schedule: "*/5 * * * *",
 };
-
-function hoyChile() {
-  return new Date().toLocaleDateString("en-CA", { timeZone: "America/Santiago" }); // YYYY-MM-DD
-}
-
-function ahoraChileHHmm() {
-  const d = new Date();
-  const parts = new Intl.DateTimeFormat("en-GB", {
-    timeZone: "America/Santiago",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  }).formatToParts(d);
-  let h = "00";
-  let m = "00";
-  for (let i = 0; i < parts.length; i++) {
-    if (parts[i].type === "hour") h = String(parts[i].value).padStart(2, "0");
-    if (parts[i].type === "minute") m = String(parts[i].value).padStart(2, "0");
-  }
-  return h + ":" + m;
-}
 
 function buildReminderPushPayload(r) {
   const msg = (r.mensaje || "").trim();
@@ -74,7 +61,9 @@ exports.handler = async function (event, context) {
 
   const hoy = hoyChile();
   const ahoraChile = ahoraChileHHmm();
-  console.log("[process-reminders] Hoy (Chile):", hoy, "Hora (Chile):", ahoraChile);
+  const fechaMin = addDaysYMD(hoy, -1);
+  const fechaMax = addDaysYMD(hoy, 1);
+  console.log("[process-reminders] Hoy (Chile):", hoy, "Hora (Chile):", ahoraChile, "Rango fechas:", fechaMin, "…", fechaMax);
 
   const supabase = createClient(supabaseUrl, supabaseKey);
   const chatByPhone = loadTelegramChatByPhoneMap();
@@ -85,7 +74,8 @@ exports.handler = async function (event, context) {
   const { data: pendientes, error } = await supabase
     .from("recordatorios")
     .select("id, user_id, fecha, hora, mensaje, cliente_nombre, cliente_telefono")
-    .eq("fecha", hoy)
+    .gte("fecha", fechaMin)
+    .lte("fecha", fechaMax)
     .eq("enviado", false);
 
   if (error) {
@@ -94,7 +84,7 @@ exports.handler = async function (event, context) {
   }
 
   if (!pendientes || pendientes.length === 0) {
-    console.log("[process-reminders] Sin recordatorios para hoy");
+    console.log("[process-reminders] Sin recordatorios en ventana de fechas");
     return {
       statusCode: 200,
       body: JSON.stringify({ ok: true, hoy, ahoraChile, enviados: 0, omitidosTelegramOff: 0 }),
@@ -123,14 +113,14 @@ exports.handler = async function (event, context) {
   var omitidosTelegramOff = 0;
 
   for (const r of pendientes) {
-    const horaRecordatorio = (r.hora || "").trim();
-    if (horaRecordatorio) {
-      const rh = horaRecordatorio.split(":");
-      const rNorm = (rh[0] || "0").padStart(2, "0") + ":" + (rh[1] || "0").padStart(2, "0");
-      if (rNorm > ahoraChile) {
-        console.log("[process-reminders] Aún no es hora:", r.id, "hora", rNorm, "ahora", ahoraChile);
-        continue;
+    const gate = recordatorioDebeEnviarPorHora(hoy, ahoraChile, r);
+    if (!gate.ok) {
+      if (gate.reason === "aun_no") {
+        console.log("[process-reminders] Aún no es hora:", r.id, "umbral", gate.umbral && gate.umbral.hhmm, "ahora", ahoraChile, "offsetMin", gate.offsetMin);
+      } else if (gate.reason === "umbral_otro_dia") {
+        console.log("[process-reminders] Umbral en otro día (omitir hoy):", r.id, "umbral_fecha", gate.umbral && gate.umbral.date);
       }
+      continue;
     }
 
     const cabecera = [];

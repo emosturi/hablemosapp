@@ -5,6 +5,13 @@
  */
 const { createClient } = require("@supabase/supabase-js");
 const { loadTelegramChatByPhoneMap } = require("./telegram-advisor-route");
+const {
+  hoyChile,
+  ahoraChileHHmm,
+  addDaysYMD,
+  normalizeHHMM,
+  recordatorioDebeEnviarPorHora,
+} = require("./recordatorio-hora-chile");
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -17,34 +24,6 @@ function json(code, body) {
     headers: Object.assign({ "Content-Type": "application/json" }, cors),
     body: JSON.stringify(body),
   };
-}
-
-function hoyChile() {
-  return new Date().toLocaleDateString("en-CA", { timeZone: "America/Santiago" });
-}
-
-function ahoraChileHHmm() {
-  const d = new Date();
-  const parts = new Intl.DateTimeFormat("en-GB", {
-    timeZone: "America/Santiago",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  }).formatToParts(d);
-  let h = "00";
-  let m = "00";
-  for (let i = 0; i < parts.length; i++) {
-    if (parts[i].type === "hour") h = String(parts[i].value).padStart(2, "0");
-    if (parts[i].type === "minute") m = String(parts[i].value).padStart(2, "0");
-  }
-  return h + ":" + m;
-}
-
-function horaRecordatorioNorm(horaRaw) {
-  const horaRecordatorio = (horaRaw || "").trim();
-  if (!horaRecordatorio) return "";
-  const rh = horaRecordatorio.split(":");
-  return (rh[0] || "0").padStart(2, "0") + ":" + (rh[1] || "0").padStart(2, "0");
 }
 
 exports.handler = async function (event) {
@@ -61,6 +40,8 @@ exports.handler = async function (event) {
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const hoy = hoyChile();
   const ahora = ahoraChileHHmm();
+  const fechaMin = addDaysYMD(hoy, -1);
+  const fechaMax = addDaysYMD(hoy, 1);
   const nowUtc = new Date().toISOString();
 
   const env = {
@@ -84,11 +65,13 @@ exports.handler = async function (event) {
     env_presente: env,
     telefonos_con_chat_id_en_json: telefonosMapeadosEnJson,
     notas: [
-      "El cron solo procesa filas con fecha EXACTAMENTE igual a chile_fecha_usada_por_cron y enviado=false.",
+      "El cron procesa filas enviado=false con fecha entre (hoy Chile − 1 día) y (hoy Chile + 1 día), para cubrir avisos de agenda el día anterior a una cita muy temprano.",
       "Si hora en la fila está vacía, se considera vencida al momento (no espera hora).",
-      "Si hora tiene valor, solo envía cuando chile_hora_usada_por_cron >= hora del recordatorio (HH:MM).",
-      "Filas con fecha anterior a hoy en Chile y enviado=false NUNCA las procesa el cron (quedan olvidadas).",
+      "Si hora tiene valor: recordatorios normales envían cuando hora Chile >= hora de la fila; los de agenda (mensaje que comienza por «Llamada telefónica agendada por la web.») cuando hora Chile >= (hora de la cita − 5 min).",
+      "El schedule debe ser cada 5 minutos; con 15 min los avisos «5 min antes» de slots en punto pueden llegar tarde (hasta la hora de la llamada).",
+      "Filas con fecha anterior a (hoy − 1) en Chile y enviado=false no entran en la ventana del cron.",
     ],
+    ventana_fechas_cron: { desde: fechaMin, hasta: fechaMax },
   };
 
   if (!supabaseUrl || !supabaseKey) {
@@ -99,24 +82,49 @@ exports.handler = async function (event) {
 
   const supabase = createClient(supabaseUrl, supabaseKey);
 
+  const pendVentana = await supabase
+    .from("recordatorios")
+    .select("id, user_id, fecha, hora, mensaje, enviado", { count: "exact" })
+    .gte("fecha", fechaMin)
+    .lte("fecha", fechaMax)
+    .eq("enviado", false);
+
+  out.pendientes_ventana_igual_que_cron = {
+    count: pendVentana.count != null ? pendVentana.count : (pendVentana.data || []).length,
+    error: pendVentana.error ? pendVentana.error.message : null,
+    muestra: (pendVentana.data || []).slice(0, 8).map(function (r) {
+      const gate = recordatorioDebeEnviarPorHora(hoy, ahora, r);
+      return {
+        id: r.id,
+        fecha: r.fecha,
+        hora_guardada: r.hora || null,
+        disparo_regla: gate.umbral || null,
+        offset_minutos_agenda: gate.offsetMin != null ? gate.offsetMin : 0,
+        debe_enviar_ahora_segun_cron: gate.ok,
+        razon: gate.reason,
+        user_id: r.user_id,
+      };
+    }),
+  };
+
   const pendHoy = await supabase
     .from("recordatorios")
     .select("id, user_id, fecha, hora, enviado", { count: "exact" })
     .eq("fecha", hoy)
     .eq("enviado", false);
 
-  out.pendientes_hoy_misma_fecha_que_cron = {
+  out.pendientes_solo_fecha_hoy = {
     count: pendHoy.count != null ? pendHoy.count : (pendHoy.data || []).length,
     error: pendHoy.error ? pendHoy.error.message : null,
     muestra: (pendHoy.data || []).slice(0, 8).map(function (r) {
-      const rNorm = horaRecordatorioNorm(r.hora);
+      const rNorm = normalizeHHMM(r.hora);
       const sinHora = !String(r.hora || "").trim();
       const horaYaPaso = sinHora || (rNorm && rNorm <= ahora);
       return {
         id: r.id,
         fecha: r.fecha,
         hora_guardada: r.hora || null,
-        hora_ya_paso_para_envio: horaYaPaso,
+        hora_ya_paso_lexico_simple: horaYaPaso,
         user_id: r.user_id,
       };
     }),

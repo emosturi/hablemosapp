@@ -56,7 +56,7 @@ window.NOTIFY_SECRET = "tu-clave-secreta";
 ## 5. Flujo
 
 - **Nuevo cliente:** Al registrarse en el formulario, la app llama a `notify-telegram` y recibes un mensaje en Telegram.
-- **Recordatorios:** La función `process-reminders` se ejecuta cada 5 min (pruebas) o 15 min (producción) y envía los recordatorios pendientes a tu Chat ID.
+- **Recordatorios:** La función `process-reminders` se ejecuta cada **5 minutos** (ver `netlify.toml` y `exports.config` en la función). Los recordatorios de **agenda de llamadas** se disparan **5 minutos antes** de la hora de la cita; con intervalos más largos (p. ej. 15 min) ese aviso puede llegar tarde en slots en punto.
 
 No hay "join" ni sesiones que caduquen: siempre que el bot tenga el token y el chat_id correctos, los mensajes llegan.
 
