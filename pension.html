@@ -3424,6 +3424,16 @@
         }
       }
 
+      function setYesNoDefaultsNo(form, groupName, items) {
+        if (!form || !Array.isArray(items)) return;
+        for (const item of items) {
+          const inputNo = form.querySelector(
+            `input[type="radio"][name="${CSS.escape(`${groupName}.${item.key}`)}"][value="No"]`
+          );
+          if (inputNo) inputNo.checked = true;
+        }
+      }
+
       // Formato canónico de RUT para BD: solo dígitos y K (ej. 123456785). Evita duplicados por formato distinto.
       function rutToCanonical(rut) {
         if (!rut) return "";
@@ -5131,6 +5141,7 @@
             }
 
         renderYesNo(document.getElementById("antecedentesQuestions"), "antecedentes", antecedentesItems);
+        setYesNoDefaultsNo(form, "antecedentes", antecedentesItems);
         let refreshAntecedentesApvApvcDetalle = function () {};
         (function setupAntecedentesApvApvcDetalle() {
           const apvRow = form.querySelector('[name="antecedentes.destinareApv"]')?.closest(".field");
@@ -5209,9 +5220,11 @@
           refreshAntecedentesApvApvcDetalle();
         })();
         renderYesNo(document.getElementById("autorizacionesQuestions"), "autorizaciones", autorizacionesItems);
+        setYesNoDefaultsNo(form, "autorizaciones", autorizacionesItems);
         const cuentaBancariaQuestion = form.querySelector('[name="autorizaciones.ingresarDatosCuentaBancaria"]')?.closest(".field");
         if (cuentaBancariaQuestion && cuentaField) cuentaBancariaQuestion.after(cuentaField);
         renderYesNo(document.getElementById("certificadosQuestions"), "certificados", certificadosItems);
+        setYesNoDefaultsNo(form, "certificados", certificadosItems);
 
         function updateCuentaBancariaVisibility() {
           const selected = form.querySelector(
