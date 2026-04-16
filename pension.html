@@ -1572,6 +1572,7 @@
         { key: "certificadoVacacionesProgresivas", label: "Certificado de vacaciones progresivas" },
         { key: "certificadoEstadoCuentas", label: "Certificado de estado de cuentas" },
         { key: "certificadoCalidadPensionado", label: "Certificado de calidad de pensionado" },
+        { key: "certificadoPensionAutofinanciada", label: "Pedir certificado de pensión autofinanciada" },
       ];
 
       // Etiquetas exactas del mandato (mismo texto que en el .doc completo)
@@ -1621,6 +1622,7 @@
         certificadoVacacionesProgresivas: "Certificado de vacaciones progresivas",
         certificadoEstadoCuentas: "Certificado de estado de cuentas",
         certificadoCalidadPensionado: "Certificado de calidad de pensionado",
+        certificadoPensionAutofinanciada: "Certificado de pensión autofinanciada",
       };
 
       // Genera filas de tabla solo para ítems con valor "Sí" (para mandato corto).
@@ -2608,6 +2610,11 @@
         <tr>
         <td>Certificado de calidad de pensionado</td>
         <td class="col-respuesta"><span style="white-space:nowrap">${certificados.certificadoCalidadPensionado === "Sí" ? "Sí" : "No"}</span></td>
+        </tr>
+
+        <tr>
+        <td>Certificado de pensión autofinanciada</td>
+        <td class="col-respuesta"><span style="white-space:nowrap">${certificados.certificadoPensionAutofinanciada === "Sí" ? "Sí" : "No"}</span></td>
         </tr>
 
         </table>
