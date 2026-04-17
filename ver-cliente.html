@@ -172,6 +172,20 @@
       .checklist .checklist-file-meta { font-size: 12px; color: var(--muted); }
       .checklist .checklist-file-link { font-size: 12px; color: var(--primary-mid); font-weight: 600; text-decoration: none; }
       .checklist .checklist-file-link:hover { text-decoration: underline; }
+      .checklist .checklist-file-list { display: flex; flex-direction: column; gap: 4px; width: 100%; }
+      .checklist .checklist-file-item {
+        display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+        padding: 4px 6px; border-radius: 8px;
+        background: color-mix(in oklab, var(--primary) 4%, transparent);
+      }
+      .checklist .checklist-file-item .checklist-file-meta { flex: 1 1 auto; min-width: 0; word-break: break-word; }
+      .checklist .checklist-file-remove {
+        background: transparent; border: none; color: #b91c1c;
+        font-size: 12px; font-weight: 600; cursor: pointer;
+        padding: 4px 6px; border-radius: 6px; font-family: inherit;
+      }
+      .checklist .checklist-file-remove:hover { background: rgba(239, 68, 68, 0.08); }
+      .checklist .checklist-file-remove:disabled { opacity: 0.5; cursor: not-allowed; }
       .checklist-upload-buttons { display: none; }
       .btn-checklist-upload {
         display: inline-flex;
@@ -2003,14 +2017,47 @@
               return obj._files;
             }
 
+            // Normaliza el mapa de archivos a arreglos por clave.
+            // Soporta formato legado (un objeto por clave) convirtiéndolo a arreglo.
+            function normalizeFilesMap(filesMap) {
+              var fm = (filesMap && typeof filesMap === "object" && !Array.isArray(filesMap)) ? filesMap : {};
+              var out = {};
+              Object.keys(fm).forEach(function (k) {
+                var v = fm[k];
+                var list = [];
+                if (Array.isArray(v)) {
+                  list = v.filter(function (x) {
+                    return x && typeof x === "object" && typeof x.path === "string" && x.path.length > 0;
+                  });
+                } else if (v && typeof v === "object" && typeof v.path === "string" && v.path.length > 0) {
+                  list = [v];
+                }
+                if (list.length > 0) out[k] = list;
+              });
+              return out;
+            }
+
+            function getChecklistFilesList(filesMap, key) {
+              var fm = filesMap && typeof filesMap === "object" ? filesMap : {};
+              var v = fm[key];
+              if (Array.isArray(v)) {
+                return v.filter(function (x) {
+                  return x && typeof x === "object" && typeof x.path === "string" && x.path.length > 0;
+                });
+              }
+              if (v && typeof v === "object" && typeof v.path === "string" && v.path.length > 0) {
+                return [v];
+              }
+              return [];
+            }
+
             function composeChecklistPayload(checklistBools, filesMap) {
               var out = {};
               var bools = (checklistBools && typeof checklistBools === "object" && !Array.isArray(checklistBools)) ? checklistBools : {};
               CHECKLIST_KEYS.forEach(function (it) {
                 out[it.key] = bools[it.key] === true;
               });
-              var fm = (filesMap && typeof filesMap === "object" && !Array.isArray(filesMap)) ? filesMap : {};
-              out._files = fm;
+              out._files = normalizeFilesMap(filesMap);
               return out;
             }
 
@@ -2046,22 +2093,123 @@
                 .slice(0, 60) || "archivo";
             }
 
+            function abrirArchivoChecklist(info) {
+              if (!info || !info.path) return;
+              supabase.storage
+                .from(CHECKLIST_STORAGE_BUCKET)
+                .createSignedUrl(info.path, 300)
+                .then(function (r) {
+                  if (r.error || !r.data || !r.data.signedUrl) {
+                    mostrarChecklistFeedback(
+                      r.error && r.error.message ? r.error.message : "No se pudo obtener enlace del archivo.",
+                      true
+                    );
+                    return;
+                  }
+                  window.open(r.data.signedUrl, "_blank", "noopener,noreferrer");
+                })
+                .catch(function (e) {
+                  mostrarChecklistFeedback(e && e.message ? e.message : "No se pudo abrir el archivo.", true);
+                });
+            }
+
+            function runChecklistDelete(key, path, btnEl) {
+              if (!path) return;
+              if (!window.confirm("¿Eliminar este archivo? Esta acción no se puede deshacer.")) return;
+              var filesMap = normalizeFilesMap(getChecklistFilesMap(c.checklist_caso));
+              var list = Array.isArray(filesMap[key]) ? filesMap[key].slice() : [];
+              var newList = list.filter(function (x) {
+                return x && x.path !== path;
+              });
+              if (newList.length > 0) filesMap[key] = newList;
+              else delete filesMap[key];
+              var currentBools = getChecklistObjFromDom();
+              var payload = composeChecklistPayload(currentBools, filesMap);
+              if (btnEl) btnEl.disabled = true;
+              mostrarChecklistFeedback("Eliminando archivo…", false);
+              supabase
+                .from("clientes")
+                .update({ checklist_caso: payload })
+                .eq("id", id)
+                .select("checklist_caso")
+                .single()
+                .then(function (dbRes) {
+                  if (dbRes.error) throw dbRes.error;
+                  return supabase.storage
+                    .from(CHECKLIST_STORAGE_BUCKET)
+                    .remove([path])
+                    .then(function () {
+                      return dbRes;
+                    })
+                    .catch(function () {
+                      return dbRes;
+                    });
+                })
+                .then(function (dbRes) {
+                  c.checklist_caso =
+                    dbRes.data && dbRes.data.checklist_caso ? dbRes.data.checklist_caso : payload;
+                  renderChecklistFileMeta();
+                  mostrarChecklistFeedback("Archivo eliminado.", false);
+                })
+                .catch(function (err) {
+                  if (btnEl) btnEl.disabled = false;
+                  mostrarChecklistFeedback(
+                    err && err.message ? err.message : "No se pudo eliminar el archivo.",
+                    true
+                  );
+                });
+            }
+
             function renderChecklistFileMeta() {
               var files = getChecklistFilesMap(c.checklist_caso);
               CHECKLIST_KEYS.forEach(function (it) {
                 if (it.sinArchivo) return;
-                var meta = files[it.key];
-                var metaEl = document.getElementById("chk_file_meta_" + it.key);
-                var linkEl = document.getElementById("chk_file_link_" + it.key);
-                if (!metaEl || !linkEl) return;
-                if (meta && meta.name) {
-                  var size = (typeof meta.size === "number" && meta.size > 0) ? (" (" + Math.round(meta.size / 1024) + " KB)") : "";
-                  metaEl.textContent = "Archivo: " + meta.name + size;
-                  linkEl.style.display = "";
-                } else {
-                  metaEl.textContent = "Sin archivo";
-                  linkEl.style.display = "none";
+                var listEl = document.getElementById("chk_file_list_" + it.key);
+                if (!listEl) return;
+                var arr = getChecklistFilesList(files, it.key);
+                listEl.innerHTML = "";
+                if (arr.length === 0) {
+                  var empty = document.createElement("span");
+                  empty.className = "checklist-file-meta";
+                  empty.textContent = "Sin archivos";
+                  listEl.appendChild(empty);
+                  return;
                 }
+                arr.forEach(function (info) {
+                  var row = document.createElement("div");
+                  row.className = "checklist-file-item";
+
+                  var metaEl = document.createElement("span");
+                  metaEl.className = "checklist-file-meta";
+                  var size =
+                    typeof info.size === "number" && info.size > 0
+                      ? " (" + Math.round(info.size / 1024) + " KB)"
+                      : "";
+                  metaEl.textContent = (info.name || "archivo") + size;
+
+                  var linkEl = document.createElement("a");
+                  linkEl.href = "#";
+                  linkEl.className = "checklist-file-link";
+                  linkEl.textContent = "Ver";
+                  linkEl.addEventListener("click", function (ev) {
+                    ev.preventDefault();
+                    abrirArchivoChecklist(info);
+                  });
+
+                  var delEl = document.createElement("button");
+                  delEl.type = "button";
+                  delEl.className = "checklist-file-remove";
+                  delEl.setAttribute("aria-label", "Eliminar archivo");
+                  delEl.textContent = "Eliminar";
+                  delEl.addEventListener("click", function () {
+                    runChecklistDelete(it.key, info.path, delEl);
+                  });
+
+                  row.appendChild(metaEl);
+                  row.appendChild(linkEl);
+                  row.appendChild(delEl);
+                  listEl.appendChild(row);
+                });
               });
             }
 
@@ -2084,6 +2232,7 @@
                 inputDocs.id = "chk_file_input_" + it.key;
                 inputDocs.className = "checklist-file-native checklist-file-input-docs";
                 inputDocs.setAttribute("data-check-key", it.key);
+                inputDocs.setAttribute("multiple", "multiple");
                 inputDocs.setAttribute(
                   "accept",
                   ".pdf,.jpg,.jpeg,.png,.webp,.gif,.heic,.doc,.docx,application/pdf,image/*"
@@ -2102,66 +2251,36 @@
                 var btnFile = document.createElement("button");
                 btnFile.type = "button";
                 btnFile.className = "btn-checklist-upload";
-                btnFile.setAttribute("aria-label", "Subir archivo para este ítem");
-                btnFile.textContent = "Subir archivo";
+                btnFile.setAttribute("aria-label", "Agregar archivo para este ítem");
+                btnFile.textContent = "Agregar archivo";
                 var btnCam = document.createElement("button");
                 btnCam.type = "button";
                 btnCam.className = "btn-checklist-upload btn-checklist-upload--primary";
-                btnCam.setAttribute("aria-label", "Tomar foto con la cámara");
-                btnCam.textContent = "Tomar foto";
+                btnCam.setAttribute("aria-label", "Agregar foto desde la cámara");
+                btnCam.textContent = "Agregar foto";
                 btnRow.appendChild(btnFile);
                 btnRow.appendChild(btnCam);
 
-                var meta = document.createElement("span");
-                meta.id = "chk_file_meta_" + it.key;
-                meta.className = "checklist-file-meta";
-                meta.textContent = "Sin archivo";
-
-                var link = document.createElement("a");
-                link.href = "#";
-                link.id = "chk_file_link_" + it.key;
-                link.className = "checklist-file-link";
-                link.textContent = "Ver archivo";
-                link.style.display = "none";
+                var listEl = document.createElement("div");
+                listEl.id = "chk_file_list_" + it.key;
+                listEl.className = "checklist-file-list";
 
                 row.appendChild(inputDocs);
                 row.appendChild(inputCam);
                 row.appendChild(btnRow);
-                row.appendChild(meta);
-                row.appendChild(link);
+                row.appendChild(listEl);
                 wrap.appendChild(row);
 
                 function runChecklistUpload(f, inputEl) {
-                  if (!f) return;
-                  var filesMapBefore = getChecklistFilesMap(c.checklist_caso);
-                  var prevFile = filesMapBefore[it.key];
-                  var oldPathToRemove =
-                    prevFile && typeof prevFile.path === "string" && prevFile.path.length > 0
-                      ? prevFile.path
-                      : null;
-                  if (oldPathToRemove) {
-                    var prevLabel = String(prevFile.name || "archivo anterior")
-                      .replace(/[\r\n"]/g, " ")
-                      .trim()
-                      .slice(0, 80);
-                    var msg =
-                      "Ya hay un documento en este ítem" +
-                      (prevLabel ? " («" + prevLabel + "»)" : "") +
-                      ". ¿Deseas reemplazarlo por el nuevo?";
-                    if (!window.confirm(msg)) {
-                      if (inputEl) inputEl.value = "";
-                      return;
-                    }
-                  }
-
+                  if (!f) return Promise.resolve();
                   var checkEl = document.getElementById(it.id);
                   if (checkEl) checkEl.checked = true;
                   var currentBools = getChecklistObjFromDom();
-                  var filesMap = getChecklistFilesMap(c.checklist_caso);
+                  var filesMap = normalizeFilesMap(getChecklistFilesMap(c.checklist_caso));
                   var keyForFile = it.key;
                   var now = Date.now();
                   var displayName = f.name || "foto.jpg";
-                  supabase.auth
+                  return supabase.auth
                     .getSession()
                     .then(function (sessRes) {
                       var uid =
@@ -2188,38 +2307,22 @@
                         .upload(filePath, f, { upsert: false, contentType: f.type || undefined })
                         .then(function (upRes) {
                           if (upRes.error) throw upRes.error;
-                          filesMap[keyForFile] = {
+                          var list = Array.isArray(filesMap[keyForFile]) ? filesMap[keyForFile].slice() : [];
+                          list.push({
                             path: filePath,
                             name: displayName,
                             size: f.size,
                             content_type: f.type || null,
                             uploaded_at: new Date().toISOString(),
-                          };
+                          });
+                          filesMap[keyForFile] = list;
                           var payload = composeChecklistPayload(currentBools, filesMap);
                           return supabase
                             .from("clientes")
                             .update({ checklist_caso: payload })
                             .eq("id", id)
                             .select("checklist_caso")
-                            .single()
-                            .then(function (dbRes) {
-                              if (dbRes.error) throw dbRes.error;
-                              if (
-                                oldPathToRemove &&
-                                oldPathToRemove !== filePath
-                              ) {
-                                return supabase.storage
-                                  .from(CHECKLIST_STORAGE_BUCKET)
-                                  .remove([oldPathToRemove])
-                                  .then(function () {
-                                    return dbRes;
-                                  })
-                                  .catch(function () {
-                                    return dbRes;
-                                  });
-                              }
-                              return dbRes;
-                            });
+                            .single();
                         })
                         .then(function (dbRes) {
                           if (dbRes.error) throw dbRes.error;
@@ -2228,7 +2331,7 @@
                               ? dbRes.data.checklist_caso
                               : composeChecklistPayload(currentBools, filesMap);
                           renderChecklistFileMeta();
-                          mostrarChecklistFeedback("Archivo subido y checklist actualizado.", false);
+                          mostrarChecklistFeedback("Archivo subido.", false);
                           if (inputEl) inputEl.value = "";
                         });
                     })
@@ -2242,8 +2345,20 @@
                 }
 
                 inputDocs.addEventListener("change", function (ev) {
-                  var f = ev.target && ev.target.files && ev.target.files[0] ? ev.target.files[0] : null;
-                  runChecklistUpload(f, ev.target);
+                  var target = ev.target;
+                  var filesArr = target && target.files ? Array.prototype.slice.call(target.files) : [];
+                  if (!filesArr.length) return;
+                  var chain = Promise.resolve();
+                  filesArr.forEach(function (file) {
+                    chain = chain.then(function () {
+                      return runChecklistUpload(file, null);
+                    });
+                  });
+                  chain
+                    .catch(function () {})
+                    .then(function () {
+                      if (target) target.value = "";
+                    });
                 });
                 inputCam.addEventListener("change", function (ev) {
                   var f = ev.target && ev.target.files && ev.target.files[0] ? ev.target.files[0] : null;
@@ -2255,32 +2370,6 @@
                 });
                 btnCam.addEventListener("click", function () {
                   inputCam.click();
-                });
-
-                link.addEventListener("click", function (ev) {
-                  ev.preventDefault();
-                  var files = getChecklistFilesMap(c.checklist_caso);
-                  var info = files[it.key];
-                  if (!info || !info.path) return;
-                  supabase.storage
-                    .from(CHECKLIST_STORAGE_BUCKET)
-                    .createSignedUrl(info.path, 300)
-                    .then(function (r) {
-                      if (r.error || !r.data || !r.data.signedUrl) {
-                        mostrarChecklistFeedback(
-                          r.error && r.error.message ? r.error.message : "No se pudo obtener enlace del archivo.",
-                          true
-                        );
-                        return;
-                      }
-                      window.open(r.data.signedUrl, "_blank", "noopener,noreferrer");
-                    })
-                    .catch(function (e) {
-                      mostrarChecklistFeedback(
-                        e && e.message ? e.message : "No se pudo abrir el archivo.",
-                        true
-                      );
-                    });
                 });
               });
             }
