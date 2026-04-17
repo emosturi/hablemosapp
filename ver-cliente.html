@@ -573,6 +573,41 @@
             <select id="pensionPeriodoGarantizado" name="pensionPeriodoGarantizado"></select>
           </div>
 
+          <div id="pensionRvDetalleWrap" style="display:none;">
+            <label for="pensionMesesPeriodoGarantizado">Número de meses de período garantizado</label>
+            <input type="number" id="pensionMesesPeriodoGarantizado" name="pensionMesesPeriodoGarantizado" min="1" step="1" />
+
+            <fieldset id="pensionTipoAumentoFieldset" style="border: 0; padding: 0; margin: 14px 0 0;">
+              <legend style="font-size: 13px; color: var(--muted); margin-bottom: 8px; padding: 0;">Opciones de aumento</legend>
+              <div style="display: flex; flex-direction: column; gap: 10px;">
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px;">
+                  <input type="radio" name="pensionTipoAumento" id="pensionTipoAumentoSin" value="sin_aumento" />
+                  Sin aumento
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px;">
+                  <input type="radio" name="pensionTipoAumento" id="pensionTipoAumentoTemporal" value="aumento_temporal" />
+                  Aumento temporal
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px;">
+                  <input type="radio" name="pensionTipoAumento" id="pensionTipoAumentoSobrev" value="aumento_sobrevivencia" />
+                  Aumento de sobrevivencia
+                </label>
+              </div>
+            </fieldset>
+
+            <div id="pensionWrapAumentoTemporal" style="display: none;">
+              <label for="pensionPorcentajeAumentoTemporal">Porcentaje de aumento</label>
+              <input type="number" id="pensionPorcentajeAumentoTemporal" name="pensionPorcentajeAumentoTemporal" min="0" step="0.01" />
+              <label for="pensionPeriodoAumentoMeses">Período de aumento (meses)</label>
+              <input type="number" id="pensionPeriodoAumentoMeses" name="pensionPeriodoAumentoMeses" min="1" step="1" />
+            </div>
+
+            <div id="pensionWrapAumentoSobrevivencia" style="display: none;">
+              <label for="pensionPorcentajeAumentoSobrevivencia">Porcentaje de aumento (sobrevivencia vitalicia)</label>
+              <input type="number" id="pensionPorcentajeAumentoSobrevivencia" name="pensionPorcentajeAumentoSobrevivencia" min="0" step="0.01" />
+            </div>
+          </div>
+
           <div class="modal-actions">
             <button type="button" id="btnCerrarModalPensionado" class="btn-secondary">Cancelar</button>
             <button type="submit" id="btnGuardarPensionado" class="btn-primary">Guardar datos</button>
@@ -1061,6 +1096,26 @@
               html += item("Monto pensión", fmtMontoUf(c.pension_monto));
               html += item("Modalidad", c.pension_modalidad);
               html += item("Período garantizado", (c.pension_periodo_garantizado === true) ? "Sí" : (c.pension_periodo_garantizado === false) ? "No" : "");
+              var rvDet = c.pension_rv_detalle;
+              if (rvDet && typeof rvDet === "object" && !Array.isArray(rvDet)) {
+                if (rvDet.meses_periodo_garantizado != null && rvDet.meses_periodo_garantizado !== "") {
+                  html += item("Meses período garantizado", rvDet.meses_periodo_garantizado);
+                }
+                var labTipoAum = {
+                  sin_aumento: "Sin aumento",
+                  aumento_temporal: "Aumento temporal",
+                  aumento_sobrevivencia: "Aumento de sobrevivencia",
+                };
+                if (rvDet.tipo_aumento) {
+                  html += item("Tipo de aumento", labTipoAum[rvDet.tipo_aumento] || rvDet.tipo_aumento);
+                }
+                if (rvDet.porcentaje_aumento != null && rvDet.porcentaje_aumento !== "") {
+                  html += item("Porcentaje de aumento", String(rvDet.porcentaje_aumento) + "%");
+                }
+                if (rvDet.periodo_aumento_meses != null && rvDet.periodo_aumento_meses !== "") {
+                  html += item("Período de aumento (meses)", rvDet.periodo_aumento_meses);
+                }
+              }
               html += "</div>";
               var act = c.pension_datos_actualizados;
               if (act && typeof act === "object" && !Array.isArray(act) && (act.compania || act.monto || act.modalidad)) {
@@ -1590,6 +1645,13 @@
             var selModalidad = document.getElementById("pensionModalidad");
             var wrapPeriodo = document.getElementById("pensionPeriodoWrap");
             var selPeriodoGarantizado = document.getElementById("pensionPeriodoGarantizado");
+            var wrapRvDetalle = document.getElementById("pensionRvDetalleWrap");
+            var inputMesesPG = document.getElementById("pensionMesesPeriodoGarantizado");
+            var wrapAumTemp = document.getElementById("pensionWrapAumentoTemporal");
+            var wrapAumSobr = document.getElementById("pensionWrapAumentoSobrevivencia");
+            var inputPctTemp = document.getElementById("pensionPorcentajeAumentoTemporal");
+            var inputMesesAum = document.getElementById("pensionPeriodoAumentoMeses");
+            var inputPctSobr = document.getElementById("pensionPorcentajeAumentoSobrevivencia");
 
             var modalPensionadoFinal = document.getElementById("modalPensionadoFinal");
             var formPensionadoFinal = document.getElementById("formPensionadoFinal");
@@ -1612,6 +1674,91 @@
             function modalidadTieneRentaVitalicia(mod) {
               var m = (mod || "").toString().toLowerCase();
               return m.indexOf("renta vitalicia") !== -1;
+            }
+
+            function limpiarPrepRvCamposOcultos() {
+              if (inputMesesPG) inputMesesPG.value = "";
+              if (formPensionado) {
+                var radios = formPensionado.querySelectorAll('input[name="pensionTipoAumento"]');
+                for (var i = 0; i < radios.length; i++) radios[i].checked = false;
+              }
+              if (inputPctTemp) inputPctTemp.value = "";
+              if (inputMesesAum) inputMesesAum.value = "";
+              if (inputPctSobr) inputPctSobr.value = "";
+            }
+
+            function obtenerTipoAumentoSeleccionado() {
+              var r = formPensionado ? formPensionado.querySelector('input[name="pensionTipoAumento"]:checked') : null;
+              return r ? r.value : "";
+            }
+
+            function sincronizarVisibilidadPrepRvDetalle() {
+              var requiere = modalidadTieneRentaVitalicia(selModalidad ? selModalidad.value : "");
+              if (wrapPeriodo) wrapPeriodo.style.display = requiere ? "block" : "none";
+              var pgSi = requiere && selPeriodoGarantizado && selPeriodoGarantizado.value === "Sí";
+              if (wrapRvDetalle) wrapRvDetalle.style.display = pgSi ? "block" : "none";
+              var tipo = obtenerTipoAumentoSeleccionado();
+              if (wrapAumTemp) wrapAumTemp.style.display = pgSi && tipo === "aumento_temporal" ? "block" : "none";
+              if (wrapAumSobr) wrapAumSobr.style.display = pgSi && tipo === "aumento_sobrevivencia" ? "block" : "none";
+            }
+
+            function aplicarPrepRvDetalleDesdeCliente() {
+              limpiarPrepRvCamposOcultos();
+              if (c.pension_periodo_garantizado !== true) return;
+              var d = c.pension_rv_detalle;
+              if (!d || typeof d !== "object" || Array.isArray(d)) return;
+              if (inputMesesPG && d.meses_periodo_garantizado != null && d.meses_periodo_garantizado !== "") {
+                inputMesesPG.value = String(d.meses_periodo_garantizado);
+              }
+              var tipo = (d.tipo_aumento || "").toString();
+              if (tipo && formPensionado) {
+                var inp = formPensionado.querySelector('input[name="pensionTipoAumento"][value="' + tipo + '"]');
+                if (inp) inp.checked = true;
+              }
+              if (d.porcentaje_aumento != null && d.porcentaje_aumento !== "") {
+                var pStr = String(d.porcentaje_aumento);
+                if (tipo === "aumento_temporal" && inputPctTemp) inputPctTemp.value = pStr;
+                if (tipo === "aumento_sobrevivencia" && inputPctSobr) inputPctSobr.value = pStr;
+              }
+              if (d.periodo_aumento_meses != null && d.periodo_aumento_meses !== "" && inputMesesAum) {
+                inputMesesAum.value = String(d.periodo_aumento_meses);
+              }
+            }
+
+            function construirPensionRvDetalleParaGuardar(requierePeriodo, periodoBool) {
+              if (!requierePeriodo || periodoBool !== true) return { value: null };
+              var mesesPgStr = inputMesesPG ? (inputMesesPG.value || "").toString().trim() : "";
+              var mesesPg = parseInt(mesesPgStr, 10);
+              var tipo = obtenerTipoAumentoSeleccionado();
+              if (!mesesPgStr || isNaN(mesesPg) || mesesPg < 1) {
+                return { error: "Ingresa el número de meses de período garantizado (entero mayor a cero)." };
+              }
+              if (!tipo) {
+                return { error: "Selecciona una opción de aumento (sin aumento, temporal o sobrevivencia)." };
+              }
+              var out = { meses_periodo_garantizado: mesesPg, tipo_aumento: tipo };
+              if (tipo === "aumento_temporal") {
+                var pStr = inputPctTemp ? (inputPctTemp.value || "").toString().trim().replace(",", ".") : "";
+                var pmStr = inputMesesAum ? (inputMesesAum.value || "").toString().trim() : "";
+                var pNum = parseFloat(pStr);
+                var pmNum = parseInt(pmStr, 10);
+                if (pStr === "" || isNaN(pNum) || pNum < 0) {
+                  return { error: "Ingresa el porcentaje de aumento temporal." };
+                }
+                if (pmStr === "" || isNaN(pmNum) || pmNum < 1) {
+                  return { error: "Ingresa el período de aumento en meses." };
+                }
+                out.porcentaje_aumento = pNum;
+                out.periodo_aumento_meses = pmNum;
+              } else if (tipo === "aumento_sobrevivencia") {
+                var psStr = inputPctSobr ? (inputPctSobr.value || "").toString().trim().replace(",", ".") : "";
+                var psNum = parseFloat(psStr);
+                if (psStr === "" || isNaN(psNum) || psNum < 0) {
+                  return { error: "Ingresa el porcentaje de aumento de sobrevivencia." };
+                }
+                out.porcentaje_aumento = psNum;
+              }
+              return { value: out };
             }
 
             function datosPensionIncompletos(cRow) {
@@ -1761,6 +1908,8 @@
                 var periodoStr = periodoValor === true ? "Sí" : periodoValor === false ? "No" : "";
                 if (periodoStr) selPeriodoGarantizado.value = periodoStr;
               }
+              aplicarPrepRvDetalleDesdeCliente();
+              sincronizarVisibilidadPrepRvDetalle();
 
               if (modalPensionadoFeedback) {
                 modalPensionadoFeedback.style.display = "none";
@@ -1793,8 +1942,20 @@
 
             if (selModalidad) {
               selModalidad.addEventListener("change", function () {
-                var requierePeriodo = modalidadTieneRentaVitalicia(this.value);
-                if (wrapPeriodo) wrapPeriodo.style.display = requierePeriodo ? "block" : "none";
+                if (!modalidadTieneRentaVitalicia(this.value)) limpiarPrepRvCamposOcultos();
+                sincronizarVisibilidadPrepRvDetalle();
+              });
+            }
+            if (selPeriodoGarantizado) {
+              selPeriodoGarantizado.addEventListener("change", function () {
+                if (this.value !== "Sí") limpiarPrepRvCamposOcultos();
+                sincronizarVisibilidadPrepRvDetalle();
+              });
+            }
+            if (formPensionado) {
+              formPensionado.addEventListener("change", function (ev) {
+                var t = ev.target;
+                if (t && t.name === "pensionTipoAumento") sincronizarVisibilidadPrepRvDetalle();
               });
             }
 
@@ -1847,12 +2008,16 @@
                 if (!modalidad) return mostrarFeedbackPension("Selecciona la modalidad.", true);
                 if (requierePeriodo && !periodoStr) return mostrarFeedbackPension("Selecciona si tiene período garantizado.", true);
 
+                var periodoBool = null;
+                if (requierePeriodo) periodoBool = periodoStr === "Sí";
+
+                var rvBuild = construirPensionRvDetalleParaGuardar(requierePeriodo, periodoBool);
+                if (rvBuild.error) return mostrarFeedbackPension(rvBuild.error, true);
+                var pensionRvDetalle = rvBuild.value;
+
                 var btnGuardar = btnGuardarPensionado || document.getElementById("btnGuardarPensionado");
                 if (btnGuardar) btnGuardar.disabled = true;
                 mostrarFeedbackPension("Guardando…", false);
-
-                var periodoBool = null;
-                if (requierePeriodo) periodoBool = periodoStr === "Sí";
 
                 supabase
                   .from("clientes")
@@ -1861,6 +2026,7 @@
                     pension_monto: monto,
                     pension_modalidad: modalidad,
                     pension_periodo_garantizado: requierePeriodo ? periodoBool : null,
+                    pension_rv_detalle: pensionRvDetalle,
                   })
                   .eq("id", id)
                   .select()
@@ -1876,6 +2042,7 @@
                     c.pension_monto = monto;
                     c.pension_modalidad = modalidad;
                     c.pension_periodo_garantizado = requierePeriodo ? periodoBool : null;
+                    c.pension_rv_detalle = pensionRvDetalle;
 
                     mostrarFeedbackPension("Datos de pensión guardados.", false);
                     setTimeout(function () {
