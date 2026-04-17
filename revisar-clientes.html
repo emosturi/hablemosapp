@@ -242,6 +242,15 @@
         border-color: var(--primary-mid);
         font-weight: 600;
       }
+      .clientes-sub-tabs {
+        margin: -4px 0 10px;
+        padding: 10px 0 0 14px;
+        border-left: 3px solid color-mix(in oklab, var(--primary) 35%, var(--border));
+      }
+      .clientes-sub-tabs .tab-btn {
+        font-size: 12px;
+        padding: 6px 10px;
+      }
     </style>
   </head>
   <body>
@@ -335,6 +344,10 @@
           <button type="button" class="tab-btn" id="tabPotenciales">Potenciales (<span id="countPotenciales">0</span>)</button>
           <button type="button" class="tab-btn" id="tabPensionados">Pensionados (<span id="countPensionados">0</span>)</button>
         </div>
+        <div id="clientesSubTabsWrap" class="tabs-wrap clientes-sub-tabs" style="display:none;" role="tablist" aria-label="Filtro por contrato">
+          <button type="button" class="tab-btn active" id="tabClientesConContrato" role="tab" aria-selected="true">Con contrato (<span id="countClientesConContrato">0</span>)</button>
+          <button type="button" class="tab-btn" id="tabClientesSinContrato" role="tab" aria-selected="false">Sin contrato (<span id="countClientesSinContrato">0</span>)</button>
+        </div>
         <div id="searchWrap" class="search-wrap" style="display:none;">
           <input type="search" id="searchClientes" placeholder="Buscar por nombre, RUT o teléfono…" autocomplete="off" />
         </div>
@@ -422,9 +435,14 @@
           var tabClientesEl = document.getElementById("tabClientes");
           var tabPotencialesEl = document.getElementById("tabPotenciales");
           var tabPensionadosEl = document.getElementById("tabPensionados");
+          var clientesSubTabsWrapEl = document.getElementById("clientesSubTabsWrap");
+          var tabClientesConContratoEl = document.getElementById("tabClientesConContrato");
+          var tabClientesSinContratoEl = document.getElementById("tabClientesSinContrato");
           var countClientesEl = document.getElementById("countClientes");
           var countPotencialesEl = document.getElementById("countPotenciales");
           var countPensionadosEl = document.getElementById("countPensionados");
+          var countClientesConContratoEl = document.getElementById("countClientesConContrato");
+          var countClientesSinContratoEl = document.getElementById("countClientesSinContrato");
           var tbody = document.getElementById("tbody");
           var searchInput = document.getElementById("searchClientes");
           var noResults = document.getElementById("noResults");
@@ -440,6 +458,8 @@
           var allPotenciales = [];
           var allPensionados = [];
           var activeTab = "clientes";
+          /** Subpestaña dentro de «Clientes» (solo no pensionados): con o sin contrato generado. */
+          var clientesSubTab = "con_contrato";
 
           function filtrar() {
             var q = (searchInput.value || "").trim().toLowerCase();
@@ -518,6 +538,16 @@
             tabClientesEl.classList.toggle("active", activeTab === "clientes");
             tabPotencialesEl.classList.toggle("active", activeTab === "potenciales");
             tabPensionadosEl.classList.toggle("active", activeTab === "pensionados");
+            if (tabClientesConContratoEl && tabClientesSinContratoEl) {
+              var enClientes = activeTab === "clientes";
+              tabClientesConContratoEl.classList.toggle("active", enClientes && clientesSubTab === "con_contrato");
+              tabClientesSinContratoEl.classList.toggle("active", enClientes && clientesSubTab === "sin_contrato");
+              tabClientesConContratoEl.setAttribute("aria-selected", enClientes && clientesSubTab === "con_contrato" ? "true" : "false");
+              tabClientesSinContratoEl.setAttribute("aria-selected", enClientes && clientesSubTab === "sin_contrato" ? "true" : "false");
+            }
+            if (clientesSubTabsWrapEl) {
+              clientesSubTabsWrapEl.style.display = activeTab === "clientes" ? "flex" : "none";
+            }
             searchInput.placeholder = activeTab === "potenciales"
               ? "Buscar por nombre o teléfono…"
               : "Buscar por nombre, RUT o teléfono…";
@@ -602,7 +632,23 @@
           }
 
           function renderTab() {
-            var current = activeTab === "clientes" ? allClientes : (activeTab === "pensionados" ? allPensionados : allPotenciales);
+            var conContrato = allClientes.filter(function (c) {
+              return c.tiene_contrato === true;
+            });
+            var sinContrato = allClientes.filter(function (c) {
+              return c.tiene_contrato !== true;
+            });
+            if (countClientesConContratoEl) countClientesConContratoEl.textContent = String(conContrato.length);
+            if (countClientesSinContratoEl) countClientesSinContratoEl.textContent = String(sinContrato.length);
+
+            var current;
+            if (activeTab === "clientes") {
+              current = clientesSubTab === "con_contrato" ? conContrato : sinContrato;
+            } else if (activeTab === "pensionados") {
+              current = allPensionados;
+            } else {
+              current = allPotenciales;
+            }
             if (countClientesEl) countClientesEl.textContent = String(allClientes.length);
             if (countPotencialesEl) countPotencialesEl.textContent = String(allPotenciales.length);
             if (countPensionadosEl) countPensionadosEl.textContent = String(allPensionados.length);
@@ -612,9 +658,15 @@
             if (current.length === 0) {
               tablaEl.style.display = "none";
               emptyEl.style.display = "block";
-              emptyEl.textContent = activeTab === "clientes"
-                ? "No hay clientes registrados."
-                : (activeTab === "pensionados" ? "No hay pensionados." : "No hay clientes potenciales.");
+              if (activeTab === "clientes") {
+                emptyEl.textContent = clientesSubTab === "con_contrato"
+                  ? "No hay clientes con contrato."
+                  : "No hay clientes sin contrato.";
+              } else if (activeTab === "pensionados") {
+                emptyEl.textContent = "No hay pensionados.";
+              } else {
+                emptyEl.textContent = "No hay clientes potenciales.";
+              }
               return;
             }
             emptyEl.style.display = "none";
@@ -629,6 +681,7 @@
             tablaEl.style.display = "none";
             searchWrapEl.style.display = "none";
             tabsWrapEl.style.display = "none";
+            if (clientesSubTabsWrapEl) clientesSubTabsWrapEl.style.display = "none";
             noResults.style.display = "none";
 
             Promise.all([
@@ -731,6 +784,20 @@
             activeTab = "pensionados";
             renderTab();
           });
+          if (tabClientesConContratoEl) {
+            tabClientesConContratoEl.addEventListener("click", function () {
+              activeTab = "clientes";
+              clientesSubTab = "con_contrato";
+              renderTab();
+            });
+          }
+          if (tabClientesSinContratoEl) {
+            tabClientesSinContratoEl.addEventListener("click", function () {
+              activeTab = "clientes";
+              clientesSubTab = "sin_contrato";
+              renderTab();
+            });
+          }
 
           cargarLista();
 
