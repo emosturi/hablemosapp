@@ -642,6 +642,48 @@
             </div>
           </li>
         </ul>
+
+        <div id="checklistPostVentaSection" style="display: none;">
+          <div class="group-label">Post venta</div>
+          <ul class="checklist" aria-label="Checklist post venta">
+            <li>
+              <input type="checkbox" id="chk_pv_cert_calidad_pensionado" />
+              <div>
+                <div class="checklist-title"><label for="chk_pv_cert_calidad_pensionado">CERTIFICADO DE CALIDAD DE PENSIONADO</label></div>
+              </div>
+            </li>
+            <li>
+              <input type="checkbox" id="chk_pv_liquidacion_pension" />
+              <div>
+                <div class="checklist-title"><label for="chk_pv_liquidacion_pension">LIQUIDACIÓN DE PENSIÓN</label></div>
+              </div>
+            </li>
+            <li>
+              <input type="checkbox" id="chk_pv_solicitud_liquidacion_afc" />
+              <div>
+                <div class="checklist-title"><label for="chk_pv_solicitud_liquidacion_afc">SOLICITUD DE LIQUIDACIÓN DE FONDO DE AFC</label></div>
+              </div>
+            </li>
+            <li>
+              <input type="checkbox" id="chk_pv_exencion_cotizacion" />
+              <div>
+                <div class="checklist-title"><label for="chk_pv_exencion_cotizacion">EXENCIÓN DE COTIZACIÓN</label></div>
+              </div>
+            </li>
+            <li>
+              <input type="checkbox" id="chk_pv_acreditacion_cargas" />
+              <div>
+                <div class="checklist-title"><label for="chk_pv_acreditacion_cargas">ACREDITACIÓN DE CARGAS</label></div>
+              </div>
+            </li>
+            <li>
+              <input type="checkbox" id="chk_pv_confeccion_fun" />
+              <div>
+                <div class="checklist-title"><label for="chk_pv_confeccion_fun">CONFECCIÓN DE FUN</label></div>
+              </div>
+            </li>
+          </ul>
+        </div>
         </div>
         <div class="modal-checklist-footer">
           <div class="modal-feedback" id="modalChecklistFeedback" style="display:none;"></div>
@@ -1928,6 +1970,12 @@
               { key: "seleccion_decision_cambio", id: "chk_seleccion_decision_cambio" },
               { key: "papeles_internos_compania", id: "chk_papeles_internos_compania" },
               { key: "dictamen_ejecutoriado", id: "chk_dictamen_ejecutoriado" },
+              { key: "pv_cert_calidad_pensionado", id: "chk_pv_cert_calidad_pensionado", soloPensionado: true, sinArchivo: true },
+              { key: "pv_liquidacion_pension", id: "chk_pv_liquidacion_pension", soloPensionado: true, sinArchivo: true },
+              { key: "pv_solicitud_liquidacion_afc", id: "chk_pv_solicitud_liquidacion_afc", soloPensionado: true, sinArchivo: true },
+              { key: "pv_exencion_cotizacion", id: "chk_pv_exencion_cotizacion", soloPensionado: true, sinArchivo: true },
+              { key: "pv_acreditacion_cargas", id: "chk_pv_acreditacion_cargas", soloPensionado: true, sinArchivo: true },
+              { key: "pv_confeccion_fun", id: "chk_pv_confeccion_fun", soloPensionado: true, sinArchivo: true },
             ];
 
             function cerrarModalChecklist() {
@@ -2001,6 +2049,7 @@
             function renderChecklistFileMeta() {
               var files = getChecklistFilesMap(c.checklist_caso);
               CHECKLIST_KEYS.forEach(function (it) {
+                if (it.sinArchivo) return;
                 var meta = files[it.key];
                 var metaEl = document.getElementById("chk_file_meta_" + it.key);
                 var linkEl = document.getElementById("chk_file_link_" + it.key);
@@ -2018,6 +2067,7 @@
 
             function ensureChecklistUploadControls() {
               CHECKLIST_KEYS.forEach(function (it) {
+                if (it.sinArchivo) return;
                 var checkbox = document.getElementById(it.id);
                 if (!checkbox) return;
                 var wrap = checkbox.parentElement ? checkbox.parentElement.querySelector("div") : null;
@@ -2235,10 +2285,17 @@
               });
             }
 
+            function aplicarVisibilidadPostVenta() {
+              var section = document.getElementById("checklistPostVentaSection");
+              if (!section) return;
+              section.style.display = esPensionadoFlag(c.pensionado) ? "" : "none";
+            }
+
             if (btnChecklist && modalChecklist) {
               btnChecklist.addEventListener("click", function () {
                 // Cargar desde BD si existe
                 applyChecklistObjToDom(c.checklist_caso);
+                aplicarVisibilidadPostVenta();
                 ensureChecklistUploadControls();
                 renderChecklistFileMeta();
                 modalChecklist.classList.add("open");
