@@ -62,6 +62,7 @@
     var d = qs("menuMobileDd");
     if (d) d.classList.remove("open");
     syncMobileMenuTriggerAria(false);
+    document.body.classList.remove("menu-mobile-drawer-open");
   }
 
   function closeUserMenu() {
@@ -85,15 +86,61 @@
     var t = qs("menuMobileTrigger");
     var d = qs("menuMobileDd");
     if (t && d) {
-      syncMobileMenuTriggerAria(false);
-      t.addEventListener("click", function (e) {
-        e.stopPropagation();
-        closeUserMenu();
-        closeMobileSearchExpand();
-        var open = !d.classList.contains("open");
-        d.classList.toggle("open", open);
-        syncMobileMenuTriggerAria(open);
-      });
+      if (!d.dataset.drawerShellInit) {
+        d.dataset.drawerShellInit = "1";
+        var panel = document.createElement("div");
+        panel.className = "menu-mobile-dd__panel";
+        var head = document.createElement("div");
+        head.className = "menu-mobile-dd__head";
+        var brand = document.createElement("span");
+        brand.className = "menu-mobile-dd__brand";
+        brand.textContent = "Prevy";
+        var sub = document.createElement("span");
+        sub.className = "menu-mobile-dd__sub";
+        sub.textContent = "Navegación";
+        head.appendChild(brand);
+        head.appendChild(sub);
+        panel.appendChild(head);
+        while (d.firstChild) {
+          panel.appendChild(d.firstChild);
+        }
+        var backdrop = document.createElement("button");
+        backdrop.type = "button";
+        backdrop.className = "menu-w-backdrop";
+        backdrop.setAttribute("aria-label", "Cerrar menú de navegación");
+        d.appendChild(panel);
+        d.appendChild(backdrop);
+        panel.addEventListener("click", function (e) {
+          if (e.target.closest && e.target.closest("a[href]")) return;
+          e.stopPropagation();
+        });
+        backdrop.addEventListener("click", function () {
+          closeMobileMenu();
+        });
+      }
+      if (!t.dataset.mobileMenuBound) {
+        t.dataset.mobileMenuBound = "1";
+        syncMobileMenuTriggerAria(false);
+        t.addEventListener("click", function (e) {
+          e.stopPropagation();
+          closeUserMenu();
+          closeMobileSearchExpand();
+          var open = !d.classList.contains("open");
+          d.classList.toggle("open", open);
+          syncMobileMenuTriggerAria(open);
+          document.body.classList.toggle("menu-mobile-drawer-open", open);
+        });
+      }
+      if (!document.documentElement.dataset.mobileMenuEscapeInit) {
+        document.documentElement.dataset.mobileMenuEscapeInit = "1";
+        document.addEventListener("keydown", function (e) {
+          if (e.key !== "Escape") return;
+          var dd = qs("menuMobileDd");
+          if (dd && dd.classList.contains("open")) {
+            closeMobileMenu();
+          }
+        });
+      }
     }
 
     var ut = qs("userMenuTrigger");
