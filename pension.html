@@ -1900,7 +1900,8 @@
                   "table{page-break-inside:auto;}" +
                   "tr,thead,tfoot{page-break-inside:avoid!important;break-inside:avoid!important;-webkit-column-break-inside:avoid;}" +
                   "h1,h2,h3,h4{page-break-after:avoid!important;break-after:avoid!important;}" +
-                  ".tabla-firmas,.firmas{page-break-inside:avoid!important;break-inside:avoid!important;}" +
+                  /* Solo la fila de firmas: evitar «avoid-all»+tabla entera que recortaba el PDF con hueco grande de firma */
+                  ".tabla-firmas tr{page-break-inside:avoid!important;break-inside:avoid!important;}" +
                   "p{orphans:3;widows:3;}";
                 head.appendChild(inj);
               }
@@ -1927,6 +1928,16 @@
               jpegQuality = 0.97;
             }
 
+            const docEl = doc.documentElement;
+            const bodyH = Math.max(
+              body.scrollHeight || 0,
+              body.offsetHeight || 0,
+              docEl ? docEl.scrollHeight || 0 : 0,
+              docEl ? docEl.offsetHeight || 0 : 0
+            );
+            const win = iframe.contentWindow;
+            const winW = win && win.innerWidth ? win.innerWidth : 794;
+
             const opt = {
               margin: [8, 8, 8, 8],
               filename: `${safeBase}.pdf`,
@@ -1939,6 +1950,8 @@
                 backgroundColor: "#ffffff",
                 scrollX: 0,
                 scrollY: 0,
+                windowWidth: winW,
+                windowHeight: bodyH > 0 ? bodyH : undefined,
                 onclone: function (clonedDoc) {
                   try {
                     var cHead = clonedDoc.head;
@@ -1951,7 +1964,8 @@
                 },
               },
               jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-              pagebreak: { mode: ["avoid-all", "css", "legacy"] },
+              /* «avoid-all» recortaba documentos largos al forzar avoid en casi todos los bloques + firmas altas */
+              pagebreak: { mode: ["css", "legacy"] },
             };
 
             html2pdf()
