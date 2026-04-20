@@ -389,11 +389,21 @@
     }
 
     function ensureOwnerMenuLink(isOwner) {
+      function isOwnerMenuAnchor(el) {
+        if (!el || el.tagName !== "A") return false;
+        if (el.getAttribute("data-owner-menu") === "1") return true;
+        var raw = (el.getAttribute("href") || "").trim();
+        if (/admin-panel\.html([\?#]|$)/i.test(raw) || raw === "admin-panel.html") return true;
+        try {
+          var u = new URL(el.href, window.location.href || undefined);
+          if (/admin-panel\.html$/i.test(u.pathname) || /\/admin-panel\.html$/i.test(u.pathname)) return true;
+        } catch (_e) {}
+        return false;
+      }
+
       function upsertLink(container) {
         if (!container) return;
-        var matches = Array.prototype.slice.call(
-          container.querySelectorAll("a[data-owner-menu='1'], a[href='admin-panel.html']")
-        );
+        var matches = Array.prototype.slice.call(container.querySelectorAll("a")).filter(isOwnerMenuAnchor);
         if (!isOwner) {
           matches.forEach(function (n) {
             if (n && n.parentNode) n.parentNode.removeChild(n);
@@ -407,6 +417,10 @@
             if (dupe && dupe.parentNode) dupe.parentNode.removeChild(dupe);
           }
           keep.setAttribute("data-owner-menu", "1");
+          var active = window.location && /admin-panel\.html(?:\?|$)/.test(window.location.pathname || "");
+          keep.classList.toggle("active", active);
+          if (active) keep.setAttribute("aria-current", "page");
+          else keep.removeAttribute("aria-current");
           return;
         }
         var a = document.createElement("a");
