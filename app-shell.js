@@ -109,29 +109,46 @@
     }
   }
 
-  /** Evita que `transform` en .topbar encierre `position:fixed` solo en la barra. */
-  function relocateShellDrawersBelowTopbar() {
+  /** Solo el menú hamburguesa: fuera del topbar para `position:fixed` en móvil. */
+  function relocateMobileNavBelowTopbar() {
     var main = document.querySelector(".layout > .main");
-    if (!main || main.dataset.shellDrawersReparented === "1") return;
+    if (!main || main.dataset.shellNavReparented === "1") return;
     var topbar = main.querySelector(":scope > header.topbar");
     if (!topbar) return;
     var navDd = qs("menuMobileDd");
-    var userDd = qs("userMenuDd");
-    if (!navDd && !userDd) return;
-
     if (navDd) {
       main.insertBefore(navDd, topbar.nextSibling);
     }
-    if (userDd) {
-      var ref = qs("menuMobileDd");
-      ref = ref && ref.parentElement === main ? ref.nextSibling : topbar.nextSibling;
-      main.insertBefore(userDd, ref);
+    main.dataset.shellNavReparented = "1";
+  }
+
+  /**
+   * Menú usuario: en móvil debe colgar de .main (drawer fixed bajo topbar).
+   * En escritorio debe estar dentro de .user-menu-wrap para position:absolute bajo el avatar.
+   */
+  function syncUserMenuDdPlacement() {
+    var ud = qs("userMenuDd");
+    var wrap = document.querySelector(".topbar .user-menu-wrap");
+    var main = document.querySelector(".layout > .main");
+    var topbar = main && main.querySelector(":scope > header.topbar");
+    if (!ud) return;
+    var mobile = window.matchMedia("(max-width: 960px)").matches;
+    if (mobile) {
+      if (!main || !topbar) return;
+      if (ud.parentElement === main) return;
+      var navDd = qs("menuMobileDd");
+      var ref = navDd && navDd.parentElement === main ? navDd.nextSibling : topbar.nextSibling;
+      main.insertBefore(ud, ref);
+    } else {
+      if (!wrap) return;
+      if (ud.parentElement === wrap) return;
+      wrap.appendChild(ud);
     }
-    main.dataset.shellDrawersReparented = "1";
   }
 
   window.initAppShell = function () {
-    relocateShellDrawersBelowTopbar();
+    relocateMobileNavBelowTopbar();
+    syncUserMenuDdPlacement();
 
     var t = qs("menuMobileTrigger");
     var d = qs("menuMobileDd");
@@ -204,7 +221,10 @@
     updateMobileDrawerScrollLock();
     if (!document.documentElement.dataset.appShellTopbarSync) {
       document.documentElement.dataset.appShellTopbarSync = "1";
-      window.addEventListener("resize", syncAppTopbarBottom);
+      window.addEventListener("resize", function () {
+        syncAppTopbarBottom();
+        syncUserMenuDdPlacement();
+      });
       window.addEventListener(
         "scroll",
         function () {
