@@ -1814,7 +1814,8 @@
         pdf.setTextColor(82, 82, 82);
         for (var i = 1; i <= total; i++) {
           pdf.setPage(i);
-          pdf.text("Página " + i + " de " + total, pw / 2, ph - 4.5, { align: "center" });
+          /* Un poco más arriba del borde físico para alinear con márgenes PDF más amplios */
+          pdf.text("Página " + i + " de " + total, pw / 2, ph - 6, { align: "center" });
         }
       }
 
@@ -1938,8 +1939,11 @@
             const win = iframe.contentWindow;
             const winW = win && win.innerWidth ? win.innerWidth : 794;
 
+            /* html2pdf: [top, left, bottom, right] en mm (jsPDF unit). Más aire sin recortar: el motor reparte en más páginas. */
+            const pdfMarginMm = [16, 14, 18, 14];
+
             const opt = {
-              margin: [8, 8, 8, 8],
+              margin: pdfMarginMm,
               filename: `${safeBase}.pdf`,
               image: { type: "jpeg", quality: jpegQuality },
               html2canvas: {
