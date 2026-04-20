@@ -91,7 +91,10 @@
         <span class="logo-text">Prevy</span>
       </div>
       <h1>Agendar llamada telefónica</h1>
-      <p class="sub">Elija un horario disponible. Le pediremos sus datos para confirmar la reserva.</p>
+      <p class="sub">
+        Elija un horario disponible. Le pediremos sus datos para confirmar la reserva. Con el mismo teléfono solo puede haber
+        <strong>una reserva a la vez</strong> con este asesor (hasta que pase la hora agendada).
+      </p>
 
       <div id="bannerErr" class="err-banner" style="display: none"></div>
       <div id="loading" class="loading">Cargando horarios…</div>
@@ -407,7 +410,9 @@
                   sin_disponibilidad: "El asesor no tiene agenda activa.",
                   fecha_invalida: "La fecha no es válida.",
                   nombre_requerido: "Revise los nombres ingresados.",
-                  telefono_requerido: "Ingrese un teléfono con al menos 8 dígitos."
+                  telefono_requerido: "Ingrese un teléfono con al menos 8 dígitos.",
+                  ya_tiene_reserva:
+                    "Este teléfono ya tiene una llamada agendada con este asesor. Espere a que pase esa hora o use otro número."
                 };
                 dlgStatus.textContent = map[code] || "No se pudo completar la reserva.";
                 return;
