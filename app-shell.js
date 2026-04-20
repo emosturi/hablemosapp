@@ -58,10 +58,37 @@
     t.setAttribute("aria-label", open ? "Cerrar menú de navegación" : "Abrir menú de navegación");
   }
 
+  function syncAppTopbarBottom() {
+    try {
+      var bar = document.querySelector(".layout > .main > header.topbar");
+      if (!bar || !window.matchMedia("(max-width: 960px)").matches) {
+        document.documentElement.style.removeProperty("--app-topbar-bottom");
+        return;
+      }
+      document.documentElement.style.setProperty(
+        "--app-topbar-bottom",
+        bar.getBoundingClientRect().bottom + "px"
+      );
+    } catch (_e) {}
+  }
+
+  function updateMobileDrawerScrollLock() {
+    if (!window.matchMedia("(max-width: 960px)").matches) {
+      document.body.classList.remove("app-shell-drawer-open");
+      return;
+    }
+    var nav = qs("menuMobileDd");
+    var user = qs("userMenuDd");
+    var open =
+      (nav && nav.classList.contains("open")) || (user && user.classList.contains("open"));
+    document.body.classList.toggle("app-shell-drawer-open", !!open);
+  }
+
   function closeMobileMenu() {
     var d = qs("menuMobileDd");
     if (d) d.classList.remove("open");
     syncMobileMenuTriggerAria(false);
+    updateMobileDrawerScrollLock();
   }
 
   function closeUserMenu() {
@@ -69,6 +96,7 @@
     var ud = qs("userMenuDd");
     if (ud) ud.classList.remove("open");
     if (ut) ut.setAttribute("aria-expanded", "false");
+    updateMobileDrawerScrollLock();
   }
 
   function closeMobileSearchExpand() {
@@ -90,9 +118,11 @@
         e.stopPropagation();
         closeUserMenu();
         closeMobileSearchExpand();
+        syncAppTopbarBottom();
         var open = !d.classList.contains("open");
         d.classList.toggle("open", open);
         syncMobileMenuTriggerAria(open);
+        updateMobileDrawerScrollLock();
       });
     }
 
@@ -103,9 +133,11 @@
         e.stopPropagation();
         closeMobileMenu();
         closeMobileSearchExpand();
+        syncAppTopbarBottom();
         var open = !ud.classList.contains("open");
         ud.classList.toggle("open", open);
         ut.setAttribute("aria-expanded", open ? "true" : "false");
+        updateMobileDrawerScrollLock();
       });
     }
 
@@ -123,6 +155,9 @@
         topbar.classList.toggle("topbar-search-open", open);
         searchToggle.setAttribute("aria-expanded", open ? "true" : "false");
         searchToggle.setAttribute("aria-label", open ? "Cerrar búsqueda" : "Buscar en la app");
+        requestAnimationFrame(function () {
+          requestAnimationFrame(syncAppTopbarBottom);
+        });
         if (open) {
           setTimeout(function () {
             searchInput.focus();
@@ -141,6 +176,30 @@
       closeUserMenu();
       closeMobileSearchExpand();
     });
+
+    syncAppTopbarBottom();
+    updateMobileDrawerScrollLock();
+    if (!document.documentElement.dataset.appShellTopbarSync) {
+      document.documentElement.dataset.appShellTopbarSync = "1";
+      window.addEventListener("resize", syncAppTopbarBottom);
+      window.addEventListener(
+        "scroll",
+        function () {
+          if (window.matchMedia("(max-width: 960px)").matches) syncAppTopbarBottom();
+        },
+        true
+      );
+      document.addEventListener("keydown", function (e) {
+        if (e.key !== "Escape") return;
+        if (!window.matchMedia("(max-width: 960px)").matches) return;
+        var navOpen = qs("menuMobileDd") && qs("menuMobileDd").classList.contains("open");
+        var userOpen = qs("userMenuDd") && qs("userMenuDd").classList.contains("open");
+        if (!navOpen && !userOpen) return;
+        closeMobileMenu();
+        closeUserMenu();
+        closeMobileSearchExpand();
+      });
+    }
   };
 
   window.applyAppShellUser = function (user) {
