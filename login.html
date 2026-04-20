@@ -356,6 +356,115 @@
         margin: 8px 0 0 28px;
         line-height: 1.4;
       }
+
+      .register-confirm-alert {
+        margin: 0 0 18px;
+        padding: 14px 16px;
+        border-radius: 12px;
+        border: 1px solid color-mix(in oklab, #d97706 55%, var(--border));
+        background: color-mix(in oklab, #f59e0b 14%, var(--surface));
+        color: var(--text);
+        line-height: 1.45;
+        font-size: 13px;
+      }
+      .register-confirm-alert__title {
+        margin: 0 0 8px;
+        font-size: 14px;
+        font-weight: 700;
+        color: #b45309;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      html[data-theme="dark"] .register-confirm-alert__title {
+        color: #fbbf24;
+      }
+      html[data-theme="dark"] .register-confirm-alert {
+        border-color: color-mix(in oklab, #f59e0b 40%, var(--border));
+        background: color-mix(in oklab, #f59e0b 12%, var(--card));
+      }
+      .register-confirm-alert__title::before {
+        content: "";
+        width: 22px;
+        height: 22px;
+        flex-shrink: 0;
+        background: no-repeat center / contain;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill='none' stroke='%23b45309' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z'/%3E%3Cline x1='12' y1='9' x2='12' y2='13'/%3E%3Cline x1='12' y1='17' x2='12.01' y2='17'/%3E%3C/svg%3E");
+      }
+      html[data-theme="dark"] .register-confirm-alert__title::before {
+        filter: brightness(1.25);
+      }
+
+      .login-modal-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 3000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        background: rgba(15, 23, 42, 0.55);
+        -webkit-backdrop-filter: blur(4px);
+        backdrop-filter: blur(4px);
+      }
+      .login-modal-overlay[hidden] {
+        display: none !important;
+      }
+      .login-modal {
+        width: 100%;
+        max-width: 400px;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+        padding: 24px;
+      }
+      .login-modal__title {
+        margin: 0 0 12px;
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--text);
+        letter-spacing: -0.02em;
+      }
+      .login-modal__body {
+        margin: 0 0 20px;
+        font-size: 14px;
+        line-height: 1.5;
+        color: var(--text);
+      }
+      .login-modal__btn {
+        width: 100%;
+        padding: 12px 16px;
+        border: none;
+        border-radius: var(--radius-sm);
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: inherit;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-mid) 70%, var(--accent-bright) 160%);
+        color: #fff;
+        box-shadow: 0 4px 16px rgba(0, 96, 108, 0.25);
+      }
+      .login-modal__btn:hover {
+        filter: brightness(1.03);
+      }
+      .login-modal__btn:focus-visible {
+        outline: 2px solid var(--primary-mid);
+        outline-offset: 2px;
+      }
+
+      .register-policy-extra {
+        margin: -8px 0 16px;
+        padding: 10px 12px;
+        font-size: 12px;
+        color: var(--muted);
+        border-radius: 10px;
+        border: 1px dashed var(--border);
+        line-height: 1.45;
+      }
+      .register-policy-extra[hidden] {
+        display: none !important;
+      }
     </style>
   </head>
   <body>
@@ -363,8 +472,6 @@
       <div class="panel">
         <h1>Acceso a Prevy</h1>
         <p class="subtitle">Área para asesores. Usa tu cuenta para gestionar clientes y trámites.</p>
-
-        <div class="success" id="registerSuccess" style="display: none" role="status"></div>
 
         <div class="auth-tabs" role="tablist" aria-label="Tipo de acceso">
           <button type="button" class="auth-tab active" id="tabLogin" role="tab" aria-selected="true" aria-controls="paneLogin">
@@ -474,7 +581,13 @@
         </div>
 
         <div id="paneRegister" class="auth-pane" role="tabpanel" aria-labelledby="tabRegister" hidden>
-          <p class="hint" id="registerPolicyHint">Crea una cuenta con el correo que usarás como asesor. Si tu proyecto Supabase exige confirmar el email, revisa la bandeja de entrada antes de entrar.</p>
+          <div class="register-confirm-alert" role="alert">
+            <div class="register-confirm-alert__title">Confirma tu correo antes de entrar</div>
+            <p style="margin: 0">
+              Tras crear la cuenta te enviaremos un mensaje: debes abrir el enlace y <strong>confirmar tu cuenta</strong> antes de poder iniciar sesión. Revisa también spam o promociones.
+            </p>
+          </div>
+          <div id="registerPolicyExtra" class="register-policy-extra" hidden></div>
           <form id="registerForm" novalidate>
             <div class="field">
               <label for="regEmail">Email</label>
@@ -557,6 +670,14 @@
         <p class="links hint" style="margin-top: 1rem; font-size: 0.9rem; line-height: 1.45; opacity: 0.92">
           Si eres <strong>cliente</strong>, usa el enlace personal que te envió tu asesor para el registro de afiliados (no está en esta pantalla de inicio de sesión).
         </p>
+      </div>
+    </div>
+
+    <div id="modalRegisterConfirmOverlay" class="login-modal-overlay" hidden aria-hidden="true">
+      <div class="login-modal" role="dialog" aria-labelledby="modalRegisterConfirmTitle" aria-modal="true">
+        <h2 id="modalRegisterConfirmTitle" class="login-modal__title">Revisa tu correo</h2>
+        <p id="modalRegisterConfirmBody" class="login-modal__body"></p>
+        <button type="button" class="login-modal__btn" id="modalRegisterConfirmOk">Entendido</button>
       </div>
     </div>
 
@@ -678,8 +799,9 @@
         var regPassword = document.getElementById("regPassword");
         var regPassword2 = document.getElementById("regPassword2");
         var errorRegisterGeneral = document.getElementById("error_register_general");
-        var registerPolicyHint = document.getElementById("registerPolicyHint");
-        var registerSuccess = document.getElementById("registerSuccess");
+        var modalRegisterConfirmOverlay = document.getElementById("modalRegisterConfirmOverlay");
+        var modalRegisterConfirmBody = document.getElementById("modalRegisterConfirmBody");
+        var modalRegisterConfirmOk = document.getElementById("modalRegisterConfirmOk");
         var btnLogin = document.getElementById("btnLogin");
         var btnRegister = document.getElementById("btnRegister");
         var btnGoogleLogin = document.getElementById("btnGoogleLogin");
@@ -688,6 +810,36 @@
         var REGISTRO_ASESORES_DOMINIOS = Array.isArray(window.ASESOR_REGISTRO_DOMINIOS)
           ? window.ASESOR_REGISTRO_DOMINIOS.map(function (d) { return String(d || "").trim().toLowerCase(); }).filter(Boolean)
           : [];
+
+        function closeRegisterConfirmModal() {
+          if (!modalRegisterConfirmOverlay) return;
+          modalRegisterConfirmOverlay.hidden = true;
+          modalRegisterConfirmOverlay.setAttribute("aria-hidden", "true");
+        }
+
+        function openRegisterConfirmModal(message) {
+          if (!modalRegisterConfirmOverlay || !modalRegisterConfirmBody) return;
+          modalRegisterConfirmBody.textContent = message || "";
+          modalRegisterConfirmOverlay.hidden = false;
+          modalRegisterConfirmOverlay.setAttribute("aria-hidden", "false");
+          if (modalRegisterConfirmOk) {
+            modalRegisterConfirmOk.focus();
+          }
+        }
+
+        if (modalRegisterConfirmOk) {
+          modalRegisterConfirmOk.addEventListener("click", closeRegisterConfirmModal);
+        }
+        if (modalRegisterConfirmOverlay) {
+          modalRegisterConfirmOverlay.addEventListener("click", function (e) {
+            if (e.target === modalRegisterConfirmOverlay) closeRegisterConfirmModal();
+          });
+        }
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "Escape" && modalRegisterConfirmOverlay && !modalRegisterConfirmOverlay.hidden) {
+            closeRegisterConfirmModal();
+          }
+        });
 
         function showPane(which) {
           var isLogin = which === "login";
@@ -705,8 +857,7 @@
           } else {
             clearRegisterErrors();
             errorGeneral.textContent = "";
-            registerSuccess.style.display = "none";
-            registerSuccess.textContent = "";
+            closeRegisterConfirmModal();
           }
         }
 
@@ -791,6 +942,7 @@
         });
 
         function setupRegisterPolicyUi() {
+          var registerPolicyExtra = document.getElementById("registerPolicyExtra");
           var reglas = [];
           if (!REGISTRO_ASESORES_HABILITADO) {
             tabRegister.disabled = true;
@@ -798,7 +950,10 @@
             tabRegister.classList.remove("active");
             paneRegister.hidden = true;
             paneRegister.classList.remove("active");
-            registerPolicyHint.textContent = "El registro de nuevos asesores está cerrado. Solicita un alta al administrador.";
+            if (registerPolicyExtra) {
+              registerPolicyExtra.hidden = true;
+              registerPolicyExtra.textContent = "";
+            }
             btnRegister.disabled = true;
             showPane("login");
             return;
@@ -811,8 +966,14 @@
             reglas.push("dominios permitidos: " + REGISTRO_ASESORES_DOMINIOS.join(", "));
           }
 
-          if (reglas.length) {
-            registerPolicyHint.textContent = "Registro limitado: " + reglas.join(" | ") + ".";
+          if (registerPolicyExtra) {
+            if (reglas.length) {
+              registerPolicyExtra.hidden = false;
+              registerPolicyExtra.textContent = "Registro limitado: " + reglas.join(" | ") + ".";
+            } else {
+              registerPolicyExtra.hidden = true;
+              registerPolicyExtra.textContent = "";
+            }
           }
         }
 
@@ -975,8 +1136,7 @@
         formRegister.addEventListener("submit", function (e) {
           e.preventDefault();
           clearRegisterErrors();
-          registerSuccess.style.display = "none";
-          registerSuccess.textContent = "";
+          closeRegisterConfirmModal();
 
           if (!REGISTRO_ASESORES_HABILITADO) {
             errorRegisterGeneral.textContent = "El registro de nuevos asesores está deshabilitado.";
@@ -1082,15 +1242,14 @@
                 return;
               }
 
-              registerSuccess.style.display = "block";
-              registerSuccess.textContent =
-                "Cuenta creada. Si tu proyecto requiere confirmar el email, abre el enlace que te enviamos y luego usa «Iniciar sesión». Si la confirmación está desactivada en Supabase, entra ahora con tu email y contraseña.";
               regPassword.value = "";
               regPassword2.value = "";
               showPane("login");
               inputEmail.value = email;
               inputPassword.value = "";
-              inputPassword.focus();
+              openRegisterConfirmModal(
+                "Cuenta creada. Revisa tu correo (incluido spam o promociones), abre el enlace para confirmar tu cuenta y solo después vuelve aquí a iniciar sesión con tu email y contraseña."
+              );
             })
             .catch(function (err) {
               btnRegister.disabled = false;
