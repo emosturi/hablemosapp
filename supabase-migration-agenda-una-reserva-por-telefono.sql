@@ -1,6 +1,83 @@
--- Una reserva activa por teléfono y asesor (evita múltiples horas con el mismo número).
+-- Agenda pública: una reserva activa por teléfono y asesor + mínimo 6 h de anticipación.
 -- Ejecutar en Supabase SQL Editor después de supabase-migration-agenda-no-slots-pasados.sql
--- (o el último agendar_llamada_publica que tengas aplicado).
+-- (reemplaza obtener_agenda_publica y agendar_llamada_publica).
+
+create or replace function public.obtener_agenda_publica(
+  p_invite uuid,
+  p_desde date default null,
+  p_hasta date default null
+) returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_owner uuid;
+  v_bloques jsonb;
+  v_desde date;
+  v_hasta date;
+  v_res jsonb;
+  v_hoy_zona date;
+  v_hora_cursor int;
+begin
+  if p_invite is null then
+    return jsonb_build_object('ok', false, 'code', 'invite_requerida');
+  end if;
+
+  select owner_user_id into v_owner
+  from public.agenda_llamadas_invites
+  where id = p_invite;
+
+  if v_owner is null then
+    return jsonb_build_object('ok', false, 'code', 'invite_invalida');
+  end if;
+
+  select coalesce(bloques, '{}'::jsonb) into v_bloques
+  from public.asesor_disponibilidad
+  where user_id = v_owner;
+
+  if v_bloques is null then
+    v_bloques := '{}'::jsonb;
+  end if;
+
+  v_desde := coalesce(p_desde, (timezone('America/Santiago', now()))::date);
+  v_hasta := coalesce(p_hasta, v_desde + 21);
+
+  if v_hasta < v_desde then
+    v_hasta := v_desde + 21;
+  end if;
+  if v_hasta > v_desde + 60 then
+    v_hasta := v_desde + 60;
+  end if;
+
+  v_hoy_zona := (timezone('America/Santiago', now()))::date;
+  v_hora_cursor := extract(hour from timezone('America/Santiago', now()))::int;
+
+  select coalesce(jsonb_agg(sub.j), '[]'::jsonb)
+  into v_res
+  from (
+    select jsonb_build_object('fecha', r.fecha, 'hora', r.hora) as j
+    from public.agenda_reservas r
+    where r.owner_user_id = v_owner
+      and r.fecha >= v_desde
+      and r.fecha <= v_hasta
+    order by r.fecha, r.hora
+  ) sub;
+
+  return jsonb_build_object(
+    'ok', true,
+    'bloques', v_bloques,
+    'reservas', coalesce(v_res, '[]'::jsonb),
+    'desde', v_desde,
+    'hasta', v_hasta,
+    'zona', 'America/Santiago',
+    'hoy_zona', v_hoy_zona,
+    'hora_cursor_zona', v_hora_cursor,
+    'min_booking_at', to_jsonb(now() + interval '6 hours'),
+    'min_hours_advance', 6
+  );
+end;
+$$;
 
 create or replace function public.agendar_llamada_publica(
   p_invite uuid,
@@ -60,6 +137,10 @@ begin
     return jsonb_build_object('ok', false, 'code', 'slot_pasado');
   end if;
 
+  if v_slot_start < now() + interval '6 hours' then
+    return jsonb_build_object('ok', false, 'code', 'anticipacion_insuficiente');
+  end if;
+
   v_nombre := trim(concat_ws(' ',
     nullif(trim(coalesce(p_nombres, '')), ''),
     nullif(trim(coalesce(p_apellido_paterno, '')), ''),
@@ -76,7 +157,6 @@ begin
     return jsonb_build_object('ok', false, 'code', 'telefono_requerido');
   end if;
 
-  -- Mismo teléfono: no segunda reserva mientras haya una franja que aún no terminó (fin = inicio + 1 h).
   if exists (
     select 1
     from public.agenda_reservas r
@@ -167,5 +247,8 @@ exception
 end;
 $$;
 
+comment on function public.obtener_agenda_publica is
+  'Público: bloques, reservas, min_booking_at (now+6h) para ocultar franjas sin antelación suficiente.';
+
 comment on function public.agendar_llamada_publica is
-  'Público: una reserva activa por teléfono y asesor (no varias horas hasta que termine la franja agendada); slot pasado rechazado.';
+  'Público: mínimo 6 h de anticipación; una reserva activa por teléfono y asesor; slot pasado rechazado.';

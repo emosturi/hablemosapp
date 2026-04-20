@@ -92,8 +92,9 @@
       </div>
       <h1>Agendar llamada telefónica</h1>
       <p class="sub">
-        Elija un horario disponible. Le pediremos sus datos para confirmar la reserva. Con el mismo teléfono solo puede haber
-        <strong>una reserva a la vez</strong> con este asesor (hasta que pase la hora agendada).
+        Elija un horario disponible (mínimo <strong>6 horas</strong> de anticipación respecto de ahora). Le pediremos sus datos
+        para confirmar. Con el mismo teléfono solo puede haber <strong>una reserva a la vez</strong> con este asesor (hasta que
+        pase la hora agendada).
       </p>
 
       <div id="bannerErr" class="err-banner" style="display: none"></div>
@@ -175,6 +176,8 @@
         var horaCursorZona = null;
         var pickFecha = null;
         var pickHora = null;
+        /** Instantáneo mínimo para reservar (ms), desde el servidor (ahora + 6 h en BD). */
+        var minBookingAtMs = null;
 
         function isoDowFromDateStr(ymd) {
           var p = ymd.split("-");
@@ -227,6 +230,19 @@
           return Number(hr) <= cur;
         }
 
+        /** Inicio de la franja en America/Santiago (Chile continental, UTC−3 fijo). */
+        function slotInstantMsChile(ymd, hr) {
+          var t = Date.parse(ymd + "T" + pad2(hr) + ":00:00-03:00");
+          return isNaN(t) ? null : t;
+        }
+
+        function slotAntelacionInsuficiente(ymd, hr) {
+          if (minBookingAtMs == null || isNaN(minBookingAtMs)) return false;
+          var slotMs = slotInstantMsChile(ymd, hr);
+          if (slotMs == null) return false;
+          return slotMs < minBookingAtMs;
+        }
+
         function addDaysYmd(ymd, days) {
           var p = ymd.split("-");
           var d = new Date(parseInt(p[0], 10), parseInt(p[1], 10) - 1, parseInt(p[2], 10));
@@ -272,6 +288,7 @@
               if (isNaN(hr)) return;
               if (isReserved(ymd, hr)) return;
               if (slotYaPasado(ymd, hr)) return;
+              if (slotAntelacionInsuficiente(ymd, hr)) return;
               slots.push(hr);
             });
             slots.sort(function (a, b) { return a - b; });
@@ -339,6 +356,19 @@
                   ? parseInt(data.hora_cursor_zona, 10)
                   : null;
               if (horaCursorZona != null && isNaN(horaCursorZona)) horaCursorZona = null;
+              minBookingAtMs = null;
+              if (data.min_booking_at != null && data.min_booking_at !== "") {
+                var mb = data.min_booking_at;
+                var parsed =
+                  typeof mb === "string"
+                    ? Date.parse(mb)
+                    : mb instanceof Date
+                      ? mb.getTime()
+                      : typeof mb === "number"
+                        ? mb
+                        : NaN;
+                if (!isNaN(parsed)) minBookingAtMs = parsed;
+              }
               render();
             });
         }
@@ -412,7 +442,9 @@
                   nombre_requerido: "Revise los nombres ingresados.",
                   telefono_requerido: "Ingrese un teléfono con al menos 8 dígitos.",
                   ya_tiene_reserva:
-                    "Este teléfono ya tiene una llamada agendada con este asesor. Espere a que pase esa hora o use otro número."
+                    "Este teléfono ya tiene una llamada agendada con este asesor. Espere a que pase esa hora o use otro número.",
+                  anticipacion_insuficiente:
+                    "Debe elegir un horario con al menos 6 horas de anticipación. Seleccione una franja más adelante."
                 };
                 dlgStatus.textContent = map[code] || "No se pudo completar la reserva.";
                 return;
