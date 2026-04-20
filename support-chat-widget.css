@@ -28,19 +28,21 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #00696c 0%, #009391 70%, #00dfc3 160%);
+  /* Mismo tono que el avatar / marca Prevy (--primary-mid en app-shell.css) */
+  background: var(--primary-mid, #019391);
   color: #fff;
-  box-shadow: 0 6px 24px rgba(0, 96, 108, 0.45);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 6px 24px color-mix(in srgb, var(--primary-mid, #019391) 42%, transparent);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
 }
 
 .prevy-chat-bubble:hover {
   transform: scale(1.05);
-  box-shadow: 0 8px 28px rgba(0, 96, 108, 0.5);
+  background: var(--primary-hover, #004a52);
+  box-shadow: 0 8px 28px color-mix(in srgb, var(--primary-mid, #019391) 48%, transparent);
 }
 
 .prevy-chat-bubble:focus-visible {
-  outline: 3px solid rgba(0, 147, 145, 0.55);
+  outline: 3px solid color-mix(in srgb, var(--primary-mid, #019391) 55%, transparent);
   outline-offset: 2px;
 }
 
