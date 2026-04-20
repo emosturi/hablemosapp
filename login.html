@@ -1361,6 +1361,16 @@
 
         syncKeepSessionCheckbox();
         setupRegisterPolicyUi();
+        (function openRegisterTabFromReferralLink() {
+          try {
+            var p = new URLSearchParams(window.location.search || "");
+            if (p.get("oauth") === "google") return;
+            if (p.get("reason") === "idle") return;
+            if (p.get("mode") !== "register") return;
+            if (!REGISTRO_ASESORES_HABILITADO) return;
+            showPane("register");
+          } catch (_e) {}
+        })();
       })();
     </script>
     <div id="pwa-install-from-landing" hidden aria-live="polite">

@@ -611,8 +611,8 @@
                 <div class="referral-box" id="referralBox" style="display: none">
                   <h3>Tus enlaces de referidos</h3>
                   <p class="referral-hint" style="margin-top: 0">
-                    Puedes tener hasta <strong>3 enlaces activos</strong> a la vez (por ejemplo para campañas distintas). Cada uno usa un código único en
-                    <code style="font-size: 11px">login.html?ref=</code>. Cuando un asesor se registre con uno de tus enlaces y pague su
+                    Puedes tener hasta <strong>3 enlaces activos</strong> a la vez (por ejemplo para campañas distintas). Cada uno abre el <strong>registro</strong> de nuevo asesor con
+                    <code style="font-size: 11px">login.html?ref=…&amp;mode=register</code>. Cuando un asesor se registre con uno de tus enlaces y pague su
                     <strong>primera</strong> suscripción, recibes <strong>15% de descuento</strong> en el mismo tipo de plan (mensual o anual), con tope
                     <strong>45%</strong> (3×15%) por tipo de plan.
                   </p>
@@ -802,7 +802,12 @@
         }
 
         function referralUrlForCode(code) {
-          return window.location.origin + "/login.html?ref=" + encodeURIComponent(code);
+          return (
+            window.location.origin +
+            "/login.html?ref=" +
+            encodeURIComponent(code) +
+            "&mode=register"
+          );
         }
 
         function renderReferralLinksList(links) {
