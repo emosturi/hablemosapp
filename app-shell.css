@@ -737,6 +737,12 @@ html[data-theme="dark"] .user-menu-theme-icon .theme-icon-sun {
     overflow: hidden;
   }
 
+  /* Hijos directos de .main: fuera del flujo flex (no insertan hueco entre topbar y .content) */
+  .main > .menu-mobile-dd,
+  .main > .user-menu-dd {
+    flex: none;
+  }
+
   .menu-mobile-dd {
     display: flex;
     flex-direction: column;

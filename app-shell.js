@@ -109,7 +109,30 @@
     }
   }
 
+  /** Evita que `transform` en .topbar encierre `position:fixed` solo en la barra. */
+  function relocateShellDrawersBelowTopbar() {
+    var main = document.querySelector(".layout > .main");
+    if (!main || main.dataset.shellDrawersReparented === "1") return;
+    var topbar = main.querySelector(":scope > header.topbar");
+    if (!topbar) return;
+    var navDd = qs("menuMobileDd");
+    var userDd = qs("userMenuDd");
+    if (!navDd && !userDd) return;
+
+    if (navDd) {
+      main.insertBefore(navDd, topbar.nextSibling);
+    }
+    if (userDd) {
+      var ref = qs("menuMobileDd");
+      ref = ref && ref.parentElement === main ? ref.nextSibling : topbar.nextSibling;
+      main.insertBefore(userDd, ref);
+    }
+    main.dataset.shellDrawersReparented = "1";
+  }
+
   window.initAppShell = function () {
+    relocateShellDrawersBelowTopbar();
+
     var t = qs("menuMobileTrigger");
     var d = qs("menuMobileDd");
     if (t && d) {
