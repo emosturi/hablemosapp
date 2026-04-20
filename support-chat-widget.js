@@ -21,8 +21,17 @@
     }
   }
 
-  global.prevyInitSupportChat = function (supabase, uid, isOwner, accessToken) {
+  global.prevyInitSupportChat = function (supabase, uid, isOwner, accessToken, options) {
+    options = options || {};
+    var embedRoot = options.embedRoot || null;
+    var embedMode = !!(embedRoot && isOwner);
     if (!supabase || !uid || !accessToken) return;
+    if (options.embedRoot && !isOwner) return;
+
+    var messageLimit =
+      options.messageLimit && Number(options.messageLimit) > 0 ? Number(options.messageLimit) : embedMode ? 500 : 200;
+    var threadLimit =
+      options.threadLimit && Number(options.threadLimit) > 0 ? Number(options.threadLimit) : embedMode ? 200 : 100;
 
     var state = {
       threadId: null,
@@ -30,33 +39,35 @@
       selectedThreadId: null,
       channel: null,
       ownerChannel: null,
-      open: false,
+      open: embedMode,
       unread: 0,
       loading: false,
     };
 
-    var root = document.createElement("div");
-    root.id = "prevySupportChatRoot";
+    var bubbleWrap = null;
+    var badge = null;
+    var bubble = null;
+    if (!embedMode) {
+      bubbleWrap = document.createElement("div");
+      bubbleWrap.className = "prevy-chat-pointer";
+      bubbleWrap.style.cssText = "position:relative;pointer-events:auto;";
 
-    var bubbleWrap = document.createElement("div");
-    bubbleWrap.className = "prevy-chat-pointer";
-    bubbleWrap.style.cssText = "position:relative;pointer-events:auto;";
+      badge = document.createElement("span");
+      badge.className = "prevy-chat-badge";
+      badge.setAttribute("data-show", "0");
 
-    var badge = document.createElement("span");
-    badge.className = "prevy-chat-badge";
-    badge.setAttribute("data-show", "0");
-
-    var bubble = document.createElement("button");
-    bubble.type = "button";
-    bubble.className = "prevy-chat-bubble";
-    bubble.setAttribute("aria-label", "Abrir chat de soporte");
-    bubble.innerHTML =
-      '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>';
+      bubble = document.createElement("button");
+      bubble.type = "button";
+      bubble.className = "prevy-chat-bubble";
+      bubble.setAttribute("aria-label", "Abrir chat de soporte");
+      bubble.innerHTML =
+        '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>';
+    }
 
     var panel = document.createElement("div");
-    panel.className = "prevy-chat-wrap prevy-chat-pointer";
-    panel.setAttribute("data-open", "0");
-    panel.setAttribute("role", "dialog");
+    panel.className = "prevy-chat-wrap prevy-chat-pointer" + (embedMode ? " prevy-chat-wrap--embed" : "");
+    panel.setAttribute("data-open", embedMode ? "1" : "0");
+    panel.setAttribute("role", embedMode ? "region" : "dialog");
     panel.setAttribute("aria-label", "Chat de soporte");
 
     var header = document.createElement("div");
@@ -69,6 +80,7 @@
     btnClose.setAttribute("aria-label", "Cerrar chat");
     btnClose.innerHTML =
       '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>';
+    if (embedMode) btnClose.style.display = "none";
     header.appendChild(titleEl);
     header.appendChild(btnClose);
 
@@ -98,7 +110,7 @@
     var compose = document.createElement("div");
     compose.className = "prevy-chat-compose";
     var ta = document.createElement("textarea");
-    ta.rows = 2;
+    ta.rows = embedMode ? 3 : 2;
     ta.placeholder = "Escribe un mensaje…";
     ta.setAttribute("aria-label", "Mensaje");
     var btnSend = document.createElement("button");
@@ -120,13 +132,21 @@
       panel.appendChild(mainCol);
     }
 
-    bubbleWrap.appendChild(badge);
-    bubbleWrap.appendChild(bubble);
-    root.appendChild(panel);
-    root.appendChild(bubbleWrap);
-    document.body.appendChild(root);
+    if (embedMode) {
+      embedRoot.innerHTML = "";
+      embedRoot.appendChild(panel);
+    } else {
+      var root = document.createElement("div");
+      root.id = "prevySupportChatRoot";
+      root.appendChild(panel);
+      bubbleWrap.appendChild(badge);
+      bubbleWrap.appendChild(bubble);
+      root.appendChild(bubbleWrap);
+      document.body.appendChild(root);
+    }
 
     function setOpen(v) {
+      if (embedMode) return;
       state.open = !!v;
       panel.setAttribute("data-open", state.open ? "1" : "0");
       bubble.setAttribute("aria-expanded", state.open ? "true" : "false");
@@ -138,6 +158,7 @@
     }
 
     function bumpUnread() {
+      if (embedMode) return;
       if (state.open) return;
       state.unread += 1;
       badge.textContent = state.unread > 9 ? "9+" : String(state.unread);
@@ -206,7 +227,7 @@
         .select("id, sender_user_id, body, created_at")
         .eq("thread_id", tid)
         .order("created_at", { ascending: true })
-        .limit(200);
+        .limit(messageLimit);
       clearMessages();
       if (res.error) {
         messagesEl.innerHTML = '<div class="prevy-chat-loading">No se pudieron cargar los mensajes.</div>';
@@ -223,11 +244,24 @@
       state.threads.forEach(function (t) {
         var b = document.createElement("button");
         b.type = "button";
-        b.className = "prevy-chat-thread-btn";
+        b.className = "prevy-chat-thread-btn" + (embedMode ? " prevy-chat-thread-btn--embed" : "");
         b.setAttribute("data-active", t.id === state.selectedThreadId ? "1" : "0");
         var label = t.advisor_email || t.advisor_user_id || "Asesor";
-        b.textContent = label.length > 40 ? label.slice(0, 37) + "…" : label;
+        var shortLabel = label.length > 48 ? label.slice(0, 45) + "…" : label;
         b.title = label;
+        if (embedMode) {
+          var uidShort = (t.advisor_user_id || "").slice(0, 8);
+          var sub = (uidShort ? uidShort + "…" : "—") + (t.updated_at ? " · " + fmtTime(t.updated_at) : "");
+          b.innerHTML =
+            '<span class="prevy-chat-thread-primary">' +
+            esc(shortLabel) +
+            "</span>" +
+            '<span class="prevy-chat-thread-sub">' +
+            esc(sub) +
+            "</span>";
+        } else {
+          b.textContent = label.length > 40 ? label.slice(0, 37) + "…" : label;
+        }
         b.addEventListener("click", function () {
           state.selectedThreadId = t.id;
           state.threadId = t.id;
@@ -243,7 +277,7 @@
         .from("support_chat_threads")
         .select("id, advisor_user_id, advisor_email, updated_at")
         .order("updated_at", { ascending: false })
-        .limit(100);
+        .limit(threadLimit);
       if (res.error) return;
       state.threads = res.data || [];
       renderOwnerThreadList();
@@ -350,12 +384,16 @@
       if (isOwner) loadOwnerThreads();
     }
 
-    bubble.addEventListener("click", function () {
-      setOpen(!state.open);
-    });
-    btnClose.addEventListener("click", function () {
-      setOpen(false);
-    });
+    if (!embedMode && bubble) {
+      bubble.addEventListener("click", function () {
+        setOpen(!state.open);
+      });
+    }
+    if (!embedMode) {
+      btnClose.addEventListener("click", function () {
+        setOpen(false);
+      });
+    }
     btnSend.addEventListener("click", send);
     ta.addEventListener("keydown", function (e) {
       if (e.key === "Enter" && !e.shiftKey) {
@@ -364,13 +402,15 @@
       }
     });
 
-    function checkHash() {
-      if ((global.location.hash || "").replace(/^#/, "") === "prevy-support-chat") {
-        setOpen(true);
+    if (!embedMode) {
+      function checkHash() {
+        if ((global.location.hash || "").replace(/^#/, "") === "prevy-support-chat") {
+          setOpen(true);
+        }
       }
+      global.addEventListener("hashchange", checkHash);
+      checkHash();
     }
-    global.addEventListener("hashchange", checkHash);
-    checkHash();
 
     bootstrap();
   };

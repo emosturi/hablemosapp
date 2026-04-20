@@ -5,9 +5,46 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Panel owner — Prevy</title>
     <link rel="stylesheet" href="app-shell.css" />
+    <link rel="stylesheet" href="support-chat-widget.css" />
     <script src="theme-init.js"></script>
     <style>
       .page { max-width: 1150px; margin: 0 auto; }
+      .page.owner-page--chat-tab { max-width: min(1420px, 100%); }
+      .owner-panel-tabs {
+        display: none;
+        flex-wrap: wrap;
+        gap: 4px;
+        margin: 0 0 16px;
+        padding: 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .owner-panel-tabs__btn {
+        margin: 0;
+        padding: 10px 16px;
+        font: inherit;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        border: none;
+        border-bottom: 2px solid transparent;
+        margin-bottom: -1px;
+        background: transparent;
+        color: var(--muted);
+        border-radius: 8px 8px 0 0;
+      }
+      .owner-panel-tabs__btn:hover {
+        color: var(--text);
+        background: color-mix(in srgb, var(--primary-mid) 8%, transparent);
+      }
+      .owner-panel-tabs__btn--active {
+        color: var(--primary);
+        font-weight: 600;
+        border-bottom-color: var(--primary-mid);
+      }
+      .owner-panel-tabs__btn:focus-visible {
+        outline: 2px solid var(--primary-mid);
+        outline-offset: 2px;
+      }
       .panel { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px; }
       h1 { margin: 0 0 8px; }
       .sub { margin: 0 0 16px; color: var(--muted); }
@@ -100,78 +137,96 @@
           </div>
         </header>
         <div class="content">
-          <div class="page">
+          <div class="page" id="ownerPanelPage">
             <h1>Panel owner</h1>
-            <p class="sub">Administra cuentas de asesores y suscripciones desde una sola vista.</p>
-            <div class="panel">
-              <div class="tools">
-                <input type="search" id="advisorSearch" placeholder="Buscar por email o teléfono…" autocomplete="off" />
-              </div>
-              <div id="msg" class="msg">Cargando usuarios…</div>
-              <div style="overflow:auto; margin-top:10px;">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Email</th>
-                      <th>Teléfono</th>
-                      <th>Cuenta</th>
-                      <th>Telegram rec.</th>
-                      <th>Plan</th>
-                      <th>Estado</th>
-                      <th>Periodo fin</th>
-                      <th>Mora hasta</th>
-                      <th>Bypass suscripción</th>
-                      <th title="Solo plan anual; no se resetea al pagar">% dto. anual acordado</th>
-                      <th>Chat ID Telegram</th>
-                      <th>TG guardado</th>
-                      <th>Acción</th>
-                    </tr>
-                  </thead>
-                  <tbody id="rows"></tbody>
-                </table>
-              </div>
+            <p class="sub" id="ownerPanelSub">
+              Administra cuentas de asesores, tickets y el chat de soporte. Cualquier cuenta en <code>platform_owners</code> ve estas pestañas.
+            </p>
+            <div class="owner-panel-tabs" id="ownerTabs" role="tablist" aria-label="Secciones del panel">
+              <button type="button" class="owner-panel-tabs__btn owner-panel-tabs__btn--active" role="tab" id="ownerTabMain" aria-selected="true" aria-controls="ownerViewMain">
+                Cuentas y tickets
+              </button>
+              <button type="button" class="owner-panel-tabs__btn" role="tab" id="ownerTabChat" aria-selected="false" aria-controls="ownerViewChat">
+                Chat soporte
+              </button>
             </div>
-            <div class="panel" style="margin-top: 16px;">
-              <h2 style="margin:0 0 8px;">Exportar Telegram → Netlify</h2>
-              <p class="sub" style="margin:0 0 12px; max-width: 900px; line-height: 1.45;">
-                Los asesores cargan su chat ID en
-                <a href="configuracion-telegram.html" target="_blank" rel="noopener noreferrer">Configuración de Telegram</a>.
-                El JSON <strong>une</strong> lo que ya tengas en <code style="font-size:12px">TELEGRAM_CHAT_BY_PHONE_JSON</code> en Netlify con los chat ID guardados en la app (Configuración Telegram). Los datos de la app añaden asesores nuevos y, si el teléfono ya existía, actualizan el chat ID.
-                Pégalo como nuevo valor de la variable en Netlify.
-              </p>
-              <div class="tools">
-                <button type="button" class="btn" id="btnExportTgJson">Generar JSON actualizado</button>
-                <span id="exportTgMsg" class="msg" style="margin:0"></span>
+            <div id="ownerViewMain" class="owner-panel-view" role="tabpanel" aria-labelledby="ownerTabMain">
+              <div class="panel">
+                <div class="tools">
+                  <input type="search" id="advisorSearch" placeholder="Buscar por email o teléfono…" autocomplete="off" />
+                </div>
+                <div id="msg" class="msg">Cargando usuarios…</div>
+                <div style="overflow:auto; margin-top:10px;">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Email</th>
+                        <th>Teléfono</th>
+                        <th>Cuenta</th>
+                        <th>Telegram rec.</th>
+                        <th>Plan</th>
+                        <th>Estado</th>
+                        <th>Periodo fin</th>
+                        <th>Mora hasta</th>
+                        <th>Bypass suscripción</th>
+                        <th title="Solo plan anual; no se resetea al pagar">% dto. anual acordado</th>
+                        <th>Chat ID Telegram</th>
+                        <th>TG guardado</th>
+                        <th>Acción</th>
+                      </tr>
+                    </thead>
+                    <tbody id="rows"></tbody>
+                  </table>
+                </div>
               </div>
-              <div id="exportTgWrap" style="display:none; margin-top: 12px;">
-                <label for="exportTgTa" style="display:block; font-size: 13px; margin-bottom: 6px; color: var(--muted);"
-                  >Copia el contenido del recuadro y pégalo como valor de <code>TELEGRAM_CHAT_BY_PHONE_JSON</code>.</label
-                >
-                <textarea id="exportTgTa" readonly rows="10" spellcheck="false"></textarea>
-                <div style="margin-top: 8px;">
-                  <button type="button" class="btn" id="btnCopyTgJson">Copiar al portapapeles</button>
+              <div class="panel" style="margin-top: 16px;">
+                <h2 style="margin:0 0 8px;">Exportar Telegram → Netlify</h2>
+                <p class="sub" style="margin:0 0 12px; max-width: 900px; line-height: 1.45;">
+                  Los asesores cargan su chat ID en
+                  <a href="configuracion-telegram.html" target="_blank" rel="noopener noreferrer">Configuración de Telegram</a>.
+                  El JSON <strong>une</strong> lo que ya tengas en <code style="font-size:12px">TELEGRAM_CHAT_BY_PHONE_JSON</code> en Netlify con los chat ID guardados en la app (Configuración Telegram). Los datos de la app añaden asesores nuevos y, si el teléfono ya existía, actualizan el chat ID.
+                  Pégalo como nuevo valor de la variable en Netlify.
+                </p>
+                <div class="tools">
+                  <button type="button" class="btn" id="btnExportTgJson">Generar JSON actualizado</button>
+                  <span id="exportTgMsg" class="msg" style="margin:0"></span>
+                </div>
+                <div id="exportTgWrap" style="display:none; margin-top: 12px;">
+                  <label for="exportTgTa" style="display:block; font-size: 13px; margin-bottom: 6px; color: var(--muted);"
+                    >Copia el contenido del recuadro y pégalo como valor de <code>TELEGRAM_CHAT_BY_PHONE_JSON</code>.</label
+                  >
+                  <textarea id="exportTgTa" readonly rows="10" spellcheck="false"></textarea>
+                  <div style="margin-top: 8px;">
+                    <button type="button" class="btn" id="btnCopyTgJson">Copiar al portapapeles</button>
+                  </div>
+                </div>
+              </div>
+              <div class="panel" style="margin-top: 16px;">
+                <h2 style="margin:0 0 10px;">Tickets de soporte</h2>
+                <div class="msg" id="ticketMsg">Cargando tickets…</div>
+                <div style="overflow:auto; margin-top:10px;">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Fecha</th>
+                        <th>Asesor</th>
+                        <th>Asunto</th>
+                        <th>Detalle</th>
+                        <th>Estado</th>
+                        <th>Nota owner</th>
+                        <th>Acción</th>
+                      </tr>
+                    </thead>
+                    <tbody id="ticketRows"></tbody>
+                  </table>
                 </div>
               </div>
             </div>
-            <div class="panel" style="margin-top: 16px;">
-              <h2 style="margin:0 0 10px;">Tickets de soporte</h2>
-              <div class="msg" id="ticketMsg">Cargando tickets…</div>
-              <div style="overflow:auto; margin-top:10px;">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Fecha</th>
-                      <th>Asesor</th>
-                      <th>Asunto</th>
-                      <th>Detalle</th>
-                      <th>Estado</th>
-                      <th>Nota owner</th>
-                      <th>Acción</th>
-                    </tr>
-                  </thead>
-                  <tbody id="ticketRows"></tbody>
-                </table>
-              </div>
+            <div id="ownerViewChat" class="owner-panel-view" role="tabpanel" aria-labelledby="ownerTabChat" hidden>
+              <p class="sub" style="margin: 0 0 12px; max-width: 900px; line-height: 1.45;">
+                Hilos por asesor; mensajes en tiempo real. El globo flotante no se muestra en esta página: usa esta vista para más espacio.
+              </p>
+              <div id="prevyOwnerChatMount" class="prevy-owner-chat-mount"></div>
             </div>
           </div>
         </div>
@@ -180,16 +235,62 @@
     <script src="supabase-config.js"></script>
     <script src="app-shell.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="support-chat-widget.js"></script>
     <script>
       (function () {
         if (typeof window.initAppShell === "function") window.initAppShell();
         if (typeof window.initAppShellSearch === "function") window.initAppShellSearch();
+        var ownerPanelPage = document.getElementById("ownerPanelPage");
+        var ownerPanelSub = document.getElementById("ownerPanelSub");
+        var ownerTabs = document.getElementById("ownerTabs");
+        var ownerTabMain = document.getElementById("ownerTabMain");
+        var ownerTabChat = document.getElementById("ownerTabChat");
+        var ownerViewMain = document.getElementById("ownerViewMain");
+        var ownerViewChat = document.getElementById("ownerViewChat");
+        var prevyOwnerChatMount = document.getElementById("prevyOwnerChatMount");
+        var ownerChatEmbedStarted = false;
+        var subMainHtml =
+          'Administra cuentas de asesores, tickets y el chat de soporte. Cualquier cuenta en <code>platform_owners</code> ve estas pestañas.';
+        var subChatHtml =
+          "Chat en vivo con asesores. Lista ampliada a la izquierda; selecciona un hilo para leer y responder.";
+        var sb = window.createPrevySupabaseClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+
+        function showOwnerTab(which) {
+          var isChat = which === "chat";
+          if (ownerTabMain && ownerTabChat) {
+            ownerTabMain.classList.toggle("owner-panel-tabs__btn--active", !isChat);
+            ownerTabMain.setAttribute("aria-selected", !isChat ? "true" : "false");
+            ownerTabChat.classList.toggle("owner-panel-tabs__btn--active", isChat);
+            ownerTabChat.setAttribute("aria-selected", isChat ? "true" : "false");
+          }
+          if (ownerViewMain) ownerViewMain.hidden = isChat;
+          if (ownerViewChat) ownerViewChat.hidden = !isChat;
+          if (ownerPanelPage) ownerPanelPage.classList.toggle("owner-page--chat-tab", isChat);
+          if (ownerPanelSub) ownerPanelSub.innerHTML = isChat ? subChatHtml : subMainHtml;
+          if (isChat) ensureOwnerChatEmbed();
+        }
+
+        function ensureOwnerChatEmbed() {
+          if (ownerChatEmbedStarted || !prevyOwnerChatMount) return;
+          sb.auth.getSession().then(function (r) {
+            var sess = r && r.data && r.data.session;
+            if (!sess || typeof window.prevyInitSupportChat !== "function") return;
+            ownerChatEmbedStarted = true;
+            window.prevyInitSupportChat(sb, sess.user.id, true, sess.access_token, { embedRoot: prevyOwnerChatMount });
+          });
+        }
+
+        function maybeOpenChatFromHash() {
+          if ((window.location.hash || "").replace(/^#/, "") !== "prevy-support-chat") return;
+          if (!ownerTabs || ownerTabs.style.display === "none") return;
+          showOwnerTab("chat");
+        }
+
         var msg = document.getElementById("msg");
         var rows = document.getElementById("rows");
         var ticketRows = document.getElementById("ticketRows");
         var ticketMsg = document.getElementById("ticketMsg");
         var advisorSearch = document.getElementById("advisorSearch");
-        var sb = window.createPrevySupabaseClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
         if (typeof window.wireAppShellLogout === "function") window.wireAppShellLogout(sb);
         var allAdvisors = [];
 
@@ -450,8 +551,30 @@
           }
           if (typeof window.applyAppShellUser === "function") window.applyAppShellUser(r.data.session.user);
           if (typeof window.setAppShellGuest === "function") window.setAppShellGuest(false);
-          load();
-          loadTickets();
+          var uid = r.data.session.user.id;
+          sb.from("platform_owners")
+            .select("user_id")
+            .eq("user_id", uid)
+            .maybeSingle()
+            .then(function (po) {
+              var isOwner = !!(po && !po.error && po.data && po.data.user_id);
+              if (isOwner && ownerTabs && ownerTabMain && ownerTabChat) {
+                ownerTabs.style.display = "flex";
+                ownerTabMain.addEventListener("click", function () {
+                  showOwnerTab("main");
+                });
+                ownerTabChat.addEventListener("click", function () {
+                  showOwnerTab("chat");
+                });
+                window.addEventListener("hashchange", maybeOpenChatFromHash);
+                maybeOpenChatFromHash();
+              }
+            })
+            .catch(function () {})
+            .then(function () {
+              load();
+              loadTickets();
+            });
         });
       })();
     </script>

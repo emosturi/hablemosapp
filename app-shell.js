@@ -173,6 +173,7 @@
     file = (file || "").split("?")[0].toLowerCase();
     pathname = pathname || "";
     if (file === "login.html") return false;
+    if (file === "admin-panel.html") return false;
     if (pathname.indexOf("/www/") !== -1) return false;
     if (pathname.indexOf("/prevy-landing/") !== -1) return false;
     return true;

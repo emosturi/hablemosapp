@@ -303,3 +303,88 @@ html[data-theme="dark"] .prevy-chat-bubble {
 html[data-theme="dark"] .prevy-chat-badge {
   border-color: #1e293b;
 }
+
+/* Incrustado en panel owner (admin-panel): más espacio para lista y mensajes */
+.prevy-owner-chat-mount {
+  width: 100%;
+  min-height: 200px;
+}
+
+.prevy-chat-wrap--embed {
+  position: relative;
+  right: auto;
+  bottom: auto;
+  width: 100%;
+  max-width: none;
+  min-height: min(520px, 70vh);
+  max-height: min(820px, calc(100vh - 220px));
+  display: flex !important;
+  flex-direction: column;
+  box-shadow: var(--shadow, 0 4px 24px rgba(0, 96, 108, 0.1));
+}
+
+.prevy-chat-wrap--embed .prevy-chat-owner-layout {
+  flex: 1;
+  min-height: 360px;
+}
+
+.prevy-chat-wrap--embed .prevy-chat-thread-list {
+  width: min(320px, 36vw);
+  min-width: 220px;
+  max-width: 400px;
+}
+
+.prevy-chat-wrap--embed .prevy-chat-thread-btn--embed {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 12px 10px;
+  text-align: left;
+  font-size: 13px;
+  line-height: 1.3;
+}
+
+.prevy-chat-wrap--embed .prevy-chat-thread-primary {
+  font-weight: 600;
+  word-break: break-word;
+}
+
+.prevy-chat-wrap--embed .prevy-chat-thread-sub {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--muted, #64748b);
+  line-height: 1.25;
+}
+
+.prevy-chat-wrap--embed .prevy-chat-messages {
+  flex: 1;
+  min-height: 280px;
+}
+
+.prevy-chat-wrap--embed .prevy-chat-msg {
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+@media (max-width: 720px) {
+  .prevy-chat-wrap--embed .prevy-chat-owner-layout {
+    flex-direction: column;
+    min-height: 0;
+  }
+  .prevy-chat-wrap--embed .prevy-chat-thread-list {
+    width: 100%;
+    max-width: none;
+    max-height: 140px;
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+  .prevy-chat-wrap--embed .prevy-chat-thread-btn--embed {
+    flex: 0 0 auto;
+    min-width: 160px;
+    border-bottom: none;
+    border-right: 1px solid var(--border, #e2e8f0);
+  }
+}
