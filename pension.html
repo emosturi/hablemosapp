@@ -1901,7 +1901,8 @@
                   "table{page-break-inside:auto;}" +
                   "tr,thead,tfoot{page-break-inside:avoid!important;break-inside:avoid!important;-webkit-column-break-inside:avoid;}" +
                   "h1,h2,h3,h4{page-break-after:avoid!important;break-after:avoid!important;}" +
-                  /* Solo la fila de firmas: evitar «avoid-all»+tabla entera que recortaba el PDF con hueco grande de firma */
+                  /* PDF: firmas siempre en página nueva para no partir la tabla entre hojas (test) */
+                  ".tabla-firmas{page-break-before:always!important;break-before:page!important;}" +
                   ".tabla-firmas tr{page-break-inside:avoid!important;break-inside:avoid!important;}" +
                   "p{orphans:3;widows:3;}";
                 head.appendChild(inj);
