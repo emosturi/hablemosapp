@@ -1921,25 +1921,43 @@
                 ? window.devicePixelRatio
                 : 1;
             // Escala mínima ~2 en móvil para impresión/PDF legible; tope para no reventar memoria en teléfonos.
+            // Escritorio: tope más bajo evita canvas enormes y troceado vertical erróneo en html2pdf.
             var scale;
             var jpegQuality;
             if (isMobilePdf) {
               scale = Math.min(3, Math.max(2, dpr * 1.1));
               jpegQuality = 0.96;
             } else {
-              scale = Math.min(4, Math.max(2.5, dpr * 1.2));
+              scale = Math.min(2.85, Math.max(2, dpr * 1.05));
               jpegQuality = 0.97;
             }
 
             const docEl = doc.documentElement;
+            /* Escritorio: iframe con 90vh + scroll hacía que html2canvas midiera mal y el PDF saliera cortado/aplastado. Móvil: sin tocar (ya funciona). */
+            if (!isMobilePdf) {
+              try {
+                iframe.style.maxHeight = "none";
+                iframe.style.height = "16000px";
+                iframe.style.overflow = "hidden";
+                void iframe.offsetHeight;
+              } catch (_iz) {}
+            }
+
             const bodyH = Math.max(
               body.scrollHeight || 0,
               body.offsetHeight || 0,
               docEl ? docEl.scrollHeight || 0 : 0,
               docEl ? docEl.offsetHeight || 0 : 0
             );
-            const win = iframe.contentWindow;
-            const winW = win && win.innerWidth ? win.innerWidth : 794;
+            if (!isMobilePdf) {
+              try {
+                var fitH = Math.min(Math.max(bodyH + 120, 720), 32000);
+                iframe.style.height = fitH + "px";
+                void iframe.offsetHeight;
+                var iwin = iframe.contentWindow;
+                if (iwin) iwin.scrollTo(0, 0);
+              } catch (_iz2) {}
+            }
 
             /* html2pdf: [top, left, bottom, right] en mm (jsPDF unit). Más aire sin recortar: el motor reparte en más páginas. */
             const pdfMarginMm = [16, 14, 18, 14];
@@ -1956,8 +1974,6 @@
                 backgroundColor: "#ffffff",
                 scrollX: 0,
                 scrollY: 0,
-                windowWidth: winW,
-                windowHeight: bodyH > 0 ? bodyH : undefined,
                 onclone: function (clonedDoc) {
                   try {
                     var cHead = clonedDoc.head;
@@ -2000,7 +2016,7 @@
           iframe.onload = function () {
             requestAnimationFrame(function () {
               requestAnimationFrame(function () {
-                setTimeout(runPdf, isIOS ? 400 : isMobilePdf ? 250 : 120);
+                setTimeout(runPdf, isIOS ? 400 : isMobilePdf ? 250 : 320);
               });
             });
           };
