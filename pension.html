@@ -1901,9 +1901,10 @@
                   "table{page-break-inside:auto;}" +
                   "tr,thead,tfoot{page-break-inside:avoid!important;break-inside:avoid!important;-webkit-column-break-inside:avoid;}" +
                   "h1,h2,h3,h4{page-break-after:avoid!important;break-after:avoid!important;}" +
-                  /* PDF: firmas siempre en página nueva para no partir la tabla entre hojas (test) */
-                  ".tabla-firmas{page-break-before:always!important;break-before:page!important;}" +
+                  /* Solo mandatos: salto antes de firmas. En el contrato forzaba cortes erróneos con html2pdf. */
+                  ".tabla-firmas.tabla-firmas--mandato-pdf{page-break-before:always!important;break-before:page!important;}" +
                   ".tabla-firmas tr{page-break-inside:avoid!important;break-inside:avoid!important;}" +
+                  ".tabla-firmas{page-break-inside:avoid!important;break-inside:avoid!important;}" +
                   "p{orphans:3;widows:3;}";
                 head.appendChild(inj);
               }
@@ -2678,7 +2679,7 @@
 
         <br><br><br><br><br><br>
 
-        <table class="tabla-firmas" border="0" cellpadding="0" cellspacing="0" style="margin-top:40px;width:100%;">
+        <table class="tabla-firmas tabla-firmas--mandato-pdf" border="0" cellpadding="0" cellspacing="0" style="margin-top:40px;width:100%;">
         <tr>
         <td>
         <p>______________________________</p>
@@ -2808,7 +2809,7 @@
 
         <br><br><br><br><br><br>
 
-        <table class="tabla-firmas" border="0" cellpadding="0" cellspacing="0" style="margin-top:40px;width:100%;">
+        <table class="tabla-firmas tabla-firmas--mandato-pdf" border="0" cellpadding="0" cellspacing="0" style="margin-top:40px;width:100%;">
         <tr>
         <td>
         <p>______________________________</p>
