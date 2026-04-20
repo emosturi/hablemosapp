@@ -168,6 +168,36 @@
     if (layout) layout.classList.toggle("is-guest", !!isGuest);
   };
 
+  /** Chat soporte: no login ni landings /www ni /prevy-landing/ */
+  function prevyShouldShowSupportChatShell(file, pathname) {
+    file = (file || "").split("?")[0].toLowerCase();
+    pathname = pathname || "";
+    if (file === "login.html") return false;
+    if (pathname.indexOf("/www/") !== -1) return false;
+    if (pathname.indexOf("/prevy-landing/") !== -1) return false;
+    return true;
+  }
+
+  function prevyLoadSupportChatOnce(supabase, uid, isOwner, accessToken, file) {
+    if (!prevyShouldShowSupportChatShell(file, window.location.pathname || "")) return;
+    if (!uid || !accessToken) return;
+    if (window.prevySupportChatBootstrapped) return;
+    window.prevySupportChatBootstrapped = true;
+    var link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = "support-chat-widget.css";
+    document.head.appendChild(link);
+    var s = document.createElement("script");
+    s.src = "support-chat-widget.js";
+    s.async = true;
+    s.onload = function () {
+      if (typeof window.prevyInitSupportChat === "function") {
+        window.prevyInitSupportChat(supabase, uid, !!isOwner, accessToken);
+      }
+    };
+    document.body.appendChild(s);
+  }
+
   function removePrevyShellBannerNodes() {
     document.querySelectorAll(".prevy-float-sub-wrap, #prevyTelegramSetupBar").forEach(function (n) {
       if (n && n.parentNode) n.parentNode.removeChild(n);
@@ -478,6 +508,7 @@
       }
 
       var skipAccountGuard = file === "login.html" || file === "cuenta-suspendida.html";
+      var shellIsOwner = false;
 
       supabase
         .from("platform_owners")
@@ -486,6 +517,7 @@
         .maybeSingle()
         .then(function (res) {
           var isOwner = !!(res && !res.error && res.data && res.data.user_id);
+          shellIsOwner = isOwner;
           ensureAdvisorTicketsMenuLink(!isOwner);
           ensureOwnerMenuLink(isOwner);
           ensureAyudaMenuLink(true);
@@ -494,6 +526,7 @@
             clearSubscriptionShellLock();
             clearPrevyShellBannerState();
             finishSubscriptionGuard();
+            prevyLoadSupportChatOnce(supabase, uid, isOwner, token, file);
             return Promise.resolve(null);
           }
 
@@ -525,6 +558,7 @@
             clearSubscriptionShellLock();
             clearPrevyShellBannerState();
             finishSubscriptionGuard();
+            prevyLoadSupportChatOnce(supabase, uid, shellIsOwner, token, file);
             return;
           }
 
@@ -542,6 +576,7 @@
           }
           renderPrevyShellBanners(file, j);
           finishSubscriptionGuard();
+          prevyLoadSupportChatOnce(supabase, uid, shellIsOwner, token, file);
         })
         .catch(function () {
           ensureOwnerMenuLink(false);
@@ -549,6 +584,7 @@
           clearSubscriptionShellLock();
           clearPrevyShellBannerState();
           finishSubscriptionGuard();
+          prevyLoadSupportChatOnce(supabase, uid, shellIsOwner, token, file);
         });
     });
 

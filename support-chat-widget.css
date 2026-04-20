@@ -1,0 +1,303 @@
+/* Chat soporte flotante (cargado desde app-shell) */
+#prevySupportChatRoot {
+  position: fixed;
+  z-index: 99990;
+  bottom: max(18px, env(safe-area-inset-bottom, 0px));
+  right: max(18px, env(safe-area-inset-right, 0px));
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, sans-serif;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--text, #0f172a);
+  pointer-events: none;
+}
+
+#prevySupportChatRoot * {
+  box-sizing: border-box;
+}
+
+#prevySupportChatRoot .prevy-chat-pointer {
+  pointer-events: auto;
+}
+
+.prevy-chat-bubble {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #00696c 0%, #009391 70%, #00dfc3 160%);
+  color: #fff;
+  box-shadow: 0 6px 24px rgba(0, 96, 108, 0.45);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.prevy-chat-bubble:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 28px rgba(0, 96, 108, 0.5);
+}
+
+.prevy-chat-bubble:focus-visible {
+  outline: 3px solid rgba(0, 147, 145, 0.55);
+  outline-offset: 2px;
+}
+
+.prevy-chat-bubble svg {
+  width: 26px;
+  height: 26px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.prevy-chat-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #dc2626;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 20px;
+  text-align: center;
+  border: 2px solid #fff;
+  display: none;
+}
+
+.prevy-chat-badge[data-show="1"] {
+  display: block;
+}
+
+.prevy-chat-wrap {
+  position: absolute;
+  right: 0;
+  bottom: 68px;
+  width: min(380px, calc(100vw - 36px));
+  max-height: min(520px, 70vh);
+  display: none;
+  flex-direction: column;
+  background: var(--card, #fff);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 16px;
+  box-shadow: 0 16px 48px rgba(15, 23, 42, 0.18);
+  overflow: hidden;
+}
+
+.prevy-chat-wrap[data-open="1"] {
+  display: flex;
+}
+
+.prevy-chat-header {
+  flex-shrink: 0;
+  padding: 12px 14px;
+  background: color-mix(in oklab, #00696c 9%, var(--card, #fff));
+  border-bottom: 1px solid var(--border, #e2e8f0);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.prevy-chat-header h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.prevy-chat-close {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 8px;
+  color: var(--muted, #64748b);
+  line-height: 0;
+}
+
+.prevy-chat-close:hover {
+  background: rgba(0, 96, 108, 0.08);
+  color: var(--text, #0f172a);
+}
+
+.prevy-chat-owner-layout {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.prevy-chat-thread-list {
+  width: 132px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--border, #e2e8f0);
+  overflow-y: auto;
+  background: var(--surface, #f8fafc);
+}
+
+.prevy-chat-thread-btn {
+  display: block;
+  width: 100%;
+  padding: 10px 8px;
+  border: none;
+  border-bottom: 1px solid var(--border, #e2e8f0);
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  font-size: 11px;
+  line-height: 1.3;
+  color: var(--text, #0f172a);
+}
+
+.prevy-chat-thread-btn:hover {
+  background: rgba(0, 96, 108, 0.06);
+}
+
+.prevy-chat-thread-btn[data-active="1"] {
+  background: color-mix(in oklab, #00696c 12%, transparent);
+  font-weight: 600;
+}
+
+.prevy-chat-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.prevy-chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--surface, #f8fafc);
+}
+
+.prevy-chat-msg {
+  max-width: 92%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.prevy-chat-msg--me {
+  align-self: flex-end;
+  background: linear-gradient(135deg, #00696c 0%, #009391 100%);
+  color: #fff;
+}
+
+.prevy-chat-msg--them {
+  align-self: flex-start;
+  background: var(--card, #fff);
+  border: 1px solid var(--border, #e2e8f0);
+}
+
+.prevy-chat-msg-meta {
+  font-size: 10px;
+  opacity: 0.75;
+  margin-top: 4px;
+}
+
+.prevy-chat-compose {
+  flex-shrink: 0;
+  padding: 10px;
+  border-top: 1px solid var(--border, #e2e8f0);
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  background: var(--card, #fff);
+}
+
+.prevy-chat-compose textarea {
+  flex: 1;
+  min-height: 44px;
+  max-height: 120px;
+  resize: none;
+  padding: 10px 12px;
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 14px;
+  background: var(--surface, #f8fafc);
+  color: var(--text, #0f172a);
+}
+
+.prevy-chat-compose textarea:focus {
+  outline: none;
+  border-color: #009391;
+  box-shadow: 0 0 0 3px rgba(0, 147, 145, 0.2);
+}
+
+.prevy-chat-send {
+  flex-shrink: 0;
+  padding: 10px 14px;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  background: linear-gradient(135deg, #00696c 0%, #009391 100%);
+  color: #fff;
+}
+
+.prevy-chat-send:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.prevy-chat-hint {
+  padding: 8px 12px;
+  font-size: 12px;
+  color: var(--muted, #64748b);
+  border-top: 1px solid var(--border, #e2e8f0);
+  background: var(--card, #fff);
+}
+
+.prevy-chat-loading {
+  padding: 24px;
+  text-align: center;
+  color: var(--muted, #64748b);
+  font-size: 13px;
+}
+
+@media (max-width: 520px) {
+  .prevy-chat-owner-layout {
+    flex-direction: column;
+  }
+  .prevy-chat-thread-list {
+    width: 100%;
+    max-height: 100px;
+    border-right: none;
+    border-bottom: 1px solid var(--border, #e2e8f0);
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+  .prevy-chat-thread-btn {
+    flex: 0 0 auto;
+    min-width: 120px;
+    border-bottom: none;
+    border-right: 1px solid var(--border, #e2e8f0);
+  }
+}
+
+html[data-theme="dark"] .prevy-chat-bubble {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+html[data-theme="dark"] .prevy-chat-badge {
+  border-color: #1e293b;
+}
