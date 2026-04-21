@@ -1822,15 +1822,27 @@
        * html2canvas suele ignorar text-align:justify si solo viene en hojas del documento original.
        * Reglas !important + repetición en el clon (onclone) alinean el PDF con Word/HTML.
        */
-      /* Ancho de rasterización fijo en px (coincide con lo que html2pdf pondrá en A4 portrait). Evita recorte a la derecha y hace previsible el troceado por páginas. */
+      /* Ancho de rasterización fijo: A4 portrait a 96 dpi = 794 px. html2pdf lo escala a 210 mm. */
       const PDF_RENDER_WIDTH_PX = 794;
+      /* Padding interno equivalente al antiguo margin del body, pero como padding (con box-sizing:border-box) para que el contenido NO se salga del ancho del canvas. */
+      const PDF_BODY_PADDING_TOP_PX = 18;
+      const PDF_BODY_PADDING_RIGHT_PX = 18;
+      const PDF_BODY_PADDING_BOTTOM_PX = 18;
+      const PDF_BODY_PADDING_LEFT_PX = 18;
 
       const PDF_TEXT_JUSTIFY_INJECTION =
+        /* Resetea margin de html y body: el margin externo del body desplazaba el contenido y provocaba recorte derecho cuando width está fijo en 794. */
+        "html,body{margin:0!important;}" +
+        /* Wrapping forzado: cualquier palabra/url larga se parte; nada se sale del ancho del canvas. */
         "html,body{overflow-wrap:anywhere!important;word-wrap:break-word!important;word-break:normal;max-width:100%!important;}" +
-        "body{width:" + PDF_RENDER_WIDTH_PX + "px!important;max-width:" + PDF_RENDER_WIDTH_PX + "px!important;box-sizing:border-box!important;overflow-x:hidden!important;}" +
-        "*{max-width:100%!important;}" +
+        /* Body fija el ancho exacto del canvas, con padding (no margin) para mantener aire visual sin desbordar. */
+        "body{width:" + PDF_RENDER_WIDTH_PX + "px!important;max-width:" + PDF_RENDER_WIDTH_PX + "px!important;" +
+          "padding:" + PDF_BODY_PADDING_TOP_PX + "px " + PDF_BODY_PADDING_RIGHT_PX + "px " + PDF_BODY_PADDING_BOTTOM_PX + "px " + PDF_BODY_PADDING_LEFT_PX + "px!important;" +
+          "box-sizing:border-box!important;overflow-x:hidden!important;}" +
+        "*{max-width:100%!important;box-sizing:border-box;}" +
         "table{table-layout:auto!important;width:100%!important;max-width:100%!important;}" +
         "td,th{word-break:break-word!important;overflow-wrap:anywhere!important;}" +
+        "img,svg,canvas{max-width:100%!important;height:auto!important;}" +
         "body{text-align:justify!important;text-justify:inter-word;-moz-text-align-last:auto;text-align-last:auto;}" +
         "body p,body li{text-align:justify!important;text-justify:inter-word!important;}" +
         ".empleador-datos{text-align:justify!important;}" +
@@ -1859,9 +1871,9 @@
 
           const iframe = document.createElement("iframe");
           iframe.setAttribute("title", "pdf-render");
-          /* Ancho fijo 794px en ambas plataformas; el contenido queda obligado a envolver (word-wrap) y html2canvas captura ese ancho exacto. */
+          /* Iframe oculto detrás del velo, ancho exacto = canvas (794px). El contenido se envuelve dentro y html2canvas captura ese ancho exacto. */
           iframe.style.cssText =
-            "position:fixed;left:0;top:0;width:" + PDF_RENDER_WIDTH_PX + "px;max-width:" + PDF_RENDER_WIDTH_PX + "px;height:90vh;min-height:480px;border:0;z-index:2147483646;background:#fff;box-sizing:border-box;overflow:hidden;-webkit-overflow-scrolling:touch;";
+            "position:fixed;left:0;top:0;width:" + PDF_RENDER_WIDTH_PX + "px;max-width:" + PDF_RENDER_WIDTH_PX + "px;height:90vh;min-height:480px;border:0;z-index:2147483644;background:#fff;box-sizing:border-box;overflow:hidden;-webkit-overflow-scrolling:touch;";
 
           document.body.appendChild(veil);
           document.body.appendChild(iframe);
@@ -1926,43 +1938,43 @@
               typeof window.devicePixelRatio === "number" && window.devicePixelRatio > 0
                 ? window.devicePixelRatio
                 : 1;
-            // Escala mínima ~2 en móvil para impresión/PDF legible; tope para no reventar memoria en teléfonos.
-            // Escritorio: tope más bajo evita canvas enormes y troceado vertical erróneo en html2pdf.
-            var scale;
-            var jpegQuality;
-            if (isMobilePdf) {
-              scale = Math.min(3, Math.max(2, dpr * 1.1));
-              jpegQuality = 0.96;
-            } else {
-              scale = Math.min(2.85, Math.max(2, dpr * 1.05));
-              jpegQuality = 0.97;
-            }
+            /* Escala fija conservadora: 2 en escritorio y móvil. Más alto no mejora visiblemente y rompe el cálculo de páginas en html2pdf cuando el canvas se vuelve enorme. */
+            var scale = isMobilePdf ? Math.min(2.5, Math.max(2, dpr)) : 2;
+            var jpegQuality = isMobilePdf ? 0.95 : 0.97;
 
             const docEl = doc.documentElement;
-            /* Iframe a la altura del documento: 90vh + scroll en móvil/escritorio hacía que html2canvas cortara el pie. Ancho se mantiene en PDF_RENDER_WIDTH_PX; el wrap CSS evita recorte lateral. */
+
+            /* Reflow tras inyecciones: medir el body DESPUÉS de aplicar width:794, padding y reset de margin. */
             try {
               iframe.style.maxHeight = "none";
-              iframe.style.height = "16000px";
-              iframe.style.overflow = "hidden";
+              iframe.style.height = "100px";
               void iframe.offsetHeight;
             } catch (_iz) {}
 
-            const bodyH = Math.max(
-              body.scrollHeight || 0,
-              body.offsetHeight || 0,
-              docEl ? docEl.scrollHeight || 0 : 0,
-              docEl ? docEl.offsetHeight || 0 : 0
-            );
+            /* Cálculo robusto de la altura: usar el mayor entre body/html scrollHeight/offsetHeight tras el reflow. */
+            function medirAltoBody() {
+              return Math.max(
+                body.scrollHeight || 0,
+                body.offsetHeight || 0,
+                docEl ? docEl.scrollHeight || 0 : 0,
+                docEl ? docEl.offsetHeight || 0 : 0
+              );
+            }
+            var bodyH = medirAltoBody();
+            /* Ajustar iframe a la altura del documento + buffer para que html2canvas tenga viewport suficiente y no recorte abajo. */
+            var bufferH = isMobilePdf ? 240 : 160;
+            var fitH = Math.min(Math.max(bodyH + bufferH, 720), 32000);
             try {
-              var slack = isMobilePdf ? 220 : 120;
-              var fitH = Math.min(Math.max(bodyH + slack, 720), 32000);
               iframe.style.height = fitH + "px";
               void iframe.offsetHeight;
               var iwin = iframe.contentWindow;
               if (iwin) iwin.scrollTo(0, 0);
             } catch (_iz2) {}
+            /* Re-medir tras el resize del iframe (puede cambiar layout en móvil). */
+            bodyH = medirAltoBody();
 
-            var pdfMargins = [8, 8, 8, 8];
+            /* Margen del PDF: 10mm uniforme. Reduce el efecto de "casi tocar el borde" sin desperdiciar página. */
+            var pdfMargins = [10, 10, 10, 10];
 
             const opt = {
               margin: pdfMargins,
@@ -1976,9 +1988,12 @@
                 backgroundColor: "#ffffff",
                 scrollX: 0,
                 scrollY: 0,
-                /* windowWidth/width fijos: html2canvas rasteriza a este ancho exacto (sin leer el viewport), evita recorte del costado derecho en escritorio. */
+                /* windowWidth/width fijos: html2canvas rasteriza a este ancho exacto. width = ancho del canvas; windowWidth = viewport CSS para layout. */
                 windowWidth: PDF_RENDER_WIDTH_PX,
                 width: PDF_RENDER_WIDTH_PX,
+                /* windowHeight = altura real del body. Sin esto, html2canvas usa la altura del iframe y puede recortar el pie. */
+                windowHeight: bodyH,
+                height: bodyH,
                 x: 0,
                 y: 0,
                 onclone: function (clonedDoc) {
@@ -1989,14 +2004,22 @@
                     cSt.setAttribute("data-prevy-pdf-justify-clone", "1");
                     cSt.textContent = PDF_TEXT_JUSTIFY_INJECTION;
                     cHead.appendChild(cSt);
+                    /* Asegurar reset también en el clon. */
+                    var cBody = clonedDoc.body;
+                    if (cBody) {
+                      cBody.style.margin = "0";
+                      cBody.style.width = PDF_RENDER_WIDTH_PX + "px";
+                      cBody.style.maxWidth = PDF_RENDER_WIDTH_PX + "px";
+                      cBody.style.boxSizing = "border-box";
+                    }
                   } catch (_e2) {}
                 },
               },
-              jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-              /* avoid explícito: html2pdf no corta párrafos, filas, títulos ni firmas entre páginas. Con CSS + legacy se respetan page-break-* del HTML. */
+              jsPDF: { unit: "mm", format: "a4", orientation: "portrait", compress: true },
+              /* mode: 'css' respeta page-break-inside:avoid del CSS inyectado; 'legacy' reconoce divs con page-break-before. NO usar 'avoid-all' (intentos previos mostraron que recorta los mandatos cuando hay tablas grandes). El 'avoid' explícito basta porque el CSS inyectado ya añade page-break-inside:avoid a p/li/tr/.tabla-firmas. */
               pagebreak: {
                 mode: ["css", "legacy"],
-                avoid: ["p", "li", "tr", "h1", "h2", "h3", "h4", ".tabla-firmas"],
+                avoid: ["p", "li", "tr", "thead", "h1", "h2", "h3", "h4", ".tabla-firmas"],
               },
             };
 
