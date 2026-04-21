@@ -1931,15 +1931,13 @@
             }
 
             const docEl = doc.documentElement;
-            /* Escritorio: iframe con 90vh + scroll hacía que html2canvas midiera mal y el PDF saliera cortado/aplastado. Móvil: sin tocar (ya funciona). */
-            if (!isMobilePdf) {
-              try {
-                iframe.style.maxHeight = "none";
-                iframe.style.height = "16000px";
-                iframe.style.overflow = "hidden";
-                void iframe.offsetHeight;
-              } catch (_iz) {}
-            }
+            /* Iframe a la altura del documento: 90vh + scroll en móvil hacía que html2canvas cortara el pie de página. */
+            try {
+              iframe.style.maxHeight = "none";
+              iframe.style.height = "16000px";
+              iframe.style.overflow = "hidden";
+              void iframe.offsetHeight;
+            } catch (_iz) {}
 
             const bodyH = Math.max(
               body.scrollHeight || 0,
@@ -1947,18 +1945,20 @@
               docEl ? docEl.scrollHeight || 0 : 0,
               docEl ? docEl.offsetHeight || 0 : 0
             );
-            if (!isMobilePdf) {
-              try {
-                var fitH = Math.min(Math.max(bodyH + 120, 720), 32000);
-                iframe.style.height = fitH + "px";
-                void iframe.offsetHeight;
-                var iwin = iframe.contentWindow;
-                if (iwin) iwin.scrollTo(0, 0);
-              } catch (_iz2) {}
-            }
+            try {
+              var slack = isMobilePdf ? 220 : 120;
+              var fitH = Math.min(Math.max(bodyH + slack, 720), 32000);
+              iframe.style.height = fitH + "px";
+              void iframe.offsetHeight;
+              var iwin = iframe.contentWindow;
+              if (iwin) iwin.scrollTo(0, 0);
+            } catch (_iz2) {}
+
+            /* Un poco más de margen inferior en móvil evita que el troceo página a página recorte la última línea. */
+            var pdfMargins = isMobilePdf ? [8, 8, 14, 8] : [8, 8, 8, 8];
 
             const opt = {
-              margin: [8, 8, 8, 8],
+              margin: pdfMargins,
               filename: `${safeBase}.pdf`,
               image: { type: "jpeg", quality: jpegQuality },
               html2canvas: {
@@ -2011,7 +2011,7 @@
           iframe.onload = function () {
             requestAnimationFrame(function () {
               requestAnimationFrame(function () {
-                setTimeout(runPdf, isIOS ? 400 : isMobilePdf ? 250 : 320);
+                setTimeout(runPdf, isIOS ? 480 : isMobilePdf ? 380 : 320);
               });
             });
           };
