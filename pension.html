@@ -1833,7 +1833,7 @@
         "td,th{word-break:break-word!important;overflow-wrap:anywhere!important;}" +
         "body{text-align:justify!important;text-justify:inter-word;-moz-text-align-last:auto;text-align-last:auto;}" +
         "body p,body li{text-align:justify!important;text-justify:inter-word!important;}" +
-        ".empleador-datos{text-align:left!important;text-justify:none!important;-moz-text-align-last:left;text-align-last:left;}" +
+        ".empleador-datos{text-align:justify!important;}" +
         "table td:not(.col-respuesta){text-align:justify!important;text-justify:inter-word!important;}" +
         "table th,td.col-respuesta{text-align:center!important;}" +
         "table.tabla-benef-mandato th,table.tabla-benef-mandato td{text-align:center!important;}" +
@@ -1910,8 +1910,6 @@
                   "h1,h2,h3,h4{page-break-after:avoid!important;break-after:avoid!important;}" +
                   /* Evita que html2pdf corte un párrafo a mitad entre páginas. Aplica a <p> y <li>, que son los que se veían rebanados abajo. */
                   "p,li{page-break-inside:avoid!important;break-inside:avoid!important;orphans:3;widows:3;}" +
-                  /* Solo mandatos: salto antes de firmas. En el contrato forzaba cortes erróneos con html2pdf. */
-                  ".tabla-firmas.tabla-firmas--mandato-pdf{page-break-before:always!important;break-before:page!important;}" +
                   ".tabla-firmas tr{page-break-inside:avoid!important;break-inside:avoid!important;}" +
                   ".tabla-firmas{page-break-inside:avoid!important;break-inside:avoid!important;}";
                 head.appendChild(inj);
@@ -2336,8 +2334,7 @@
         margin-top:10px;
         }
         .empleador-datos{
-        text-align:left;
-        text-justify:none;
+        text-align:justify;
         }
         .firmas{
         margin-top:40px;
@@ -2702,7 +2699,7 @@
 
         <br><br><br><br><br><br>
 
-        <table class="tabla-firmas tabla-firmas--mandato-pdf" border="0" cellpadding="0" cellspacing="0" style="margin-top:40px;width:100%;">
+        <table class="tabla-firmas" border="0" cellpadding="0" cellspacing="0" style="margin-top:40px;width:100%;">
         <tr>
         <td>
         <p>______________________________</p>
@@ -2765,7 +2762,7 @@
         h2+*,h3+*,h1+*{ page-break-before:avoid!important; break-before:avoid-page!important; }
         h2,h3{ margin-top:20px; page-break-after:avoid; text-align:center; text-transform:uppercase; }
         h2{ text-align:center; text-transform:uppercase; width:100%; display:block; }
-        .empleador-datos{ text-align:left; text-justify:none; }
+        .empleador-datos{ text-align:justify; }
         .firmas{ margin-top:40px; overflow:hidden; width:100%; }
         .firma-izq{ float:left; width:45%; text-align:center; }
         .firma-der{ float:right; width:45%; text-align:center; }
@@ -2830,7 +2827,7 @@
 
         <br><br><br><br><br><br>
 
-        <table class="tabla-firmas tabla-firmas--mandato-pdf" border="0" cellpadding="0" cellspacing="0" style="margin-top:40px;width:100%;">
+        <table class="tabla-firmas" border="0" cellpadding="0" cellspacing="0" style="margin-top:40px;width:100%;">
         <tr>
         <td>
         <p>______________________________</p>
