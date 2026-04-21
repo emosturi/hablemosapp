@@ -1825,7 +1825,7 @@
       const PDF_TEXT_JUSTIFY_INJECTION =
         "body{text-align:justify!important;text-justify:inter-word;-moz-text-align-last:auto;text-align-last:auto;}" +
         "body p,body li{text-align:justify!important;text-justify:inter-word!important;}" +
-        ".empleador-datos{text-align:justify!important;}" +
+        ".empleador-datos{text-align:left!important;text-justify:none!important;-moz-text-align-last:left;text-align-last:left;}" +
         "table td:not(.col-respuesta){text-align:justify!important;text-justify:inter-word!important;}" +
         "table th,td.col-respuesta{text-align:center!important;}" +
         "table.tabla-benef-mandato th,table.tabla-benef-mandato td{text-align:center!important;}" +
@@ -2319,7 +2319,8 @@
         margin-top:10px;
         }
         .empleador-datos{
-        text-align:justify;
+        text-align:left;
+        text-justify:none;
         }
         .firmas{
         margin-top:40px;
@@ -2747,7 +2748,7 @@
         h2+*,h3+*,h1+*{ page-break-before:avoid!important; break-before:avoid-page!important; }
         h2,h3{ margin-top:20px; page-break-after:avoid; text-align:center; text-transform:uppercase; }
         h2{ text-align:center; text-transform:uppercase; width:100%; display:block; }
-        .empleador-datos{ text-align:justify; }
+        .empleador-datos{ text-align:left; text-justify:none; }
         .firmas{ margin-top:40px; overflow:hidden; width:100%; }
         .firma-izq{ float:left; width:45%; text-align:center; }
         .firma-der{ float:right; width:45%; text-align:center; }
