@@ -1822,26 +1822,22 @@
        * html2canvas suele ignorar text-align:justify si solo viene en hojas del documento original.
        * Reglas !important + repetición en el clon (onclone) alinean el PDF con Word/HTML.
        */
-      /* Ancho de rasterización fijo: A4 portrait a 96 dpi = 794 px. html2pdf lo escala a 210 mm. */
+      /* Ancho de rasterización fijo: A4 portrait a 96 dpi = 794 px. html2pdf lo escala a 210 mm.
+         El padding visual NO se aplica al body (eso desplazaba el contenido y dejaba el "espacio en blanco a la izquierda");
+         el aire visual lo da pdfMargins de jsPDF (10 mm a cada lado). El body va edge-to-edge dentro del canvas. */
       const PDF_RENDER_WIDTH_PX = 794;
-      /* Padding interno equivalente al antiguo margin del body, pero como padding (con box-sizing:border-box) para que el contenido NO se salga del ancho del canvas. */
-      const PDF_BODY_PADDING_TOP_PX = 18;
-      const PDF_BODY_PADDING_RIGHT_PX = 18;
-      const PDF_BODY_PADDING_BOTTOM_PX = 18;
-      const PDF_BODY_PADDING_LEFT_PX = 18;
 
       const PDF_TEXT_JUSTIFY_INJECTION =
-        /* Resetea margin de html y body: el margin externo del body desplazaba el contenido y provocaba recorte derecho cuando width está fijo en 794. */
-        "html,body{margin:0!important;}" +
-        /* Wrapping forzado: cualquier palabra/url larga se parte; nada se sale del ancho del canvas. */
-        "html,body{overflow-wrap:anywhere!important;word-wrap:break-word!important;word-break:normal;max-width:100%!important;}" +
-        /* Body fija el ancho exacto del canvas, con padding (no margin) para mantener aire visual sin desbordar. */
-        "body{width:" + PDF_RENDER_WIDTH_PX + "px!important;max-width:" + PDF_RENDER_WIDTH_PX + "px!important;" +
-          "padding:" + PDF_BODY_PADDING_TOP_PX + "px " + PDF_BODY_PADDING_RIGHT_PX + "px " + PDF_BODY_PADDING_BOTTOM_PX + "px " + PDF_BODY_PADDING_LEFT_PX + "px!important;" +
+        /* Reset duro de html y body: margin/padding 0 + ancho EXACTO del canvas. */
+        "html,body{margin:0!important;padding:0!important;}" +
+        "html{width:" + PDF_RENDER_WIDTH_PX + "px!important;max-width:" + PDF_RENDER_WIDTH_PX + "px!important;}" +
+        "body{width:" + PDF_RENDER_WIDTH_PX + "px!important;max-width:" + PDF_RENDER_WIDTH_PX + "px!important;min-width:" + PDF_RENDER_WIDTH_PX + "px!important;" +
           "box-sizing:border-box!important;overflow-x:hidden!important;}" +
-        "*{max-width:100%!important;box-sizing:border-box;}" +
+        /* Wrapping conservador: parte solo si la palabra realmente excede el ancho (no a mitad de palabras con espacios disponibles). */
+        "html,body{overflow-wrap:break-word!important;word-wrap:break-word!important;word-break:normal!important;}" +
+        "*{box-sizing:border-box!important;max-width:100%!important;}" +
         "table{table-layout:auto!important;width:100%!important;max-width:100%!important;}" +
-        "td,th{word-break:break-word!important;overflow-wrap:anywhere!important;}" +
+        "td,th{word-break:break-word!important;overflow-wrap:break-word!important;}" +
         "img,svg,canvas{max-width:100%!important;height:auto!important;}" +
         "body{text-align:justify!important;text-justify:inter-word;-moz-text-align-last:auto;text-align-last:auto;}" +
         "body p,body li{text-align:justify!important;text-justify:inter-word!important;}" +
@@ -1910,8 +1906,20 @@
               }
               doc.documentElement.style.backgroundColor = "#ffffff";
               doc.documentElement.style.color = "#111111";
+              doc.documentElement.style.margin = "0";
+              doc.documentElement.style.padding = "0";
+              doc.documentElement.style.width = PDF_RENDER_WIDTH_PX + "px";
+              doc.documentElement.style.maxWidth = PDF_RENDER_WIDTH_PX + "px";
+              doc.documentElement.style.boxSizing = "border-box";
               body.style.backgroundColor = "#ffffff";
               body.style.color = "#111111";
+              body.style.margin = "0";
+              body.style.padding = "0";
+              body.style.width = PDF_RENDER_WIDTH_PX + "px";
+              body.style.maxWidth = PDF_RENDER_WIDTH_PX + "px";
+              body.style.minWidth = PDF_RENDER_WIDTH_PX + "px";
+              body.style.boxSizing = "border-box";
+              body.style.overflowX = "hidden";
               // Ayuda a html2pdf a partir páginas entre bloques y no a mitad de línea / filas.
               if (head && !head.querySelector("style[data-prevy-pdf-breaks]")) {
                 const inj = doc.createElement("style");
@@ -1999,18 +2007,30 @@
                 onclone: function (clonedDoc) {
                   try {
                     var cHead = clonedDoc.head;
-                    if (!cHead || cHead.querySelector("style[data-prevy-pdf-justify-clone]")) return;
-                    var cSt = clonedDoc.createElement("style");
-                    cSt.setAttribute("data-prevy-pdf-justify-clone", "1");
-                    cSt.textContent = PDF_TEXT_JUSTIFY_INJECTION;
-                    cHead.appendChild(cSt);
-                    /* Asegurar reset también en el clon. */
+                    if (cHead && !cHead.querySelector("style[data-prevy-pdf-justify-clone]")) {
+                      var cSt = clonedDoc.createElement("style");
+                      cSt.setAttribute("data-prevy-pdf-justify-clone", "1");
+                      cSt.textContent = PDF_TEXT_JUSTIFY_INJECTION;
+                      cHead.appendChild(cSt);
+                    }
+                    /* Reset y ancho EXACTO en el clon. html2canvas a veces ignora reglas externas: reforzamos por estilo inline. */
+                    var cHtml = clonedDoc.documentElement;
+                    if (cHtml) {
+                      cHtml.style.margin = "0";
+                      cHtml.style.padding = "0";
+                      cHtml.style.width = PDF_RENDER_WIDTH_PX + "px";
+                      cHtml.style.maxWidth = PDF_RENDER_WIDTH_PX + "px";
+                      cHtml.style.boxSizing = "border-box";
+                    }
                     var cBody = clonedDoc.body;
                     if (cBody) {
                       cBody.style.margin = "0";
+                      cBody.style.padding = "0";
                       cBody.style.width = PDF_RENDER_WIDTH_PX + "px";
                       cBody.style.maxWidth = PDF_RENDER_WIDTH_PX + "px";
+                      cBody.style.minWidth = PDF_RENDER_WIDTH_PX + "px";
                       cBody.style.boxSizing = "border-box";
+                      cBody.style.overflowX = "hidden";
                     }
                   } catch (_e2) {}
                 },
@@ -2256,8 +2276,6 @@
         font-family:Arial;
         font-size:12pt;
         line-height:1.5;
-        padding:18px 18px;
-        box-sizing:border-box;
         text-align:justify;
         overflow-wrap:break-word;
         word-wrap:break-word;
@@ -2272,6 +2290,7 @@
         break-inside:avoid;
         overflow-wrap:break-word;
         word-wrap:break-word;
+        max-width:100%;
         }
         .tabla-firmas td p{
         text-align:center;
@@ -2406,9 +2425,9 @@
         </style>
         </head>
 
-        <body>
+        <body style="width:794px;max-width:794px;min-width:794px;margin:0;padding:0;box-sizing:border-box;font-family:Arial;font-size:12pt;line-height:1.5;text-align:justify;overflow-wrap:break-word;word-wrap:break-word;color:#111;background:#fff;">
 
-        <h2 style="font-size:16pt;font-weight:bold;line-height:1.25;text-align:center;text-transform:uppercase;width:100%;display:block;margin-top:20px;">MANDATO PARA INICIAR TRÁMITE DE ${aMayus(mandante.tipoPension)}</h2>
+        <h2 style="font-size:16pt;font-weight:bold;line-height:1.25;text-align:center;text-transform:uppercase;width:100%;display:block;margin:20px 0 0 0;box-sizing:border-box;">MANDATO PARA INICIAR TRÁMITE DE ${aMayus(mandante.tipoPension)}</h2>
         <h3 class="mandato-encabezado-tipo" style="font-size:11pt;font-weight:normal;line-height:1.3;text-align:center;text-transform:uppercase;width:100%;display:block;margin-top:10px;">${aMayus(mandante.tipoPension)}</h3>
 
         <p>
@@ -2795,9 +2814,9 @@
         <meta charset="utf-8">
         <style>
         html,body{ margin:0; padding:0; }
-        body{ font-family:Arial; font-size:12pt; line-height:1.5; padding:18px 18px; box-sizing:border-box; text-align:justify; overflow-wrap:break-word; word-wrap:break-word; }
+        body{ font-family:Arial; font-size:12pt; line-height:1.5; text-align:justify; overflow-wrap:break-word; word-wrap:break-word; }
         *{ box-sizing:border-box; }
-        p,li{ text-align:justify; page-break-inside:avoid; break-inside:avoid; overflow-wrap:break-word; word-wrap:break-word; }
+        p,li{ text-align:justify; page-break-inside:avoid; break-inside:avoid; overflow-wrap:break-word; word-wrap:break-word; max-width:100%; }
         .tabla-firmas td p{ text-align:center; }
         table{ border-collapse:collapse; width:100%; max-width:100%; margin-top:10px; font-size:9pt; }
         tr,thead{ page-break-inside:avoid; break-inside:avoid; }
@@ -2818,9 +2837,9 @@
         .tabla-firmas td{ border:none; width:50%; text-align:center; vertical-align:top; padding:0 20px; }
         </style>
         </head>
-        <body>
+        <body style="width:794px;max-width:794px;min-width:794px;margin:0;padding:0;box-sizing:border-box;font-family:Arial;font-size:12pt;line-height:1.5;text-align:justify;overflow-wrap:break-word;word-wrap:break-word;color:#111;background:#fff;">
 
-        <h2 style="text-align:center;text-transform:uppercase;width:100%;display:block;margin-top:20px;">MANDATO PARA  ${aMayus(mandante.cambioModalidadTramite === "Sí" ? "INICIAR TRÁMITE DE CAMBIO DE MODALIDAD" : "RETIRAR CERTIFICADO DE SALDO")} DE ${aMayus(mandante.tipoPension)}</h2>
+        <h2 style="text-align:center;text-transform:uppercase;width:100%;display:block;margin:20px 0 0 0;box-sizing:border-box;">MANDATO PARA  ${aMayus(mandante.cambioModalidadTramite === "Sí" ? "INICIAR TRÁMITE DE CAMBIO DE MODALIDAD" : "RETIRAR CERTIFICADO DE SALDO")} DE ${aMayus(mandante.tipoPension)}</h2>
 
         <p>
         Con fecha ${fechaHoy} y por medio del siguiente instrumento, yo 
@@ -2997,8 +3016,6 @@
           font-family:Arial;
           font-size:11pt;
           line-height:1.4;
-          padding:18px 18px;
-          box-sizing:border-box;
           text-align:justify;
           overflow-wrap:break-word;
           word-wrap:break-word;
@@ -3035,6 +3052,7 @@
           break-inside:avoid;
           overflow-wrap:break-word;
           word-wrap:break-word;
+          max-width:100%;
         }
         .tabla-firmas td p{
           text-align:center;
@@ -3114,7 +3132,7 @@
         }
         </style>
         </head>
-        <body>
+        <body style="width:794px;max-width:794px;min-width:794px;margin:0;padding:0;box-sizing:border-box;font-family:Arial;font-size:11pt;line-height:1.4;text-align:justify;overflow-wrap:break-word;word-wrap:break-word;color:#111;background:#fff;">
 
         <h1 style="${contratoH1Style}">CONTRATO DE PRESTACIÓN DE SERVICIOS DE ASESORÍA PARA<br/>
         PENSIONARSE O CAMBIAR MODALIDAD DE PENSIÓN Nº <b>${numeroContrato}</b></h1>
