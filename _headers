@@ -1,0 +1,25 @@
+# Prevy — control de caché para HTTP (complementa al service worker).
+#
+# HTML: nunca cachear con validación obligatoria.
+#   Evita que la PWA/navegador se quede pegada con un HTML viejo aunque el SW ya
+#   haya cacheado una nueva versión de CSS/JS. El usuario siempre va al servidor
+#   para el HTML, y el SW sirve los estáticos referenciados.
+/*.html
+  Cache-Control: no-cache, must-revalidate
+/
+  Cache-Control: no-cache, must-revalidate
+
+# Service worker: nunca cachear el SW ni su manifest.
+#   Un sw.js cacheado es el peor escenario: el navegador instalaría siempre la
+#   misma versión vieja y los usuarios quedarían atrapados.
+/sw.js
+  Cache-Control: no-cache, no-store, must-revalidate
+/manifest.webmanifest
+  Cache-Control: no-cache, must-revalidate
+
+# Script de registro/actualización del SW: tampoco cachear, así los cambios de
+# política de actualización llegan sin depender del SW previo.
+/pwa-update.js
+  Cache-Control: no-cache, must-revalidate
+/pwa-register.js
+  Cache-Control: no-cache, must-revalidate
