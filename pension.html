@@ -1775,317 +1775,580 @@
         return base.slice(0, maxLen).replace(/_+$/g, "");
       }
 
-      let __html2pdfLoadPromise = null;
-      function ensureHtml2PdfLoaded() {
-        if (typeof html2pdf !== "undefined") return Promise.resolve();
-        if (__html2pdfLoadPromise) return __html2pdfLoadPromise;
-        __html2pdfLoadPromise = new Promise(function (resolve, reject) {
-          const s = document.createElement("script");
-          s.src = "https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js";
-          s.async = true;
-          s.crossOrigin = "anonymous";
-          s.onload = function () {
-            if (typeof html2pdf !== "undefined") resolve();
-            else reject(new Error("html2pdf no quedó definido"));
-          };
-          s.onerror = function () {
-            reject(new Error("Error de red al cargar html2pdf.js"));
-          };
-          document.head.appendChild(s);
-        });
-        return __html2pdfLoadPromise;
-      }
+      /* ===========================================================================
+       * PDF — pipeline pdfmake (declarativo, sin html2canvas)
+       *
+       * El PDF se construye desde un "document definition" (objeto JS) y NO desde
+       * el HTML del template. Esto elimina html2canvas/html2pdf y, con ello, todos
+       * los problemas de rasterización (recortes a la derecha, espacio izquierdo,
+       * cortes a mitad de párrafo, escalado por DPR, fuentes borrosas, etc.).
+       *
+       * - pdfmake@0.2.10 desde CDN (~0.5 MB gzip + vfs_fonts).
+       * - Texto seleccionable y buscable dentro del PDF.
+       * - Cortes de página automáticos respetando p / li / tablas / firmas.
+       * - Numeración "Página X de Y" via footer dinámico.
+       * - El .doc (Word) NO usa este pipeline: sigue saliendo del HTML del template.
+       * =========================================================================== */
 
-      /** Escribe "Página n de m" al pie de cada hoja del PDF (jsPDF, tras html2pdf). */
-      function aplicarNumeracionHojasJsPDF(pdf) {
-        if (!pdf || !pdf.internal) return;
-        var total =
-          typeof pdf.getNumberOfPages === "function"
-            ? pdf.getNumberOfPages()
-            : typeof pdf.internal.getNumberOfPages === "function"
-              ? pdf.internal.getNumberOfPages()
-              : 0;
-        if (!total || total < 1) return;
-        var ps = pdf.internal.pageSize;
-        var pw = typeof ps.getWidth === "function" ? ps.getWidth() : ps.width;
-        var ph = typeof ps.getHeight === "function" ? ps.getHeight() : ps.height;
-        pdf.setFont("helvetica", "normal");
-        pdf.setFontSize(8);
-        pdf.setTextColor(82, 82, 82);
-        for (var i = 1; i <= total; i++) {
-          pdf.setPage(i);
-          pdf.text("Página " + i + " de " + total, pw / 2, ph - 4.5, { align: "center" });
+      var __pdfMakeLoadPromise = null;
+      function ensurePdfMakeLoaded() {
+        if (typeof window.pdfMake !== "undefined" && window.pdfMake && window.pdfMake.vfs) {
+          return Promise.resolve();
         }
+        if (__pdfMakeLoadPromise) return __pdfMakeLoadPromise;
+        function loadScript(src) {
+          return new Promise(function (resolve, reject) {
+            var s = document.createElement("script");
+            s.src = src;
+            s.async = true;
+            s.crossOrigin = "anonymous";
+            s.onload = function () { resolve(); };
+            s.onerror = function () { reject(new Error("Error de red al cargar " + src)); };
+            document.head.appendChild(s);
+          });
+        }
+        __pdfMakeLoadPromise = loadScript("https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.10/pdfmake.min.js")
+          .then(function () { return loadScript("https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.10/vfs_fonts.js"); })
+          .then(function () {
+            if (typeof window.pdfMake === "undefined") {
+              throw new Error("pdfMake no quedó definido");
+            }
+          })
+          .catch(function (err) { __pdfMakeLoadPromise = null; throw err; });
+        return __pdfMakeLoadPromise;
       }
 
-      /**
-       * html2canvas suele ignorar text-align:justify si solo viene en hojas del documento original.
-       * Reglas !important + repetición en el clon (onclone) alinean el PDF con Word/HTML.
-       */
-      /* Ancho de rasterización fijo: A4 portrait a 96 dpi = 794 px. html2pdf lo escala a 210 mm.
-         El padding visual NO se aplica al body (eso desplazaba el contenido y dejaba el "espacio en blanco a la izquierda");
-         el aire visual lo da pdfMargins de jsPDF (10 mm a cada lado). El body va edge-to-edge dentro del canvas. */
-      const PDF_RENDER_WIDTH_PX = 794;
+      /** Genera y descarga el PDF a partir de un document definition pdfmake. */
+      function descargarPdfMake(docDef, safeBase) {
+        var veil = document.createElement("div");
+        veil.setAttribute("role", "status");
+        veil.setAttribute("aria-live", "polite");
+        veil.style.cssText =
+          "position:fixed;inset:0;background:rgba(255,255,255,0.94);z-index:2147483645;display:flex;align-items:center;justify-content:center;padding:1rem;font-family:system-ui,sans-serif;font-size:16px;color:#111;text-align:center;box-sizing:border-box;";
+        veil.textContent = "Generando PDF…";
+        document.body.appendChild(veil);
+        function cleanup() { if (veil.parentNode) veil.parentNode.removeChild(veil); }
 
-      const PDF_TEXT_JUSTIFY_INJECTION =
-        /* Reset duro de html y body: margin/padding 0 + ancho EXACTO del canvas. */
-        "html,body{margin:0!important;padding:0!important;}" +
-        "html{width:" + PDF_RENDER_WIDTH_PX + "px!important;max-width:" + PDF_RENDER_WIDTH_PX + "px!important;}" +
-        "body{width:" + PDF_RENDER_WIDTH_PX + "px!important;max-width:" + PDF_RENDER_WIDTH_PX + "px!important;min-width:" + PDF_RENDER_WIDTH_PX + "px!important;" +
-          "box-sizing:border-box!important;overflow-x:hidden!important;}" +
-        /* Wrapping conservador: parte solo si la palabra realmente excede el ancho (no a mitad de palabras con espacios disponibles). */
-        "html,body{overflow-wrap:break-word!important;word-wrap:break-word!important;word-break:normal!important;}" +
-        "*{box-sizing:border-box!important;max-width:100%!important;}" +
-        "table{table-layout:auto!important;width:100%!important;max-width:100%!important;}" +
-        "td,th{word-break:break-word!important;overflow-wrap:break-word!important;}" +
-        "img,svg,canvas{max-width:100%!important;height:auto!important;}" +
-        "body{text-align:justify!important;text-justify:inter-word;-moz-text-align-last:auto;text-align-last:auto;}" +
-        "body p,body li{text-align:justify!important;text-justify:inter-word!important;}" +
-        ".empleador-datos{text-align:justify!important;}" +
-        "table td:not(.col-respuesta){text-align:justify!important;text-justify:inter-word!important;}" +
-        "table th,td.col-respuesta{text-align:center!important;}" +
-        "table.tabla-benef-mandato th,table.tabla-benef-mandato td{text-align:center!important;}" +
-        "h1,h2,h3,h4{text-align:center!important;}" +
-        ".tabla-firmas td,.tabla-firmas td p{text-align:center!important;}";
-
-      /**
-       * PDF: html2canvas rasteriza el HTML; escala y calidad JPEG definen nitidez (también al imprimir desde el móvil).
-       * WebKit (iOS) no pinta bien iframes ocultos: se usa iframe visible + velo durante la captura.
-       */
-      function descargarHtmlComoPdfMultipage(htmlString, safeBase) {
-        return new Promise(function (resolve, reject) {
-          const ua = navigator.userAgent || "";
-          const isMobilePdf = /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
-          const isIOS = /iPhone|iPad|iPod/i.test(ua);
-
-          const veil = document.createElement("div");
-          veil.setAttribute("role", "status");
-          veil.setAttribute("aria-live", "polite");
-          veil.style.cssText =
-            "position:fixed;inset:0;background:rgba(255,255,255,0.94);z-index:2147483645;display:flex;align-items:center;justify-content:center;padding:1rem;font-family:system-ui,sans-serif;font-size:16px;color:#111;text-align:center;box-sizing:border-box;";
-          veil.textContent = "Generando PDF…";
-
-          const iframe = document.createElement("iframe");
-          iframe.setAttribute("title", "pdf-render");
-          /* Iframe oculto detrás del velo, ancho exacto = canvas (794px). El contenido se envuelve dentro y html2canvas captura ese ancho exacto. */
-          iframe.style.cssText =
-            "position:fixed;left:0;top:0;width:" + PDF_RENDER_WIDTH_PX + "px;max-width:" + PDF_RENDER_WIDTH_PX + "px;height:90vh;min-height:480px;border:0;z-index:2147483644;background:#fff;box-sizing:border-box;overflow:hidden;-webkit-overflow-scrolling:touch;";
-
-          document.body.appendChild(veil);
-          document.body.appendChild(iframe);
-
-          function cleanup() {
-            if (veil.parentNode) veil.parentNode.removeChild(veil);
-            if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
-          }
-
-          function runPdf() {
-            let doc;
-            let body;
-            try {
-              doc = iframe.contentDocument;
-              body = doc && doc.body;
-            } catch (e) {
-              cleanup();
-              reject(e);
-              return;
-            }
-            if (!body || !String(body.innerHTML || "").trim()) {
-              cleanup();
-              reject(new Error("PDF: contenido vacío"));
-              return;
-            }
-
-            try {
-              const head = doc.head;
-              if (head && !head.querySelector('meta[name="color-scheme"]')) {
-                const meta = doc.createElement("meta");
-                meta.setAttribute("name", "color-scheme");
-                meta.setAttribute("content", "light");
-                head.insertBefore(meta, head.firstChild);
-              }
-              doc.documentElement.style.backgroundColor = "#ffffff";
-              doc.documentElement.style.color = "#111111";
-              doc.documentElement.style.margin = "0";
-              doc.documentElement.style.padding = "0";
-              doc.documentElement.style.width = PDF_RENDER_WIDTH_PX + "px";
-              doc.documentElement.style.maxWidth = PDF_RENDER_WIDTH_PX + "px";
-              doc.documentElement.style.boxSizing = "border-box";
-              body.style.backgroundColor = "#ffffff";
-              body.style.color = "#111111";
-              body.style.margin = "0";
-              body.style.padding = "0";
-              body.style.width = PDF_RENDER_WIDTH_PX + "px";
-              body.style.maxWidth = PDF_RENDER_WIDTH_PX + "px";
-              body.style.minWidth = PDF_RENDER_WIDTH_PX + "px";
-              body.style.boxSizing = "border-box";
-              body.style.overflowX = "hidden";
-              // Ayuda a html2pdf a partir páginas entre bloques y no a mitad de línea / filas.
-              if (head && !head.querySelector("style[data-prevy-pdf-breaks]")) {
-                const inj = doc.createElement("style");
-                inj.setAttribute("data-prevy-pdf-breaks", "1");
-                inj.textContent =
-                  "table{page-break-inside:auto;}" +
-                  "tr,thead,tfoot{page-break-inside:avoid!important;break-inside:avoid!important;-webkit-column-break-inside:avoid;}" +
-                  "h1,h2,h3,h4{page-break-after:avoid!important;break-after:avoid!important;}" +
-                  /* Evita que html2pdf corte un párrafo a mitad entre páginas. Aplica a <p> y <li>, que son los que se veían rebanados abajo. */
-                  "p,li{page-break-inside:avoid!important;break-inside:avoid!important;orphans:3;widows:3;}" +
-                  ".tabla-firmas tr{page-break-inside:avoid!important;break-inside:avoid!important;}" +
-                  ".tabla-firmas{page-break-inside:avoid!important;break-inside:avoid!important;}";
-                head.appendChild(inj);
-              }
-              if (head && !head.querySelector("style[data-prevy-pdf-justify]")) {
-                const jSt = doc.createElement("style");
-                jSt.setAttribute("data-prevy-pdf-justify", "1");
-                jSt.textContent = PDF_TEXT_JUSTIFY_INJECTION;
-                head.appendChild(jSt);
-              }
-            } catch (_e) {}
-
-            const dpr =
-              typeof window.devicePixelRatio === "number" && window.devicePixelRatio > 0
-                ? window.devicePixelRatio
-                : 1;
-            /* Escala fija conservadora: 2 en escritorio y móvil. Más alto no mejora visiblemente y rompe el cálculo de páginas en html2pdf cuando el canvas se vuelve enorme. */
-            var scale = isMobilePdf ? Math.min(2.5, Math.max(2, dpr)) : 2;
-            var jpegQuality = isMobilePdf ? 0.95 : 0.97;
-
-            const docEl = doc.documentElement;
-
-            /* Reflow tras inyecciones: medir el body DESPUÉS de aplicar width:794, padding y reset de margin. */
-            try {
-              iframe.style.maxHeight = "none";
-              iframe.style.height = "100px";
-              void iframe.offsetHeight;
-            } catch (_iz) {}
-
-            /* Cálculo robusto de la altura: usar el mayor entre body/html scrollHeight/offsetHeight tras el reflow. */
-            function medirAltoBody() {
-              return Math.max(
-                body.scrollHeight || 0,
-                body.offsetHeight || 0,
-                docEl ? docEl.scrollHeight || 0 : 0,
-                docEl ? docEl.offsetHeight || 0 : 0
-              );
-            }
-            var bodyH = medirAltoBody();
-            /* Ajustar iframe a la altura del documento + buffer para que html2canvas tenga viewport suficiente y no recorte abajo. */
-            var bufferH = isMobilePdf ? 240 : 160;
-            var fitH = Math.min(Math.max(bodyH + bufferH, 720), 32000);
-            try {
-              iframe.style.height = fitH + "px";
-              void iframe.offsetHeight;
-              var iwin = iframe.contentWindow;
-              if (iwin) iwin.scrollTo(0, 0);
-            } catch (_iz2) {}
-            /* Re-medir tras el resize del iframe (puede cambiar layout en móvil). */
-            bodyH = medirAltoBody();
-
-            /* Margen del PDF: 10mm uniforme. Reduce el efecto de "casi tocar el borde" sin desperdiciar página. */
-            var pdfMargins = [10, 10, 10, 10];
-
-            const opt = {
-              margin: pdfMargins,
-              filename: `${safeBase}.pdf`,
-              image: { type: "jpeg", quality: jpegQuality },
-              html2canvas: {
-                scale: scale,
-                useCORS: true,
-                logging: false,
-                letterRendering: true,
-                backgroundColor: "#ffffff",
-                scrollX: 0,
-                scrollY: 0,
-                /* windowWidth/width fijos: html2canvas rasteriza a este ancho exacto. width = ancho del canvas; windowWidth = viewport CSS para layout. */
-                windowWidth: PDF_RENDER_WIDTH_PX,
-                width: PDF_RENDER_WIDTH_PX,
-                /* windowHeight = altura real del body. Sin esto, html2canvas usa la altura del iframe y puede recortar el pie. */
-                windowHeight: bodyH,
-                height: bodyH,
-                x: 0,
-                y: 0,
-                onclone: function (clonedDoc) {
+        return ensurePdfMakeLoaded()
+          .then(function () {
+            return new Promise(function (resolve, reject) {
+              try {
+                var pdfDoc = window.pdfMake.createPdf(docDef);
+                pdfDoc.getBlob(function (blob) {
+                  if (!blob) { reject(new Error("PDF: blob vacío")); return; }
                   try {
-                    var cHead = clonedDoc.head;
-                    if (cHead && !cHead.querySelector("style[data-prevy-pdf-justify-clone]")) {
-                      var cSt = clonedDoc.createElement("style");
-                      cSt.setAttribute("data-prevy-pdf-justify-clone", "1");
-                      cSt.textContent = PDF_TEXT_JUSTIFY_INJECTION;
-                      cHead.appendChild(cSt);
-                    }
-                    /* Reset y ancho EXACTO en el clon. html2canvas a veces ignora reglas externas: reforzamos por estilo inline. */
-                    var cHtml = clonedDoc.documentElement;
-                    if (cHtml) {
-                      cHtml.style.margin = "0";
-                      cHtml.style.padding = "0";
-                      cHtml.style.width = PDF_RENDER_WIDTH_PX + "px";
-                      cHtml.style.maxWidth = PDF_RENDER_WIDTH_PX + "px";
-                      cHtml.style.boxSizing = "border-box";
-                    }
-                    var cBody = clonedDoc.body;
-                    if (cBody) {
-                      cBody.style.margin = "0";
-                      cBody.style.padding = "0";
-                      cBody.style.width = PDF_RENDER_WIDTH_PX + "px";
-                      cBody.style.maxWidth = PDF_RENDER_WIDTH_PX + "px";
-                      cBody.style.minWidth = PDF_RENDER_WIDTH_PX + "px";
-                      cBody.style.boxSizing = "border-box";
-                      cBody.style.overflowX = "hidden";
-                    }
-                  } catch (_e2) {}
-                },
-              },
-              jsPDF: { unit: "mm", format: "a4", orientation: "portrait", compress: true },
-              /* mode: 'css' respeta page-break-inside:avoid del CSS inyectado; 'legacy' reconoce divs con page-break-before. NO usar 'avoid-all' (intentos previos mostraron que recorta los mandatos cuando hay tablas grandes). El 'avoid' explícito basta porque el CSS inyectado ya añade page-break-inside:avoid a p/li/tr/.tabla-firmas. */
-              pagebreak: {
-                mode: ["css", "legacy"],
-                avoid: ["p", "li", "tr", "thead", "h1", "h2", "h3", "h4", ".tabla-firmas"],
-              },
-            };
-
-            html2pdf()
-              .set(opt)
-              .from(body)
-              .toPdf()
-              .get("pdf")
-              .then(function (pdf) {
-                try {
-                  aplicarNumeracionHojasJsPDF(pdf);
-                } catch (eNum) {
-                  console.warn("No se pudo numerar páginas del PDF:", eNum);
-                }
-              })
-              .save()
-              .then(function () {
-                cleanup();
-                resolve();
-              })
-              .catch(function (e) {
-                cleanup();
-                reject(e);
-              });
-          }
-
-          iframe.onload = function () {
-            requestAnimationFrame(function () {
-              requestAnimationFrame(function () {
-                setTimeout(runPdf, isIOS ? 480 : isMobilePdf ? 380 : 320);
-              });
+                    var url = URL.createObjectURL(blob);
+                    var a = document.createElement("a");
+                    a.href = url;
+                    a.download = safeBase + ".pdf";
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    setTimeout(function () { URL.revokeObjectURL(url); }, 1500);
+                    resolve();
+                  } catch (e) { reject(e); }
+                });
+              } catch (err) { reject(err); }
             });
+          })
+          .then(function () { cleanup(); }, function (err) { cleanup(); throw err; });
+      }
+
+      /* ===== Helpers de doc-definition ===== */
+
+      /** Run en negrita, con el valor convertido a mayúsculas (consistente con aMayus). */
+      function pmBold(s) { return { text: aMayus(s), bold: true }; }
+      /** Párrafo justificado con margen inferior estándar. */
+      function pmPara(parts, opts) {
+        var base = { text: parts, alignment: "justify", margin: [0, 0, 0, 8], lineHeight: 1.35 };
+        if (opts) { Object.keys(opts).forEach(function (k) { base[k] = opts[k]; }); }
+        return base;
+      }
+      function pmH1(s) { return { text: String(s || ""), fontSize: 14, bold: true, alignment: "center", margin: [0, 0, 0, 12] }; }
+      function pmH2(s) { return { text: String(s || ""), fontSize: 12, bold: true, alignment: "center", margin: [0, 14, 0, 8] }; }
+      function pmH3(s) { return { text: String(s || ""), fontSize: 11, bold: true, alignment: "center", margin: [0, 10, 0, 6] }; }
+
+      /** Layout fino para tablas (bordes 0.5pt grises). */
+      var PM_TABLE_LAYOUT_FINO = {
+        hLineWidth: function () { return 0.5; },
+        vLineWidth: function () { return 0.5; },
+        hLineColor: function () { return "#444"; },
+        vLineColor: function () { return "#444"; },
+        paddingLeft: function () { return 4; },
+        paddingRight: function () { return 4; },
+        paddingTop: function () { return 3; },
+        paddingBottom: function () { return 3; }
+      };
+
+      /** Tabla descripción / Sí-No (común a Antecedentes y Autorizaciones del mandato). */
+      function pmTablaSiNo(filas) {
+        return {
+          table: {
+            headerRows: 0,
+            widths: ["*", 50],
+            dontBreakRows: true,
+            body: filas.map(function (f) {
+              return [
+                { text: String(f.label || ""), fontSize: 9, alignment: "left" },
+                { text: String(f.valor || ""), fontSize: 9, alignment: "center", noWrap: true }
+              ];
+            })
+          },
+          layout: PM_TABLE_LAYOUT_FINO,
+          margin: [0, 0, 0, 10]
+        };
+      }
+
+      /** Bloque de firmas (cliente / asesor). */
+      function pmFirmas(opts) {
+        var col = function (titulo, nombre, rut) {
+          return {
+            stack: [
+              { text: " ", margin: [0, 60, 0, 0] },
+              { text: "______________________________", alignment: "center" },
+              { text: titulo, alignment: "center", margin: [0, 4, 0, 0], fontSize: 10 },
+              { text: aMayus(nombre), alignment: "center", bold: true, margin: [0, 4, 0, 0], fontSize: 10 },
+              { text: ["RUT: ", { text: aMayus(rut), bold: true }], alignment: "center", margin: [0, 2, 0, 0], fontSize: 10 }
+            ],
+            width: "*"
           };
-          iframe.srcdoc = htmlString;
+        };
+        var nodes = [
+          { columns: [col("Firma Cliente", opts.nombreCliente, opts.rutCliente), col("Firma Asesor Previsional", opts.nombreAsesor, opts.rutAsesor)], unbreakable: true }
+        ];
+        if (opts.conFirmoAnteMi) {
+          nodes.push({ text: "Firmó ante mí:", alignment: "center", margin: [0, 24, 0, 12] });
+        }
+        return nodes;
+      }
+
+      /** Tabla de beneficiarios para mandato (6 col, fuentes pequeñas). */
+      function pmTablaBeneficiariosMandato(beneficiariosObj) {
+        var rows = [
+          [
+            { text: "Nombre Completo", style: "tableHeader" },
+            { text: "Sexo", style: "tableHeader" },
+            { text: "Rut", style: "tableHeader" },
+            { text: "Fecha de Nac.", style: "tableHeader" },
+            { text: "Parentesco", style: "tableHeader" },
+            { text: "Observaciones", style: "tableHeader" }
+          ]
+        ];
+        Object.values(beneficiariosObj).forEach(function (b) {
+          var nombreCompleto = [b.nombres, b.apellidoPaterno, b.apellidoMaterno].filter(Boolean).join(" ");
+          var obs = "";
+          if ((b.ciudadMatrimonioUnionCivil || "").trim() || (b.fechaMatrimonioUnionCivil || "").trim()) {
+            obs = "CIRCUNSCRIPCION " + (b.ciudadMatrimonioUnionCivil || "").trim() + ", " + (b.fechaMatrimonioUnionCivil || "").trim();
+          }
+          if ((b.observaciones || "").trim()) obs += (obs ? " " : "") + (b.observaciones || "").trim();
+          var cell = function (t) { return { text: aMayus(t), fontSize: 7, alignment: "center" }; };
+          rows.push([cell(nombreCompleto), cell(b.sexo), cell(b.rut), cell(b.fechaNacimiento), cell(b.parentesco), cell(obs)]);
+        });
+        return {
+          table: { headerRows: 1, dontBreakRows: true, widths: ["*", 28, 70, 60, 80, 80], body: rows },
+          layout: PM_TABLE_LAYOUT_FINO,
+          margin: [0, 0, 0, 10]
+        };
+      }
+
+      /** Tabla de beneficiarios para contrato (5 col). */
+      function pmTablaBeneficiariosContrato(beneficiariosObj) {
+        var rows = [
+          [
+            { text: "Nombre completo", style: "tableHeader" },
+            { text: "Parentesco", style: "tableHeader" },
+            { text: "Fecha de nac.", style: "tableHeader" },
+            { text: "Rut", style: "tableHeader" },
+            { text: "Inválido", style: "tableHeader" }
+          ]
+        ];
+        Object.values(beneficiariosObj).forEach(function (b) {
+          var nombreBenef = ((b.nombres || "") + " " + (b.apellidoPaterno || "") + " " + (b.apellidoMaterno || "")).trim();
+          var inval = b.esInvalido != null && b.esInvalido !== "" ? b.esInvalido : b.es_invalido;
+          var cell = function (t) { return { text: aMayus(t), fontSize: 9, alignment: "left" }; };
+          rows.push([cell(nombreBenef), cell(b.parentesco), cell(b.fechaNacimiento), cell(b.rut), cell(inval)]);
+        });
+        return {
+          table: { headerRows: 1, dontBreakRows: true, widths: ["*", 90, 75, 90, 50], body: rows },
+          layout: PM_TABLE_LAYOUT_FINO,
+          margin: [0, 0, 0, 10]
+        };
+      }
+
+      /** Estilos comunes (defaultStyle + named styles). */
+      var PDFMAKE_BASE_STYLES = {
+        defaultStyle: { fontSize: 11, lineHeight: 1.35, alignment: "justify", color: "#111" },
+        styles: { tableHeader: { bold: true, fontSize: 9, alignment: "center" } }
+      };
+      /** Página A4 con márgenes 50pt L/T/R y 60pt B (espacio para footer "Página X de Y"). */
+      var PDFMAKE_PAGE_OPTS = { pageSize: "A4", pageMargins: [50, 50, 50, 60] };
+
+      /** Footer "Página X de Y" centrado. */
+      function pmFooter() {
+        return function (currentPage, pageCount) {
+          return {
+            text: "Página " + currentPage + " de " + pageCount,
+            alignment: "center", fontSize: 9, color: "#666", margin: [0, 12, 0, 0]
+          };
+        };
+      }
+
+      /** Orden de filas para mandato largo (NO incluye poseeBonoReconocimiento). */
+      var ANTECEDENTES_LARGO_ORDEN = [
+        "deseoPensionPreliminar", "deseoPagoRetroactivo", "solicitarPgu",
+        "solicitarAporteSolidarioInvalidez", "reciboPensionAntiguoSistema",
+        "reciboPensionInvalidezEsteSistema", "ajustePensionMinima", "ajustePensionBasicaSolidaria",
+        "afectoEstatutoAdministrativo", "destinareApv", "destinareApvc",
+        "traspasareCtaAhorroVoluntario", "poseoDepositosConvenidos", "traspasareCesantia",
+        "cotizacionesOtroPais", "residenciaOtroPais", "cambioTipoFondo", "listadoPublico"
+      ];
+
+      /* ===== Document definition: MANDATO LARGO ===== */
+      function buildPdfDocMandatoSimple(data) {
+        var mandante = data.mandante || {};
+        var mandatario = data.mandatario || {};
+        var antecedentes = data.antecedentes || {};
+        var autorizaciones = data.autorizaciones || {};
+        var certificados = data.certificados || {};
+        var empleador = data.empleador || {};
+
+        var nombreMandante = ((mandante.nombres || "") + " " + (mandante.apellidoPaterno || "") + " " + (mandante.apellidoMaterno || "")).trim();
+        var nombreMandatario = ((mandatario.nombres || "") + " " + (mandatario.apellidoPaterno || "") + " " + (mandatario.apellidoMaterno || "")).trim();
+        var fechaHoy = fechaHoyHablado();
+
+        var content = [];
+
+        content.push({ text: "MANDATO PARA INICIAR TRÁMITE DE " + aMayus(mandante.tipoPension), fontSize: 16, bold: true, alignment: "center", margin: [0, 0, 0, 4] });
+        content.push({ text: aMayus(mandante.tipoPension), fontSize: 11, alignment: "center", margin: [0, 0, 0, 14] });
+
+        content.push(pmPara([
+          "Con fecha " + fechaHoy + " y por medio del siguiente instrumento, yo ",
+          pmBold(nombreMandante), ", RUT ", pmBold(mandante.rut),
+          ", de nacionalidad ", pmBold(mandante.nacionalidad),
+          ", de sexo ", pmBold(mandante.sexo),
+          ", nacido el ", pmBold(fechaAHablado(mandante.fechaNacimiento)),
+          ", estado civil ", pmBold(mandante.estadoCivil),
+          ", de profesión u oficio ", pmBold(mandante.profesionUOficio),
+          ", domiciliado en ", pmBold(mandante.domicilio),
+          ", comuna de ", pmBold(mandante.comuna),
+          ", ciudad de ", pmBold(mandante.ciudad),
+          ", teléfono ", pmBold(mandante.telefono),
+          ", correo electrónico ", pmBold(mandante.email),
+          ", e incorporado a la institución de salud ", pmBold(mandante.institucionSalud),
+          " confiero poder a ", pmBold(nombreMandatario),
+          ", RUT ", pmBold(mandatario.rut),
+          ", domiciliado en ", pmBold(mandatario.domicilio),
+          ", comuna de ", pmBold(mandatario.comuna),
+          ", ciudad de ", pmBold(mandatario.ciudad),
+          ", teléfono ", pmBold(mandatario.telefono),
+          ", correo electrónico ", pmBold(mandatario.email),
+          ", para que en mi nombre suscriba en ", pmBold(mandante.afp),
+          ", una solicitud de ", pmBold(mandante.tipoPension), "."
+        ]));
+
+        if (empleador.nombreORazonSocial || empleador.rut || empleador.domicilio || empleador.email || empleador.telefono) {
+          content.push(pmPara("Asimismo, expongo que a la fecha, los datos de mi empleador son los siguientes:", { margin: [0, 4, 0, 4] }));
+          content.push({
+            stack: [
+              { text: ["Razón social: ", { text: aMayus(empleador.nombreORazonSocial) }] },
+              { text: ["Rut: ", { text: aMayus(empleador.rut) }] },
+              { text: ["Dirección: ", { text: aMayus(empleador.domicilio) }] },
+              { text: ["Correo electrónico: ", { text: aMayus(empleador.email) }] },
+              { text: ["Teléfono: ", { text: aMayus(empleador.telefono) }] }
+            ],
+            margin: [0, 0, 0, 10]
+          });
+        }
+
+        content.push(pmPara("Para efectos de la suscripción de la pensión antes mencionada, declaro conocer que tienen la calidad de beneficiarios de pensión de sobrevivencia: el cónyuge, los hijos, la madre o padre de hijos de filiación no matrimonial y, a falta de todos los anteriores, los padres. En consecuencia, efectúo la siguiente declaración de beneficiarios:"));
+
+        if (data.beneficiarios && Object.keys(data.beneficiarios).length > 0) {
+          content.push(pmH3("Beneficiarios"));
+          content.push(pmTablaBeneficiariosMandato(data.beneficiarios));
+        } else {
+          content.push({ text: "Sin beneficiarios legales", bold: true, margin: [0, 0, 0, 10] });
+        }
+
+        content.push(pmPara("Por otra parte, señalo los siguientes antecedentes que el mandatario deberá considerar para suscribir en mi nombre en la solicitud de " + aMayus(mandante.tipoPension)));
+        content.push(pmH3("Antecedentes"));
+
+        var rowsAnt = [];
+        ANTECEDENTES_LARGO_ORDEN.forEach(function (key) {
+          rowsAnt.push({ label: antecedentesMandateLabels[key] || key, valor: antecedentes[key] === "Sí" ? "Sí" : "No" });
+          if (key === "destinareApv" && antecedentes.destinareApv === "Sí") {
+            var inst = antecedentes.apvNombreInstitucion != null ? String(antecedentes.apvNombreInstitucion) : "";
+            var pct = antecedentes.apvPorcentajeTraspaso != null && String(antecedentes.apvPorcentajeTraspaso).trim() !== "" ? String(antecedentes.apvPorcentajeTraspaso) : "";
+            rowsAnt.push({ label: "Nombre Institución APV:", valor: inst });
+            rowsAnt.push({ label: "Porcentaje de APV a traspasar:", valor: pct + "%" });
+          }
+          if (key === "destinareApvc" && antecedentes.destinareApvc === "Sí") {
+            var instC = antecedentes.apvcNombreInstitucion != null ? String(antecedentes.apvcNombreInstitucion) : "";
+            var pctC = antecedentes.apvcPorcentajeTraspaso != null && String(antecedentes.apvcPorcentajeTraspaso).trim() !== "" ? String(antecedentes.apvcPorcentajeTraspaso) : "";
+            rowsAnt.push({ label: "Nombre Institución APVC:", valor: instC });
+            rowsAnt.push({ label: "Porcentaje de APVC a traspasar:", valor: pctC });
+          }
+        });
+        content.push(pmTablaSiNo(rowsAnt));
+
+        content.push(pmPara("Asimismo, autorizo al mandatario para:"));
+        content.push(pmH3("Autorizaciones"));
+
+        var rowsAut = [];
+        autorizacionesItems.forEach(function (it) {
+          rowsAut.push({ label: autorizacionesMandateLabels[it.key] || it.label, valor: autorizaciones[it.key] === "Sí" ? "Sí" : "No" });
+        });
+        certificadosItems.forEach(function (it) {
+          rowsAut.push({ label: certificadosMandateLabels[it.key] || it.label, valor: certificados[it.key] === "Sí" ? "Sí" : "No" });
+        });
+        content.push(pmTablaSiNo(rowsAut));
+
+        if (autorizaciones.banco || autorizaciones.tipoCuenta || autorizaciones.numeroCuenta) {
+          content.push(pmH3("Datos de cuenta bancaria"));
+          content.push(pmTablaSiNo([
+            { label: "Banco", valor: aMayus(autorizaciones.banco || "") },
+            { label: "Tipo de cuenta", valor: aMayus(autorizaciones.tipoCuenta || "") },
+            { label: "Número de cuenta", valor: aMayus(autorizaciones.numeroCuenta || "") }
+          ]));
+        }
+
+        content.push(pmPara("Otorgo el presente mandato para los únicos fines antes señalados y se entiende revocado por otro de fecha posterior o por término de la gestión encomendada."));
+        content.push(pmPara("Finalmente, declaro conocer que el trámite de pensión es gratuito, sin perjuicio de que puedo contratar voluntariamente una asesoría previsional para dicho trámite."));
+
+        pmFirmas({ nombreCliente: nombreMandante, rutCliente: mandante.rut, nombreAsesor: nombreMandatario, rutAsesor: mandatario.rut, conFirmoAnteMi: true })
+          .forEach(function (n) { content.push(n); });
+
+        return Object.assign({}, PDFMAKE_PAGE_OPTS, PDFMAKE_BASE_STYLES, {
+          info: { title: "Mandato — " + nombreMandante },
+          footer: pmFooter(),
+          content: content
         });
       }
 
-      function descargarBlobHtmlFallback(html, safeBase) {
-        const blob = new Blob(["\ufeff", html], { type: "text/html;charset=utf-8" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `${safeBase}.html`;
-        a.click();
-        URL.revokeObjectURL(url);
+      /* ===== Document definition: MANDATO CORTO ===== */
+      function buildPdfDocMandatoCorto(data) {
+        var mandante = data.mandante || {};
+        var mandatario = data.mandatario || {};
+        var antecedentes = data.antecedentes || {};
+        var autorizaciones = data.autorizaciones || {};
+        var certificados = data.certificados || {};
+
+        var nombreMandante = ((mandante.nombres || "") + " " + (mandante.apellidoPaterno || "") + " " + (mandante.apellidoMaterno || "")).trim();
+        var nombreMandatario = ((mandatario.nombres || "") + " " + (mandatario.apellidoPaterno || "") + " " + (mandatario.apellidoMaterno || "")).trim();
+        var fechaHoy = fechaHoyHablado();
+        var esCambioModalidad = mandante.cambioModalidadTramite === "Sí";
+        var titulo = "MANDATO PARA " + aMayus(esCambioModalidad ? "INICIAR TRÁMITE DE CAMBIO DE MODALIDAD" : "RETIRAR CERTIFICADO DE SALDO") + " DE " + aMayus(mandante.tipoPension);
+
+        var content = [];
+        content.push({ text: titulo, fontSize: 14, bold: true, alignment: "center", margin: [0, 0, 0, 14] });
+
+        content.push(pmPara([
+          "Con fecha " + fechaHoy + " y por medio del siguiente instrumento, yo ",
+          pmBold(nombreMandante), ", RUT ", pmBold(mandante.rut),
+          ", de nacionalidad ", pmBold(mandante.nacionalidad),
+          ", de sexo ", pmBold(mandante.sexo),
+          ", nacido el ", pmBold(fechaAHablado(mandante.fechaNacimiento)),
+          ", estado civil ", pmBold(mandante.estadoCivil),
+          ", de profesión u oficio ", pmBold(mandante.profesionUOficio),
+          ", domiciliado en ", pmBold(mandante.domicilio),
+          ", comuna de ", pmBold(mandante.comuna),
+          ", ciudad de ", pmBold(mandante.ciudad),
+          ", teléfono ", pmBold(mandante.telefono),
+          ", correo electrónico ", pmBold(mandante.email),
+          ", e incorporado a la institución de salud ", pmBold(mandante.institucionSalud),
+          " confiero poder a ", pmBold(nombreMandatario),
+          ", RUT ", pmBold(mandatario.rut),
+          ", domiciliado en ", pmBold(mandatario.domicilio),
+          ", comuna de ", pmBold(mandatario.comuna),
+          ", ciudad de ", pmBold(mandatario.ciudad),
+          ", teléfono ", pmBold(mandatario.telefono),
+          ", correo electrónico ", pmBold(mandatario.email),
+          ", para que en mi nombre y en representación efectúe en ", pmBold(mandante.afp), " lo siguiente:"
+        ]));
+
+        var rowsAnt = [];
+        antecedentesItems.forEach(function (it) {
+          if (antecedentes[it.key] === "Sí") {
+            rowsAnt.push({ label: antecedentesMandateLabels[it.key] || it.label, valor: "Sí" });
+            if (it.key === "destinareApv") {
+              var inst = antecedentes.apvNombreInstitucion != null ? String(antecedentes.apvNombreInstitucion) : "";
+              var pct = antecedentes.apvPorcentajeTraspaso != null && String(antecedentes.apvPorcentajeTraspaso).trim() !== "" ? String(antecedentes.apvPorcentajeTraspaso) : "";
+              rowsAnt.push({ label: "Nombre Institución APV:", valor: inst });
+              rowsAnt.push({ label: "Porcentaje de APV a traspasar:", valor: pct + "%" });
+            }
+            if (it.key === "destinareApvc") {
+              var instC = antecedentes.apvcNombreInstitucion != null ? String(antecedentes.apvcNombreInstitucion) : "";
+              var pctC = antecedentes.apvcPorcentajeTraspaso != null && String(antecedentes.apvcPorcentajeTraspaso).trim() !== "" ? String(antecedentes.apvcPorcentajeTraspaso) : "";
+              rowsAnt.push({ label: "Nombre Institución APVC:", valor: instC });
+              rowsAnt.push({ label: "Porcentaje de APVC a traspasar:", valor: pctC });
+            }
+          }
+        });
+        if (rowsAnt.length) {
+          content.push(pmPara("Por otra parte, señalo los siguientes antecedentes que el mandatario deberá considerar para suscribir en mi nombre en la solicitud de " + aMayus(mandante.tipoPension)));
+          content.push(pmH3("Antecedentes"));
+          content.push(pmTablaSiNo(rowsAnt));
+        }
+
+        var rowsAut = [];
+        autorizacionesItems.forEach(function (it) {
+          if (autorizaciones[it.key] === "Sí") {
+            rowsAut.push({ label: autorizacionesMandateLabels[it.key] || it.label, valor: "Sí" });
+          }
+        });
+        certificadosItems.forEach(function (it) {
+          if (certificados[it.key] === "Sí") {
+            rowsAut.push({ label: certificadosMandateLabels[it.key] || it.label, valor: "Sí" });
+          }
+        });
+        if (rowsAut.length) {
+          content.push(pmH3("Autorizaciones"));
+          content.push(pmTablaSiNo(rowsAut));
+        }
+
+        pmFirmas({ nombreCliente: nombreMandante, rutCliente: mandante.rut, nombreAsesor: nombreMandatario, rutAsesor: mandatario.rut, conFirmoAnteMi: true })
+          .forEach(function (n) { content.push(n); });
+
+        return Object.assign({}, PDFMAKE_PAGE_OPTS, PDFMAKE_BASE_STYLES, {
+          info: { title: "Mandato corto — " + nombreMandante },
+          footer: pmFooter(),
+          content: content
+        });
       }
+
+      /* ===== Document definition: CONTRATO ===== */
+      function buildPdfDocContrato(data) {
+        var mandante = data.mandante || {};
+        var mandatario = data.mandatario || {};
+        var beneficiariosData = data.beneficiarios || {};
+        var nombreCompletoMandante = ((mandante.nombres || "") + " " + (mandante.apellidoPaterno || "") + " " + (mandante.apellidoMaterno || "")).trim();
+        var nombreCompletoMandatario = ((mandatario.nombres || "") + " " + (mandatario.apellidoPaterno || "") + " " + (mandatario.apellidoMaterno || "")).trim();
+        var fechaActualTexto = data.contratoFechaDocumentoHablado && String(data.contratoFechaDocumentoHablado).trim()
+          ? String(data.contratoFechaDocumentoHablado).trim()
+          : fechaHoyHablado();
+        var ciudad = mandante.ciudad || "";
+        var nombreTramite = mandante.tipoPension || "";
+        var esCambioModalidad = (mandante.cambioModalidadTramite || "").trim() === "Sí";
+
+        aplicarPreferenciaIncluirCodigoAsesorContratoDesdeSwitch(data);
+        var numeroContrato = construirTextoNumeroContratoParaDocumento(data);
+
+        var poliza = Object.assign({}, POLIZA_PERFIL_DEFAULTS, (data.poliza && typeof data.poliza === "object" ? data.poliza : {}));
+
+        var content = [];
+
+        content.push({
+          text: ["CONTRATO DE PRESTACIÓN DE SERVICIOS DE ASESORÍA PARA PENSIONARSE O CAMBIAR MODALIDAD DE PENSIÓN N° ", { text: aMayus(numeroContrato), bold: true }],
+          fontSize: 14, bold: true, alignment: "center", margin: [0, 0, 0, 12]
+        });
+
+        content.push(pmH2("INDIVIDUALIZACIÓN DE LAS PARTES"));
+        content.push(pmPara([
+          "En la Ciudad de ", pmBold(ciudad), " a ", pmBold(fechaActualTexto), ", suscriben el presente contrato, por una parte, don ",
+          pmBold(nombreCompletoMandante), ", Rut ", pmBold(mandante.rut),
+          ", nacido el ", pmBold(fechaAHablado(mandante.fechaNacimiento)),
+          ", estado civil ", pmBold(mandante.estadoCivil),
+          ", profesión u oficio ", pmBold(mandante.profesionUOficio),
+          ", domiciliado en ", pmBold(mandante.domicilio),
+          ", comuna de ", pmBold(mandante.comuna),
+          " ciudad de ", pmBold(mandante.ciudad),
+          ", celular ", pmBold(mandante.telefono),
+          ", correo electrónico ", pmBold(mandante.email),
+          ", afiliado a la ", pmBold(mandante.afp),
+          ", Sistema de Salud ", pmBold(mandante.institucionSalud),
+          "; por otra parte, ", pmBold(nombreCompletoMandatario),
+          ", Rut ", pmBold(mandatario.rut),
+          ", Profesión ", pmBold("ASESOR PREVISIONAL"),
+          ", inscrito en el Registro de Asesores Previsionales de la Superintendencia de Pensiones con el N° ", pmBold(mandatario.numeroRegistroAsesorPrevisional),
+          ", domiciliado en ", pmBold(mandatario.domicilio),
+          ", comuna de ", pmBold(mandatario.comuna),
+          " ciudad de ", pmBold(mandatario.ciudad),
+          ", celular ", pmBold(mandatario.telefono),
+          " e-mail: ", pmBold(mandatario.email),
+          ", en adelante el “ASESOR PREVISIONAL”. Las partes acuerdan el siguiente contrato de asesoría para realizar trámite de ",
+          pmBold(esCambioModalidad ? "cambio de modalidad para " + nombreTramite : nombreTramite), "."
+        ]));
+
+        content.push(pmH2("ANTECEDENTES DEL GRUPO FAMILIAR CON DERECHO A PENSIÓN"));
+        if (Object.keys(beneficiariosData).length > 0) {
+          content.push(pmPara("El Afiliado declara que la composición de su grupo familiar con derecho a pensión es:"));
+          content.push(pmTablaBeneficiariosContrato(beneficiariosData));
+        } else {
+          content.push({ text: "Sin beneficiarios legales", bold: true, margin: [0, 0, 0, 10] });
+        }
+
+        content.push(pmH2("NATURALEZA U OBJETO DEL CONTRATO"));
+        content.push(pmPara("El presente contrato de asesoría previsional, tiene por objeto otorgar información a los afiliados y beneficiarios del Sistema de Pensiones, considerando de manera integral todos los aspectos que dicen relación con su situación particular y que fueren necesarios para adoptar decisiones informadas, de acuerdo a sus necesidades e intereses en relación con las prestaciones y beneficios que contempla el D.L. N° 3.500. Dicha asesoría podrá comprender además la intermediación de Seguros Previsionales."));
+        content.push(pmPara("Si el afiliado confiere Mandato o Poder Especial al Asesor Previsional o a la Entidad de Asesoría Previsional, aquel deberá formar parte del Contrato como anexo del mismo y deberá cumplir con las normas que para tal efecto fije la Superintendencia de Pensiones, debiendo estipularse en forma detallada los trámites, atribuciones y facultades que el mandante otorga al mandatario para la ejecución del encargo específico que se le encomiende, debiendo entenderse que aquellas facultades que no fueron incluidas no han sido conferidas. En consecuencia, el mandatario sólo podrá realizar aquellas gestiones para las cuales se le otorgó un poder especial. En ningún caso, el poder podrá extenderse a la facultad de seleccionar modalidad de pensión o percibir beneficios."));
+
+        content.push(pmH2("OBLIGACIONES DE LAS ENTIDADES DE ASESORÍA PREVISIONAL O DEL ASESOR PREVISIONAL"));
+        content.push(pmPara("- Otorgar información, asesorar y orientar al afiliado o sus beneficiarios, según corresponda, considerando de manera integral todos los aspectos que digan relación con su situación particular y que fueren necesarias para que adopten decisiones informadas de acuerdo a sus necesidades e intereses, en relación con las prestaciones y beneficios que contempla el D.L N° 3.500."));
+        content.push(pmPara("- Asesorar en la selección de modalidad de pensión, informando acerca de los procedimientos y funcionamiento del Sistema de Consultas y Ofertas de Montos de Pensión, enviar y transmitir las consultas de montos de pensión requeridas por los consultantes y asistirle en todas las gestiones que corresponda efectuar una vez evacuadas las ofertas de pensión por el Sistema, ya sea en casos de aceptación de alguna de las ofertas contenida en el Certificado de Ofertas, la participación en el sistema de remate electrónico de pensión, el ingreso dentro de los plazos correspondientes de una nueva consulta en el Sistema, o bien la posibilidad de desistirse de contratar conforme a las ofertas recibidas."));
+        content.push(pmPara("- En caso de que el afiliado o sus beneficiarios cumplan los requisitos para pensionarse, o se trate de un pensionado bajo la modalidad de retiro programado, la asesoría deberá informar en especial sobre la forma de hacer efectiva su pensión según las modalidades previstas en el artículo 61 del D.L. 3.500, sus características y demás beneficios a que pudieren acceder según el caso, con una estimación de sus montos."));
+        content.push(pmPara("- Analizar y verificar la situación previsional tanto del pensionable como de sus beneficiarios legales. El asesor deberá obtener o requerir del cliente los antecedentes que permitan establecer o verificar la existencia o no de beneficiarios con derecho a pensión de sobrevivencia, a fin de evitar se incurra en la conducta descrita en el artículo 13 del D.L. 3.500, de 1980."));
+        content.push(pmPara("- En caso de que el solicitante cumpliera con los requisitos legales para obtener pensión de invalidez, deberá informarse el derecho que le asiste para acceder a dicha pensión con la misma compañía de seguros obligada a efectuar el pago del aporte adicional en conformidad al artículo 60 del D.L. Nº 3.500, aun cuando ésta no hubiera presentado una oferta de pensión, e informarle el plazo del cual dispone para ejercer dicha opción."));
+
+        content.push(pmH2("PÓLIZAS O BOLETA DE GARANTÍA BANCARIA COMPROMETIDAS"));
+        content.push(pmPara([
+          "Para responder del correcto y cabal cumplimiento de todas las obligaciones emanadas de la actividad, el Asesor Previsional está cubierto por la Póliza de Responsabilidad Civil Profesional para Asesores Previsionales o Entidades de Asesoría Previsional bajo el registro de póliza ",
+          pmBold(poliza.registroPoliza), " de la C.M.F., emitida por la ", pmBold(poliza.compania),
+          ". Póliza N° ", pmBold(poliza.numeroPoliza), " contratada el ", pmBold(poliza.fechaContrato),
+          ", con fecha de vigencia a partir del ", pmBold(poliza.fechaInicio),
+          " y vencimiento el ", pmBold(poliza.fechaVencimiento), "."
+        ]));
+
+        content.push(pmH2("VIGENCIA DEL CONTRATO"));
+        content.push(pmPara("Se entenderá terminada la vigencia de este contrato si el afiliado o beneficiario selecciona modalidad de pensión o se desistiese de pensionarse."));
+
+        content.push(pmH2("HONORARIOS"));
+        content.push(pmPara("Los honorarios brutos de Asesores Previsionales en Chile se ajustan al DL 3500 (art. 61bis y art. 179)."));
+        content.push(pmPara("Primera asesoría (selección de modalidad de pensión): 1,5% del saldo destinado a la modalidad de pensión, con tope de 60 UF en el caso de Renta Vitalicia y 1,2% del saldo destinado a la modalidad de pensión, con tope de 36 UF en caso de Retiro Programado."));
+        content.push(pmPara("Segunda asesoría (cambio de modalidad de pensión): saldo remanente con tope de 24 UF."));
+        content.push(pmPara("Además, se establece que el pago de los honorarios estarán sujetos a la prestación efectiva de la asesoría y que estos honorarios o comisión se cobrará en términos brutos, es decir, el monto siempre deberá incluir el impuesto al que está obligado el Asesor Previsional y dicho monto será cancelado por la entidad en la cual decida quedar pensionado."));
+
+        content.push(pmH2("DERECHO A LA INFORMACIÓN"));
+        content.push(pmPara("El contratante podrá requerir, en cualquier momento, información escrita respecto de las gestiones realizadas durante el curso de la asesoría. Asimismo, el asesor se compromete a la entrega de un Informe Final, en el cual explicitará la recomendación o sugerencia entregada, indicando los antecedentes, escenarios o los considerandos que sirvieron de base para la recomendación. Este informe final deberá explicitar claramente la fecha en que se extendió y las firmas de las partes, las que podrán ser electrónicas."));
+
+        content.push(pmH2("VOLUNTARIEDAD DEL CONTRATO DE ASESORÍA PREVISIONAL"));
+        content.push(pmPara("El presente Contrato se suscribe libre y voluntariamente, toda vez que para ejercer derechos previsionales no es requisito la contratación de Asesoría Previsional. La recomendación escrita que se otorgue por el Asesor Previsional o por la Entidad de Asesoría Previsional, esto es por medio del informe final, no es obligatoria para el afiliado o sus beneficiarios, pudiendo éstos optar por cualquier alternativa que les parezca conveniente."));
+        content.push(pmPara("Cualquier disposición de este contrato que pudiere constituir una limitación a la libertad contractual y al derecho del afiliado a elegir AFP, tipo de fondo, cuándo pensionarse, la modalidad de pensión y la entidad que otorgue su pensión se tendrá por no escrita."));
+
+        content.push(pmH2("PRIVACIDAD DE LA INFORMACIÓN"));
+        content.push(pmPara("El Asesor o la Entidad de Asesoría se obliga a resguardar la privacidad de toda la información a la que acceda producto del contrato."));
+
+        content.push(pmH2("INDEPENDENCIA DEL ASESOR PREVISIONAL O DE LA ENTIDAD DE ASESORÍA PREVISIONAL"));
+        content.push(pmPara("El Asesor Previsional, los directores, socios, accionistas, ejecutivos principales, gerentes, apoderados o dependientes de una Entidad de Asesoría Previsional, declaran no ser directores, accionistas, ejecutivos principales, gerentes, apoderados o dependientes de una AFP, Compañías de Seguros, Sociedad Administradora de Fondos de Cesantía, Aseguradora, Reaseguradora, Liquidadora de Siniestros o Entidades que conformen el grupo empresarial de esas sociedades. Asimismo, se comprometen a otorgar la Asesoría Previsional con absoluta independencia, no pudiendo condicionarla a otros productos o servicios propios o de una relacionada."));
+
+        content.push(pmH2("PROHIBICIONES"));
+        content.push(pmPara("Se encuentra prohibido limitar en forma alguna la libre elección del contratante respecto de tomar o no la recomendación del Asesor. El asesor o entidad de asesoría no podrá entregar al contratante incentivos o beneficios adicionales al objetivo de la asesoría."));
+
+        content.push(pmH2("TÉRMINO DEL CONTRATO"));
+        content.push(pmPara("El afiliado podrá poner término en cualquier momento al presente contrato, sin que se establezca el pago de una multa o algún otro tipo de penalización por dicha terminación, bastando para ello la comunicación de esta decisión por escrito al Asesor o a la Entidad de Asesoría Previsional, la que deberá remitirse por escrito al domicilio o correo electrónico de éste que figura en el Contrato. El Asesor o la Entidad de Asesoría Previsional podrán poner término al contrato de igual forma, debiendo siempre remitir la comunicación escrita al domicilio del afiliado vía correo certificado. Con todo, se entenderá terminada la vigencia del contrato transcurrido el plazo de 3 días contado desde el envío de dicha comunicación."));
+        content.push(pmPara("El presente contrato de Asesoría Previsional se firma en dos ejemplares quedando un ejemplar en poder de cada una de las partes."));
+
+        var anexosCfg = data.contratoAnexos;
+        if (anexosCfg && anexosCfg.usar && Array.isArray(anexosCfg.textos)) {
+          var partes = anexosCfg.textos.map(function (t) { return String(t || "").trim(); }).filter(Boolean);
+          if (partes.length) {
+            partes.forEach(function (t, idx) {
+              var bloque = pmH2("ANEXO " + (idx + 1));
+              if (idx === 0) bloque.pageBreak = "before";
+              content.push(bloque);
+              content.push({ text: t, alignment: "justify", preserveLeadingSpaces: true, margin: [0, 0, 0, 8], lineHeight: 1.35 });
+            });
+          }
+        }
+
+        pmFirmas({ nombreCliente: nombreCompletoMandante, rutCliente: mandante.rut, nombreAsesor: nombreCompletoMandatario, rutAsesor: mandatario.rut, conFirmoAnteMi: false })
+          .forEach(function (n) { content.push(n); });
+
+        return Object.assign({}, PDFMAKE_PAGE_OPTS, PDFMAKE_BASE_STYLES, {
+          info: { title: "Contrato — " + nombreCompletoMandante + " — " + numeroContrato },
+          footer: pmFooter(),
+          content: content
+        });
+      }
+
+      /* (código legacy de html2pdf eliminado al migrar a pdfmake) */
 
       /**
        * Inserta pie con campos Word PAGE / NUMPAGES ("Página X de Y") para .doc abiertos en Microsoft Word.
@@ -2159,7 +2422,15 @@
         return !!(sw && sw.checked);
       }
 
-      function descargarDocumentoWordCompat(html, baseName) {
+      /**
+       * Decide .doc vs PDF y descarga.
+       *   - html: HTML de la plantilla (solo para el .doc de Word)
+       *   - pdfDocDef: document definition pdfmake (para el PDF)
+       *   - baseName: nombre de archivo sin extensión
+       * El .doc sigue saliendo del HTML como antes. El PDF se genera con pdfmake
+       * (texto vectorial, sin rasterización ni cortes).
+       */
+      function descargarDocumentoCompat(html, pdfDocDef, baseName) {
         const ua = navigator.userAgent || "";
         const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
         const sp = new URLSearchParams(window.location.search || "");
@@ -2167,9 +2438,9 @@
           sp.get("pdf") === "1" || sp.get("pdf") === "true" || preferPdfDesktopFromUi();
         const usePdf = isMobile || forcePdfDesktop;
         const safeBase = truncarBaseNombreArchivo(String(baseName || "documento").replace(/[/\\:*?"<>|]/g, "_"));
-        const htmlWord = prepararHtmlWordConPiePagina(html);
 
         if (!usePdf) {
+          const htmlWord = prepararHtmlWordConPiePagina(html);
           const blob = new Blob(["\ufeff", htmlWord], { type: "application/msword" });
           const url = URL.createObjectURL(blob);
           const a = document.createElement("a");
@@ -2180,14 +2451,10 @@
           return Promise.resolve();
         }
 
-        return ensureHtml2PdfLoaded()
-          .then(function () {
-            return descargarHtmlComoPdfMultipage(html, safeBase);
-          })
-          .catch(function (err) {
-            console.warn("PDF no disponible, descargando HTML:", err);
-            descargarBlobHtmlFallback(htmlWord, safeBase);
-          });
+        return descargarPdfMake(pdfDocDef, safeBase).catch(function (err) {
+          console.error("No fue posible generar el PDF con pdfmake:", err);
+          alert("No se pudo generar el PDF. Intenta nuevamente o descarga en formato Word.");
+        });
       }
 
       // Rellena selectores de día, mes y año con rangos válidos.
@@ -2785,7 +3052,11 @@
         </html>
         `;
 
-        descargarDocumentoWordCompat(html, `mandato_largo_${baseNombreDocumentoMandante(mandante)}`);
+        descargarDocumentoCompat(
+          html,
+          buildPdfDocMandatoSimple(data),
+          `mandato_largo_${baseNombreDocumentoMandante(mandante)}`
+        );
 
       }
 
@@ -2918,7 +3189,11 @@
         </html>
         `;
 
-        descargarDocumentoWordCompat(html, `mandato_corto_${baseNombreDocumentoMandante(mandante)}`);
+        descargarDocumentoCompat(
+          html,
+          buildPdfDocMandatoCorto(data),
+          `mandato_corto_${baseNombreDocumentoMandante(mandante)}`
+        );
       }
 
       function escapeHtmlContrato(s) {
@@ -3370,8 +3645,9 @@
         </html>
         `;
 
-        descargarDocumentoWordCompat(
+        descargarDocumentoCompat(
           html,
+          buildPdfDocContrato(data),
           `contrato_${baseNombreDocumentoMandante(mandante)}_no_${segmentoNumeroContratoArchivo(numeroContrato)}`
         );
       }
