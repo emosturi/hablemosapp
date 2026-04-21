@@ -1823,6 +1823,7 @@
        * Reglas !important + repetición en el clon (onclone) alinean el PDF con Word/HTML.
        */
       const PDF_TEXT_JUSTIFY_INJECTION =
+        "html,body{overflow-wrap:break-word;word-wrap:break-word;}" +
         "body{text-align:justify!important;text-justify:inter-word;-moz-text-align-last:auto;text-align-last:auto;}" +
         "body p,body li{text-align:justify!important;text-justify:inter-word!important;}" +
         ".empleador-datos{text-align:left!important;text-justify:none!important;-moz-text-align-last:left;text-align-last:left;}" +
@@ -1953,6 +1954,20 @@
               var iwin = iframe.contentWindow;
               if (iwin) iwin.scrollTo(0, 0);
             } catch (_iz2) {}
+
+            /* Escritorio: iframe fijo 794px + overflow hidden recortaba el borde derecho si scrollWidth > viewport o por redondeo con html2canvas. */
+            if (!isMobilePdf) {
+              try {
+                var bodyW = Math.max(
+                  body.scrollWidth || 0,
+                  docEl ? docEl.scrollWidth || 0 : 0,
+                  794
+                );
+                iframe.style.width = Math.min(bodyW + 32, 2000) + "px";
+                iframe.style.maxWidth = "none";
+                void iframe.offsetWidth;
+              } catch (_iw) {}
+            }
 
             /* Un poco más de margen inferior en móvil evita que el troceo página a página recorte la última línea. */
             var pdfMargins = isMobilePdf ? [8, 8, 14, 8] : [8, 8, 8, 8];
