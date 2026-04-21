@@ -2248,16 +2248,30 @@
         <meta charset="utf-8">
         <style>
 
+        html,body{
+        margin:0;
+        padding:0;
+        }
         body{
         font-family:Arial;
         font-size:12pt;
         line-height:1.5;
-        margin:15px 12px;
+        padding:18px 18px;
+        box-sizing:border-box;
         text-align:justify;
+        overflow-wrap:break-word;
+        word-wrap:break-word;
+        }
+        *{
+        box-sizing:border-box;
         }
 
         p,li{
         text-align:justify;
+        page-break-inside:avoid;
+        break-inside:avoid;
+        overflow-wrap:break-word;
+        word-wrap:break-word;
         }
         .tabla-firmas td p{
         text-align:center;
@@ -2266,8 +2280,13 @@
         table{
         border-collapse:collapse;
         width:100%;
+        max-width:100%;
         margin-top:10px;
         font-size:9pt;
+        }
+        tr,thead{
+        page-break-inside:avoid;
+        break-inside:avoid;
         }
 
         td,th{
@@ -2275,6 +2294,8 @@
         padding:4px;
         font-size:9pt;
         vertical-align:top;
+        word-break:break-word;
+        overflow-wrap:break-word;
         }
         th{
         text-align:center;
@@ -2725,19 +2746,21 @@
         <table class="tabla-firmas" border="0" cellpadding="0" cellspacing="0" style="margin-top:40px;width:100%;">
         <tr>
         <td>
-        <p>______________________________</p>
+        <p style="margin:0;padding-top:88px;min-height:96px;box-sizing:border-box;">______________________________</p>
         <p>Firma Cliente</p>
         <p><b>${aMayus(nombreMandante)}</b></p>
         <p>RUT: <b>${aMayus(mandante.rut)}</b></p>
         </td>
         <td>
-        <p>______________________________</p>
+        <p style="margin:0;padding-top:88px;min-height:96px;box-sizing:border-box;">______________________________</p>
         <p>Firma Asesor Previsional</p>
         <p><b>${aMayus(nombreCompletoMandatario)}</b></p>
         <p>RUT: <b>${aMayus(mandatario.rut)}</b></p>
         </td>
         </tr>
         </table>
+
+        <p style="margin-top:24px;margin-bottom:12px;text-align:center;">Firmó ante mí:</p>
 
         </body>
         </html>
@@ -2771,11 +2794,14 @@
         <head>
         <meta charset="utf-8">
         <style>
-        body{ font-family:Arial; font-size:12pt; line-height:1.5; margin:15px 12px; text-align:justify; }
-        p,li{ text-align:justify; }
+        html,body{ margin:0; padding:0; }
+        body{ font-family:Arial; font-size:12pt; line-height:1.5; padding:18px 18px; box-sizing:border-box; text-align:justify; overflow-wrap:break-word; word-wrap:break-word; }
+        *{ box-sizing:border-box; }
+        p,li{ text-align:justify; page-break-inside:avoid; break-inside:avoid; overflow-wrap:break-word; word-wrap:break-word; }
         .tabla-firmas td p{ text-align:center; }
-        table{ border-collapse:collapse; width:100%; margin-top:10px; font-size:9pt; }
-        td,th{ border:1px solid black; padding:4px; font-size:9pt; vertical-align:top; }
+        table{ border-collapse:collapse; width:100%; max-width:100%; margin-top:10px; font-size:9pt; }
+        tr,thead{ page-break-inside:avoid; break-inside:avoid; }
+        td,th{ border:1px solid black; padding:4px; font-size:9pt; vertical-align:top; word-break:break-word; overflow-wrap:break-word; }
         th{ text-align:center; }
         td{ text-align:justify; }
         td.col-respuesta{ text-align:center; }
@@ -2853,19 +2879,21 @@
         <table class="tabla-firmas" border="0" cellpadding="0" cellspacing="0" style="margin-top:40px;width:100%;">
         <tr>
         <td>
-        <p>______________________________</p>
+        <p style="margin:0;padding-top:88px;min-height:96px;box-sizing:border-box;">______________________________</p>
         <p>Firma Cliente</p>
         <p><b>${aMayus(nombreMandante)}</b></p>
         <p>RUT: <b>${aMayus(mandante.rut)}</b></p>
         </td>
         <td>
-        <p>______________________________</p>
+        <p style="margin:0;padding-top:88px;min-height:96px;box-sizing:border-box;">______________________________</p>
         <p>Firma Asesor Previsional</p>
         <p><b>${aMayus(nombreCompletoMandatario)}</b></p>
         <p>RUT: <b>${aMayus(mandatario.rut)}</b></p>
         </td>
         </tr>
         </table>
+
+        <p style="margin-top:24px;margin-bottom:12px;text-align:center;">Firmó ante mí:</p>
 
         </body>
         </html>
@@ -2961,12 +2989,22 @@
         <head>
         <meta charset="utf-8">
         <style>
+        html,body{
+          margin:0;
+          padding:0;
+        }
         body{
           font-family:Arial;
           font-size:11pt;
           line-height:1.4;
-          margin:15px 12px;
+          padding:18px 18px;
+          box-sizing:border-box;
           text-align:justify;
+          overflow-wrap:break-word;
+          word-wrap:break-word;
+        }
+        *{
+          box-sizing:border-box;
         }
         h1{
           font-size:14pt;
@@ -2993,6 +3031,10 @@
         }
         p,li{
           text-align:justify;
+          page-break-inside:avoid;
+          break-inside:avoid;
+          overflow-wrap:break-word;
+          word-wrap:break-word;
         }
         .tabla-firmas td p{
           text-align:center;
@@ -3000,8 +3042,13 @@
         table{
           border-collapse:collapse;
           width:100%;
+          max-width:100%;
           margin-top:8px;
           font-size:9pt;
+        }
+        tr,thead{
+          page-break-inside:avoid;
+          break-inside:avoid;
         }
         th{
           text-align:center;
@@ -3030,6 +3077,8 @@
           border:1px solid #000;
           padding:4px;
           font-size:9pt;
+          word-break:break-word;
+          overflow-wrap:break-word;
         }
         .col-nombre-ben{ width:28%; }
         .col-parentesco-ben{ width:22%; min-width:6.5em; }
@@ -3285,13 +3334,13 @@
         <table class="tabla-firmas" border="0" cellpadding="0" cellspacing="0" style="margin-top:40px;width:100%;">
         <tr>
         <td>
-        <p>______________________________</p>
+        <p style="margin:0;padding-top:88px;min-height:96px;box-sizing:border-box;">______________________________</p>
         <p>Firma Cliente</p>
         <p><b>${aMayus(nombreCompletoMandante)}</b></p>
         <p>RUT: <b>${aMayus(mandante.rut)}</b></p>
         </td>
         <td>
-        <p>______________________________</p>
+        <p style="margin:0;padding-top:88px;min-height:96px;box-sizing:border-box;">______________________________</p>
         <p>Firma Asesor Previsional</p>
         <p><b>${aMayus(nombreCompletoMandatario)}</b></p>
         <p>RUT: <b>${aMayus(mandatario.rut)}</b></p>
