@@ -1,15 +1,19 @@
 /* Plataforma asesores: caché solo de estáticos propios. Sin HTML ni APIs. Web Push para recordatorios. */
-const CACHE_NAME = "prevy-static-v12";
+const CACHE_NAME = "prevy-static-v14";
 const PRECACHE_URLS = [
   "/manifest.webmanifest",
   "/app-shell.css",
   "/theme-init.js",
   "/pwa-push-register.js",
+  "/pwa-update.js",
   "/icons/icon-192.png",
   "/icons/icon-512.png",
 ];
 
 self.addEventListener("install", function (event) {
+  /* Sin skipWaiting automático: la nueva versión queda "waiting" hasta que el cliente
+     envíe {type:'SKIP_WAITING'} (botón "Actualizar" del banner). Así el usuario siempre
+     sabe cuándo pasa a la nueva versión y puede completar el flujo en curso. */
   event.waitUntil(
     caches
       .open(CACHE_NAME)
@@ -17,9 +21,6 @@ self.addEventListener("install", function (event) {
         return cache.addAll(PRECACHE_URLS);
       })
       .catch(function () {})
-      .then(function () {
-        return self.skipWaiting();
-      })
   );
 });
 
@@ -38,6 +39,12 @@ self.addEventListener("activate", function (event) {
         return self.clients.claim();
       })
   );
+});
+
+self.addEventListener("message", function (event) {
+  if (event.data && event.data.type === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener("push", function (event) {

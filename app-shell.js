@@ -40,11 +40,14 @@
     } catch (_e) {}
   })();
 
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", function pwaSwLoad() {
-      window.removeEventListener("load", pwaSwLoad);
-      navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch(function () {});
-    });
+  /* Registro del SW + banner de actualización en /pwa-update.js.
+     Se carga diferido para no bloquear el render del shell. */
+  if ("serviceWorker" in navigator && !document.querySelector('script[data-prevy-pwa-update]')) {
+    var pwaUpdScript = document.createElement("script");
+    pwaUpdScript.src = "/pwa-update.js";
+    pwaUpdScript.defer = true;
+    pwaUpdScript.setAttribute("data-prevy-pwa-update", "1");
+    document.head.appendChild(pwaUpdScript);
   }
 
   function qs(id) {
