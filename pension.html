@@ -1822,8 +1822,15 @@
        * html2canvas suele ignorar text-align:justify si solo viene en hojas del documento original.
        * Reglas !important + repetición en el clon (onclone) alinean el PDF con Word/HTML.
        */
+      /* Ancho de rasterización fijo en px (coincide con lo que html2pdf pondrá en A4 portrait). Evita recorte a la derecha y hace previsible el troceado por páginas. */
+      const PDF_RENDER_WIDTH_PX = 794;
+
       const PDF_TEXT_JUSTIFY_INJECTION =
-        "html,body{overflow-wrap:break-word;word-wrap:break-word;}" +
+        "html,body{overflow-wrap:anywhere!important;word-wrap:break-word!important;word-break:normal;max-width:100%!important;}" +
+        "body{width:" + PDF_RENDER_WIDTH_PX + "px!important;max-width:" + PDF_RENDER_WIDTH_PX + "px!important;box-sizing:border-box!important;overflow-x:hidden!important;}" +
+        "*{max-width:100%!important;}" +
+        "table{table-layout:auto!important;width:100%!important;max-width:100%!important;}" +
+        "td,th{word-break:break-word!important;overflow-wrap:anywhere!important;}" +
         "body{text-align:justify!important;text-justify:inter-word;-moz-text-align-last:auto;text-align-last:auto;}" +
         "body p,body li{text-align:justify!important;text-justify:inter-word!important;}" +
         ".empleador-datos{text-align:left!important;text-justify:none!important;-moz-text-align-last:left;text-align-last:left;}" +
@@ -1852,8 +1859,9 @@
 
           const iframe = document.createElement("iframe");
           iframe.setAttribute("title", "pdf-render");
+          /* Ancho fijo 794px en ambas plataformas; el contenido queda obligado a envolver (word-wrap) y html2canvas captura ese ancho exacto. */
           iframe.style.cssText =
-            "position:fixed;left:0;top:0;width:794px;max-width:100vw;height:90vh;min-height:480px;border:0;z-index:2147483646;background:#fff;box-sizing:border-box;overflow:auto;-webkit-overflow-scrolling:touch;";
+            "position:fixed;left:0;top:0;width:" + PDF_RENDER_WIDTH_PX + "px;max-width:" + PDF_RENDER_WIDTH_PX + "px;height:90vh;min-height:480px;border:0;z-index:2147483646;background:#fff;box-sizing:border-box;overflow:hidden;-webkit-overflow-scrolling:touch;";
 
           document.body.appendChild(veil);
           document.body.appendChild(iframe);
@@ -1900,11 +1908,12 @@
                   "table{page-break-inside:auto;}" +
                   "tr,thead,tfoot{page-break-inside:avoid!important;break-inside:avoid!important;-webkit-column-break-inside:avoid;}" +
                   "h1,h2,h3,h4{page-break-after:avoid!important;break-after:avoid!important;}" +
+                  /* Evita que html2pdf corte un párrafo a mitad entre páginas. Aplica a <p> y <li>, que son los que se veían rebanados abajo. */
+                  "p,li{page-break-inside:avoid!important;break-inside:avoid!important;orphans:3;widows:3;}" +
                   /* Solo mandatos: salto antes de firmas. En el contrato forzaba cortes erróneos con html2pdf. */
                   ".tabla-firmas.tabla-firmas--mandato-pdf{page-break-before:always!important;break-before:page!important;}" +
                   ".tabla-firmas tr{page-break-inside:avoid!important;break-inside:avoid!important;}" +
-                  ".tabla-firmas{page-break-inside:avoid!important;break-inside:avoid!important;}" +
-                  "p{orphans:3;widows:3;}";
+                  ".tabla-firmas{page-break-inside:avoid!important;break-inside:avoid!important;}";
                 head.appendChild(inj);
               }
               if (head && !head.querySelector("style[data-prevy-pdf-justify]")) {
@@ -1932,7 +1941,7 @@
             }
 
             const docEl = doc.documentElement;
-            /* Iframe a la altura del documento: 90vh + scroll en móvil hacía que html2canvas cortara el pie de página. */
+            /* Iframe a la altura del documento: 90vh + scroll en móvil/escritorio hacía que html2canvas cortara el pie. Ancho se mantiene en PDF_RENDER_WIDTH_PX; el wrap CSS evita recorte lateral. */
             try {
               iframe.style.maxHeight = "none";
               iframe.style.height = "16000px";
@@ -1955,22 +1964,7 @@
               if (iwin) iwin.scrollTo(0, 0);
             } catch (_iz2) {}
 
-            /* Escritorio: iframe fijo 794px + overflow hidden recortaba el borde derecho si scrollWidth > viewport o por redondeo con html2canvas. */
-            if (!isMobilePdf) {
-              try {
-                var bodyW = Math.max(
-                  body.scrollWidth || 0,
-                  docEl ? docEl.scrollWidth || 0 : 0,
-                  794
-                );
-                iframe.style.width = Math.min(bodyW + 32, 2000) + "px";
-                iframe.style.maxWidth = "none";
-                void iframe.offsetWidth;
-              } catch (_iw) {}
-            }
-
-            /* Un poco más de margen inferior en móvil evita que el troceo página a página recorte la última línea. */
-            var pdfMargins = isMobilePdf ? [8, 8, 14, 8] : [8, 8, 8, 8];
+            var pdfMargins = [8, 8, 8, 8];
 
             const opt = {
               margin: pdfMargins,
@@ -1984,6 +1978,11 @@
                 backgroundColor: "#ffffff",
                 scrollX: 0,
                 scrollY: 0,
+                /* windowWidth/width fijos: html2canvas rasteriza a este ancho exacto (sin leer el viewport), evita recorte del costado derecho en escritorio. */
+                windowWidth: PDF_RENDER_WIDTH_PX,
+                width: PDF_RENDER_WIDTH_PX,
+                x: 0,
+                y: 0,
                 onclone: function (clonedDoc) {
                   try {
                     var cHead = clonedDoc.head;
@@ -1996,8 +1995,11 @@
                 },
               },
               jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-              /* «avoid-all» recortaba documentos largos al forzar avoid en casi todos los bloques + firmas altas */
-              pagebreak: { mode: ["css", "legacy"] },
+              /* avoid explícito: html2pdf no corta párrafos, filas, títulos ni firmas entre páginas. Con CSS + legacy se respetan page-break-* del HTML. */
+              pagebreak: {
+                mode: ["css", "legacy"],
+                avoid: ["p", "li", "tr", "h1", "h2", "h3", "h4", ".tabla-firmas"],
+              },
             };
 
             html2pdf()
