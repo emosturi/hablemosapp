@@ -1,13 +1,30 @@
-# Migraciones legacy (pre-Supabase CLI)
+# SQL legacy (pre-Supabase CLI)
 
-Esta carpeta contiene las **44 migraciones SQL** que se aplicaron a la base de datos
+Esta carpeta contiene los **49 archivos SQL** que se usaron contra la base de datos
 de Supabase **antes** de adoptar el flujo oficial con
 [Supabase CLI](https://supabase.com/docs/guides/cli).
 
+## Contenido
+
+La mayoría son **migraciones** aplicadas históricamente, pero también hay otros tipos:
+
+- **Migraciones `supabase-migration-*.sql`** (44): cambios de schema/datos aplicados
+  uno por uno al SQL Editor del dashboard.
+- **Schema inicial** (`supabase-schema.sql`, `supabase-schema-migration-clientes-v2.sql`):
+  primeros scripts cuando recién existía la tabla `clientes`.
+- **Data migration** (`supabase-canonizar-rut-solo.sql`): normalizó el formato
+  de RUT en todas las filas.
+- **Rollback** (`supabase-rollback-stripe-asesor-cuentas.sql`): script "undo"
+  de un experimento con Stripe que se descartó.
+- **Diagnóstico** (`supabase-diagnostico-autoreminders.sql`): queries de
+  `SELECT` para depurar el sistema de recordatorios. No modifica datos.
+
 ## ¿Para qué sirven?
 
-**Solo referencia histórica.** No hay que volver a ejecutarlas. El estado actual de
-la base de datos ya quedó capturado como baseline en:
+**Solo referencia histórica.** No hay que volver a ejecutarlas (excepto el de
+diagnóstico, que se puede usar puntualmente para inspeccionar, pero idealmente
+moverlo a un futuro `_scripts/` si se vuelve a usar). El estado actual de la
+base de datos ya quedó capturado como baseline en:
 
 ```
 supabase/migrations/20260422152440_remote_schema.sql
