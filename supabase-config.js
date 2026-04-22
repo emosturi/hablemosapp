@@ -5,6 +5,25 @@
 window.SUPABASE_URL = "https://ndxelneraoabehyrplrv.supabase.co";
 window.SUPABASE_ANON_KEY = "sb_publishable_G3-iWOKWSEq84ndlF3kViw_msMmwBT9";
 
+// --------------------------------------------------------------------------
+// Desarrollo local: si se sirve desde localhost/127.0.0.1 (npx serve, netlify
+// dev, Live Server, etc.) se usa la Supabase local levantada con Docker
+// mediante `supabase start`. Las llaves locales son valores públicos por
+// defecto; no representan riesgo de seguridad si se commitean. En producción
+// (Netlify con dominio real) no aplica y se usan las credenciales remotas
+// definidas arriba.
+// --------------------------------------------------------------------------
+(function () {
+  try {
+    var h = (window.location && window.location.hostname) || "";
+    var isLocal = h === "localhost" || h === "127.0.0.1" || h === "0.0.0.0";
+    if (!isLocal) return;
+    window.SUPABASE_URL = "http://127.0.0.1:54321";
+    window.SUPABASE_ANON_KEY = "sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH";
+    try { console.info("[Prevy] Supabase LOCAL:", window.SUPABASE_URL); } catch (_e) {}
+  } catch (_e) {}
+})();
+
 // Web Push (PWA): misma clave que VAPID_PUBLIC_KEY en Netlify. Generar con: npx web-push generate-vapid-keys
 window.PREVY_VAPID_PUBLIC_KEY = "BEtksq2xG0MhQo5jb8X_xjHVenWE3U4FAHV81n5aP7S1K7wVIa4HfUJieJtK7EwzRVrWlcaQdlsBRnjdwoKVsZw";
 
