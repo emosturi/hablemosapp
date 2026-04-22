@@ -404,7 +404,7 @@
     }
 
     if (
-      (base === "recordatorios.html" || base === "mi-agenda-llamadas.html") &&
+      (base === "recordatorios.html" || base === "agenda.html") &&
       j.telegram_reminders_enabled !== false &&
       j.show_telegram_configure_cta !== true
     ) {
@@ -731,11 +731,19 @@
         return;
       }
       if (q.indexOf("reserv") !== -1 && (q.indexOf("agenda") !== -1 || q.indexOf("llamad") !== -1)) {
-        window.location.href = "mi-agenda-llamadas.html";
+        window.location.href = "agenda.html#reservas";
         return;
       }
-      if (q.indexOf("agenda") !== -1 || q.indexOf("dispon") !== -1 || q.indexOf("llamad") !== -1) {
-        window.location.href = "disponibilidad-asesor.html";
+      if (q.indexOf("dispon") !== -1) {
+        window.location.href = "agenda.html#disponibilidad";
+        return;
+      }
+      if (q.indexOf("enlace") !== -1 || q.indexOf("compart") !== -1) {
+        window.location.href = "agenda.html#enlace";
+        return;
+      }
+      if (q.indexOf("agenda") !== -1 || q.indexOf("llamad") !== -1) {
+        window.location.href = "agenda.html";
         return;
       }
       if (q.indexOf("record") !== -1 || q.indexOf("alert") !== -1) {
