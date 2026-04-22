@@ -63,9 +63,6 @@
       .hint { font-size: 13px; color: var(--muted); line-height: 1.45; max-width: 720px; }
       .hint a { color: var(--primary-mid); font-weight: 600; }
 
-      /* ============ SECCIÓN: RESERVAS ============ */
-      #reservas .panel { padding: 0; overflow: hidden; }
-      #reservas .hint { margin-top: 16px; }
       .telegram-json-cta {
         display: none;
         margin: 12px 0 0;
@@ -94,22 +91,37 @@
       .telegram-json-cta .btn-tg-config:focus-visible { outline: 2px solid var(--primary-mid); outline-offset: 2px; }
       html[data-theme="dark"] .telegram-json-cta .btn-tg-config { background: #f97316; color: #0f172a; }
       html[data-theme="dark"] .telegram-json-cta .btn-tg-config:hover { background: #fb923c; color: #0f172a; }
-      .week-bar {
+
+      /* ============ SECCIÓN: CALENDARIO ============ */
+      .cal-toolbar {
         display: flex;
         flex-wrap: wrap;
         align-items: center;
         gap: 10px 14px;
-        margin-bottom: 18px;
+        margin-bottom: 14px;
         padding: 14px 16px;
         background: var(--card);
         border: 1px solid var(--border);
         border-radius: var(--radius);
         box-shadow: var(--shadow);
       }
-      .week-bar .label { font-weight: 600; font-size: 15px; color: var(--text); flex: 1 1 200px; }
-      .week-bar .muted { font-size: 13px; font-weight: 400; color: var(--muted); margin-top: 2px; }
-      .week-nav { display: flex; flex-wrap: wrap; gap: 8px; }
-      .week-nav button {
+      .cal-toolbar .cal-title {
+        flex: 1 1 200px;
+        min-width: 180px;
+      }
+      .cal-toolbar .cal-title-main {
+        font-weight: 600;
+        font-size: 15px;
+        color: var(--text);
+        text-transform: capitalize;
+      }
+      .cal-toolbar .cal-title-sub {
+        font-size: 13px;
+        color: var(--muted);
+        margin-top: 2px;
+      }
+      .cal-controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+      .cal-btn {
         padding: 9px 14px;
         border-radius: 10px;
         border: 1px solid var(--border);
@@ -120,43 +132,295 @@
         cursor: pointer;
         font-family: inherit;
       }
-      .week-nav button:hover { border-color: var(--primary-mid); }
-      .week-nav button:disabled { opacity: 0.45; cursor: not-allowed; }
-      .loading, .empty, .err-box {
-        padding: 28px 20px;
-        text-align: center;
-        color: var(--muted);
-        font-size: 14px;
+      .cal-btn:hover { border-color: var(--primary-mid); }
+      .cal-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+      .cal-btn.primary {
+        background: var(--primary);
+        color: #fff;
+        border-color: var(--primary);
       }
-      .err-box { color: var(--danger-text, #b91c1c); background: var(--danger-bg, rgba(185, 28, 28, 0.08)); }
-      .day-group { border-bottom: 1px solid var(--border); }
-      .day-group:last-child { border-bottom: none; }
-      .day-head {
-        padding: 12px 16px;
+      .cal-btn.primary:hover { filter: brightness(1.05); }
+      .cal-btn.ghost {
+        background: transparent;
+        border-color: transparent;
+      }
+      .cal-btn.ghost:hover { background: var(--surface); border-color: var(--border); }
+      .cal-viewtoggle {
+        display: inline-flex;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      .cal-viewtoggle button {
+        padding: 9px 14px;
+        border: 0;
         background: var(--surface);
-        font-weight: 600;
-        font-size: 14px;
         color: var(--muted);
-        text-transform: capitalize;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: inherit;
       }
-      .slot-row {
+      .cal-viewtoggle button[aria-pressed="true"] {
+        background: var(--primary);
+        color: #fff;
+      }
+      .cal-viewtoggle button + button { border-left: 1px solid var(--border); }
+
+      .cal-legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px 18px;
+        margin: 0 0 12px;
+        font-size: 12px;
+        color: var(--muted);
+        align-items: center;
+      }
+      .cal-legend .sw {
+        display: inline-block;
+        width: 14px; height: 14px;
+        border-radius: 3px;
+        margin-right: 6px;
+        vertical-align: -3px;
+        border: 1px solid transparent;
+      }
+      .cal-legend .sw-vent { background: rgba(59, 130, 246, 0.22); border-color: rgba(59, 130, 246, 0.55); }
+      .cal-legend .sw-res  { background: rgba(234, 88, 12, 0.85); border-color: rgba(234, 88, 12, 1); }
+
+      .cal-grid-wrap {
+        position: relative;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+      .cal-status-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px 14px;
+        align-items: center;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface);
+      }
+      .cal-status-row .status { font-size: 13px; color: var(--muted); flex: 1 1 160px; }
+      .cal-status-row .status.ok { color: var(--primary-mid); }
+      .cal-status-row .status.err { color: var(--danger-text, #b91c1c); }
+      .cal-status-row .dirty { color: #b45309; }
+
+      .cal-daysbar {
         display: grid;
-        grid-template-columns: 88px 1fr;
-        gap: 12px 16px;
-        padding: 14px 16px;
-        align-items: start;
-        border-top: 1px solid var(--border);
+        grid-template-columns: 60px 1fr;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface);
       }
-      @media (max-width: 520px) {
-        .slot-row { grid-template-columns: 1fr; }
+      .cal-daysbar-cells {
+        display: grid;
+        grid-template-columns: repeat(var(--daycols, 7), 1fr);
       }
-      .slot-time { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--primary-mid); font-size: 15px; }
-      .slot-body { font-size: 14px; line-height: 1.45; }
-      .slot-name { font-weight: 600; color: var(--text); margin-bottom: 4px; }
-      .slot-tel { color: var(--muted); }
-      .slot-tel a { color: var(--primary-mid); text-decoration: none; font-weight: 500; }
-      .slot-tel a:hover { text-decoration: underline; }
-      .slot-meta { font-size: 12px; color: var(--muted); margin-top: 6px; }
+      .cal-daysbar .timecol-head {
+        border-right: 1px solid var(--border);
+      }
+      .cal-daysbar .dayhead {
+        padding: 10px 6px;
+        text-align: center;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--muted);
+        border-right: 1px solid var(--border);
+        line-height: 1.3;
+      }
+      .cal-daysbar .dayhead:last-child { border-right: 0; }
+      .cal-daysbar .dayhead.today { color: var(--primary); }
+      .cal-daysbar .dayhead .dnum {
+        display: block;
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--text);
+        margin-top: 2px;
+      }
+      .cal-daysbar .dayhead.today .dnum { color: var(--primary); }
+
+      .cal-grid {
+        position: relative;
+        display: grid;
+        grid-template-columns: 60px 1fr;
+        user-select: none;
+        overflow-x: auto;
+      }
+      .cal-timecol {
+        display: grid;
+        grid-template-rows: repeat(var(--nrows, 52), var(--slot-h, 14px));
+        border-right: 1px solid var(--border);
+      }
+      .cal-timecol .hlabel {
+        position: relative;
+        font-size: 11px;
+        color: var(--muted);
+        font-variant-numeric: tabular-nums;
+        padding-right: 6px;
+        text-align: right;
+        line-height: 1;
+        transform: translateY(-5px);
+      }
+      .cal-daycols {
+        position: relative;
+        display: grid;
+        grid-template-columns: repeat(var(--daycols, 7), 1fr);
+        grid-template-rows: repeat(var(--nrows, 52), var(--slot-h, 14px));
+      }
+      .cal-cell {
+        border-right: 1px solid var(--border);
+        border-bottom: 1px dashed transparent;
+        cursor: crosshair;
+        position: relative;
+      }
+      .cal-cell[data-slot-minute="0"] { border-bottom: 1px solid var(--border); }
+      .cal-cell[data-slot-minute="30"] { border-bottom: 1px dashed var(--border); }
+      .cal-cell:last-child { border-right: 0; }
+      .cal-cell:hover { background: var(--accent-soft); }
+
+      .cal-overlay {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        display: grid;
+        grid-template-columns: repeat(var(--daycols, 7), 1fr);
+        grid-template-rows: repeat(var(--nrows, 52), var(--slot-h, 14px));
+      }
+      .cal-win, .cal-res, .cal-drag-preview {
+        pointer-events: auto;
+        border-radius: 6px;
+        overflow: hidden;
+        font-size: 11px;
+        line-height: 1.25;
+        padding: 3px 6px;
+        box-sizing: border-box;
+      }
+      .cal-win {
+        background: rgba(59, 130, 246, 0.22);
+        border: 1px solid rgba(59, 130, 246, 0.55);
+        color: #1e3a8a;
+        cursor: pointer;
+        transition: background 0.12s;
+      }
+      .cal-win:hover { background: rgba(59, 130, 246, 0.34); }
+      .cal-win .cal-win-del {
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(30, 64, 175, 0.5);
+        color: #1e3a8a;
+        border-radius: 4px;
+        width: 18px;
+        height: 18px;
+        font-size: 14px;
+        line-height: 1;
+        cursor: pointer;
+        padding: 0;
+        display: none;
+      }
+      .cal-win:hover .cal-win-del,
+      .cal-win:focus-within .cal-win-del { display: block; }
+      html[data-theme="dark"] .cal-win {
+        background: rgba(96, 165, 250, 0.22);
+        border-color: rgba(96, 165, 250, 0.55);
+        color: #bfdbfe;
+      }
+      html[data-theme="dark"] .cal-win:hover { background: rgba(96, 165, 250, 0.34); }
+      html[data-theme="dark"] .cal-win .cal-win-del {
+        background: rgba(30, 58, 138, 0.92);
+        border-color: rgba(147, 197, 253, 0.6);
+        color: #bfdbfe;
+      }
+
+      .cal-res {
+        background: rgba(234, 88, 12, 0.9);
+        border: 1px solid rgba(194, 65, 12, 1);
+        color: #fff;
+        cursor: pointer;
+        font-weight: 500;
+        z-index: 2;
+      }
+      .cal-res:hover { filter: brightness(1.08); }
+      .cal-res .cal-res-time { font-weight: 700; font-size: 11px; display: block; }
+      .cal-res .cal-res-name { font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+      .cal-drag-preview {
+        background: rgba(59, 130, 246, 0.38);
+        border: 2px dashed rgba(59, 130, 246, 0.8);
+        color: #1e3a8a;
+        z-index: 3;
+        pointer-events: none;
+      }
+      html[data-theme="dark"] .cal-drag-preview {
+        background: rgba(96, 165, 250, 0.38);
+        border-color: rgba(147, 197, 253, 0.9);
+        color: #bfdbfe;
+      }
+
+      /* ============ MODAL CONFIG ============ */
+      .cal-modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 80;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+      }
+      .cal-modal-backdrop.open { display: flex; }
+      .cal-modal {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 22px;
+        max-width: 440px;
+        width: 100%;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+      }
+      .cal-modal h2 { margin: 0 0 6px; font-size: 18px; }
+      .cal-modal .sub { color: var(--muted); font-size: 13px; margin: 0 0 18px; line-height: 1.45; }
+      .cal-modal .field { margin-bottom: 16px; }
+      .cal-modal .field label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 6px;
+        color: var(--text);
+      }
+      .cal-modal .field select {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text);
+        font-size: 14px;
+        font-family: inherit;
+      }
+      .cal-modal .field .hint { font-size: 12px; margin: 6px 0 0; }
+      .cal-modal-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        margin-top: 18px;
+      }
+
+      /* ============ RESPONSIVE ============ */
+      @media (max-width: 680px) {
+        .cal-toolbar .cal-title { flex: 1 1 100%; }
+        .cal-controls { width: 100%; justify-content: space-between; }
+      }
+      @media (min-width: 681px) {
+        .cal-mobile-only { display: none !important; }
+      }
+      @media (max-width: 680px) {
+        .cal-desktop-only { display: none !important; }
+      }
 
       /* ============ SECCIÓN: ENLACE ============ */
       #enlace .panel { padding: 24px; }
@@ -211,58 +475,6 @@
       .share-mail { background: rgba(255, 255, 255, 0.06); }
       .share-native { background: var(--accent-soft); border-color: var(--primary-mid); color: var(--primary); }
 
-      /* ============ SECCIÓN: DISPONIBILIDAD ============ */
-      #disponibilidad .panel { padding: 18px; overflow-x: auto; }
-      #disponibilidad .hint { margin: 0 0 16px; }
-      .grid-disp {
-        display: grid;
-        grid-template-columns: 72px repeat(7, minmax(52px, 1fr));
-        gap: 4px;
-        font-size: 11px;
-        min-width: 560px;
-      }
-      .grid-disp .corner { grid-column: 1; }
-      .grid-disp .dhead {
-        text-align: center;
-        font-weight: 600;
-        color: var(--muted);
-        padding: 6px 2px;
-        font-size: 11px;
-      }
-      .grid-disp .hlabel {
-        text-align: right;
-        padding: 2px 6px 0 0;
-        color: var(--muted);
-        font-variant-numeric: tabular-nums;
-      }
-      .slot {
-        aspect-ratio: 1;
-        max-height: 36px;
-        border-radius: 6px;
-        border: 1px solid var(--border);
-        background: var(--surface);
-        cursor: pointer;
-        padding: 0;
-        transition: background 0.12s, border-color 0.12s;
-      }
-      .slot.on { background: var(--primary); border-color: var(--primary-mid); }
-      .slot.on:hover { filter: brightness(1.08); }
-      .slot:not(.on):hover { border-color: var(--primary-mid); }
-      .actions-row { margin-top: 20px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-      .btn-save {
-        padding: 12px 22px;
-        border-radius: 12px;
-        border: none;
-        font-weight: 600;
-        font-size: 14px;
-        cursor: pointer;
-        background: var(--primary);
-        color: #fff;
-      }
-      .btn-save:disabled { opacity: 0.55; cursor: not-allowed; }
-      .status { font-size: 14px; color: var(--muted); }
-      .status.ok { color: var(--primary-mid); }
-      .status.err { color: var(--danger-text, #b91c1c); }
     </style>
   </head>
   <body>
@@ -346,43 +558,71 @@
             </header>
 
             <div class="agenda-tabs" role="tablist" aria-label="Secciones de la agenda">
-              <button type="button" class="agenda-tab" role="tab" data-tab="reservas" aria-controls="reservas" aria-selected="true" tabindex="0">Reservas</button>
+              <button type="button" class="agenda-tab" role="tab" data-tab="calendario" aria-controls="calendario" aria-selected="true" tabindex="0">Calendario</button>
               <button type="button" class="agenda-tab" role="tab" data-tab="enlace" aria-controls="enlace" aria-selected="false" tabindex="-1">Enlace público</button>
-              <button type="button" class="agenda-tab" role="tab" data-tab="disponibilidad" aria-controls="disponibilidad" aria-selected="false" tabindex="-1">Disponibilidad</button>
             </div>
 
-            <!-- ============ SECCIÓN: RESERVAS ============ -->
-            <section id="reservas" class="agenda-section" data-tab-panel="reservas" role="tabpanel" aria-labelledby="tab-reservas">
-              <p class="hint" style="margin: 0 0 12px;">Reservas hechas por clientes con su enlace público, semana por semana.</p>
-              <div class="week-bar">
-                <div class="label">
-                  <span id="weekRangeLabel">—</span>
-                  <div class="muted" id="weekHint">Use los botones para cambiar de semana y ver otras fechas.</div>
+            <!-- ============ SECCIÓN: CALENDARIO ============ -->
+            <section id="calendario" class="agenda-section" data-tab-panel="calendario" role="tabpanel" aria-labelledby="tab-calendario">
+              <p class="hint" style="margin: 0 0 12px;">
+                Arrastre sobre la grilla para crear una <strong>ventana de disponibilidad</strong>. Sus reservas actuales aparecen como cajas naranjas sobre las ventanas. Cambie la duración de llamada y la separación en <a href="#" id="linkOpenConfig">Configuración</a>.
+              </p>
+
+              <div class="cal-toolbar">
+                <div class="cal-title">
+                  <div class="cal-title-main" id="calTitleMain">—</div>
+                  <div class="cal-title-sub" id="calTitleSub">America/Santiago</div>
                 </div>
-                <div class="week-nav">
-                  <button type="button" id="btnPrevWeek">Semana anterior</button>
-                  <button type="button" id="btnThisWeek">Esta semana</button>
-                  <button type="button" id="btnNextWeek">Semana siguiente</button>
+                <div class="cal-controls">
+                  <div class="cal-viewtoggle" role="group" aria-label="Vista del calendario">
+                    <button type="button" id="calViewWeek" aria-pressed="true">Semana</button>
+                    <button type="button" id="calViewDay" aria-pressed="false">Día</button>
+                  </div>
+                  <button type="button" class="cal-btn" id="calPrev" aria-label="Anterior">←</button>
+                  <button type="button" class="cal-btn" id="calToday">Hoy</button>
+                  <button type="button" class="cal-btn" id="calNext" aria-label="Siguiente">→</button>
+                  <button type="button" class="cal-btn" id="calConfig" aria-label="Configuración de agenda">⚙︎ Config</button>
                 </div>
               </div>
-              <div class="panel" id="panel">
-                <div id="stateLoading" class="loading">Cargando reservas…</div>
-                <div id="stateErr" class="err-box" style="display: none"></div>
-                <div id="stateEmpty" class="empty" style="display: none">No hay llamadas agendadas en esta semana.</div>
-                <div id="stateList" style="display: none"></div>
+
+              <div class="cal-legend">
+                <span><span class="sw sw-vent"></span>Ventanas de disponibilidad</span>
+                <span><span class="sw sw-res"></span>Reservas ya agendadas</span>
+                <span class="cal-desktop-only" style="margin-left: auto; color: var(--muted);">Arrastre para crear · Click en una ventana para eliminar</span>
               </div>
-              <p class="hint">
-                Para definir en qué horas pueden reservar, use la pestaña <a href="#disponibilidad" data-goto-tab="disponibilidad">Disponibilidad</a>. Para compartir el enlace, vaya a <a href="#enlace" data-goto-tab="enlace">Enlace público</a>.
+
+              <div class="cal-grid-wrap">
+                <div class="cal-status-row">
+                  <span class="status" id="calStatus">Cargando…</span>
+                  <button type="button" class="cal-btn primary" id="calSave" disabled>Guardar ventanas</button>
+                  <button type="button" class="cal-btn ghost" id="calDiscard" disabled>Descartar cambios</button>
+                </div>
+                <div class="cal-daysbar" id="calDaysbar">
+                  <div class="timecol-head"></div>
+                  <div class="cal-daysbar-cells" id="calDaysbarCells"></div>
+                </div>
+                <div class="cal-grid" id="calGrid" aria-label="Grilla de calendario">
+                  <div class="cal-timecol" id="calTimeCol"></div>
+                  <div style="position: relative; overflow: hidden;">
+                    <div class="cal-daycols" id="calDayCols"></div>
+                    <div class="cal-overlay" id="calOverlay"></div>
+                  </div>
+                </div>
+              </div>
+
+              <p class="hint" style="margin-top: 14px;">
+                Las ventanas se repiten cada semana. Franja visible <strong>08:00–21:00</strong>. Guarde sus cambios cuando termine.
+                Para compartir el enlace público, vaya a <a href="#enlace" data-goto-tab="enlace">Enlace público</a>.
               </p>
             </section>
 
             <!-- ============ SECCIÓN: ENLACE ============ -->
             <section id="enlace" class="agenda-section" data-tab-panel="enlace" role="tabpanel" aria-labelledby="tab-enlace" hidden>
               <p class="hint" style="margin: 0 0 12px;">
-                Comparta este enlace para que un cliente elija un bloque de una hora según su <a href="#disponibilidad" data-goto-tab="disponibilidad">disponibilidad</a>. Al reservar se crea un cliente potencial y un recordatorio de llamada.
+                Comparta este enlace para que un cliente elija un bloque según su <a href="#calendario" data-goto-tab="calendario">disponibilidad</a>. Al reservar se crea un cliente potencial y un recordatorio de llamada.
               </p>
-              <div class="panel">
-                <h2>Tu enlace personal</h2>
+              <div class="panel" style="padding: 24px;">
+                <h2 style="font-size: 15px; margin: 0 0 12px; color: var(--muted); font-weight: 600;">Tu enlace personal</h2>
                 <div class="url-row">
                   <input type="text" id="inviteUrl" readonly placeholder="Generando enlace…" aria-label="URL para agendar llamada" />
                   <button type="button" class="btn-use" id="btnCopy" disabled>Copiar</button>
@@ -400,18 +640,42 @@
               </div>
             </section>
 
-            <!-- ============ SECCIÓN: DISPONIBILIDAD ============ -->
-            <section id="disponibilidad" class="agenda-section" data-tab-panel="disponibilidad" role="tabpanel" aria-labelledby="tab-disponibilidad" hidden>
-              <p class="hint" style="margin: 0 0 12px;">Marque bloques de una hora (Chile, 8:00 a 21:00) en los que puede recibir llamadas. Los clientes solo podrán agendar en estos horarios.</p>
-              <div class="panel">
-                <p class="hint">Días en orden <strong>lunes a domingo</strong> (norma ISO 8601). Franja <strong>8:00–21:00</strong> en <strong>America/Santiago</strong>. Toque cada celda para activar o desactivar.</p>
-                <div class="grid-disp" id="gridDisp" aria-label="Grilla de disponibilidad semanal"></div>
-                <div class="actions-row">
-                  <button type="button" class="btn-save" id="btnGuardar">Guardar disponibilidad</button>
-                  <span class="status" id="status"></span>
+            <!-- ============ MODAL CONFIG ============ -->
+            <div class="cal-modal-backdrop" id="calModalBackdrop" role="dialog" aria-modal="true" aria-labelledby="calModalTitle">
+              <div class="cal-modal">
+                <h2 id="calModalTitle">Configuración de agenda</h2>
+                <p class="sub">
+                  Define cuánto dura cada llamada y cuánto tiempo libre deja entre una reserva y la siguiente. Se aplica a toda su disponibilidad.
+                </p>
+                <div class="field">
+                  <label for="cfgDuracion">Duración de la llamada</label>
+                  <select id="cfgDuracion">
+                    <option value="15">15 minutos</option>
+                    <option value="30">30 minutos</option>
+                    <option value="45">45 minutos</option>
+                    <option value="60" selected>60 minutos (1 hora)</option>
+                    <option value="90">90 minutos</option>
+                    <option value="120">120 minutos (2 horas)</option>
+                  </select>
+                  <p class="hint">Es el tiempo que el cliente reserva al agendar.</p>
+                </div>
+                <div class="field">
+                  <label for="cfgSeparacion">Separación entre llamadas</label>
+                  <select id="cfgSeparacion">
+                    <option value="0" selected>Sin separación</option>
+                    <option value="5">5 minutos</option>
+                    <option value="10">10 minutos</option>
+                    <option value="15">15 minutos</option>
+                    <option value="30">30 minutos</option>
+                  </select>
+                  <p class="hint">Tiempo libre (buffer) que se suma después de cada reserva antes del próximo horario ofrecido.</p>
+                </div>
+                <div class="cal-modal-actions">
+                  <button type="button" class="cal-btn ghost" id="cfgCancel">Cancelar</button>
+                  <button type="button" class="cal-btn primary" id="cfgSave">Guardar</button>
                 </div>
               </div>
-            </section>
+            </div>
           </div>
         </div>
       </div>
@@ -437,25 +701,33 @@
         }
 
         /* ============ TABS ============ */
-        var TABS = ["reservas", "enlace", "disponibilidad"];
+        var TABS = ["calendario", "enlace"];
+        /* Alias para hashes viejos que redirigen a la pestaña nueva. */
+        var TAB_ALIASES = { reservas: "calendario", disponibilidad: "calendario" };
         var tabButtons = document.querySelectorAll(".agenda-tab");
         var tabPanels = document.querySelectorAll(".agenda-section");
 
+        function resolveTab(name) {
+          if (TAB_ALIASES[name]) return TAB_ALIASES[name];
+          if (TABS.indexOf(name) !== -1) return name;
+          return "calendario";
+        }
+
         function activateTab(name) {
-          if (TABS.indexOf(name) === -1) name = "reservas";
+          var resolved = resolveTab(name);
           tabButtons.forEach(function (btn) {
-            var isActive = btn.getAttribute("data-tab") === name;
+            var isActive = btn.getAttribute("data-tab") === resolved;
             btn.setAttribute("aria-selected", isActive ? "true" : "false");
             btn.setAttribute("tabindex", isActive ? "0" : "-1");
           });
           tabPanels.forEach(function (panel) {
-            panel.hidden = panel.getAttribute("data-tab-panel") !== name;
+            panel.hidden = panel.getAttribute("data-tab-panel") !== resolved;
           });
           try {
             if (history.replaceState) {
-              history.replaceState(null, "", "#" + name);
+              history.replaceState(null, "", "#" + resolved);
             } else {
-              location.hash = name;
+              location.hash = resolved;
             }
           } catch (e) { /* ignore */ }
         }
@@ -474,11 +746,11 @@
 
         window.addEventListener("hashchange", function () {
           var t = (location.hash || "").replace("#", "");
-          if (TABS.indexOf(t) !== -1) activateTab(t);
+          if (t) activateTab(t);
         });
 
         var initialTab = (location.hash || "").replace("#", "");
-        activateTab(TABS.indexOf(initialTab) !== -1 ? initialTab : "reservas");
+        activateTab(initialTab || "calendario");
 
         /* ============ TELEGRAM CTA ============ */
         function syncTelegramConfigureCta() {
@@ -502,184 +774,679 @@
           if (typeof window.setAppShellGuest === "function") window.setAppShellGuest(false);
           var uid = r.data.session.user.id;
 
-          initReservas(uid);
+          initCalendario(uid);
           initEnlace(uid);
-          initDisponibilidad(uid);
         });
 
-        /* ============ SECCIÓN: RESERVAS ============ */
-        function initReservas(uid) {
-          var weekOffset = 0;
-          var weekMon = "";
-          var weekSun = "";
+        /* ============ SECCIÓN: CALENDARIO ============ */
+        function initCalendario(uid) {
+          /* ----- Constantes ----- */
+          var HORA_MIN = 8;        // 08:00 incluido
+          var HORA_MAX = 21;       // 21:00 excluido (último slot 20:45)
+          var SLOT_MIN = 15;
+          var NROWS = (HORA_MAX - HORA_MIN) * 60 / SLOT_MIN; // 52
+          var DAY_NAMES = ["lun", "mar", "mié", "jue", "vie", "sáb", "dom"];
+          var DAY_NAMES_LONG = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"];
+          var MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
 
-          var weekRangeLabel = document.getElementById("weekRangeLabel");
-          var stateLoading = document.getElementById("stateLoading");
-          var stateErr = document.getElementById("stateErr");
-          var stateEmpty = document.getElementById("stateEmpty");
-          var stateList = document.getElementById("stateList");
-          var btnPrev = document.getElementById("btnPrevWeek");
-          var btnThis = document.getElementById("btnThisWeek");
-          var btnNext = document.getElementById("btnNextWeek");
+          /* ----- Estado ----- */
+          var state = {
+            ventanas: {},                                       // { "1": [{inicio,fin}, ...], ... }
+            ventanasOriginal: "",                               // snapshot JSON para detectar dirty
+            config: { duracion: 60, separacion: 0 },
+            configOriginal: { duracion: 60, separacion: 0 },
+            reservas: [],
+            view: window.matchMedia("(max-width: 680px)").matches ? "day" : "week",
+            anchorYmd: "",                                      // lunes (week) o día (day)
+            ready: false
+          };
 
+          /* ----- DOM refs ----- */
+          var el = {
+            titleMain: document.getElementById("calTitleMain"),
+            titleSub: document.getElementById("calTitleSub"),
+            daysbar: document.getElementById("calDaysbar"),
+            daysbarCells: document.getElementById("calDaysbarCells"),
+            timeCol: document.getElementById("calTimeCol"),
+            dayCols: document.getElementById("calDayCols"),
+            overlay: document.getElementById("calOverlay"),
+            grid: document.getElementById("calGrid"),
+            status: document.getElementById("calStatus"),
+            save: document.getElementById("calSave"),
+            discard: document.getElementById("calDiscard"),
+            prev: document.getElementById("calPrev"),
+            next: document.getElementById("calNext"),
+            today: document.getElementById("calToday"),
+            viewWeek: document.getElementById("calViewWeek"),
+            viewDay: document.getElementById("calViewDay"),
+            config: document.getElementById("calConfig"),
+            linkConfig: document.getElementById("linkOpenConfig"),
+            modalBackdrop: document.getElementById("calModalBackdrop"),
+            cfgDur: document.getElementById("cfgDuracion"),
+            cfgSep: document.getElementById("cfgSeparacion"),
+            cfgCancel: document.getElementById("cfgCancel"),
+            cfgSave: document.getElementById("cfgSave")
+          };
+
+          /* ----- Helpers de fecha / hora ----- */
           function pad2(n) { return (n < 10 ? "0" : "") + n; }
-
           function todayChileYmd() {
             return new Date().toLocaleDateString("en-CA", { timeZone: "America/Santiago" });
           }
-
           function addDaysYmd(ymd, delta) {
             var p = ymd.split("-").map(Number);
             var dt = new Date(Date.UTC(p[0], p[1] - 1, p[2] + delta));
             return dt.getUTCFullYear() + "-" + pad2(dt.getUTCMonth() + 1) + "-" + pad2(dt.getUTCDate());
           }
-
-          var WD_MAP = { Monday: 0, Tuesday: 1, Wednesday: 2, Thursday: 3, Friday: 4, Saturday: 5, Sunday: 6 };
-
-          function mondayOffsetFromYmd(ymd) {
+          var WD_MAP = { Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 4, Friday: 5, Saturday: 6, Sunday: 7 };
+          function isoDowYmd(ymd) {
             var p = ymd.split("-").map(Number);
             var u = new Date(Date.UTC(p[0], p[1] - 1, p[2], 14, 0, 0));
             var name = new Intl.DateTimeFormat("en-US", { timeZone: "America/Santiago", weekday: "long" }).format(u);
-            return WD_MAP[name] != null ? WD_MAP[name] : 0;
+            return WD_MAP[name] || 1;
           }
-
           function mondayOfWeekContaining(ymd) {
-            return addDaysYmd(ymd, -mondayOffsetFromYmd(ymd));
+            var dow = isoDowYmd(ymd);
+            return addDaysYmd(ymd, -(dow - 1));
+          }
+          function timeToMin(hhmm) {
+            var p = String(hhmm).split(":").map(Number);
+            return p[0] * 60 + (p[1] || 0);
+          }
+          function minToTime(m) {
+            return pad2(Math.floor(m / 60)) + ":" + pad2(m % 60);
+          }
+          function slotFromTime(hhmm) {
+            return Math.round((timeToMin(hhmm) - HORA_MIN * 60) / SLOT_MIN);
+          }
+          function timeFromSlot(idx) {
+            return minToTime(HORA_MIN * 60 + idx * SLOT_MIN);
+          }
+          function clampSlot(idx) {
+            return Math.max(0, Math.min(NROWS, idx));
           }
 
-          function computeWeekBounds() {
-            var today = todayChileYmd();
-            var thisMon = mondayOfWeekContaining(today);
-            weekMon = addDaysYmd(thisMon, weekOffset * 7);
-            weekSun = addDaysYmd(weekMon, 6);
-          }
-
-          var MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
-          var DIAS = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
-
-          function fmtWeekTitle() {
-            var a = weekMon.split("-").map(Number);
-            var b = weekSun.split("-").map(Number);
-            var left = a[2] + " " + MESES[a[1] - 1];
-            var right = b[2] + " " + MESES[b[1] - 1] + " " + b[0];
-            if (a[0] !== b[0]) {
-              left = a[2] + " " + MESES[a[1] - 1] + " " + a[0];
+          /* ----- Migración bloques→ventanas (fallback si la BD no tiene ventanas todavía) ----- */
+          function bloquesToVentanas(bloques) {
+            var out = {};
+            if (!bloques || typeof bloques !== "object") return out;
+            for (var k in bloques) {
+              if (!Object.prototype.hasOwnProperty.call(bloques, k)) continue;
+              var horas = (bloques[k] || [])
+                .map(function (h) { return parseInt(h, 10); })
+                .filter(function (h) { return !isNaN(h); })
+                .sort(function (a, b) { return a - b; });
+              if (!horas.length) continue;
+              var rangos = [];
+              var ini = horas[0], prev = horas[0];
+              for (var i = 1; i < horas.length; i++) {
+                if (horas[i] === prev + 1) { prev = horas[i]; }
+                else { rangos.push({ inicio: pad2(ini) + ":00", fin: pad2(prev + 1) + ":00" }); ini = prev = horas[i]; }
+              }
+              rangos.push({ inicio: pad2(ini) + ":00", fin: pad2(prev + 1) + ":00" });
+              out[k] = rangos;
             }
-            return left + " – " + right;
+            return out;
           }
 
-          function ymdToWeekdayTitle(ymd) {
-            var p = ymd.split("-").map(Number);
-            var d = new Date(p[0], p[1] - 1, p[2]);
-            return DIAS[d.getDay()] + " " + p[2] + "/" + p[1] + "/" + p[0];
-          }
-
-          function showState(which) {
-            stateLoading.style.display = which === "load" ? "block" : "none";
-            stateErr.style.display = which === "err" ? "block" : "none";
-            stateEmpty.style.display = which === "empty" ? "block" : "none";
-            stateList.style.display = which === "list" ? "block" : "none";
-          }
-
-          function esc(s) {
-            return String(s == null ? "" : s)
-              .replace(/&/g, "&amp;")
-              .replace(/</g, "&lt;")
-              .replace(/"/g, "&quot;");
-          }
-
-          function fmtHora(h) {
-            var n = parseInt(h, 10);
-            if (isNaN(n)) return "—";
-            return pad2(n) + ":00";
-          }
-
-          function loadReservas() {
-            showState("load");
-            stateErr.textContent = "";
-            weekRangeLabel.textContent = fmtWeekTitle();
-
-            supabase
-              .from("agenda_reservas")
-              .select(
-                "id, fecha, hora, cliente_potencial_id, clientes_potenciales ( id, nombre, telefono, ciudad )"
-              )
-              .eq("owner_user_id", uid)
-              .gte("fecha", weekMon)
-              .lte("fecha", weekSun)
-              .order("fecha", { ascending: true })
-              .order("hora", { ascending: true })
-              .then(function (res) {
-                if (res.error) {
-                  showState("err");
-                  stateErr.textContent = res.error.message || "No se pudieron cargar las reservas.";
-                  return;
+          /* ----- Derivar bloques desde ventanas (compat con RPC v1) ----- */
+          function ventanasToBloques(ventanas) {
+            var out = {};
+            for (var k in ventanas) {
+              if (!Object.prototype.hasOwnProperty.call(ventanas, k)) continue;
+              var arr = ventanas[k] || [];
+              var hours = {};
+              arr.forEach(function (v) {
+                var iniMin = timeToMin(v.inicio);
+                var finMin = timeToMin(v.fin);
+                for (var h = HORA_MIN; h < HORA_MAX; h++) {
+                  var hStart = h * 60;
+                  var hEnd = hStart + 60;
+                  if (iniMin <= hStart && hEnd <= finMin) hours[h] = true;
                 }
-                var rows = res.data || [];
-                if (rows.length === 0) {
-                  showState("empty");
-                  return;
-                }
-                var byDay = {};
-                rows.forEach(function (r) {
-                  var f = String(r.fecha || "").slice(0, 10);
-                  if (!byDay[f]) byDay[f] = [];
-                  byDay[f].push(r);
-                });
-                var days = Object.keys(byDay).sort();
-                var html = "";
-                days.forEach(function (f) {
-                  html += '<div class="day-group"><div class="day-head">' + esc(ymdToWeekdayTitle(f)) + "</div>";
-                  byDay[f].forEach(function (r) {
-                    var cp = r.clientes_potenciales;
-                    var nom = cp && cp.nombre ? cp.nombre : "Sin nombre";
-                    var tel = cp && cp.telefono ? String(cp.telefono).trim() : "";
-                    var cid = cp && cp.id ? cp.id : r.cliente_potencial_id;
-                    var ciudad = cp && cp.ciudad ? cp.ciudad : "";
-                    var telHtml = tel
-                      ? '<a href="tel:' + esc(tel.replace(/\s+/g, "")) + '">' + esc(tel) + "</a>"
-                      : "—";
-                    var linkPot =
-                      cid
-                        ? '<div class="slot-meta"><a href="ver-potencial.html?id=' +
-                          encodeURIComponent(cid) +
-                          '" style="color:var(--primary-mid);font-weight:600;">Ver ficha del prospecto</a></div>'
-                        : "";
-                    html +=
-                      '<div class="slot-row">' +
-                      '<div class="slot-time">' +
-                      esc(fmtHora(r.hora)) +
-                      "</div>" +
-                      '<div class="slot-body">' +
-                      '<div class="slot-name">' +
-                      esc(nom) +
-                      "</div>" +
-                      '<div class="slot-tel">' +
-                      telHtml +
-                      "</div>" +
-                      (ciudad ? '<div class="slot-meta">' + esc(ciudad) + "</div>" : "") +
-                      linkPot +
-                      "</div></div>";
-                  });
-                  html += "</div>";
-                });
-                stateList.innerHTML = html;
-                showState("list");
               });
+              var keys = Object.keys(hours).map(Number).sort(function (a, b) { return a - b; });
+              if (keys.length) out[k] = keys;
+            }
+            return out;
           }
 
-          function refresh() {
-            computeWeekBounds();
+          /* ----- Mergeo y normalización de ventanas ----- */
+          function normalizeVentanasDay(arr) {
+            if (!Array.isArray(arr) || !arr.length) return [];
+            var sorted = arr
+              .map(function (v) { return { inicio: v.inicio, fin: v.fin }; })
+              .filter(function (v) { return v.inicio && v.fin && v.inicio < v.fin; })
+              .sort(function (a, b) { return a.inicio < b.inicio ? -1 : a.inicio > b.inicio ? 1 : 0; });
+            var out = [sorted[0]];
+            for (var i = 1; i < sorted.length; i++) {
+              var last = out[out.length - 1];
+              var cur = sorted[i];
+              if (cur.inicio <= last.fin) {
+                if (cur.fin > last.fin) last.fin = cur.fin;
+              } else {
+                out.push(cur);
+              }
+            }
+            return out;
+          }
+          function normalizeVentanas(v) {
+            var out = {};
+            for (var k in v) {
+              if (!Object.prototype.hasOwnProperty.call(v, k)) continue;
+              var nv = normalizeVentanasDay(v[k]);
+              if (nv.length) out[k] = nv;
+            }
+            return out;
+          }
+          function snapshot() { return JSON.stringify(state.ventanas); }
+
+          /* ----- Status / dirty ----- */
+          function setStatus(msg, cls) {
+            el.status.textContent = msg || "";
+            el.status.className = "status" + (cls ? " " + cls : "");
+          }
+          function refreshDirty() {
+            var dirty = snapshot() !== state.ventanasOriginal;
+            el.save.disabled = !dirty;
+            el.discard.disabled = !dirty;
+            if (dirty) setStatus("Cambios sin guardar.", "dirty");
+            else if (state.ready) setStatus("Sincronizado.", "ok");
+          }
+
+          /* ----- Render: title + daysbar + grid ----- */
+          function fmtTitle() {
+            if (state.view === "week") {
+              var mon = state.anchorYmd;
+              var sun = addDaysYmd(mon, 6);
+              var a = mon.split("-").map(Number);
+              var b = sun.split("-").map(Number);
+              var left = a[2] + " " + MESES[a[1] - 1];
+              var right = b[2] + " " + MESES[b[1] - 1] + " " + b[0];
+              if (a[0] !== b[0]) left = a[2] + " " + MESES[a[1] - 1] + " " + a[0];
+              return "Semana del " + left + " – " + right;
+            }
+            var p = state.anchorYmd.split("-").map(Number);
+            var dow = isoDowYmd(state.anchorYmd);
+            return DAY_NAMES_LONG[dow - 1] + " " + p[2] + " " + MESES[p[1] - 1] + " " + p[0];
+          }
+
+          function setCSSCols(n) {
+            el.daysbarCells.style.setProperty("--daycols", n);
+            el.dayCols.style.setProperty("--daycols", n);
+            el.dayCols.style.setProperty("--nrows", NROWS);
+            el.dayCols.style.setProperty("--slot-h", "14px");
+            el.timeCol.style.setProperty("--nrows", NROWS);
+            el.timeCol.style.setProperty("--slot-h", "14px");
+            el.overlay.style.setProperty("--daycols", n);
+            el.overlay.style.setProperty("--nrows", NROWS);
+            el.overlay.style.setProperty("--slot-h", "14px");
+          }
+
+          function renderTimeCol() {
+            el.timeCol.innerHTML = "";
+            for (var i = 0; i < NROWS; i++) {
+              var lab = document.createElement("div");
+              lab.className = "hlabel";
+              if (i % 4 === 0) {
+                lab.textContent = pad2(HORA_MIN + i / 4) + ":00";
+              }
+              lab.style.gridRow = (i + 1) + " / " + (i + 2);
+              el.timeCol.appendChild(lab);
+            }
+          }
+
+          function visibleDays() {
+            // Devuelve array de { ymd, isoDow, label, today, colIndex (1-based) }
+            var today = todayChileYmd();
+            if (state.view === "week") {
+              var out = [];
+              for (var i = 0; i < 7; i++) {
+                var ymd = addDaysYmd(state.anchorYmd, i);
+                var p = ymd.split("-").map(Number);
+                out.push({
+                  ymd: ymd,
+                  isoDow: i + 1,
+                  label: DAY_NAMES[i],
+                  dnum: p[2],
+                  isToday: ymd === today,
+                  colIndex: i + 1
+                });
+              }
+              return out;
+            }
+            var ymd2 = state.anchorYmd;
+            var p2 = ymd2.split("-").map(Number);
+            return [{
+              ymd: ymd2,
+              isoDow: isoDowYmd(ymd2),
+              label: DAY_NAMES_LONG[isoDowYmd(ymd2) - 1],
+              dnum: p2[2],
+              isToday: ymd2 === today,
+              colIndex: 1
+            }];
+          }
+
+          function renderDaysbar() {
+            var days = visibleDays();
+            setCSSCols(days.length);
+            el.daysbarCells.innerHTML = "";
+            days.forEach(function (d) {
+              var div = document.createElement("div");
+              div.className = "dayhead" + (d.isToday ? " today" : "");
+              div.innerHTML = d.label + '<span class="dnum">' + d.dnum + "</span>";
+              el.daysbarCells.appendChild(div);
+            });
+          }
+
+          function renderGrid() {
+            var days = visibleDays();
+            el.dayCols.innerHTML = "";
+            for (var slotIdx = 0; slotIdx < NROWS; slotIdx++) {
+              for (var c = 0; c < days.length; c++) {
+                var cell = document.createElement("div");
+                cell.className = "cal-cell";
+                cell.dataset.dow = days[c].isoDow;
+                cell.dataset.ymd = days[c].ymd;
+                cell.dataset.slot = slotIdx;
+                cell.dataset.col = days[c].colIndex;
+                cell.dataset.slotMinute = (slotIdx * SLOT_MIN) % 60;
+                cell.style.gridRow = (slotIdx + 1) + " / " + (slotIdx + 2);
+                cell.style.gridColumn = days[c].colIndex + " / " + (days[c].colIndex + 1);
+                el.dayCols.appendChild(cell);
+              }
+            }
+          }
+
+          /* ----- Pintar overlay (ventanas + reservas + drag preview) ----- */
+          function renderOverlay() {
+            el.overlay.innerHTML = "";
+            var days = visibleDays();
+            // Index por isoDow → colIndex
+            var dowToCol = {};
+            days.forEach(function (d) { dowToCol[d.isoDow] = d.colIndex; });
+
+            // Ventanas (recurrentes por isoDow)
+            for (var k in state.ventanas) {
+              if (!Object.prototype.hasOwnProperty.call(state.ventanas, k)) continue;
+              var col = dowToCol[k];
+              if (!col) continue;
+              var arr = state.ventanas[k] || [];
+              arr.forEach(function (v, idx) {
+                var s = clampSlot(slotFromTime(v.inicio));
+                var e = clampSlot(slotFromTime(v.fin));
+                if (e <= s) return;
+                var box = document.createElement("div");
+                box.className = "cal-win";
+                box.style.gridColumn = col + " / " + (col + 1);
+                box.style.gridRow = (s + 1) + " / " + (e + 1);
+                box.title = "Ventana " + v.inicio + "–" + v.fin + " · click para eliminar";
+                box.dataset.dowKey = k;
+                box.dataset.idx = idx;
+                box.innerHTML = '<span style="font-weight:600">' + v.inicio + "–" + v.fin + '</span>' +
+                  '<button type="button" class="cal-win-del" aria-label="Eliminar ventana">×</button>';
+                box.addEventListener("click", function (ev) {
+                  ev.stopPropagation();
+                  if (confirm("¿Eliminar la ventana " + v.inicio + "–" + v.fin + "?")) {
+                    var dk = String(box.dataset.dowKey);
+                    var ix = parseInt(box.dataset.idx, 10);
+                    var lst = state.ventanas[dk] || [];
+                    lst.splice(ix, 1);
+                    if (!lst.length) delete state.ventanas[dk];
+                    else state.ventanas[dk] = lst;
+                    refreshDirty();
+                    renderOverlay();
+                  }
+                });
+                el.overlay.appendChild(box);
+              });
+            }
+
+            // Reservas (por fecha exacta)
+            // Mapeamos ymd → colIndex
+            var ymdToCol = {};
+            days.forEach(function (d) { ymdToCol[d.ymd] = d.colIndex; });
+            state.reservas.forEach(function (r) {
+              var ymd = String(r.fecha || "").slice(0, 10);
+              var col = ymdToCol[ymd];
+              if (!col) return;
+              var hi = r.hora_inicio
+                ? String(r.hora_inicio).slice(0, 5)
+                : (r.hora != null ? pad2(parseInt(r.hora, 10)) + ":00" : null);
+              if (!hi) return;
+              var dur = r.duracion_minutos || state.config.duracion || 60;
+              var s = clampSlot(slotFromTime(hi));
+              var e = clampSlot(s + Math.ceil(dur / SLOT_MIN));
+              if (e <= s) return;
+              var cp = r.clientes_potenciales;
+              var nom = (cp && cp.nombre) ? cp.nombre : "Reserva";
+              var box = document.createElement("div");
+              box.className = "cal-res";
+              box.style.gridColumn = col + " / " + (col + 1);
+              box.style.gridRow = (s + 1) + " / " + (e + 1);
+              box.innerHTML =
+                '<span class="cal-res-time">' + hi + " · " + dur + "min</span>" +
+                '<span class="cal-res-name">' + escapeHtml(nom) + "</span>";
+              box.title = nom + " · " + hi + " (" + dur + " min)";
+              var cid = (cp && cp.id) ? cp.id : r.cliente_potencial_id;
+              if (cid) {
+                box.style.cursor = "pointer";
+                box.addEventListener("click", function () {
+                  window.location.href = "ver-potencial.html?id=" + encodeURIComponent(cid);
+                });
+              }
+              el.overlay.appendChild(box);
+            });
+          }
+
+          function escapeHtml(s) {
+            return String(s == null ? "" : s)
+              .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+              .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+          }
+
+          function updateTitle() {
+            el.titleMain.textContent = fmtTitle();
+            el.titleSub.textContent = "America/Santiago · llamada " + state.config.duracion + "min" +
+              (state.config.separacion ? " + " + state.config.separacion + "min buffer" : "");
+          }
+
+          function fullRender() {
+            updateTitle();
+            renderDaysbar();
+            renderGrid();
+            renderOverlay();
+            attachDragHandlers();
+          }
+
+          /* ----- Drag para crear ventanas ----- */
+          var drag = { active: false, pointerId: null, startCol: 0, startSlot: 0, curCol: 0, curSlot: 0, startX: 0, startY: 0, moved: false, previewEl: null, dowKey: "" };
+
+          function clearPreview() {
+            if (drag.previewEl) {
+              drag.previewEl.remove();
+              drag.previewEl = null;
+            }
+          }
+
+          function updatePreview() {
+            clearPreview();
+            var s = Math.min(drag.startSlot, drag.curSlot);
+            var e = Math.max(drag.startSlot, drag.curSlot) + 1;
+            var box = document.createElement("div");
+            box.className = "cal-drag-preview";
+            box.style.gridColumn = drag.startCol + " / " + (drag.startCol + 1);
+            box.style.gridRow = (s + 1) + " / " + (e + 1);
+            box.textContent = timeFromSlot(s) + " – " + timeFromSlot(e);
+            el.overlay.appendChild(box);
+            drag.previewEl = box;
+          }
+
+          function commitDrag() {
+            var s, e;
+            if (!drag.moved) {
+              // Click simple → ventana de duración configurada
+              var defaultLen = Math.max(1, Math.ceil(state.config.duracion / SLOT_MIN));
+              s = drag.startSlot;
+              e = Math.min(NROWS, drag.startSlot + defaultLen);
+            } else {
+              s = Math.min(drag.startSlot, drag.curSlot);
+              e = Math.max(drag.startSlot, drag.curSlot) + 1;
+            }
+            if (e > s) {
+              var arr = state.ventanas[drag.dowKey] || [];
+              arr = arr.slice();
+              arr.push({ inicio: timeFromSlot(s), fin: timeFromSlot(e) });
+              state.ventanas[drag.dowKey] = normalizeVentanasDay(arr);
+              refreshDirty();
+              renderOverlay();
+            }
+          }
+
+          function attachDragHandlers() {
+            // Re-attached on every fullRender porque dayCols se reconstruye.
+            el.dayCols.addEventListener("pointerdown", onPointerDown);
+            el.dayCols.addEventListener("pointermove", onPointerMove);
+            el.dayCols.addEventListener("pointerup", onPointerUp);
+            el.dayCols.addEventListener("pointercancel", onPointerCancel);
+          }
+          function onPointerDown(ev) {
+            if (ev.button !== undefined && ev.button !== 0) return;
+            var cell = ev.target.closest(".cal-cell");
+            if (!cell) return;
+            drag = {
+              active: true,
+              pointerId: ev.pointerId,
+              dowKey: String(cell.dataset.dow),
+              startCol: parseInt(cell.dataset.col, 10),
+              curCol: parseInt(cell.dataset.col, 10),
+              startSlot: parseInt(cell.dataset.slot, 10),
+              curSlot: parseInt(cell.dataset.slot, 10),
+              startX: ev.clientX, startY: ev.clientY,
+              moved: false,
+              previewEl: null
+            };
+            try { el.dayCols.setPointerCapture(ev.pointerId); } catch (e) {}
+            updatePreview();
+            ev.preventDefault();
+          }
+          function onPointerMove(ev) {
+            if (!drag.active || ev.pointerId !== drag.pointerId) return;
+            var dx = ev.clientX - drag.startX;
+            var dy = ev.clientY - drag.startY;
+            if (!drag.moved && (dx * dx + dy * dy) > 36) drag.moved = true;
+            // Calcular slot por coordenada Y absoluta (más robusto que elementFromPoint
+            // porque las ventanas/reservas overlay pueden estar encima de las celdas).
+            var rect = el.dayCols.getBoundingClientRect();
+            var slotH = rect.height / NROWS;
+            if (slotH <= 0) return;
+            var y = ev.clientY - rect.top;
+            var idx = Math.max(0, Math.min(NROWS - 1, Math.floor(y / slotH)));
+            drag.curSlot = idx;
+            updatePreview();
+          }
+          function onPointerUp(ev) {
+            if (!drag.active || ev.pointerId !== drag.pointerId) return;
+            try { el.dayCols.releasePointerCapture(ev.pointerId); } catch (e) {}
+            commitDrag();
+            clearPreview();
+            drag.active = false;
+          }
+          function onPointerCancel() {
+            clearPreview();
+            drag.active = false;
+          }
+
+          /* ----- Navegación ----- */
+          function setView(v) {
+            state.view = v;
+            el.viewWeek.setAttribute("aria-pressed", v === "week" ? "true" : "false");
+            el.viewDay.setAttribute("aria-pressed", v === "day" ? "true" : "false");
+            // Si cambiamos a week, asegurar que anchor sea lunes; si a day, dejar el día actual
+            if (v === "week") {
+              state.anchorYmd = mondayOfWeekContaining(state.anchorYmd || todayChileYmd());
+            } else if (!state.anchorYmd) {
+              state.anchorYmd = todayChileYmd();
+            }
+            fullRender();
+            loadReservas();
+          }
+          function navigate(delta) {
+            var step = state.view === "week" ? 7 : 1;
+            state.anchorYmd = addDaysYmd(state.anchorYmd, step * delta);
+            if (state.view === "week") state.anchorYmd = mondayOfWeekContaining(state.anchorYmd);
+            fullRender();
+            loadReservas();
+          }
+          function goToday() {
+            var t = todayChileYmd();
+            state.anchorYmd = state.view === "week" ? mondayOfWeekContaining(t) : t;
+            fullRender();
             loadReservas();
           }
 
-          btnPrev.addEventListener("click", function () { weekOffset -= 1; refresh(); });
-          btnNext.addEventListener("click", function () { weekOffset += 1; refresh(); });
-          btnThis.addEventListener("click", function () { weekOffset = 0; refresh(); });
+          /* ----- Carga de datos ----- */
+          function loadAvailability() {
+            return supabase
+              .from("asesor_disponibilidad")
+              .select("ventanas, bloques")
+              .eq("user_id", uid)
+              .maybeSingle()
+              .then(function (r) {
+                if (r.error && r.error.code !== "PGRST116") {
+                  setStatus(r.error.message || "No se pudo cargar la disponibilidad.", "err");
+                  return;
+                }
+                var data = r.data || {};
+                var v = data.ventanas;
+                var hasV = v && typeof v === "object" && Object.keys(v).length > 0;
+                if (hasV) {
+                  state.ventanas = normalizeVentanas(v);
+                } else if (data.bloques && Object.keys(data.bloques).length) {
+                  state.ventanas = bloquesToVentanas(data.bloques);
+                } else {
+                  state.ventanas = {};
+                }
+                state.ventanasOriginal = snapshot();
+              });
+          }
+          function loadConfig() {
+            return supabase
+              .from("asesor_agenda_config")
+              .select("duracion_llamada_minutos, separacion_minutos")
+              .eq("user_id", uid)
+              .maybeSingle()
+              .then(function (r) {
+                if (r.data) {
+                  state.config = {
+                    duracion: r.data.duracion_llamada_minutos || 60,
+                    separacion: r.data.separacion_minutos || 0
+                  };
+                } else {
+                  state.config = { duracion: 60, separacion: 0 };
+                }
+                state.configOriginal = { duracion: state.config.duracion, separacion: state.config.separacion };
+              });
+          }
+          function loadReservas() {
+            var from = state.anchorYmd;
+            var to = state.view === "week" ? addDaysYmd(state.anchorYmd, 6) : state.anchorYmd;
+            return supabase
+              .from("agenda_reservas")
+              .select("id, fecha, hora_inicio, duracion_minutos, hora, cliente_potencial_id, clientes_potenciales(id, nombre, telefono)")
+              .eq("owner_user_id", uid)
+              .gte("fecha", from)
+              .lte("fecha", to)
+              .then(function (r) {
+                state.reservas = (r && r.data) || [];
+                renderOverlay();
+              });
+          }
 
-          refresh();
+          function saveVentanas() {
+            var ventanasNorm = normalizeVentanas(state.ventanas);
+            var bloquesCompat = ventanasToBloques(ventanasNorm);
+            var payload = {
+              user_id: uid,
+              ventanas: ventanasNorm,
+              bloques: bloquesCompat,
+              updated_at: new Date().toISOString()
+            };
+            el.save.disabled = true;
+            el.discard.disabled = true;
+            setStatus("Guardando…");
+            supabase
+              .from("asesor_disponibilidad")
+              .upsert(payload, { onConflict: "user_id" })
+              .then(function (r) {
+                if (r.error) {
+                  setStatus(r.error.message || "Error al guardar.", "err");
+                  el.save.disabled = false;
+                  el.discard.disabled = false;
+                  return;
+                }
+                state.ventanas = ventanasNorm;
+                state.ventanasOriginal = snapshot();
+                refreshDirty();
+              });
+          }
+
+          function discardChanges() {
+            try { state.ventanas = JSON.parse(state.ventanasOriginal); } catch (e) { state.ventanas = {}; }
+            renderOverlay();
+            refreshDirty();
+          }
+
+          /* ----- Modal config ----- */
+          function openConfig() {
+            el.cfgDur.value = String(state.config.duracion);
+            el.cfgSep.value = String(state.config.separacion);
+            el.modalBackdrop.classList.add("open");
+          }
+          function closeConfig() { el.modalBackdrop.classList.remove("open"); }
+          function saveConfig() {
+            var dur = parseInt(el.cfgDur.value, 10);
+            var sep = parseInt(el.cfgSep.value, 10);
+            if (isNaN(dur) || isNaN(sep)) return;
+            var payload = {
+              user_id: uid,
+              duracion_llamada_minutos: dur,
+              separacion_minutos: sep,
+              updated_at: new Date().toISOString()
+            };
+            el.cfgSave.disabled = true;
+            supabase
+              .from("asesor_agenda_config")
+              .upsert(payload, { onConflict: "user_id" })
+              .then(function (r) {
+                el.cfgSave.disabled = false;
+                if (r.error) {
+                  alert(r.error.message || "No se pudo guardar la configuración.");
+                  return;
+                }
+                state.config = { duracion: dur, separacion: sep };
+                state.configOriginal = { duracion: dur, separacion: sep };
+                updateTitle();
+                renderOverlay();
+                closeConfig();
+              });
+          }
+
+          /* ----- Bind eventos ----- */
+          el.prev.addEventListener("click", function () { navigate(-1); });
+          el.next.addEventListener("click", function () { navigate(1); });
+          el.today.addEventListener("click", goToday);
+          el.viewWeek.addEventListener("click", function () { setView("week"); });
+          el.viewDay.addEventListener("click", function () { setView("day"); });
+          el.config.addEventListener("click", openConfig);
+          if (el.linkConfig) {
+            el.linkConfig.addEventListener("click", function (ev) { ev.preventDefault(); openConfig(); });
+          }
+          el.cfgCancel.addEventListener("click", closeConfig);
+          el.cfgSave.addEventListener("click", saveConfig);
+          el.modalBackdrop.addEventListener("click", function (ev) {
+            if (ev.target === el.modalBackdrop) closeConfig();
+          });
+          el.save.addEventListener("click", saveVentanas);
+          el.discard.addEventListener("click", discardChanges);
+
+          /* ----- Bootstrap ----- */
+          state.anchorYmd = state.view === "week"
+            ? mondayOfWeekContaining(todayChileYmd())
+            : todayChileYmd();
+          renderTimeCol();
+          fullRender();
+          setStatus("Cargando…");
+          Promise.all([loadAvailability(), loadConfig()]).then(function () {
+            state.ready = true;
+            updateTitle();
+            renderOverlay();
+            refreshDirty();
+            return loadReservas();
+          });
+
           document.addEventListener("visibilitychange", function () {
-            if (document.visibilityState === "visible") refresh();
+            if (document.visibilityState === "visible" && state.ready) loadReservas();
           });
         }
 
@@ -786,119 +1553,6 @@
           }
         }
 
-        /* ============ SECCIÓN: DISPONIBILIDAD ============ */
-        function initDisponibilidad(uid) {
-          var HORA_MIN = 8;
-          var HORA_MAX = 21;
-          var DIAS = [
-            { k: "1", n: "Lun" },
-            { k: "2", n: "Mar" },
-            { k: "3", n: "Mié" },
-            { k: "4", n: "Jue" },
-            { k: "5", n: "Vie" },
-            { k: "6", n: "Sáb" },
-            { k: "7", n: "Dom" }
-          ];
-          var state = {};
-          DIAS.forEach(function (d) { state[d.k] = {}; });
-
-          var grid = document.getElementById("gridDisp");
-          var statusEl = document.getElementById("status");
-          var btnGuardar = document.getElementById("btnGuardar");
-
-          function setStatus(msg, isErr) {
-            statusEl.textContent = msg || "";
-            statusEl.className = "status" + (isErr ? " err" : msg ? " ok" : "");
-          }
-
-          function renderGrid() {
-            grid.innerHTML = "";
-            var corner = document.createElement("div");
-            corner.className = "corner";
-            grid.appendChild(corner);
-            DIAS.forEach(function (d) {
-              var h = document.createElement("div");
-              h.className = "dhead";
-              h.textContent = d.n;
-              grid.appendChild(h);
-            });
-            for (var hour = HORA_MIN; hour <= HORA_MAX; hour++) {
-              (function (hour) {
-                var lab = document.createElement("div");
-                lab.className = "hlabel";
-                lab.textContent = (hour < 10 ? "0" : "") + hour + ":00";
-                grid.appendChild(lab);
-                DIAS.forEach(function (d) {
-                  var b = document.createElement("button");
-                  b.type = "button";
-                  b.className = "slot" + (state[d.k][hour] ? " on" : "");
-                  b.setAttribute("aria-label", d.n + " " + lab.textContent);
-                  b.setAttribute("aria-pressed", state[d.k][hour] ? "true" : "false");
-                  b.addEventListener("click", function () {
-                    state[d.k][hour] = !state[d.k][hour];
-                    b.classList.toggle("on", state[d.k][hour]);
-                    b.setAttribute("aria-pressed", state[d.k][hour] ? "true" : "false");
-                  });
-                  grid.appendChild(b);
-                });
-              })(hour);
-            }
-          }
-
-          function bloquesToJson() {
-            var out = {};
-            DIAS.forEach(function (d) {
-              var arr = [];
-              for (var h = HORA_MIN; h <= HORA_MAX; h++) {
-                if (state[d.k][h]) arr.push(h);
-              }
-              if (arr.length) out[d.k] = arr;
-            });
-            return out;
-          }
-
-          function mergeBloques(json) {
-            DIAS.forEach(function (d) { state[d.k] = {}; });
-            if (!json || typeof json !== "object") return;
-            DIAS.forEach(function (d) {
-              var arr = json[d.k];
-              if (!Array.isArray(arr)) return;
-              arr.forEach(function (x) {
-                var n = parseInt(x, 10);
-                if (!isNaN(n) && n >= HORA_MIN && n <= HORA_MAX) state[d.k][n] = true;
-              });
-            });
-          }
-
-          renderGrid();
-
-          supabase
-            .from("asesor_disponibilidad")
-            .select("bloques")
-            .eq("user_id", uid)
-            .maybeSingle()
-            .then(function (res) {
-              if (res.data && res.data.bloques) mergeBloques(res.data.bloques);
-              renderGrid();
-            });
-
-          btnGuardar.addEventListener("click", function () {
-            var payload = { user_id: uid, bloques: bloquesToJson(), updated_at: new Date().toISOString() };
-            btnGuardar.disabled = true;
-            setStatus("Guardando…");
-            supabase
-              .from("asesor_disponibilidad")
-              .upsert(payload, { onConflict: "user_id" })
-              .then(function (up) {
-                btnGuardar.disabled = false;
-                if (up.error) {
-                  setStatus(up.error.message || "Error al guardar.", true);
-                  return;
-                }
-                setStatus("Disponibilidad guardada.");
-              });
-          });
-        }
       })();
     </script>
   </body>
