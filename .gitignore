@@ -42,3 +42,4 @@ yarn-error.log*
 # Archivos de debug locales
 # ----------------------------------------------------------------------
 _probe.html
+_scratch/
