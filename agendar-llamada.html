@@ -167,24 +167,20 @@
         }
 
         var supabase = window.createPrevySupabaseClient(url, key);
-        var cacheBloques = null;
-        var cacheReservas = [];
+        var cacheSlots = [];           // [{fecha, hora_inicio, duracion_minutos}, ...] — pre-expandidos por la RPC v2
+        var cacheReservas = [];        // [{fecha, hora_inicio, duracion_minutos}, ...]
+        var cacheDuracion = 60;
+        var cacheSeparacion = 0;
         var rangoDesde = null;
         var rangoHasta = null;
-        /** Referencia de "ahora" en America/Santiago (servidor); para no ofrecer franjas ya iniciadas. */
         var hoyZona = null;
-        var horaCursorZona = null;
-        var pickFecha = null;
-        var pickHora = null;
-        /** Instantáneo mínimo para reservar (ms), desde el servidor (ahora + 6 h en BD). */
         var minBookingAtMs = null;
+        var minHoursAdvance = 6;
+        var pickFecha = null;
+        var pickHoraInicio = null;     // string "HH:MM"
+        var pickDuracion = null;
 
-        function isoDowFromDateStr(ymd) {
-          var p = ymd.split("-");
-          var d = new Date(parseInt(p[0], 10), parseInt(p[1], 10) - 1, parseInt(p[2], 10), 12, 0, 0);
-          var js = d.getDay();
-          return js === 0 ? 7 : js;
-        }
+        function pad2(n) { return (n < 10 ? "0" : "") + n; }
 
         function fmtDayTitle(ymd) {
           var p = ymd.split("-");
@@ -193,67 +189,14 @@
           return w + " " + parseInt(p[2], 10) + "/" + parseInt(p[1], 10) + "/" + p[0];
         }
 
-        function pad2(n) {
-          return (n < 10 ? "0" : "") + n;
-        }
+        function soloDigitos(s) { return String(s || "").replace(/\D/g, ""); }
 
-        function slotKey(fecha, hora) {
-          return fecha + "|" + hora;
-        }
-
-        function soloDigitos(s) {
-          return String(s || "").replace(/\D/g, "");
-        }
-
-        function isReserved(fecha, hora) {
-          return cacheReservas.some(function (r) {
-            return String(r.fecha) === fecha && Number(r.hora) === Number(hora);
-          });
-        }
-
-        function toYmdString(v) {
-          var y = toYmd(v);
-          return y || null;
-        }
-
-        /**
-         * Franja fecha HH:00 en America/Santiago: ocultar si ya comenzó o estamos dentro de esa hora.
-         * Usa cursor del servidor; si no hay (RPC antigua), respaldo con reloj local.
-         */
-        function slotYaPasado(ymd, hr) {
-          var hoyRef = hoyZona || localTodayYmd();
-          if (ymd !== hoyRef) return false;
-          var cur =
-            horaCursorZona != null
-              ? Number(horaCursorZona)
-              : new Date().getHours();
-          return Number(hr) <= cur;
-        }
-
-        /** Inicio de la franja en America/Santiago (Chile continental, UTC−3 fijo). */
-        function slotInstantMsChile(ymd, hr) {
-          var t = Date.parse(ymd + "T" + pad2(hr) + ":00:00-03:00");
-          return isNaN(t) ? null : t;
-        }
-
-        function slotAntelacionInsuficiente(ymd, hr) {
-          if (minBookingAtMs == null || isNaN(minBookingAtMs)) return false;
-          var slotMs = slotInstantMsChile(ymd, hr);
-          if (slotMs == null) return false;
-          return slotMs < minBookingAtMs;
-        }
-
-        function addDaysYmd(ymd, days) {
-          var p = ymd.split("-");
-          var d = new Date(parseInt(p[0], 10), parseInt(p[1], 10) - 1, parseInt(p[2], 10));
-          d.setDate(d.getDate() + days);
-          return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate());
-        }
-
-        /** YYYY-MM-DD de hoy en el navegador (respaldo si la RPC no devolviera desde/hasta). */
-        function localTodayYmd() {
-          var d = new Date();
-          return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate());
+        function esc(s) {
+          return String(s == null ? "" : s)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;");
         }
 
         function toYmd(v) {
@@ -264,72 +207,134 @@
           return null;
         }
 
+        function hmToMin(hhmm) {
+          var p = String(hhmm).split(":");
+          return parseInt(p[0], 10) * 60 + parseInt(p[1] || "0", 10);
+        }
+
+        /** Inicio del slot en America/Santiago (Chile continental, UTC−3 fijo). */
+        function slotInstantMsChile(ymd, hhmm) {
+          var t = Date.parse(ymd + "T" + hhmm + ":00-03:00");
+          return isNaN(t) ? null : t;
+        }
+
+        /**
+         * Un slot solapa con una reserva existente del mismo día si sus intervalos
+         * [inicio, inicio+dur) se intersectan. Mismo criterio que la RPC v2.
+         */
+        function slotOcupado(slot) {
+          var sStart = hmToMin(slot.hora_inicio);
+          var sEnd = sStart + slot.duracion_minutos;
+          for (var i = 0; i < cacheReservas.length; i++) {
+            var r = cacheReservas[i];
+            if (String(r.fecha) !== slot.fecha) continue;
+            var rStart = hmToMin(r.hora_inicio);
+            var rEnd = rStart + (r.duracion_minutos || cacheDuracion || 60);
+            if (sStart < rEnd && rStart < sEnd) return true;
+          }
+          return false;
+        }
+
+        function slotAntelacionInsuficiente(slot) {
+          if (minBookingAtMs == null || isNaN(minBookingAtMs)) return false;
+          var ms = slotInstantMsChile(slot.fecha, slot.hora_inicio);
+          if (ms == null) return false;
+          return ms < minBookingAtMs;
+        }
+
+        function fmtSlotLabel(slot) {
+          /* Mostrar la duración entre paréntesis solo si difiere del default 60. */
+          if (slot.duracion_minutos && slot.duracion_minutos !== 60) {
+            return slot.hora_inicio + " (" + slot.duracion_minutos + " min)";
+          }
+          return slot.hora_inicio;
+        }
+
         function render() {
-          if (!cacheBloques || Object.keys(cacheBloques).length === 0) {
-            panel.innerHTML = "<p style='color:var(--muted);margin:0'>El asesor aún no ha definido horarios disponibles. Intente más tarde o contacte por otro medio.</p>";
+          if (!cacheSlots.length) {
+            panel.innerHTML =
+              "<p style='color:var(--muted);margin:0'>El asesor aún no ha definido horarios disponibles. Intente más tarde o contacte por otro medio.</p>";
             panel.style.display = "block";
             loading.style.display = "none";
             return;
           }
 
-          var desde = rangoDesde || localTodayYmd();
-          var hasta = rangoHasta || addDaysYmd(desde, 21);
+          /* Filtrar y agrupar por fecha. */
+          var byDay = {};
+          cacheSlots.forEach(function (s) {
+            if (!s || !s.fecha || !s.hora_inicio) return;
+            if (slotOcupado(s)) return;
+            if (slotAntelacionInsuficiente(s)) return;
+            var f = String(s.fecha).slice(0, 10);
+            if (!byDay[f]) byDay[f] = [];
+            byDay[f].push(s);
+          });
+          var dias = Object.keys(byDay).sort();
+          if (!dias.length) {
+            panel.innerHTML =
+              "<p style='color:var(--muted);margin:0'>No hay horarios libres en las próximas semanas. Pruebe otro día o contacte a su asesor.</p>";
+            panel.style.display = "block";
+            loading.style.display = "none";
+            return;
+          }
+
           var html = "";
-          for (var i = 0; i <= 21; i++) {
-            var ymd = addDaysYmd(desde, i);
-            if (ymd > hasta) break;
-            var dow = String(isoDowFromDateStr(ymd));
-            var hours = cacheBloques[dow];
-            if (!hours || !hours.length) continue;
-
-            var slots = [];
-            hours.forEach(function (h) {
-              var hr = parseInt(h, 10);
-              if (isNaN(hr)) return;
-              if (isReserved(ymd, hr)) return;
-              if (slotYaPasado(ymd, hr)) return;
-              if (slotAntelacionInsuficiente(ymd, hr)) return;
-              slots.push(hr);
+          dias.forEach(function (f) {
+            byDay[f].sort(function (a, b) {
+              return a.hora_inicio < b.hora_inicio ? -1 : a.hora_inicio > b.hora_inicio ? 1 : 0;
             });
-            slots.sort(function (a, b) { return a - b; });
-            if (!slots.length) continue;
-
-            html += '<div class="day-block"><div class="day-title">' + fmtDayTitle(ymd) + "</div><div class='slots'>";
-            slots.forEach(function (hr) {
+            html +=
+              '<div class="day-block"><div class="day-title">' +
+              esc(fmtDayTitle(f)) +
+              "</div><div class='slots'>";
+            byDay[f].forEach(function (s) {
               html +=
                 "<button type='button' class='slot-btn' data-fecha='" +
-                ymd +
+                esc(f) +
                 "' data-hora='" +
-                hr +
+                esc(s.hora_inicio) +
+                "' data-dur='" +
+                (s.duracion_minutos || cacheDuracion || 60) +
                 "'>" +
-                pad2(hr) +
-                ":00</button>";
+                esc(fmtSlotLabel(s)) +
+                "</button>";
             });
             html += "</div></div>";
-          }
+          });
 
-          if (!html) {
-            panel.innerHTML = "<p style='color:var(--muted);margin:0'>No hay horarios libres en las próximas semanas. Pruebe otro día o contacte a su asesor.</p>";
-          } else {
-            panel.innerHTML = html;
-            panel.querySelectorAll(".slot-btn").forEach(function (btn) {
-              btn.addEventListener("click", function () {
-                pickFecha = btn.getAttribute("data-fecha");
-                pickHora = parseInt(btn.getAttribute("data-hora"), 10);
-                dlgTitle.textContent = "Reservar " + fmtDayTitle(pickFecha) + " a las " + pad2(pickHora) + ":00";
-                dlgStatus.style.display = "none";
-                form.reset();
-                dlg.showModal();
-              });
+          panel.innerHTML = html;
+          panel.querySelectorAll(".slot-btn").forEach(function (btn) {
+            btn.addEventListener("click", function () {
+              pickFecha = btn.getAttribute("data-fecha");
+              pickHoraInicio = btn.getAttribute("data-hora");
+              pickDuracion = parseInt(btn.getAttribute("data-dur"), 10) || cacheDuracion || 60;
+              dlgTitle.textContent =
+                "Reservar " + fmtDayTitle(pickFecha) +
+                " a las " + pickHoraInicio +
+                " (" + pickDuracion + " min)";
+              dlgStatus.style.display = "none";
+              form.reset();
+              dlg.showModal();
             });
-          }
+          });
           panel.style.display = "block";
           loading.style.display = "none";
         }
 
+        function updateSubtitle() {
+          var sub = document.querySelector(".sub");
+          if (!sub) return;
+          sub.innerHTML =
+            "Elija un horario disponible (mínimo <strong>" + minHoursAdvance + " horas</strong> de anticipación respecto de ahora). " +
+            "Cada llamada dura <strong>" + cacheDuracion + " minutos</strong>" +
+            (cacheSeparacion ? " (más " + cacheSeparacion + " min de margen)" : "") + ". " +
+            "Le pediremos sus datos para confirmar. Con el mismo teléfono solo puede haber " +
+            "<strong>una reserva a la vez</strong> con este asesor (hasta que pase la hora agendada).";
+        }
+
         function load() {
           supabase
-            .rpc("obtener_agenda_publica", { p_invite: ref, p_desde: null, p_hasta: null })
+            .rpc("obtener_agenda_publica_v2", { p_invite: ref, p_desde: null, p_hasta: null })
             .then(function (res) {
               loading.style.display = "none";
               if (res.error) {
@@ -346,29 +351,20 @@
                     : "No se pudieron cargar los horarios.";
                 return;
               }
-              cacheBloques = data.bloques || {};
+              cacheSlots = Array.isArray(data.slots) ? data.slots : [];
               cacheReservas = Array.isArray(data.reservas) ? data.reservas : [];
+              cacheDuracion = parseInt(data.duracion_minutos, 10) || 60;
+              cacheSeparacion = parseInt(data.separacion_minutos, 10) || 0;
               rangoDesde = toYmd(data.desde);
               rangoHasta = toYmd(data.hasta);
-              hoyZona = toYmdString(data.hoy_zona);
-              horaCursorZona =
-                data.hora_cursor_zona != null && data.hora_cursor_zona !== ""
-                  ? parseInt(data.hora_cursor_zona, 10)
-                  : null;
-              if (horaCursorZona != null && isNaN(horaCursorZona)) horaCursorZona = null;
+              hoyZona = toYmd(data.hoy_zona);
+              minHoursAdvance = parseInt(data.min_hours_advance, 10) || 6;
               minBookingAtMs = null;
               if (data.min_booking_at != null && data.min_booking_at !== "") {
-                var mb = data.min_booking_at;
-                var parsed =
-                  typeof mb === "string"
-                    ? Date.parse(mb)
-                    : mb instanceof Date
-                      ? mb.getTime()
-                      : typeof mb === "number"
-                        ? mb
-                        : NaN;
+                var parsed = Date.parse(String(data.min_booking_at));
                 if (!isNaN(parsed)) minBookingAtMs = parsed;
               }
+              updateSubtitle();
               render();
             });
         }
@@ -379,7 +375,7 @@
 
         form.addEventListener("submit", function (e) {
           e.preventDefault();
-          if (!pickFecha || pickHora == null) return;
+          if (!pickFecha || !pickHoraInicio) return;
           var n1 = (document.getElementById("fNombres").value || "").trim();
           var n2 = (document.getElementById("fApPat").value || "").trim();
           var n3 = (document.getElementById("fApMat").value || "").trim();
@@ -410,10 +406,10 @@
           btn.disabled = true;
           dlgStatus.style.display = "none";
           supabase
-            .rpc("agendar_llamada_publica", {
+            .rpc("agendar_llamada_publica_v2", {
               p_invite: ref,
               p_fecha: pickFecha,
-              p_hora: pickHora,
+              p_hora_inicio: pickHoraInicio,
               p_nombres: n1,
               p_apellido_paterno: n2,
               p_apellido_materno: n3,
@@ -439,12 +435,15 @@
                   slot_pasado: "Ese horario ya no está disponible. Elija una hora futura.",
                   sin_disponibilidad: "El asesor no tiene agenda activa.",
                   fecha_invalida: "La fecha no es válida.",
+                  hora_invalida: "La hora seleccionada no es válida.",
                   nombre_requerido: "Revise los nombres ingresados.",
                   telefono_requerido: "Ingrese un teléfono con al menos 8 dígitos.",
                   ya_tiene_reserva:
                     "Este teléfono ya tiene una llamada agendada con este asesor. Espere a que pase esa hora o use otro número.",
                   anticipacion_insuficiente:
-                    "Debe elegir un horario con al menos 6 horas de anticipación. Seleccione una franja más adelante."
+                    "Debe elegir un horario con al menos " + minHoursAdvance + " horas de anticipación. Seleccione una franja más adelante.",
+                  invite_invalida: "El enlace ya no es válido. Solicite uno nuevo a su asesor.",
+                  invite_requerida: "Falta el enlace de invitación."
                 };
                 dlgStatus.textContent = map[code] || "No se pudo completar la reserva.";
                 return;
@@ -453,7 +452,11 @@
               dlgStatus.style.display = "block";
               dlgStatus.textContent = "Listo. Su llamada quedó agendada. El asesor recibirá un recordatorio con su teléfono.";
               form.style.display = "none";
-              cacheReservas.push({ fecha: pickFecha, hora: pickHora });
+              cacheReservas.push({
+                fecha: pickFecha,
+                hora_inicio: pickHoraInicio,
+                duracion_minutos: pickDuracion
+              });
               render();
               setTimeout(function () {
                 dlg.close();
