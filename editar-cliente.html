@@ -1039,6 +1039,12 @@
           '<label class="radio-pill"><input type="radio" name="hijo_' + index + '_esInvalido" value="Sí" /> Sí</label>' +
           '<label class="radio-pill"><input type="radio" name="hijo_' + index + '_esInvalido" value="No" /> No</label>' +
           '</div><div class="error" data-error-for="hijo_' + index + '_esInvalido"></div></div>' +
+          '<div class="field col-12"><label>¿Es hijo/a del cónyuge o conviviente civil? <span class="req">*</span></label>' +
+          '<div class="radio-row" role="group" aria-label="Hijo del cónyuge ' + (index + 1) + '">' +
+          '<label class="radio-pill"><input type="radio" name="hijo_' + index + '_esHijoDelConyuge" value="Sí" /> Sí</label>' +
+          '<label class="radio-pill"><input type="radio" name="hijo_' + index + '_esHijoDelConyuge" value="No" /> No</label>' +
+          '</div><p class="hint" style="margin:6px 0 0">Marque Sí si el hijo/a es también hijo/a del cónyuge o conviviente declarado arriba; No si no lo es.</p>' +
+          '<div class="error" data-error-for="hijo_' + index + '_esHijoDelConyuge"></div></div>' +
           '<div class="field col-4"><label>Fecha nacimiento</label>' +
           '<div class="date-group">' +
           '<select name="hijo_' + index + '_dia"><option value="">Día</option></select>' +
@@ -1154,6 +1160,18 @@
             } else if (hiv === false || String(hiv).toLowerCase() === "no") {
               invNo.checked = true;
               invSi.checked = false;
+            }
+          }
+          var hdc = h.es_hijo_del_conyuge != null ? h.es_hijo_del_conyuge : h.esHijoDelConyuge;
+          var hdelS = form.querySelector("input[name='hijo_" + i + "_esHijoDelConyuge'][value='Sí']");
+          var hdelN = form.querySelector("input[name='hijo_" + i + "_esHijoDelConyuge'][value='No']");
+          if (hdelS && hdelN) {
+            if (hdc === true || String(hdc).toLowerCase() === "sí" || String(hdc).toLowerCase() === "si") {
+              hdelS.checked = true;
+              hdelN.checked = false;
+            } else if (hdc === false || String(hdc).toLowerCase() === "no") {
+              hdelN.checked = true;
+              hdelS.checked = false;
             }
           }
           var iso = h.fecha_nacimiento;
@@ -1341,6 +1359,11 @@
               setError(form, "hijo_" + i + "_esInvalido", "Indique si el hijo o la hija es inválido/a");
               return;
             }
+            var hijoDelCony = form.querySelector("input[name='hijo_" + i + "_esHijoDelConyuge']:checked");
+            if (!hijoDelCony) {
+              setError(form, "hijo_" + i + "_esHijoDelConyuge", "Indique si el hijo/a es del cónyuge o conviviente civil declarado.");
+              return;
+            }
             hijosArr.push({
               nombres: (nombres || "").trim() || null,
               apellido_paterno: (apP || "").trim() || null,
@@ -1349,7 +1372,8 @@
               fecha_nacimiento: fNac,
               nacionalidad: (nac || "").trim() || null,
               sexo: (sexo || "").trim() || null,
-              es_invalido: invHijo.value
+              es_invalido: invHijo.value,
+              es_hijo_del_conyuge: hijoDelCony.value
             });
           }
         }
@@ -1414,6 +1438,7 @@
             fecha_matrimonio_union_civil: null,
             ciudad_matrimonio_union_civil: null,
             es_invalido: h.es_invalido || null,
+            es_hijo_del_conyuge: h.es_hijo_del_conyuge || null,
             observaciones: null
           });
         });

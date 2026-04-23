@@ -1201,6 +1201,7 @@
                 html += item("Hijo " + (i + 1) + " - Nombres", h.nombres) + item("Apellido Paterno", h.apellido_paterno) + item("Apellido Materno", h.apellido_materno);
                 html += item("Nacionalidad", h.nacionalidad) + item("Sexo", h.sexo) + item("RUT", h.rut ? formatRutDisplay(h.rut) : h.rut) + item("Fecha nacimiento", fmtDate(h.fecha_nacimiento));
                 html += item("Inválido", textoEsInvalido(h.es_invalido != null ? h.es_invalido : h.esInvalido));
+                html += item("Hijo/a del cónyuge", textoEsInvalido(h.es_hijo_del_conyuge != null ? h.es_hijo_del_conyuge : h.esHijoDelConyuge) || "—");
                 html += "</div>";
               });
               html += "</div>";

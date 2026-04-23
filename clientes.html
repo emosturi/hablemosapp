@@ -1043,6 +1043,12 @@
           '<label class="radio-pill"><input type="radio" name="hijo_' + index + '_esInvalido" value="Sí" /> Sí</label>' +
           '<label class="radio-pill"><input type="radio" name="hijo_' + index + '_esInvalido" value="No" /> No</label>' +
           '</div><div class="error" data-error-for="hijo_' + index + '_esInvalido"></div></div>' +
+          '<div class="field col-12"><label>¿Es hijo/a del cónyuge o conviviente civil? <span class="req">*</span></label>' +
+          '<div class="radio-row" role="group" aria-label="Hijo del cónyuge ' + (index + 1) + '">' +
+          '<label class="radio-pill"><input type="radio" name="hijo_' + index + '_esHijoDelConyuge" value="Sí" /> Sí</label>' +
+          '<label class="radio-pill"><input type="radio" name="hijo_' + index + '_esHijoDelConyuge" value="No" /> No</label>' +
+          '</div><p class="hint" style="margin:6px 0 0">Marque Sí si el hijo/a es también hijo/a del cónyuge o conviviente que declaró arriba; No si no lo es (p. ej. filiación no matrimonial respecto de ese cónyuge).</p>' +
+          '<div class="error" data-error-for="hijo_' + index + '_esHijoDelConyuge"></div></div>' +
           '<div class="field col-4"><label>Fecha de nacimiento <span class="req">*</span></label>' +
           '<div class="date-group">' +
           '<select name="hijo_' + index + '_dia"><option value="">Día</option></select>' +
@@ -1311,6 +1317,11 @@
               setError(form, "hijo_" + i + "_esInvalido", "Indique si el hijo o la hija es inválido/a.");
               return;
             }
+            var hijoDelCony = form.querySelector("input[name='hijo_" + i + "_esHijoDelConyuge']:checked");
+            if (!hijoDelCony) {
+              setError(form, "hijo_" + i + "_esHijoDelConyuge", "Indique si el hijo/a es del cónyuge o conviviente civil declarado.");
+              return;
+            }
             hijosArr.push({
               nombres: (nombres || "").trim() || null,
               apellido_paterno: (apP || "").trim() || null,
@@ -1319,7 +1330,8 @@
               fecha_nacimiento: fNac,
               nacionalidad: (nac || "").trim() || null,
               sexo: (sexo || "").trim() || null,
-              es_invalido: invHijo.value
+              es_invalido: invHijo.value,
+              es_hijo_del_conyuge: hijoDelCony.value
             });
           }
         }
@@ -1362,6 +1374,7 @@
             fecha_matrimonio_union_civil: null,
             ciudad_matrimonio_union_civil: null,
             es_invalido: h.es_invalido || null,
+            es_hijo_del_conyuge: h.es_hijo_del_conyuge || null,
             observaciones: null
           });
         });

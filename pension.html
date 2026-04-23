@@ -1936,6 +1936,10 @@
           if ((b.ciudadMatrimonioUnionCivil || "").trim() || (b.fechaMatrimonioUnionCivil || "").trim()) {
             obs = "CIRCUNSCRIPCION " + (b.ciudadMatrimonioUnionCivil || "").trim() + ", " + (b.fechaMatrimonioUnionCivil || "").trim();
           }
+          var hdcM = b.esHijoDelConyuge != null && b.esHijoDelConyuge !== "" ? b.esHijoDelConyuge : b.es_hijo_del_conyuge;
+          if (hdcM && String(b.parentesco || "").toLowerCase().indexOf("hijo") !== -1) {
+            obs += (obs ? " " : "") + "Hijo/a del cónyuge: " + hdcM;
+          }
           if ((b.observaciones || "").trim()) obs += (obs ? " " : "") + (b.observaciones || "").trim();
           var cell = function (t) { return { text: aMayus(t), fontSize: 7, alignment: "center" }; };
           rows.push([cell(nombreCompleto), cell(b.sexo), cell(b.rut), cell(b.fechaNacimiento), cell(b.parentesco), cell(obs)]);
@@ -1947,7 +1951,7 @@
         };
       }
 
-      /** Tabla de beneficiarios para contrato (5 col). */
+      /** Tabla de beneficiarios para contrato (6 col). */
       function pmTablaBeneficiariosContrato(beneficiariosObj) {
         var rows = [
           [
@@ -1955,17 +1959,19 @@
             { text: "Parentesco", style: "tableHeader" },
             { text: "Fecha de nac.", style: "tableHeader" },
             { text: "Rut", style: "tableHeader" },
-            { text: "Inválido", style: "tableHeader" }
+            { text: "Inválido", style: "tableHeader" },
+            { text: "Hijo/a cónyuge", style: "tableHeader" }
           ]
         ];
         Object.values(beneficiariosObj).forEach(function (b) {
           var nombreBenef = ((b.nombres || "") + " " + (b.apellidoPaterno || "") + " " + (b.apellidoMaterno || "")).trim();
           var inval = b.esInvalido != null && b.esInvalido !== "" ? b.esInvalido : b.es_invalido;
+          var hdcPdf = b.esHijoDelConyuge != null && b.esHijoDelConyuge !== "" ? b.esHijoDelConyuge : b.es_hijo_del_conyuge;
           var cell = function (t) { return { text: aMayus(t), fontSize: 9, alignment: "left" }; };
-          rows.push([cell(nombreBenef), cell(b.parentesco), cell(b.fechaNacimiento), cell(b.rut), cell(inval)]);
+          rows.push([cell(nombreBenef), cell(b.parentesco), cell(b.fechaNacimiento), cell(b.rut), cell(inval), cell(hdcPdf || "")]);
         });
         return {
-          table: { headerRows: 1, dontBreakRows: true, widths: ["*", 90, 75, 90, 50], body: rows },
+          table: { headerRows: 1, dontBreakRows: true, widths: ["*", 72, 62, 72, 42, 52], body: rows },
           layout: PM_TABLE_LAYOUT_FINO,
           margin: [0, 0, 0, 10]
         };
@@ -2495,6 +2501,10 @@
         let obs = "";
         if ((b.ciudadMatrimonioUnionCivil || "").trim() || (b.fechaMatrimonioUnionCivil || "").trim()) {
           obs = "CIRCUNSCRIPCION " + (b.ciudadMatrimonioUnionCivil || "").trim() + ", " + (b.fechaMatrimonioUnionCivil || "").trim();
+        }
+        var hdcDoc = b.esHijoDelConyuge != null && b.esHijoDelConyuge !== "" ? b.esHijoDelConyuge : b.es_hijo_del_conyuge;
+        if (hdcDoc && String(b.parentesco || "").toLowerCase().indexOf("hijo") !== -1) {
+          obs += (obs ? " " : "") + "Hijo/a del cónyuge: " + hdcDoc;
         }
         if ((b.observaciones || "").trim()) obs += (obs ? " " : "") + (b.observaciones || "").trim();
         beneficiarios += `
@@ -3229,6 +3239,7 @@
           lista.forEach((b) => {
             const nombreBenef =
               `${b.nombres || ""} ${b.apellidoPaterno || ""} ${b.apellidoMaterno || ""}`.trim();
+            const hdcHtml = b.esHijoDelConyuge != null && b.esHijoDelConyuge !== "" ? b.esHijoDelConyuge : b.es_hijo_del_conyuge;
             filasBeneficiarios += `
         <tr>
         <td class="col-nombre-ben">${aMayus(nombreBenef)}</td>
@@ -3236,6 +3247,7 @@
         <td class="col-fnac-ben">${aMayus(b.fechaNacimiento)}</td>
         <td class="col-rut-ben">${aMayus(b.rut)}</td>
         <td class="col-inval-ben">${aMayus(b.esInvalido != null && b.esInvalido !== "" ? b.esInvalido : b.es_invalido)}</td>
+        <td class="col-hijo-cony-ben">${aMayus(hdcHtml || "")}</td>
         </tr>
         `;
           });
@@ -3369,11 +3381,12 @@
           word-break:break-word;
           overflow-wrap:break-word;
         }
-        .col-nombre-ben{ width:28%; }
-        .col-parentesco-ben{ width:22%; min-width:6.5em; }
-        .col-fnac-ben{ width:17%; min-width:7.5em; white-space:nowrap; }
-        .col-rut-ben{ width:21%; min-width:9em; white-space:nowrap; }
-        .col-inval-ben{ width:12%; min-width:3em; }
+        .col-nombre-ben{ width:24%; }
+        .col-parentesco-ben{ width:18%; min-width:5.5em; }
+        .col-fnac-ben{ width:14%; min-width:6.5em; white-space:nowrap; }
+        .col-rut-ben{ width:18%; min-width:8em; white-space:nowrap; }
+        .col-inval-ben{ width:10%; min-width:3em; }
+        .col-hijo-cony-ben{ width:10%; min-width:3em; }
         .col-rut{
           white-space:nowrap;
           width:1%;
@@ -3440,6 +3453,7 @@
           <th class="col-fnac-ben">Fecha de nac.</th>
           <th class="col-rut-ben">Rut</th>
           <th class="col-inval-ben">Inválido</th>
+          <th class="col-hijo-cony-ben">Hijo/a cónyuge</th>
         </tr>
         ${filasBeneficiarios}
         </table>
@@ -4051,6 +4065,7 @@
             var anio = (form.querySelector("select[name='hijo_" + i + "_anio']") || {}).value;
             var fNac = dia && mes && anio ? anio + "-" + mes + "-" + dia : null;
             var invH = form.querySelector("input[name='hijo_" + i + "_esInvalido']:checked");
+            var hdcH = form.querySelector("input[name='hijo_" + i + "_esHijoDelConyuge']:checked");
             var nombres = (form.querySelector("input[name='hijo_" + i + "_nombres']") || {}).value;
             var apP = (form.querySelector("input[name='hijo_" + i + "_apellidoPaterno']") || {}).value;
             var apM = (form.querySelector("input[name='hijo_" + i + "_apellidoMaterno']") || {}).value;
@@ -4066,6 +4081,7 @@
               nacionalidad: (nac || "").trim() || null,
               sexo: (sexo || "").trim() || null,
               es_invalido: invH ? invH.value : null,
+              es_hijo_del_conyuge: hdcH ? hdcH.value : null,
             });
           }
         }
@@ -4130,6 +4146,7 @@
             fecha_matrimonio_union_civil: null,
             ciudad_matrimonio_union_civil: null,
             es_invalido: h.es_invalido || null,
+            es_hijo_del_conyuge: h.es_hijo_del_conyuge || null,
             observaciones: null,
           });
           benefEnumerado[String(idx)] = {
@@ -4143,6 +4160,7 @@
             fechaMatrimonioUnionCivil: "",
             ciudadMatrimonioUnionCivil: "",
             esInvalido: h.es_invalido || "No",
+            esHijoDelConyuge: h.es_hijo_del_conyuge || "",
             observaciones: "",
           };
           idx++;
@@ -4218,6 +4236,7 @@
               fecha_matrimonio_union_civil: b.fecha_matrimonio_union_civil,
               ciudad_matrimonio_union_civil: b.ciudad_matrimonio_union_civil,
               es_invalido: b.es_invalido,
+              es_hijo_del_conyuge: b.es_hijo_del_conyuge,
               observaciones: b.observaciones,
             };
           });
@@ -5019,6 +5038,11 @@
                 ok = false;
                 setError(form, "hijo_" + hi + "_fechaNac", "Seleccione la fecha de nacimiento completa del hijo/a " + (hi + 1) + ".");
               }
+              var hdcChk = form.querySelector("input[name='hijo_" + hi + "_esHijoDelConyuge']:checked");
+              if (!hdcChk) {
+                ok = false;
+                setError(form, "hijo_" + hi + "_esHijoDelConyuge", "Indique si el hijo/a " + (hi + 1) + " es del cónyuge o conviviente civil.");
+              }
             }
           }
         }
@@ -5434,6 +5458,20 @@
                 '</div><div class="error" data-error-for="hijo_' +
                 index +
                 '_esInvalido"></div></div>' +
+                '<div class="field col-12"><label>¿Es hijo/a del cónyuge o conviviente civil? <span class="req">*</span></label>' +
+                '<div class="radio-row" role="group" aria-label="Hijo del cónyuge ' +
+                (index + 1) +
+                '">' +
+                '<label class="radio-pill"><input type="radio" name="hijo_' +
+                index +
+                '_esHijoDelConyuge" value="Sí" required /> Sí</label>' +
+                '<label class="radio-pill"><input type="radio" name="hijo_' +
+                index +
+                '_esHijoDelConyuge" value="No" required /> No</label>' +
+                '</div><p class="hint" style="margin:6px 0 0">Marque Sí si el hijo/a es también hijo/a del cónyuge o conviviente declarado; No si no lo es.</p>' +
+                '<div class="error" data-error-for="hijo_' +
+                index +
+                '_esHijoDelConyuge"></div></div>' +
                 '<div class="field col-4"><label>Fecha de nacimiento <span class="req">*</span></label>' +
                 '<div class="date-group">' +
                 '<select name="hijo_' +
@@ -6028,6 +6066,14 @@
                       var invN = form.querySelector("input[name='hijo_" + ih + "_esInvalido'][value='No']");
                       if (invVal === "Sí" && invS) invS.checked = true;
                       else if (invN) invN.checked = true;
+                      var hdcVal = hh.es_hijo_del_conyuge != null ? hh.es_hijo_del_conyuge : hh.esHijoDelConyuge;
+                      var hdcS = form.querySelector("input[name='hijo_" + ih + "_esHijoDelConyuge'][value='Sí']");
+                      var hdcN = form.querySelector("input[name='hijo_" + ih + "_esHijoDelConyuge'][value='No']");
+                      if (hdcVal === true || String(hdcVal).toLowerCase() === "sí" || String(hdcVal).toLowerCase() === "si") {
+                        if (hdcS) hdcS.checked = true;
+                      } else if (hdcVal === false || String(hdcVal).toLowerCase() === "no") {
+                        if (hdcN) hdcN.checked = true;
+                      }
                       var mH = fnDd.match(/^(\d{2})-(\d{2})-(\d{4})$/);
                       if (mH) {
                         var sd = form.querySelector("select[name='hijo_" + ih + "_dia']");
