@@ -1201,6 +1201,19 @@
                 return parentescoEsFiliacionNoMatrimonialVer(b.parentesco);
               });
             }
+            function parentescoFnmEtiquetaVer(b) {
+              if (!b || !parentescoEsFiliacionNoMatrimonialVer(b.parentesco)) return String((b && b.parentesco) || "");
+              var sx = String(b.sexo || "").trim().toLowerCase();
+              if (sx === "masculino" || sx === "m" || sx.indexOf("masculino") === 0) return "Padre de filiación no matrimonial";
+              if (sx === "femenino" || sx === "f" || sx.indexOf("femenino") === 0) return "Madre de filiación no matrimonial";
+              return String(b.parentesco || "").trim() || "Padre o madre de filiación no matrimonial";
+            }
+            function sexoBeneficiarioInicialVer(s) {
+              var x = String(s || "").trim().toLowerCase();
+              if (x === "femenino" || x === "f" || x.indexOf("femenino") === 0) return "F";
+              if (x === "masculino" || x === "m" || x.indexOf("masculino") === 0) return "M";
+              return "";
+            }
             /** Índices 0-based de hijos con situación FNM sin beneficiario completo en solicitud (o fila vacía). */
             function indicesHijosFnmPendientesVer(c) {
               if (!c.tiene_hijos_menores_24 || !c.hijos || !Array.isArray(c.hijos) || !c.hijos.length) return [];
@@ -1310,7 +1323,7 @@
                 var ixH = bf.fnm_hijo_indice;
                 var ixHN = ixH != null && ixH !== "" ? parseInt(ixH, 10) : NaN;
                 html += '<div class="grid" style="margin-bottom:10px;">';
-                html += item("Parentesco", "Padre o madre de filiación no matrimonial");
+                html += item("Parentesco", parentescoFnmEtiquetaVer(bf));
                 if (!Number.isNaN(ixHN)) {
                   var nomRef = "";
                   if (c.hijos && c.hijos[ixHN] && String(c.hijos[ixHN].nombres || "").trim()) {
@@ -1322,10 +1335,11 @@
                   item("Nombres", bf.nombres) +
                   item("Apellido Paterno", bf.apellido_paterno != null ? bf.apellido_paterno : bf.apellidoPaterno) +
                   item("Apellido Materno", bf.apellido_materno != null ? bf.apellido_materno : bf.apellidoMaterno);
-                html += item("Nacionalidad", bf.nacionalidad) + item("Sexo", bf.sexo);
+                html +=
+                  item("Nacionalidad", bf.nacionalidad) +
+                  item("Sexo", sexoBeneficiarioInicialVer(bf.sexo) || bf.sexo || "—");
                 html += item("RUT", bf.rut ? formatRutDisplay(bf.rut) : bf.rut) + item("Fecha nacimiento", fmtDate(bf.fecha_nacimiento));
                 html += item("Inválido", textoEsInvalido(bf.es_invalido != null ? bf.es_invalido : bf.esInvalido));
-                if ((bf.observaciones || "").trim()) html += item("Observaciones", bf.observaciones);
                 html += "</div>";
               }
               html += "</div>";

@@ -1942,13 +1942,9 @@
           if ((b.ciudadMatrimonioUnionCivil || "").trim() || (b.fechaMatrimonioUnionCivil || "").trim()) {
             obs = "CIRCUNSCRIPCION " + (b.ciudadMatrimonioUnionCivil || "").trim() + ", " + (b.fechaMatrimonioUnionCivil || "").trim();
           }
-          var hdcM = b.esHijoDelConyuge != null && b.esHijoDelConyuge !== "" ? b.esHijoDelConyuge : b.es_hijo_del_conyuge;
-          if (hdcM && String(b.parentesco || "").toLowerCase().indexOf("hijo") !== -1) {
-            obs += (obs ? " " : "") + "Hijo/a del cónyuge: " + hdcM;
-          }
-          if ((b.observaciones || "").trim()) obs += (obs ? " " : "") + (b.observaciones || "").trim();
           var cell = function (t) { return { text: aMayus(t), fontSize: 7, alignment: "center" }; };
-          rows.push([cell(nombreCompleto), cell(b.sexo), cell(b.rut), cell(b.fechaNacimiento), cell(b.parentesco), cell(obs)]);
+          var sexoCelda = sexoBeneficiarioInicial(b.sexo);
+          rows.push([cell(nombreCompleto), cell(sexoCelda), cell(b.rut), cell(b.fechaNacimiento), cell(b.parentesco), cell(obs)]);
         });
         return {
           table: { headerRows: 1, dontBreakRows: true, widths: ["*", 28, 70, 60, 80, 80], body: rows },
@@ -2508,15 +2504,10 @@
         if ((b.ciudadMatrimonioUnionCivil || "").trim() || (b.fechaMatrimonioUnionCivil || "").trim()) {
           obs = "CIRCUNSCRIPCION " + (b.ciudadMatrimonioUnionCivil || "").trim() + ", " + (b.fechaMatrimonioUnionCivil || "").trim();
         }
-        var hdcDoc = b.esHijoDelConyuge != null && b.esHijoDelConyuge !== "" ? b.esHijoDelConyuge : b.es_hijo_del_conyuge;
-        if (hdcDoc && String(b.parentesco || "").toLowerCase().indexOf("hijo") !== -1) {
-          obs += (obs ? " " : "") + "Hijo/a del cónyuge: " + hdcDoc;
-        }
-        if ((b.observaciones || "").trim()) obs += (obs ? " " : "") + (b.observaciones || "").trim();
         beneficiarios += `
         <tr>
         <td class="col-nombre-ben" style="font-size:7pt;line-height:1.2;text-align:center;">${aMayus(nombreCompleto)}</td>
-        <td class="col-sexo-ben" style="font-size:7pt;line-height:1.2;text-align:center;">${aMayus(b.sexo)}</td>
+        <td class="col-sexo-ben" style="font-size:7pt;line-height:1.2;text-align:center;">${aMayus(sexoBeneficiarioInicial(b.sexo))}</td>
         <td class="col-rut-ben" style="font-size:7pt;line-height:1.2;text-align:center;">${aMayus(b.rut)}</td>
         <td class="col-fnac-ben" style="font-size:7pt;line-height:1.2;text-align:center;">${aMayus(b.fechaNacimiento)}</td>
         <td class="col-parentesco-ben" style="font-size:7pt;line-height:1.2;text-align:center;">${aMayus(b.parentesco)}</td>
@@ -4039,12 +4030,27 @@
         return v.indexOf("casado") !== -1 || v.indexOf("conviviente") !== -1;
       }
 
-      /** Parentesco en solicitud/PDF para el padre o madre del menor no hijo del cónyuge (solo formulario pensión). */
-      var PARENTESCO_FNM = "Padre o madre de filiación no matrimonial";
-
       function parentescoEsFiliacionNoMatrimonial(p) {
         var s = String(p || "").toLowerCase();
         return s.indexOf("filiación no matrimonial") !== -1 || s.indexOf("filiacion no matrimonial") !== -1;
+      }
+
+      /** M o F para tablas de beneficiarios (ahorra espacio). */
+      function sexoBeneficiarioInicial(sexoRaw) {
+        var s = String(sexoRaw || "").trim().toLowerCase();
+        if (s === "femenino" || s === "f") return "F";
+        if (s === "masculino" || s === "m") return "M";
+        if (s.indexOf("femenino") === 0) return "F";
+        if (s.indexOf("masculino") === 0) return "M";
+        return "";
+      }
+
+      /** Parentesco FNM en solicitud según sexo declarado del beneficiario. */
+      function parentescoFnmDesdeSexo(sexoRaw) {
+        var s = String(sexoRaw || "").trim().toLowerCase();
+        if (s === "masculino" || s === "m" || s.indexOf("masculino") === 0) return "Padre de filiación no matrimonial";
+        if (s === "femenino" || s === "f" || s.indexOf("femenino") === 0) return "Madre de filiación no matrimonial";
+        return "Padre o madre de filiación no matrimonial";
       }
 
       function refreshPensionHijoFnmBlock(div, index) {
@@ -4122,9 +4128,6 @@
         var invN = q('input[name="hijo_' + hi + '_fnm_esInvalido"][value="No"]');
         if (invVal === "Sí" && invS) invS.checked = true;
         else if (invN) invN.checked = true;
-        var obs = (ben.observaciones || "").trim();
-        var ta = q('textarea[name="hijo_' + hi + '_fnm_observaciones"]');
-        if (ta) ta.value = obs;
         var iso = ben.fecha_nacimiento && String(ben.fecha_nacimiento).split("T")[0];
         if (iso && /^\d{4}-\d{2}-\d{2}$/.test(iso)) {
           var ph = iso.split("-");
@@ -4282,21 +4285,19 @@
             var nacF = (form.querySelector("input[name='" + pFnm + "nacionalidad']") || {}).value;
             var rutF = (form.querySelector("input[name='" + pFnm + "rut']") || {}).value;
             var sexoF = (form.querySelector("select[name='" + pFnm + "sexo']") || {}).value;
-            var obsUser = ((form.querySelector("textarea[name='" + pFnm + "observaciones']") || {}).value || "").trim();
             var fnDdF = "";
             if (fNacFnm && /^\d{4}-\d{2}-\d{2}$/.test(fNacFnm)) {
               var pxf = fNacFnm.split("-");
               fnDdF = pxf[2] + "-" + pxf[1] + "-" + pxf[0];
             }
-            var obsFnm = "Referente al hijo/a " + (hi + 1) + ".";
-            if (obsUser) obsFnm += " " + obsUser;
+            var parentescoFnmVal = parentescoFnmDesdeSexo(sexoF);
             solicitudBenef.push({
               nombres: (nombresF || "").trim() || null,
               apellido_paterno: (apPF || "").trim() || null,
               apellido_materno: (apMF || "").trim() || null,
               rut: rutToCanonical(rutF) || null,
               fecha_nacimiento: fNacFnm,
-              parentesco: PARENTESCO_FNM,
+              parentesco: parentescoFnmVal,
               sexo: (sexoF || "").trim() || null,
               nacionalidad: (nacF || "").trim() || null,
               fecha_matrimonio_union_civil: null,
@@ -4304,7 +4305,7 @@
               es_invalido: invF ? invF.value : null,
               es_hijo_del_conyuge: null,
               fnm_hijo_indice: hi,
-              observaciones: obsFnm.trim() || null,
+              observaciones: null,
             });
             benefEnumerado[String(idx)] = {
               nombres: (nombresF || "").trim(),
@@ -4313,14 +4314,14 @@
               rut: rutF || "",
               sexo: sexoF || "",
               nacionalidad: (nacF || "").trim(),
-              parentesco: PARENTESCO_FNM,
+              parentesco: parentescoFnmVal,
               fechaNacimiento: fnDdF,
               fechaMatrimonioUnionCivil: "",
               ciudadMatrimonioUnionCivil: "",
               esInvalido: invF ? invF.value : "",
               esHijoDelConyuge: "",
               fnm_hijo_indice: hi,
-              observaciones: obsFnm.trim(),
+              observaciones: "",
             };
             idx++;
           }
@@ -5786,14 +5787,6 @@
                 '</div><div class="error" data-error-for="hijo_' +
                 index +
                 '_fnm_fechaNac"></div></div>' +
-                '<div class="field col-12"><label for="hijo_' +
-                index +
-                '_fnm_obs">Observaciones (opcional)</label>' +
-                '<textarea id="hijo_' +
-                index +
-                '_fnm_obs" name="hijo_' +
-                index +
-                '_fnm_observaciones" data-fnm-field="1" rows="2" maxlength="2000" placeholder="Notas adicionales sobre este beneficiario…"></textarea></div>' +
                 "</div></div></div>";
               var diaS = div.querySelector("select[name='hijo_" + index + "_dia']");
               var mesS = div.querySelector("select[name='hijo_" + index + "_mes']");
