@@ -71,6 +71,27 @@
         margin: 14px 0;
       }
       .section h2 { font-size: 15px; margin: 0 0 12px; letter-spacing: 0.02em; color: var(--muted); }
+      .section.section-fnm-aviso {
+        border-color: rgba(180, 83, 9, 0.45);
+        background: rgba(245, 158, 11, 0.08);
+      }
+      .section.section-fnm-aviso h2 {
+        color: #b45309;
+      }
+      .section.section-fnm-aviso p,
+      .section.section-fnm-aviso li {
+        font-size: 14px;
+        line-height: 1.5;
+        margin: 0 0 8px;
+      }
+      .section.section-fnm-aviso ul {
+        margin: 8px 0 0;
+        padding-left: 1.25rem;
+      }
+      .section.section-fnm-aviso a.pension-link {
+        color: var(--primary);
+        font-weight: 500;
+      }
       .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px 20px; }
       .item label { display: block; font-size: 11px; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
       .item span { font-size: 14px; }
@@ -1155,6 +1176,62 @@
               if (x === "no") return "No";
               return s;
             }
+            function parentescoEsFiliacionNoMatrimonialVer(p) {
+              var s = String(p || "").toLowerCase();
+              return s.indexOf("filiación no matrimonial") !== -1 || s.indexOf("filiacion no matrimonial") !== -1;
+            }
+            function hijoIndicaFnmVer(h) {
+              if (!h) return false;
+              var v = h.es_hijo_del_conyuge != null ? h.es_hijo_del_conyuge : h.esHijoDelConyuge;
+              if (v === false) return true;
+              var x = String(v || "").trim().toLowerCase();
+              return x === "no";
+            }
+            function benefFnmTieneDatosMinimosVer(b) {
+              if (!b) return false;
+              if (String(b.nombres || "").trim()) return true;
+              if (String(b.rut || "").trim()) return true;
+              if (String(b.apellido_paterno || b.apellidoPaterno || "").trim()) return true;
+              return false;
+            }
+            function fnmBeneficiariosDesdeSolicitudVer(cli) {
+              var fb = cli.solicitud_beneficiarios;
+              if (!fb || !Array.isArray(fb)) return [];
+              return fb.filter(function (b) {
+                return parentescoEsFiliacionNoMatrimonialVer(b.parentesco);
+              });
+            }
+            /** Índices 0-based de hijos con situación FNM sin beneficiario completo en solicitud (o fila vacía). */
+            function indicesHijosFnmPendientesVer(c) {
+              if (!c.tiene_hijos_menores_24 || !c.hijos || !Array.isArray(c.hijos) || !c.hijos.length) return [];
+              var fnmRows = fnmBeneficiariosDesdeSolicitudVer(c);
+              var conIndice = [];
+              var sinIndice = [];
+              for (var r = 0; r < fnmRows.length; r++) {
+                var row = fnmRows[r];
+                var ix = row.fnm_hijo_indice;
+                var ixN = ix != null && ix !== "" ? parseInt(ix, 10) : NaN;
+                if (!Number.isNaN(ixN)) conIndice.push(row);
+                else sinIndice.push(row);
+              }
+              var poolLegacy = sinIndice.slice();
+              var faltan = [];
+              for (var i = 0; i < c.hijos.length; i++) {
+                if (!hijoIndicaFnmVer(c.hijos[i])) continue;
+                var match = null;
+                for (var j = 0; j < conIndice.length; j++) {
+                  var ix2 = conIndice[j].fnm_hijo_indice;
+                  var ix2N = ix2 != null && ix2 !== "" ? parseInt(ix2, 10) : NaN;
+                  if (!Number.isNaN(ix2N) && ix2N === i) {
+                    match = conIndice[j];
+                    break;
+                  }
+                }
+                if (!match && poolLegacy.length) match = poolLegacy.shift();
+                if (!match || !benefFnmTieneDatosMinimosVer(match)) faltan.push(i);
+              }
+              return faltan;
+            }
             function primerBeneficiarioConyuge(cli) {
               var fb = cli.solicitud_beneficiarios;
               if (!fb || !Array.isArray(fb)) return null;
@@ -1204,6 +1281,53 @@
                 html += item("Hijo/a del cónyuge", textoEsInvalido(h.es_hijo_del_conyuge != null ? h.es_hijo_del_conyuge : h.esHijoDelConyuge) || "—");
                 html += "</div>";
               });
+              html += "</div>";
+            }
+
+            var fnmPendientesIdx = indicesHijosFnmPendientesVer(c);
+            if (fnmPendientesIdx.length > 0) {
+              html += '<div class="section section-fnm-aviso"><h2>Filiación no matrimonial — pendiente</h2>';
+              html +=
+                "<p>Este cliente declara al menos un hijo o hija que <strong>no</strong> es del cónyuge o conviviente civil. Los datos del otro beneficiario (padre o madre de filiación no matrimonial) deben registrarse en el <strong>formulario de pensión</strong>.</p>";
+              html += "<p><strong>Hijos a completar en pensión:</strong></p><ul>";
+              for (var pi = 0; pi < fnmPendientesIdx.length; pi++) {
+                var idxH = fnmPendientesIdx[pi];
+                var hP = c.hijos && c.hijos[idxH] ? c.hijos[idxH] : null;
+                var etiquetaHijo = "Hijo/a " + (idxH + 1);
+                if (hP && (hP.nombres || "").trim()) etiquetaHijo += " — " + String(hP.nombres).trim();
+                html += "<li>" + etiquetaHijo + "</li>";
+              }
+              html +=
+                '</ul><p class="hint" style="margin-top:10px;font-size:13px;color:var(--muted)">Abrir: <a class="pension-link" href="pension.html">formulario de pensión</a>.</p></div>';
+            }
+
+            var fnmListaVer = fnmBeneficiariosDesdeSolicitudVer(c).filter(benefFnmTieneDatosMinimosVer);
+            if (fnmListaVer.length > 0) {
+              html += '<div class="section"><h2>Beneficiarios de filiación no matrimonial</h2>';
+              html += '<p class="hint" style="margin:0 0 12px;font-size:13px;color:var(--muted)">Registrados en la solicitud (formulario de pensión).</p>';
+              for (var fi = 0; fi < fnmListaVer.length; fi++) {
+                var bf = fnmListaVer[fi];
+                var ixH = bf.fnm_hijo_indice;
+                var ixHN = ixH != null && ixH !== "" ? parseInt(ixH, 10) : NaN;
+                html += '<div class="grid" style="margin-bottom:10px;">';
+                html += item("Parentesco", "Padre o madre de filiación no matrimonial");
+                if (!Number.isNaN(ixHN)) {
+                  var nomRef = "";
+                  if (c.hijos && c.hijos[ixHN] && String(c.hijos[ixHN].nombres || "").trim()) {
+                    nomRef = " — " + String(c.hijos[ixHN].nombres).trim();
+                  }
+                  html += item("Vinculado a menor", "Hijo/a " + (ixHN + 1) + nomRef);
+                }
+                html +=
+                  item("Nombres", bf.nombres) +
+                  item("Apellido Paterno", bf.apellido_paterno != null ? bf.apellido_paterno : bf.apellidoPaterno) +
+                  item("Apellido Materno", bf.apellido_materno != null ? bf.apellido_materno : bf.apellidoMaterno);
+                html += item("Nacionalidad", bf.nacionalidad) + item("Sexo", bf.sexo);
+                html += item("RUT", bf.rut ? formatRutDisplay(bf.rut) : bf.rut) + item("Fecha nacimiento", fmtDate(bf.fecha_nacimiento));
+                html += item("Inválido", textoEsInvalido(bf.es_invalido != null ? bf.es_invalido : bf.esInvalido));
+                if ((bf.observaciones || "").trim()) html += item("Observaciones", bf.observaciones);
+                html += "</div>";
+              }
               html += "</div>";
             }
 
