@@ -866,51 +866,6 @@
             return Math.max(0, Math.min(NROWS, idx));
           }
 
-          /* ----- Migración bloques→ventanas (fallback si la BD no tiene ventanas todavía) ----- */
-          function bloquesToVentanas(bloques) {
-            var out = {};
-            if (!bloques || typeof bloques !== "object") return out;
-            for (var k in bloques) {
-              if (!Object.prototype.hasOwnProperty.call(bloques, k)) continue;
-              var horas = (bloques[k] || [])
-                .map(function (h) { return parseInt(h, 10); })
-                .filter(function (h) { return !isNaN(h); })
-                .sort(function (a, b) { return a - b; });
-              if (!horas.length) continue;
-              var rangos = [];
-              var ini = horas[0], prev = horas[0];
-              for (var i = 1; i < horas.length; i++) {
-                if (horas[i] === prev + 1) { prev = horas[i]; }
-                else { rangos.push({ inicio: pad2(ini) + ":00", fin: pad2(prev + 1) + ":00" }); ini = prev = horas[i]; }
-              }
-              rangos.push({ inicio: pad2(ini) + ":00", fin: pad2(prev + 1) + ":00" });
-              out[k] = rangos;
-            }
-            return out;
-          }
-
-          /* ----- Derivar bloques desde ventanas (compat con RPC v1) ----- */
-          function ventanasToBloques(ventanas) {
-            var out = {};
-            for (var k in ventanas) {
-              if (!Object.prototype.hasOwnProperty.call(ventanas, k)) continue;
-              var arr = ventanas[k] || [];
-              var hours = {};
-              arr.forEach(function (v) {
-                var iniMin = timeToMin(v.inicio);
-                var finMin = timeToMin(v.fin);
-                for (var h = HORA_MIN; h < HORA_MAX; h++) {
-                  var hStart = h * 60;
-                  var hEnd = hStart + 60;
-                  if (iniMin <= hStart && hEnd <= finMin) hours[h] = true;
-                }
-              });
-              var keys = Object.keys(hours).map(Number).sort(function (a, b) { return a - b; });
-              if (keys.length) out[k] = keys;
-            }
-            return out;
-          }
-
           /* ----- Mergeo y normalización de ventanas ----- */
           function normalizeVentanasDay(arr) {
             if (!Array.isArray(arr) || !arr.length) return [];
@@ -1110,9 +1065,7 @@
               var ymd = String(r.fecha || "").slice(0, 10);
               var col = ymdToCol[ymd];
               if (!col) return;
-              var hi = r.hora_inicio
-                ? String(r.hora_inicio).slice(0, 5)
-                : (r.hora != null ? pad2(parseInt(r.hora, 10)) + ":00" : null);
+              var hi = r.hora_inicio ? String(r.hora_inicio).slice(0, 5) : null;
               if (!hi) return;
               var dur = r.duracion_minutos || state.config.duracion || 60;
               var s = clampSlot(slotFromTime(hi));
@@ -1289,7 +1242,7 @@
           function loadAvailability() {
             return supabase
               .from("asesor_disponibilidad")
-              .select("ventanas, bloques")
+              .select("ventanas")
               .eq("user_id", uid)
               .maybeSingle()
               .then(function (r) {
@@ -1300,13 +1253,7 @@
                 var data = r.data || {};
                 var v = data.ventanas;
                 var hasV = v && typeof v === "object" && Object.keys(v).length > 0;
-                if (hasV) {
-                  state.ventanas = normalizeVentanas(v);
-                } else if (data.bloques && Object.keys(data.bloques).length) {
-                  state.ventanas = bloquesToVentanas(data.bloques);
-                } else {
-                  state.ventanas = {};
-                }
+                state.ventanas = hasV ? normalizeVentanas(v) : {};
                 state.ventanasOriginal = snapshot();
               });
           }
@@ -1333,7 +1280,7 @@
             var to = state.view === "week" ? addDaysYmd(state.anchorYmd, 6) : state.anchorYmd;
             return supabase
               .from("agenda_reservas")
-              .select("id, fecha, hora_inicio, duracion_minutos, hora, cliente_potencial_id, clientes_potenciales(id, nombre, telefono)")
+              .select("id, fecha, hora_inicio, duracion_minutos, cliente_potencial_id, clientes_potenciales(id, nombre, telefono)")
               .eq("owner_user_id", uid)
               .gte("fecha", from)
               .lte("fecha", to)
@@ -1345,11 +1292,9 @@
 
           function saveVentanas() {
             var ventanasNorm = normalizeVentanas(state.ventanas);
-            var bloquesCompat = ventanasToBloques(ventanasNorm);
             var payload = {
               user_id: uid,
               ventanas: ventanasNorm,
-              bloques: bloquesCompat,
               updated_at: new Date().toISOString()
             };
             el.save.disabled = true;
