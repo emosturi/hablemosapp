@@ -1409,7 +1409,13 @@
               <span class="btns-limpiar-pdf">
                 <button type="button" id="btnLimpiar" class="danger">Limpiar</button>
                 <label class="pdf-desktop-switch" for="switchPdfDesktop">
-                  <input type="checkbox" id="switchPdfDesktop" role="switch" aria-label="Descargar mandato y contrato en PDF en lugar de Word" />
+                  <input
+                    type="checkbox"
+                    id="switchPdfDesktop"
+                    data-skip-pension-db-signature="true"
+                    role="switch"
+                    aria-label="Descargar mandato y contrato en PDF en lugar de Word"
+                  />
                   <span class="pdf-desktop-switch-ui" aria-hidden="true"></span>
                   <span class="pdf-desktop-switch__text">Versión PDF</span>
                 </label>
@@ -5028,9 +5034,8 @@
         if (target) target.textContent = message;
       }
 
-      // Convierte el FormData del formulario en un objeto anidado (usando nombres con puntos).
-      function formDataToObject(form) {
-        const fd = new FormData(form);
+      // Convierte entradas FormData en objeto anidado (nombres con puntos).
+      function nestedObjectFromFormDataEntries(fd) {
         const out = {};
         for (const [k, v] of fd.entries()) {
           const value = typeof v === "string" ? v.trim() : v;
@@ -5049,6 +5054,41 @@
           }
         }
         return out;
+      }
+
+      // Convierte el FormData del formulario en un objeto anidado (usando nombres con puntos).
+      function formDataToObject(form) {
+        return nestedObjectFromFormDataEntries(new FormData(form));
+      }
+
+      /**
+       * Misma forma que formDataToObject pero omite controles solo de UI (p. ej. «Versión PDF»),
+       * para que no cuenten como cambios sin guardar en BD.
+       */
+      function formDataToObjectBaselineForPension(form) {
+        const fd = new FormData();
+        if (!form) return {};
+        form.querySelectorAll("input, select, textarea").forEach(function (el) {
+          if (el.id === "switchPdfDesktop") return;
+          if (el.getAttribute("data-skip-pension-db-signature") === "true") return;
+          if (!el.name || el.disabled) return;
+          const type = (el.type || "").toLowerCase();
+          if (type === "submit" || type === "button" || type === "reset") return;
+          if (type === "file") return;
+          if (type === "radio" || type === "checkbox") {
+            if (!el.checked) return;
+            fd.append(el.name, el.value != null && String(el.value) !== "" ? el.value : "on");
+            return;
+          }
+          if (el.tagName === "SELECT" && el.multiple) {
+            for (let oi = 0; oi < el.options.length; oi++) {
+              if (el.options[oi].selected) fd.append(el.name, el.options[oi].value);
+            }
+            return;
+          }
+          fd.append(el.name, el.value != null ? el.value : "");
+        });
+        return nestedObjectFromFormDataEntries(fd);
       }
 
       // Rellena el formulario a partir de un objeto anidado (para cargar borradores).
@@ -5348,7 +5388,7 @@
 
       function pensionFormDataSignature(formEl) {
         try {
-          var raw = formDataToObject(formEl);
+          var raw = formDataToObjectBaselineForPension(formEl);
           enrichDataConyugeHijosBeneficiarios(formEl, raw);
           return JSON.stringify(raw);
         } catch (_e) {
