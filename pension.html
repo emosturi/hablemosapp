@@ -4033,6 +4033,104 @@
         return v.indexOf("casado") !== -1 || v.indexOf("conviviente") !== -1;
       }
 
+      /** Parentesco en solicitud/PDF para el padre o madre del menor no hijo del cónyuge (solo formulario pensión). */
+      var PARENTESCO_FNM = "Padre o madre de filiación no matrimonial";
+
+      function parentescoEsFiliacionNoMatrimonial(p) {
+        var s = String(p || "").toLowerCase();
+        return s.indexOf("filiación no matrimonial") !== -1 || s.indexOf("filiacion no matrimonial") !== -1;
+      }
+
+      function refreshPensionHijoFnmBlock(div, index) {
+        if (!div) return;
+        var wrap = div.querySelector("[data-fnm-wrap]");
+        if (!wrap) return;
+        var no = div.querySelector("input[name='hijo_" + index + "_esHijoDelConyuge'][value='No']");
+        var show = !!(no && no.checked);
+        wrap.classList.toggle("section-hidden", !show);
+        wrap.querySelectorAll("[data-fnm-field]").forEach(function (el) {
+          if (show) {
+            el.removeAttribute("disabled");
+          } else {
+            el.setAttribute("disabled", "disabled");
+            el.removeAttribute("aria-invalid");
+          }
+        });
+      }
+
+      function refreshAllPensionFnmBlocks(form) {
+        if (!form) return;
+        form.querySelectorAll(".hijo-block[data-hijo-index]").forEach(function (div) {
+          var idx = parseInt(div.getAttribute("data-hijo-index"), 10);
+          if (!Number.isNaN(idx)) refreshPensionHijoFnmBlock(div, idx);
+        });
+      }
+
+      function wirePensionHijoFnmUi(div, index) {
+        if (!div) return;
+        var wrap = div.querySelector("[data-fnm-wrap]");
+        if (!wrap) return;
+        var diaS = wrap.querySelector("select[name='hijo_" + index + "_fnm_dia']");
+        var mesS = wrap.querySelector("select[name='hijo_" + index + "_fnm_mes']");
+        var anioS = wrap.querySelector("select[name='hijo_" + index + "_fnm_anio']");
+        llenarSelectFecha(diaS, mesS, anioS, 1900);
+        function onHijoConyugeChange() {
+          refreshPensionHijoFnmBlock(div, index);
+        }
+        div.querySelectorAll("input[name='hijo_" + index + "_esHijoDelConyuge']").forEach(function (r) {
+          r.addEventListener("change", onHijoConyugeChange);
+        });
+        onHijoConyugeChange();
+      }
+
+      function pensionNormalizarEsInvalidoPrefill(v) {
+        if (v === true) return "Sí";
+        if (v === false) return "No";
+        var s = String(v || "").trim();
+        var x = s.toLowerCase();
+        if (x === "sí" || x === "si") return "Sí";
+        if (x === "no") return "No";
+        return "No";
+      }
+
+      function prefillPensionFnmFromBenef(form, hi, ben) {
+        if (!form || !ben) return;
+        var q = function (sel) {
+          return form.querySelector(sel);
+        };
+        var nm = function (suffix, v) {
+          var el = q('[name="hijo_' + hi + "_fnm_" + suffix + '"]');
+          if (el && el.type !== "radio") el.value = v != null ? String(v) : "";
+        };
+        nm("nombres", ben.nombres || "");
+        nm("apellidoPaterno", ben.apellido_paterno != null ? ben.apellido_paterno : ben.apellidoPaterno || "");
+        nm("apellidoMaterno", ben.apellido_materno != null ? ben.apellido_materno : ben.apellidoMaterno || "");
+        nm("nacionalidad", ben.nacionalidad || "");
+        var rutB = ben.rut || "";
+        var rutIn = q('input[name="hijo_' + hi + '_fnm_rut"]');
+        if (rutIn) rutIn.value = rutB ? normalizeRut(String(rutB)) : "";
+        var selS = q('select[name="hijo_' + hi + '_fnm_sexo"]');
+        if (selS) selS.value = ben.sexo || "";
+        var invVal = pensionNormalizarEsInvalidoPrefill(ben.es_invalido != null ? ben.es_invalido : ben.esInvalido);
+        var invS = q('input[name="hijo_' + hi + '_fnm_esInvalido"][value="Sí"]');
+        var invN = q('input[name="hijo_' + hi + '_fnm_esInvalido"][value="No"]');
+        if (invVal === "Sí" && invS) invS.checked = true;
+        else if (invN) invN.checked = true;
+        var obs = (ben.observaciones || "").trim();
+        var ta = q('textarea[name="hijo_' + hi + '_fnm_observaciones"]');
+        if (ta) ta.value = obs;
+        var iso = ben.fecha_nacimiento && String(ben.fecha_nacimiento).split("T")[0];
+        if (iso && /^\d{4}-\d{2}-\d{2}$/.test(iso)) {
+          var ph = iso.split("-");
+          var sd = q('select[name="hijo_' + hi + '_fnm_dia"]');
+          var sm = q('select[name="hijo_' + hi + '_fnm_mes"]');
+          var sy = q('select[name="hijo_' + hi + '_fnm_anio"]');
+          if (sd) sd.value = ph[2];
+          if (sm) sm.value = ph[1];
+          if (sy) sy.value = ph[0];
+        }
+      }
+
       /**
        * A partir del DOM (cónyuge + hijos como en clientes.html), arma data.beneficiarios para PDF/contrato,
        * pensionSolicitudBeneficiariosSnapshot / pensionHijosDb / pensionTieneHijosMenores24 para BD (mismas columnas que registro público).
@@ -4129,7 +4227,7 @@
           idx++;
         }
 
-        hijosDb.forEach(function (h) {
+        hijosDb.forEach(function (h, hi) {
           var fnDd = "";
           if (h.fecha_nacimiento && /^\d{4}-\d{2}-\d{2}$/.test(h.fecha_nacimiento)) {
             var px = h.fecha_nacimiento.split("-");
@@ -4164,6 +4262,62 @@
             observaciones: "",
           };
           idx++;
+
+          if (h.es_hijo_del_conyuge === "No") {
+            var pFnm = "hijo_" + hi + "_fnm_";
+            var fDia = (form.querySelector("select[name='" + pFnm + "dia']") || {}).value;
+            var fMes = (form.querySelector("select[name='" + pFnm + "mes']") || {}).value;
+            var fAnio = (form.querySelector("select[name='" + pFnm + "anio']") || {}).value;
+            var fNacFnm = fDia && fMes && fAnio ? fAnio + "-" + fMes + "-" + fDia : null;
+            var invF = form.querySelector("input[name='" + pFnm + "esInvalido']:checked");
+            var nombresF = (form.querySelector("input[name='" + pFnm + "nombres']") || {}).value;
+            var apPF = (form.querySelector("input[name='" + pFnm + "apellidoPaterno']") || {}).value;
+            var apMF = (form.querySelector("input[name='" + pFnm + "apellidoMaterno']") || {}).value;
+            var nacF = (form.querySelector("input[name='" + pFnm + "nacionalidad']") || {}).value;
+            var rutF = (form.querySelector("input[name='" + pFnm + "rut']") || {}).value;
+            var sexoF = (form.querySelector("select[name='" + pFnm + "sexo']") || {}).value;
+            var obsUser = ((form.querySelector("textarea[name='" + pFnm + "observaciones']") || {}).value || "").trim();
+            var fnDdF = "";
+            if (fNacFnm && /^\d{4}-\d{2}-\d{2}$/.test(fNacFnm)) {
+              var pxf = fNacFnm.split("-");
+              fnDdF = pxf[2] + "-" + pxf[1] + "-" + pxf[0];
+            }
+            var obsFnm = "Referente al hijo/a " + (hi + 1) + ".";
+            if (obsUser) obsFnm += " " + obsUser;
+            solicitudBenef.push({
+              nombres: (nombresF || "").trim() || null,
+              apellido_paterno: (apPF || "").trim() || null,
+              apellido_materno: (apMF || "").trim() || null,
+              rut: rutToCanonical(rutF) || null,
+              fecha_nacimiento: fNacFnm,
+              parentesco: PARENTESCO_FNM,
+              sexo: (sexoF || "").trim() || null,
+              nacionalidad: (nacF || "").trim() || null,
+              fecha_matrimonio_union_civil: null,
+              ciudad_matrimonio_union_civil: null,
+              es_invalido: invF ? invF.value : null,
+              es_hijo_del_conyuge: null,
+              fnm_hijo_indice: hi,
+              observaciones: obsFnm.trim() || null,
+            });
+            benefEnumerado[String(idx)] = {
+              nombres: (nombresF || "").trim(),
+              apellidoPaterno: (apPF || "").trim(),
+              apellidoMaterno: (apMF || "").trim(),
+              rut: rutF || "",
+              sexo: sexoF || "",
+              nacionalidad: (nacF || "").trim(),
+              parentesco: PARENTESCO_FNM,
+              fechaNacimiento: fnDdF,
+              fechaMatrimonioUnionCivil: "",
+              ciudadMatrimonioUnionCivil: "",
+              esInvalido: invF ? invF.value : "",
+              esHijoDelConyuge: "",
+              fnm_hijo_indice: hi,
+              observaciones: obsFnm.trim(),
+            };
+            idx++;
+          }
         });
 
         data.beneficiarios = benefEnumerado;
@@ -4233,10 +4387,12 @@
               fecha_nacimiento: b.fecha_nacimiento,
               parentesco: b.parentesco,
               sexo: b.sexo,
+              nacionalidad: b.nacionalidad,
               fecha_matrimonio_union_civil: b.fecha_matrimonio_union_civil,
               ciudad_matrimonio_union_civil: b.ciudad_matrimonio_union_civil,
               es_invalido: b.es_invalido,
               es_hijo_del_conyuge: b.es_hijo_del_conyuge,
+              fnm_hijo_indice: b.fnm_hijo_indice != null && b.fnm_hijo_indice !== "" ? b.fnm_hijo_indice : null,
               observaciones: b.observaciones,
             };
           });
@@ -4313,6 +4469,7 @@
           "rut",
           "parentesco",
           "sexo",
+          "nacionalidad",
           "fecha_nacimiento",
           "fecha_matrimonio_union_civil",
           "ciudad_matrimonio_union_civil",
@@ -5042,6 +5199,49 @@
               if (!hdcChk) {
                 ok = false;
                 setError(form, "hijo_" + hi + "_esHijoDelConyuge", "Indique si el hijo/a " + (hi + 1) + " es del cónyuge o conviviente civil.");
+              } else if (hdcChk.value === "No") {
+                var fnmNom = form.querySelector("input[name='hijo_" + hi + "_fnm_nombres']");
+                var fnmAp = form.querySelector("input[name='hijo_" + hi + "_fnm_apellidoPaterno']");
+                var fnmAm = form.querySelector("input[name='hijo_" + hi + "_fnm_apellidoMaterno']");
+                var fnmNa = form.querySelector("input[name='hijo_" + hi + "_fnm_nacionalidad']");
+                var fnmRut = form.querySelector("input[name='hijo_" + hi + "_fnm_rut']");
+                var fnmSex = form.querySelector("select[name='hijo_" + hi + "_fnm_sexo']");
+                var fnmInv = form.querySelector("input[name='hijo_" + hi + "_fnm_esInvalido']:checked");
+                var fdH = (form.querySelector("select[name='hijo_" + hi + "_fnm_dia']") || {}).value;
+                var fmH = (form.querySelector("select[name='hijo_" + hi + "_fnm_mes']") || {}).value;
+                var fyH = (form.querySelector("select[name='hijo_" + hi + "_fnm_anio']") || {}).value;
+                function reqFnm(el, key, msg) {
+                  if (!el || !String(el.value || "").trim()) {
+                    ok = false;
+                    if (el) el.setAttribute("aria-invalid", "true");
+                    setError(form, key, msg);
+                  }
+                }
+                reqFnm(fnmNom, "hijo_" + hi + "_fnm_nombres", "Nombres del beneficiario FNM (hijo/a " + (hi + 1) + ").");
+                reqFnm(fnmAp, "hijo_" + hi + "_fnm_apellidoPaterno", "Apellido paterno del beneficiario FNM (hijo/a " + (hi + 1) + ").");
+                reqFnm(fnmAm, "hijo_" + hi + "_fnm_apellidoMaterno", "Apellido materno del beneficiario FNM (hijo/a " + (hi + 1) + ").");
+                reqFnm(fnmNa, "hijo_" + hi + "_fnm_nacionalidad", "Nacionalidad del beneficiario FNM (hijo/a " + (hi + 1) + ").");
+                if (fnmRut) {
+                  fnmRut.value = normalizeRut(String(fnmRut.value || "").trim());
+                  if (!rutIsValid(fnmRut.value)) {
+                    ok = false;
+                    fnmRut.setAttribute("aria-invalid", "true");
+                    setError(form, "hijo_" + hi + "_fnm_rut", "RUT del beneficiario FNM inválido u obligatorio (hijo/a " + (hi + 1) + ").");
+                  }
+                }
+                if (!fnmSex || !String(fnmSex.value || "").trim()) {
+                  ok = false;
+                  if (fnmSex) fnmSex.setAttribute("aria-invalid", "true");
+                  setError(form, "hijo_" + hi + "_fnm_sexo", "Sexo del beneficiario FNM (hijo/a " + (hi + 1) + ").");
+                }
+                if (!fnmInv) {
+                  ok = false;
+                  setError(form, "hijo_" + hi + "_fnm_esInvalido", "Indique si el beneficiario FNM es inválido (hijo/a " + (hi + 1) + ").");
+                }
+                if (!fdH || !fmH || !fyH) {
+                  ok = false;
+                  setError(form, "hijo_" + hi + "_fnm_fechaNac", "Fecha de nacimiento del beneficiario FNM (hijo/a " + (hi + 1) + ").");
+                }
               }
             }
           }
@@ -5486,11 +5686,80 @@
                 '</div><div class="error" data-error-for="hijo_' +
                 index +
                 '_fechaNac"></div></div>' +
-                "</div>";
+                '<div class="field col-12 fnm-benef-wrap section-hidden" data-fnm-wrap="1" style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(0,0,0,0.12)">' +
+                '<p class="hint" style="margin:0 0 10px">Si el hijo/a <strong>no</strong> es del cónyuge o conviviente civil, declare al otro beneficiario: <strong>padre o madre de filiación no matrimonial</strong>. Mismos datos que un beneficiario, sin matrimonio o unión civil.</p>' +
+                '<div class="grid">' +
+                '<div class="field col-4"><label>Nombres (FNM) <span class="req">*</span></label><input name="hijo_' +
+                index +
+                '_fnm_nombres" data-fnm-field="1" autocomplete="given-name" /><div class="error" data-error-for="hijo_' +
+                index +
+                '_fnm_nombres"></div></div>' +
+                '<div class="field col-4"><label>Apellido Paterno <span class="req">*</span></label><input name="hijo_' +
+                index +
+                '_fnm_apellidoPaterno" data-fnm-field="1" autocomplete="family-name" /><div class="error" data-error-for="hijo_' +
+                index +
+                '_fnm_apellidoPaterno"></div></div>' +
+                '<div class="field col-4"><label>Apellido Materno <span class="req">*</span></label><input name="hijo_' +
+                index +
+                '_fnm_apellidoMaterno" data-fnm-field="1" autocomplete="family-name" /><div class="error" data-error-for="hijo_' +
+                index +
+                '_fnm_apellidoMaterno"></div></div>' +
+                '<div class="field col-4"><label>Nacionalidad <span class="req">*</span></label><input name="hijo_' +
+                index +
+                '_fnm_nacionalidad" data-fnm-field="1" placeholder="Ej. Chilena" /><div class="error" data-error-for="hijo_' +
+                index +
+                '_fnm_nacionalidad"></div></div>' +
+                '<div class="field col-4"><label>RUT <span class="req">*</span></label><input name="hijo_' +
+                index +
+                '_fnm_rut" data-fnm-field="1" class="rut-input" placeholder="12.345.678-5" /><div class="error" data-error-for="hijo_' +
+                index +
+                '_fnm_rut"></div></div>' +
+                '<div class="field col-4"><label>Sexo <span class="req">*</span></label><select name="hijo_' +
+                index +
+                '_fnm_sexo" data-fnm-field="1"><option value="">Selecciona…</option><option>Masculino</option><option>Femenino</option></select><div class="error" data-error-for="hijo_' +
+                index +
+                '_fnm_sexo"></div></div>' +
+                '<div class="field col-12"><label>¿Es inválido? <span class="req">*</span></label>' +
+                '<div class="radio-row" role="group" aria-label="Inválido FNM hijo ' +
+                (index + 1) +
+                '">' +
+                '<label class="radio-pill"><input type="radio" name="hijo_' +
+                index +
+                '_fnm_esInvalido" data-fnm-field="1" value="Sí" /> Sí</label>' +
+                '<label class="radio-pill"><input type="radio" name="hijo_' +
+                index +
+                '_fnm_esInvalido" data-fnm-field="1" value="No" /> No</label>' +
+                '</div><div class="error" data-error-for="hijo_' +
+                index +
+                '_fnm_esInvalido"></div></div>' +
+                '<div class="field col-4"><label>Fecha de nacimiento <span class="req">*</span></label>' +
+                '<div class="date-group">' +
+                '<select name="hijo_' +
+                index +
+                '_fnm_dia" data-fnm-field="1"><option value="">Día</option></select>' +
+                '<select name="hijo_' +
+                index +
+                '_fnm_mes" data-fnm-field="1"><option value="">Mes</option></select>' +
+                '<select name="hijo_' +
+                index +
+                '_fnm_anio" data-fnm-field="1"><option value="">Año</option></select>' +
+                '</div><div class="error" data-error-for="hijo_' +
+                index +
+                '_fnm_fechaNac"></div></div>' +
+                '<div class="field col-12"><label for="hijo_' +
+                index +
+                '_fnm_obs">Observaciones (opcional)</label>' +
+                '<textarea id="hijo_' +
+                index +
+                '_fnm_obs" name="hijo_' +
+                index +
+                '_fnm_observaciones" data-fnm-field="1" rows="2" maxlength="2000" placeholder="Notas adicionales sobre este beneficiario…"></textarea></div>' +
+                "</div></div></div>";
               var diaS = div.querySelector("select[name='hijo_" + index + "_dia']");
               var mesS = div.querySelector("select[name='hijo_" + index + "_mes']");
               var anioS = div.querySelector("select[name='hijo_" + index + "_anio']");
               llenarSelectFecha(diaS, mesS, anioS, 1900);
+              wirePensionHijoFnmUi(div, index);
               return div;
             }
 
@@ -5505,6 +5774,7 @@
               if (n < actual) {
                 while (hijosContainer.children.length > n) hijosContainer.removeChild(hijosContainer.lastChild);
               }
+              refreshAllPensionFnmBlocks(form);
             }
 
             if (estadoCivilSel && sectionConyuge) {
@@ -6038,6 +6308,15 @@
                     if (radSi) radSi.checked = true;
                     if (nhp) nhp.value = String(Math.min(10, Math.max(1, c.hijos.length)));
                     if (radSi) radSi.dispatchEvent(new Event("change", { bubbles: true }));
+                    var fnmQueuePrefill = [];
+                    if (c.solicitud_beneficiarios && Array.isArray(c.solicitud_beneficiarios)) {
+                      for (var fq = 0; fq < c.solicitud_beneficiarios.length; fq++) {
+                        var bqf = c.solicitud_beneficiarios[fq];
+                        if (!parentescoEsFiliacionNoMatrimonial(bqf.parentesco)) continue;
+                        var ixf = bqf.fnm_hijo_indice;
+                        if (ixf == null || ixf === "") fnmQueuePrefill.push(bqf);
+                      }
+                    }
                     for (var ih = 0; ih < c.hijos.length; ih++) {
                       var hh = c.hijos[ih];
                       if (!hh) continue;
@@ -6074,6 +6353,24 @@
                       } else if (hdcVal === false || String(hdcVal).toLowerCase() === "no") {
                         if (hdcN) hdcN.checked = true;
                       }
+                      var hijoDivPref = form.querySelector('.hijo-block[data-hijo-index="' + ih + '"]');
+                      var hdcEsNoPref = hdcN && hdcN.checked;
+                      if (hijoDivPref) refreshPensionHijoFnmBlock(hijoDivPref, ih);
+                      var fnmBenPre = null;
+                      if (c.solicitud_beneficiarios && Array.isArray(c.solicitud_beneficiarios)) {
+                        for (var ibf = 0; ibf < c.solicitud_beneficiarios.length; ibf++) {
+                          var bfn = c.solicitud_beneficiarios[ibf];
+                          if (!parentescoEsFiliacionNoMatrimonial(bfn.parentesco)) continue;
+                          var ixb = bfn.fnm_hijo_indice;
+                          var ixbN = ixb != null && ixb !== "" ? parseInt(ixb, 10) : NaN;
+                          if (!Number.isNaN(ixbN) && ixbN === ih) {
+                            fnmBenPre = bfn;
+                            break;
+                          }
+                        }
+                      }
+                      if (!fnmBenPre && hdcEsNoPref && fnmQueuePrefill.length) fnmBenPre = fnmQueuePrefill.shift();
+                      if (fnmBenPre && hdcEsNoPref) prefillPensionFnmFromBenef(form, ih, fnmBenPre);
                       var mH = fnDd.match(/^(\d{2})-(\d{2})-(\d{4})$/);
                       if (mH) {
                         var sd = form.querySelector("select[name='hijo_" + ih + "_dia']");
@@ -6084,6 +6381,7 @@
                         if (sy) sy.value = mH[3];
                       }
                     }
+                    refreshAllPensionFnmBlocks(form);
                   } else {
                     if (radNo) radNo.checked = true;
                     if (radNo) radNo.dispatchEvent(new Event("change", { bubbles: true }));
