@@ -255,7 +255,7 @@
                 Para recibir recordatorios por Telegram debes
                 <a href="configuracion-telegram.html" class="btn-tg-config">Configurar Telegram</a>
               </p>
-              <p class="subtitle">Recordatorios programados: cuando Telegram está habilitado para tu cuenta, se envían en la fecha y hora indicadas.</p>
+              <p class="subtitle">Recordatorios programados: cuando Telegram está habilitado para tu cuenta, se envían en la fecha y hora indicadas. Los que corresponden a una llamada agendada por la web muestran la duración cuando no es la predeterminada (60 min).</p>
               <div id="tgBanner" class="banner-tg-off" style="display: none" role="status">
                 Los recordatorios automáticos por Telegram están desactivados para tu cuenta. Puedes seguir usando esta pantalla; cuando se configure el envío (chat del asesor), el propietario de la plataforma podrá volver a habilitarlo.
               </div>
@@ -326,6 +326,8 @@
           if (typeof window.applyAppShellUser === "function") window.applyAppShellUser(r.data.session.user);
           if (typeof window.setAppShellGuest === "function") window.setAppShellGuest(false);
 
+          var uid = r.data.session.user.id;
+
           var tgBanner = document.getElementById("tgBanner");
           supabase
             .from("asesor_cuentas")
@@ -362,6 +364,34 @@
             return isNaN(d.getTime()) ? s : d.toLocaleString("es-CL", { dateStyle: "short", timeStyle: "short" });
           }
 
+          function normHoraHHMM(h) {
+            if (h == null || h === "") return "";
+            var s = String(h).trim();
+            if (s.length >= 5 && s.indexOf(":") !== -1) return s.slice(0, 5);
+            var parts = s.split(":");
+            return (parts[0] || "0").padStart(2, "0") + ":" + (parts[1] || "0").padStart(2, "0");
+          }
+
+          function reservaKey(potId, fechaYmd, horaHHMM) {
+            return String(potId || "") + "\0" + String(fechaYmd || "") + "\0" + normHoraHHMM(horaHHMM);
+          }
+
+          function fmtCeldaHora(row, mapAgenda) {
+            var hRec = normHoraHHMM(row.hora);
+            var ar = null;
+            if (row.cliente_potencial_id && hRec && mapAgenda) {
+              ar = mapAgenda[reservaKey(row.cliente_potencial_id, row.fecha, hRec)];
+            }
+            if (ar && ar.hora_inicio != null) {
+              var hi = normHoraHHMM(ar.hora_inicio);
+              var dm = parseInt(ar.duracion_minutos, 10);
+              if (dm && dm !== 60) return hi + " (" + dm + " min)";
+              return hi || hRec || "-";
+            }
+            if (row.hora) return normHoraHHMM(row.hora) || String(row.hora);
+            return "-";
+          }
+
           function cargarLista() {
             loadingEl.style.display = "block";
             errorEl.style.display = "none";
@@ -370,24 +400,62 @@
 
             supabase
               .from("recordatorios")
-              .select("id, cliente_id, cliente_nombre, cliente_telefono, fecha, hora, mensaje, enviado, created_at")
+              .select("id, cliente_id, cliente_potencial_id, cliente_nombre, cliente_telefono, fecha, hora, mensaje, enviado, created_at")
               .order("fecha", { ascending: false })
               .order("hora", { ascending: true })
               .then(function (res) {
-                loadingEl.style.display = "none";
                 if (res.error) {
+                  loadingEl.style.display = "none";
                   errorEl.style.display = "block";
                   errorEl.textContent = res.error.message || "Error al cargar recordatorios.";
                   return;
                 }
                 var list = res.data || [];
-                if (list.length === 0) {
-                  emptyEl.style.display = "block";
+                var fechas = [];
+                var seenF = {};
+                list.forEach(function (row) {
+                  var f = row.fecha;
+                  if (f && !seenF[f]) {
+                    seenF[f] = true;
+                    fechas.push(f);
+                  }
+                });
+                if (fechas.length === 0) {
+                  loadingEl.style.display = "none";
+                  if (list.length === 0) {
+                    emptyEl.style.display = "block";
+                    return;
+                  }
+                  renderTabla(list, null);
                   return;
                 }
-                tablaEl.style.display = "table";
-                tbody.innerHTML = "";
-                list.forEach(function (r) {
+                supabase
+                  .from("agenda_reservas")
+                  .select("cliente_potencial_id, fecha, hora_inicio, duracion_minutos")
+                  .eq("owner_user_id", uid)
+                  .in("fecha", fechas)
+                  .then(function (arRes) {
+                    loadingEl.style.display = "none";
+                    var mapAgenda = {};
+                    if (!arRes.error && arRes.data) {
+                      arRes.data.forEach(function (ar) {
+                        var k = reservaKey(ar.cliente_potencial_id, ar.fecha, ar.hora_inicio);
+                        mapAgenda[k] = ar;
+                      });
+                    }
+                    if (list.length === 0) {
+                      emptyEl.style.display = "block";
+                      return;
+                    }
+                    renderTabla(list, mapAgenda);
+                  });
+              });
+          }
+
+          function renderTabla(list, mapAgenda) {
+            tablaEl.style.display = "table";
+            tbody.innerHTML = "";
+            list.forEach(function (r) {
                   var tr = document.createElement("tr");
                   var clienteCell = "-";
                   if (r.cliente_id) {
@@ -410,7 +478,7 @@
                     fmtDate(r.fecha) +
                     "</td>" +
                     "<td>" +
-                    (r.hora || "-") +
+                    fmtCeldaHora(r, mapAgenda) +
                     "</td>" +
                     "<td>" +
                     clienteCell +
@@ -435,8 +503,7 @@
                     id +
                     '" title="Eliminar recordatorio">Borrar</button></td>';
                   tbody.appendChild(tr);
-                });
-              });
+            });
           }
 
           tbody.addEventListener("click", function (e) {

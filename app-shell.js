@@ -731,11 +731,11 @@
         return;
       }
       if (q.indexOf("reserv") !== -1 && (q.indexOf("agenda") !== -1 || q.indexOf("llamad") !== -1)) {
-        window.location.href = "agenda.html#reservas";
+        window.location.href = "agenda.html#calendario";
         return;
       }
       if (q.indexOf("dispon") !== -1) {
-        window.location.href = "agenda.html#disponibilidad";
+        window.location.href = "agenda.html#calendario";
         return;
       }
       if (q.indexOf("enlace") !== -1 || q.indexOf("compart") !== -1) {
