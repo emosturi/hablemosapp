@@ -184,7 +184,7 @@
         vertical-align: -3px;
         border: 1px solid transparent;
       }
-      .cal-legend .sw-vent { background: rgba(100, 116, 139, 0.28); border-color: rgba(71, 85, 105, 0.65); }
+      .cal-legend .sw-vent { background: rgba(59, 130, 246, 0.22); border-color: rgba(59, 130, 246, 0.55); }
       .cal-legend .sw-res  { background: rgba(234, 88, 12, 0.85); border-color: rgba(234, 88, 12, 1); }
       .cal-legend .sw-rec  { background: rgba(22, 163, 74, 0.88); border-color: rgba(21, 128, 61, 1); }
 
@@ -303,14 +303,14 @@
       }
       .cal-win {
         position: relative;
-        background: rgba(100, 116, 139, 0.22);
-        border: 1px solid rgba(71, 85, 105, 0.5);
-        color: #334155;
+        background: rgba(59, 130, 246, 0.22);
+        border: 1px solid rgba(59, 130, 246, 0.55);
+        color: #1e3a8a;
         cursor: default;
         transition: background 0.12s;
         -webkit-tap-highlight-color: transparent;
       }
-      .cal-win:hover { background: rgba(100, 116, 139, 0.34); }
+      .cal-win:hover { background: rgba(59, 130, 246, 0.34); }
       .cal-win .cal-win-range {
         display: block;
         padding-right: 28px;
@@ -320,8 +320,8 @@
         top: 2px;
         right: 2px;
         background: rgba(255, 255, 255, 0.9);
-        border: 1px solid rgba(71, 85, 105, 0.55);
-        color: #334155;
+        border: 1px solid rgba(30, 64, 175, 0.5);
+        color: #1e3a8a;
         border-radius: 4px;
         width: 22px;
         height: 22px;
@@ -339,15 +339,15 @@
       .cal-win:hover .cal-win-del,
       .cal-win:focus-within .cal-win-del { display: flex; }
       html[data-theme="dark"] .cal-win {
-        background: rgba(148, 163, 184, 0.18);
-        border-color: rgba(148, 163, 184, 0.45);
-        color: #e2e8f0;
+        background: rgba(96, 165, 250, 0.22);
+        border-color: rgba(96, 165, 250, 0.55);
+        color: #bfdbfe;
       }
-      html[data-theme="dark"] .cal-win:hover { background: rgba(148, 163, 184, 0.28); }
+      html[data-theme="dark"] .cal-win:hover { background: rgba(96, 165, 250, 0.34); }
       html[data-theme="dark"] .cal-win .cal-win-del {
-        background: rgba(30, 41, 59, 0.92);
-        border-color: rgba(148, 163, 184, 0.55);
-        color: #e2e8f0;
+        background: rgba(30, 58, 138, 0.92);
+        border-color: rgba(147, 197, 253, 0.6);
+        color: #bfdbfe;
       }
 
       .cal-res {
@@ -388,16 +388,16 @@
       }
 
       .cal-drag-preview {
-        background: rgba(100, 116, 139, 0.35);
-        border: 2px dashed rgba(71, 85, 105, 0.85);
-        color: #334155;
+        background: rgba(59, 130, 246, 0.38);
+        border: 2px dashed rgba(59, 130, 246, 0.8);
+        color: #1e3a8a;
         z-index: 4;
         pointer-events: none;
       }
       html[data-theme="dark"] .cal-drag-preview {
-        background: rgba(148, 163, 184, 0.32);
-        border-color: rgba(148, 163, 184, 0.85);
-        color: #e2e8f0;
+        background: rgba(96, 165, 250, 0.38);
+        border-color: rgba(147, 197, 253, 0.9);
+        color: #bfdbfe;
       }
 
       /* ============ MODAL CONFIG ============ */
@@ -647,7 +647,7 @@
             <!-- ============ SECCIÓN: CALENDARIO ============ -->
             <section id="calendario" class="agenda-section" data-tab-panel="calendario" role="tabpanel" aria-labelledby="tab-calendario">
               <p class="hint" style="margin: 0 0 12px;">
-                Arrastre sobre la grilla para crear una <strong>ventana de disponibilidad</strong> (gris). Las <strong>reservas</strong> agendadas aparecen en naranjo; los <strong>recordatorios</strong> programados, en verde (solo el nombre del cliente). Cambie la duración de llamada y la separación en <a href="#" id="linkOpenConfig">Configuración</a>.
+                Arrastre sobre la grilla para crear una <strong>ventana de disponibilidad</strong>. Las <strong>reservas</strong> agendadas aparecen en naranjo; los <strong>recordatorios</strong> programados, en verde (solo el nombre del cliente). Cambie la duración de llamada y la separación en <a href="#" id="linkOpenConfig">Configuración</a>.
               </p>
 
               <div class="cal-toolbar">
@@ -668,7 +668,7 @@
               </div>
 
               <div class="cal-legend">
-                <span><span class="sw sw-vent"></span>Disponibilidad</span>
+                <span><span class="sw sw-vent"></span>Ventanas de disponibilidad</span>
                 <span><span class="sw sw-res"></span>Reservas</span>
                 <span><span class="sw sw-rec"></span>Recordatorios</span>
                 <span class="cal-desktop-only" style="margin-left: auto; color: var(--muted);">Arrastre para crear · Eliminar con el botón × en cada ventana</span>
