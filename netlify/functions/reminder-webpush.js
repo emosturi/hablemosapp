@@ -29,7 +29,7 @@ async function sendReminderPushToUser(supabase, userId, payload) {
   }
   const title = payload.title || "Prevy";
   const body = payload.body || "";
-  const url = payload.url || "/recordatorios.html";
+  const url = payload.url || "/agenda.html#calendario";
   const tag = payload.tag || "prevy-reminder";
   const data = JSON.stringify({ title, body, url, tag });
 

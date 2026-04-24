@@ -48,7 +48,7 @@ self.addEventListener("message", function (event) {
 });
 
 self.addEventListener("push", function (event) {
-  var data = { title: "Prevy", body: "", url: "/recordatorios.html", tag: "prevy-reminder" };
+  var data = { title: "Prevy", body: "", url: "/agenda.html#calendario", tag: "prevy-reminder" };
   try {
     if (event.data) {
       var j = event.data.json();
@@ -72,7 +72,7 @@ self.addEventListener("push", function (event) {
 
 self.addEventListener("notificationclick", function (event) {
   event.notification.close();
-  var url = "/recordatorios.html";
+  var url = "/agenda.html#calendario";
   try {
     if (event.notification && event.notification.data && event.notification.data.url) {
       url = String(event.notification.data.url);

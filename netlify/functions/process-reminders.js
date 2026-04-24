@@ -33,7 +33,7 @@ function buildReminderPushPayload(r) {
   return {
     title: "Recordatorio Prevy",
     body,
-    url: "/recordatorios.html",
+    url: "/agenda.html#calendario",
     tag: "prevy-r-" + r.id,
   };
 }
