@@ -211,7 +211,7 @@
 
       .cal-daysbar {
         display: grid;
-        grid-template-columns: 60px 1fr;
+        grid-template-columns: var(--cal-time-w, 60px) 1fr;
         border-bottom: 1px solid var(--border);
         background: var(--surface);
       }
@@ -245,9 +245,10 @@
       .cal-grid {
         position: relative;
         display: grid;
-        grid-template-columns: 60px 1fr;
+        grid-template-columns: var(--cal-time-w, 60px) 1fr;
         user-select: none;
         overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
       }
       .cal-timecol {
         display: grid;
@@ -275,6 +276,7 @@
         border-bottom: 1px dashed transparent;
         cursor: crosshair;
         position: relative;
+        -webkit-tap-highlight-color: transparent;
       }
       .cal-cell[data-slot-minute="0"] { border-bottom: 1px solid var(--border); }
       .cal-cell[data-slot-minute="30"] { border-bottom: 1px dashed var(--border); }
@@ -299,13 +301,19 @@
         box-sizing: border-box;
       }
       .cal-win {
+        position: relative;
         background: rgba(59, 130, 246, 0.22);
         border: 1px solid rgba(59, 130, 246, 0.55);
         color: #1e3a8a;
-        cursor: pointer;
+        cursor: default;
         transition: background 0.12s;
+        -webkit-tap-highlight-color: transparent;
       }
       .cal-win:hover { background: rgba(59, 130, 246, 0.34); }
+      .cal-win .cal-win-range {
+        display: block;
+        padding-right: 28px;
+      }
       .cal-win .cal-win-del {
         position: absolute;
         top: 2px;
@@ -314,16 +322,21 @@
         border: 1px solid rgba(30, 64, 175, 0.5);
         color: #1e3a8a;
         border-radius: 4px;
-        width: 18px;
-        height: 18px;
-        font-size: 14px;
+        width: 22px;
+        height: 22px;
+        min-width: 22px;
+        min-height: 22px;
+        font-size: 16px;
         line-height: 1;
         cursor: pointer;
         padding: 0;
         display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 2;
       }
       .cal-win:hover .cal-win-del,
-      .cal-win:focus-within .cal-win-del { display: block; }
+      .cal-win:focus-within .cal-win-del { display: flex; }
       html[data-theme="dark"] .cal-win {
         background: rgba(96, 165, 250, 0.22);
         border-color: rgba(96, 165, 250, 0.55);
@@ -414,6 +427,47 @@
       @media (max-width: 680px) {
         .cal-toolbar .cal-title { flex: 1 1 100%; }
         .cal-controls { width: 100%; justify-content: space-between; }
+        /* Grilla más alta y legible en teléfono (~2× altura de slot) */
+        .cal-daysbar,
+        .cal-grid {
+          --cal-time-w: 54px;
+        }
+        .cal-timecol,
+        .cal-daycols,
+        .cal-overlay {
+          --slot-h: 28px;
+        }
+        .cal-timecol .hlabel {
+          font-size: 12px;
+          transform: translateY(-6px);
+        }
+        .cal-daysbar .dayhead {
+          padding: 12px 4px;
+          font-size: 13px;
+        }
+        .cal-daysbar .dayhead .dnum {
+          font-size: 17px;
+        }
+        .cal-win .cal-win-range { padding-right: 50px; }
+        .cal-win,
+        .cal-res {
+          font-size: 12px;
+          padding: 5px 8px 5px 6px;
+        }
+        .cal-res .cal-res-time { font-size: 12px; }
+        .cal-res .cal-res-name { font-size: 12px; }
+        /* Toque: siempre mostrar × con área mínima ~44px (accesible) */
+        .cal-win .cal-win-del {
+          display: flex;
+          width: 40px;
+          height: 40px;
+          min-width: 40px;
+          min-height: 40px;
+          top: 4px;
+          right: 4px;
+          font-size: 22px;
+          border-radius: 10px;
+        }
       }
       @media (min-width: 681px) {
         .cal-mobile-only { display: none !important; }
@@ -588,7 +642,8 @@
               <div class="cal-legend">
                 <span><span class="sw sw-vent"></span>Ventanas de disponibilidad</span>
                 <span><span class="sw sw-res"></span>Reservas ya agendadas</span>
-                <span class="cal-desktop-only" style="margin-left: auto; color: var(--muted);">Arrastre para crear · Click en una ventana para eliminar</span>
+                <span class="cal-desktop-only" style="margin-left: auto; color: var(--muted);">Arrastre para crear · Eliminar con el botón × en cada ventana</span>
+                <span class="cal-mobile-only" style="margin-left: auto; color: var(--muted);">Toque o arrastre para crear · Eliminar solo con ×</span>
               </div>
 
               <div class="cal-grid-wrap">
@@ -930,12 +985,9 @@
             el.daysbarCells.style.setProperty("--daycols", n);
             el.dayCols.style.setProperty("--daycols", n);
             el.dayCols.style.setProperty("--nrows", NROWS);
-            el.dayCols.style.setProperty("--slot-h", "14px");
             el.timeCol.style.setProperty("--nrows", NROWS);
-            el.timeCol.style.setProperty("--slot-h", "14px");
             el.overlay.style.setProperty("--daycols", n);
             el.overlay.style.setProperty("--nrows", NROWS);
-            el.overlay.style.setProperty("--slot-h", "14px");
           }
 
           function renderTimeCol() {
@@ -1035,23 +1087,25 @@
                 box.className = "cal-win";
                 box.style.gridColumn = col + " / " + (col + 1);
                 box.style.gridRow = (s + 1) + " / " + (e + 1);
-                box.title = "Ventana " + v.inicio + "–" + v.fin + " · click para eliminar";
+                box.title = "Ventana " + v.inicio + "–" + v.fin;
                 box.dataset.dowKey = k;
                 box.dataset.idx = idx;
-                box.innerHTML = '<span style="font-weight:600">' + v.inicio + "–" + v.fin + '</span>' +
+                box.innerHTML = '<span class="cal-win-range" style="font-weight:600">' + v.inicio + "–" + v.fin + "</span>" +
                   '<button type="button" class="cal-win-del" aria-label="Eliminar ventana">×</button>';
-                box.addEventListener("click", function (ev) {
+                var delBtn = box.querySelector(".cal-win-del");
+                delBtn.addEventListener("click", function (ev) {
+                  ev.preventDefault();
                   ev.stopPropagation();
-                  if (confirm("¿Eliminar la ventana " + v.inicio + "–" + v.fin + "?")) {
-                    var dk = String(box.dataset.dowKey);
-                    var ix = parseInt(box.dataset.idx, 10);
-                    var lst = state.ventanas[dk] || [];
-                    lst.splice(ix, 1);
-                    if (!lst.length) delete state.ventanas[dk];
-                    else state.ventanas[dk] = lst;
-                    refreshDirty();
-                    renderOverlay();
-                  }
+                  if (Date.now() < suppressCalWinDeleteUntil) return;
+                  if (!confirm("¿Eliminar la ventana " + v.inicio + "–" + v.fin + "?")) return;
+                  var dk = String(box.dataset.dowKey);
+                  var ix = parseInt(box.dataset.idx, 10);
+                  var lst = state.ventanas[dk] || [];
+                  lst.splice(ix, 1);
+                  if (!lst.length) delete state.ventanas[dk];
+                  else state.ventanas[dk] = lst;
+                  refreshDirty();
+                  renderOverlay();
                 });
                 el.overlay.appendChild(box);
               });
@@ -1114,6 +1168,9 @@
 
           /* ----- Drag para crear ventanas ----- */
           var drag = { active: false, pointerId: null, startCol: 0, startSlot: 0, curCol: 0, curSlot: 0, startX: 0, startY: 0, moved: false, previewEl: null, dowKey: "" };
+          /** Tras crear ventana con el dedo, el “click” sintético no debe abrir borrar. */
+          var suppressCalWinDeleteUntil = 0;
+          var dayColsDragAttached = false;
 
           function clearPreview() {
             if (drag.previewEl) {
@@ -1157,7 +1214,8 @@
           }
 
           function attachDragHandlers() {
-            // Re-attached on every fullRender porque dayCols se reconstruye.
+            if (dayColsDragAttached) return;
+            dayColsDragAttached = true;
             el.dayCols.addEventListener("pointerdown", onPointerDown);
             el.dayCols.addEventListener("pointermove", onPointerMove);
             el.dayCols.addEventListener("pointerup", onPointerUp);
@@ -1201,6 +1259,9 @@
           function onPointerUp(ev) {
             if (!drag.active || ev.pointerId !== drag.pointerId) return;
             try { el.dayCols.releasePointerCapture(ev.pointerId); } catch (e) {}
+            if (ev.pointerType === "touch") {
+              suppressCalWinDeleteUntil = Date.now() + 500;
+            }
             commitDrag();
             clearPreview();
             drag.active = false;
