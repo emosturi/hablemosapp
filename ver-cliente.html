@@ -697,6 +697,7 @@
           <li><input type="checkbox" id="chk_aceptacion_con_respaldo" /><div><div class="checklist-title"><label for="chk_aceptacion_con_respaldo">ACEPTACIÓN CON RESPALDO</label></div></div></li>
           <li><input type="checkbox" id="chk_seleccion_decision_cambio" /><div><div class="checklist-title"><label for="chk_seleccion_decision_cambio">SELECCIÓN o DECISIÓN DE CAMBIO</label></div></div></li>
           <li><input type="checkbox" id="chk_papeles_internos_compania" /><div><div class="checklist-title"><label for="chk_papeles_internos_compania">PAPELES INTERNOS DE COMPAÑÍA</label></div></div></li>
+          <li><input type="checkbox" id="chk_otros_documentos" /><div><div class="checklist-title"><label for="chk_otros_documentos">OTROS DOCUMENTOS</label></div></div></li>
         </ul>
 
         <div class="group-label">Casos de invalidez</div>
@@ -746,6 +747,12 @@
               <input type="checkbox" id="chk_pv_confeccion_fun" />
               <div>
                 <div class="checklist-title"><label for="chk_pv_confeccion_fun">CONFECCIÓN DE FUN</label></div>
+              </div>
+            </li>
+            <li>
+              <input type="checkbox" id="chk_pv_otros_documentos" />
+              <div>
+                <div class="checklist-title"><label for="chk_pv_otros_documentos">OTROS DOCUMENTOS</label></div>
               </div>
             </li>
           </ul>
@@ -2285,6 +2292,7 @@
               { key: "aceptacion_con_respaldo", id: "chk_aceptacion_con_respaldo" },
               { key: "seleccion_decision_cambio", id: "chk_seleccion_decision_cambio" },
               { key: "papeles_internos_compania", id: "chk_papeles_internos_compania" },
+              { key: "otros_documentos", id: "chk_otros_documentos" },
               { key: "dictamen_ejecutoriado", id: "chk_dictamen_ejecutoriado" },
               { key: "pv_cert_calidad_pensionado", id: "chk_pv_cert_calidad_pensionado", soloPensionado: true, sinArchivo: true },
               { key: "pv_liquidacion_pension", id: "chk_pv_liquidacion_pension", soloPensionado: true, sinArchivo: true },
@@ -2292,6 +2300,7 @@
               { key: "pv_exencion_cotizacion", id: "chk_pv_exencion_cotizacion", soloPensionado: true, sinArchivo: true },
               { key: "pv_acreditacion_cargas", id: "chk_pv_acreditacion_cargas", soloPensionado: true, sinArchivo: true },
               { key: "pv_confeccion_fun", id: "chk_pv_confeccion_fun", soloPensionado: true, sinArchivo: true },
+              { key: "pv_otros_documentos", id: "chk_pv_otros_documentos", soloPensionado: true },
             ];
 
             function cerrarModalChecklist() {
