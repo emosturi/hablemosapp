@@ -1,6 +1,7 @@
 /**
  * Menú móvil del shell y cabecera de usuario.
  * Tras obtener sesión: initAppShell(); applyAppShellUser(session.user);
+ * applyAppShellUser también dispara el registro Web Push (VAPID) la primera vez por usuario/navegador.
  * Invitado (p. ej. clientes.html): setAppShellGuest(true);
  */
 (function () {
@@ -48,6 +49,15 @@
     pwaUpdScript.defer = true;
     pwaUpdScript.setAttribute("data-prevy-pwa-update", "1");
     document.head.appendChild(pwaUpdScript);
+  }
+
+  /* Web Push (VAPID): mismo script que el dashboard; tras login se invoca desde applyAppShellUser. */
+  if (!document.querySelector('script[data-prevy-push-register]')) {
+    var pushRegScript = document.createElement("script");
+    pushRegScript.src = "/pwa-push-register.js";
+    pushRegScript.defer = true;
+    pushRegScript.setAttribute("data-prevy-push-register", "1");
+    document.head.appendChild(pushRegScript);
   }
 
   function qs(id) {
@@ -248,6 +258,34 @@
     }
   };
 
+  function prevyTryRegisterWebPush(user) {
+    if (!user || !user.id) return;
+    function run() {
+      if (typeof window.prevyRegisterWebPushOnFirstLogin !== "function") return;
+      var url = window.SUPABASE_URL;
+      var key = window.SUPABASE_ANON_KEY;
+      if (!url || !key || String(url).indexOf("TU_PROYECTO") !== -1) return;
+      if (typeof window.createPrevySupabaseClient !== "function") return;
+      var client = window.createPrevySupabaseClient(url, key);
+      client.auth.getSession().then(function (r) {
+        if (!r.data || !r.data.session) return;
+        var tok = r.data.session.access_token;
+        if (!tok) return;
+        window.prevyRegisterWebPushOnFirstLogin(client, tok, user.id);
+      });
+    }
+    if (typeof window.prevyRegisterWebPushOnFirstLogin === "function") {
+      run();
+      return;
+    }
+    var pushScr = document.querySelector("script[data-prevy-push-register]");
+    if (pushScr) {
+      pushScr.addEventListener("load", run);
+    }
+    window.setTimeout(run, 400);
+    window.setTimeout(run, 1500);
+  }
+
   window.applyAppShellUser = function (user) {
     if (!user) return;
     var email = user.email || "";
@@ -266,6 +304,7 @@
       if (email) al += " (" + email + ")";
       ut.setAttribute("aria-label", al);
     }
+    prevyTryRegisterWebPush(user);
   };
 
   window.setAppShellGuest = function (isGuest) {

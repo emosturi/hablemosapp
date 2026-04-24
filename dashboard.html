@@ -435,7 +435,6 @@
     </div>
 
     <script src="supabase-config.js"></script>
-    <script src="pwa-push-register.js"></script>
     <script src="app-shell.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script>
@@ -530,9 +529,6 @@
           function continueDashboard() {
             if (typeof window.applyAppShellUser === "function") window.applyAppShellUser(r.data.session.user);
             if (typeof window.setAppShellGuest === "function") window.setAppShellGuest(false);
-            if (typeof window.prevyRegisterWebPushOnFirstLogin === "function") {
-              window.prevyRegisterWebPushOnFirstLogin(supabase, token, r.data.session.user.id);
-            }
             supabase
               .from("platform_owners")
               .select("user_id")
