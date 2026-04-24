@@ -747,7 +747,7 @@
         return;
       }
       if (q.indexOf("record") !== -1 || q.indexOf("alert") !== -1) {
-        window.location.href = "recordatorios.html";
+        window.location.href = "agenda.html#calendario";
         return;
       }
       if (
