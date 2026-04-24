@@ -184,8 +184,9 @@
         vertical-align: -3px;
         border: 1px solid transparent;
       }
-      .cal-legend .sw-vent { background: rgba(59, 130, 246, 0.22); border-color: rgba(59, 130, 246, 0.55); }
+      .cal-legend .sw-vent { background: rgba(100, 116, 139, 0.28); border-color: rgba(71, 85, 105, 0.65); }
       .cal-legend .sw-res  { background: rgba(234, 88, 12, 0.85); border-color: rgba(234, 88, 12, 1); }
+      .cal-legend .sw-rec  { background: rgba(22, 163, 74, 0.88); border-color: rgba(21, 128, 61, 1); }
 
       .cal-grid-wrap {
         position: relative;
@@ -291,7 +292,7 @@
         grid-template-columns: repeat(var(--daycols, 7), 1fr);
         grid-template-rows: repeat(var(--nrows, 52), var(--slot-h, 14px));
       }
-      .cal-win, .cal-res, .cal-drag-preview {
+      .cal-win, .cal-res, .cal-rem, .cal-drag-preview {
         pointer-events: auto;
         border-radius: 6px;
         overflow: hidden;
@@ -302,14 +303,14 @@
       }
       .cal-win {
         position: relative;
-        background: rgba(59, 130, 246, 0.22);
-        border: 1px solid rgba(59, 130, 246, 0.55);
-        color: #1e3a8a;
+        background: rgba(100, 116, 139, 0.22);
+        border: 1px solid rgba(71, 85, 105, 0.5);
+        color: #334155;
         cursor: default;
         transition: background 0.12s;
         -webkit-tap-highlight-color: transparent;
       }
-      .cal-win:hover { background: rgba(59, 130, 246, 0.34); }
+      .cal-win:hover { background: rgba(100, 116, 139, 0.34); }
       .cal-win .cal-win-range {
         display: block;
         padding-right: 28px;
@@ -319,8 +320,8 @@
         top: 2px;
         right: 2px;
         background: rgba(255, 255, 255, 0.9);
-        border: 1px solid rgba(30, 64, 175, 0.5);
-        color: #1e3a8a;
+        border: 1px solid rgba(71, 85, 105, 0.55);
+        color: #334155;
         border-radius: 4px;
         width: 22px;
         height: 22px;
@@ -338,15 +339,15 @@
       .cal-win:hover .cal-win-del,
       .cal-win:focus-within .cal-win-del { display: flex; }
       html[data-theme="dark"] .cal-win {
-        background: rgba(96, 165, 250, 0.22);
-        border-color: rgba(96, 165, 250, 0.55);
-        color: #bfdbfe;
+        background: rgba(148, 163, 184, 0.18);
+        border-color: rgba(148, 163, 184, 0.45);
+        color: #e2e8f0;
       }
-      html[data-theme="dark"] .cal-win:hover { background: rgba(96, 165, 250, 0.34); }
+      html[data-theme="dark"] .cal-win:hover { background: rgba(148, 163, 184, 0.28); }
       html[data-theme="dark"] .cal-win .cal-win-del {
-        background: rgba(30, 58, 138, 0.92);
-        border-color: rgba(147, 197, 253, 0.6);
-        color: #bfdbfe;
+        background: rgba(30, 41, 59, 0.92);
+        border-color: rgba(148, 163, 184, 0.55);
+        color: #e2e8f0;
       }
 
       .cal-res {
@@ -361,17 +362,42 @@
       .cal-res .cal-res-time { font-weight: 700; font-size: 11px; display: block; }
       .cal-res .cal-res-name { font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-      .cal-drag-preview {
-        background: rgba(59, 130, 246, 0.38);
-        border: 2px dashed rgba(59, 130, 246, 0.8);
-        color: #1e3a8a;
+      .cal-rem {
+        background: rgba(22, 163, 74, 0.9);
+        border: 1px solid rgba(21, 128, 61, 1);
+        color: #fff;
+        cursor: default;
+        font-weight: 600;
         z-index: 3;
+        display: flex;
+        align-items: center;
+      }
+      .cal-rem.cal-rem--click { cursor: pointer; }
+      .cal-rem:hover { filter: brightness(1.06); }
+      .cal-rem .cal-rem-name {
+        font-size: 11px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        width: 100%;
+      }
+      html[data-theme="dark"] .cal-rem {
+        background: rgba(34, 197, 94, 0.88);
+        border-color: rgba(22, 163, 74, 1);
+        color: #0f172a;
+      }
+
+      .cal-drag-preview {
+        background: rgba(100, 116, 139, 0.35);
+        border: 2px dashed rgba(71, 85, 105, 0.85);
+        color: #334155;
+        z-index: 4;
         pointer-events: none;
       }
       html[data-theme="dark"] .cal-drag-preview {
-        background: rgba(96, 165, 250, 0.38);
-        border-color: rgba(147, 197, 253, 0.9);
-        color: #bfdbfe;
+        background: rgba(148, 163, 184, 0.32);
+        border-color: rgba(148, 163, 184, 0.85);
+        color: #e2e8f0;
       }
 
       /* ============ MODAL CONFIG ============ */
@@ -450,12 +476,14 @@
         }
         .cal-win .cal-win-range { padding-right: 50px; }
         .cal-win,
-        .cal-res {
+        .cal-res,
+        .cal-rem {
           font-size: 12px;
           padding: 5px 8px 5px 6px;
         }
         .cal-res .cal-res-time { font-size: 12px; }
         .cal-res .cal-res-name { font-size: 12px; }
+        .cal-rem .cal-rem-name { font-size: 12px; }
         /* Toque: siempre mostrar × con área mínima ~44px (accesible) */
         .cal-win .cal-win-del {
           display: flex;
@@ -619,7 +647,7 @@
             <!-- ============ SECCIÓN: CALENDARIO ============ -->
             <section id="calendario" class="agenda-section" data-tab-panel="calendario" role="tabpanel" aria-labelledby="tab-calendario">
               <p class="hint" style="margin: 0 0 12px;">
-                Arrastre sobre la grilla para crear una <strong>ventana de disponibilidad</strong>. Sus reservas actuales aparecen como cajas naranjas sobre las ventanas. Cambie la duración de llamada y la separación en <a href="#" id="linkOpenConfig">Configuración</a>.
+                Arrastre sobre la grilla para crear una <strong>ventana de disponibilidad</strong> (gris). Las <strong>reservas</strong> agendadas aparecen en naranjo; los <strong>recordatorios</strong> programados, en verde (solo el nombre del cliente). Cambie la duración de llamada y la separación en <a href="#" id="linkOpenConfig">Configuración</a>.
               </p>
 
               <div class="cal-toolbar">
@@ -640,8 +668,9 @@
               </div>
 
               <div class="cal-legend">
-                <span><span class="sw sw-vent"></span>Ventanas de disponibilidad</span>
-                <span><span class="sw sw-res"></span>Reservas ya agendadas</span>
+                <span><span class="sw sw-vent"></span>Disponibilidad</span>
+                <span><span class="sw sw-res"></span>Reservas</span>
+                <span><span class="sw sw-rec"></span>Recordatorios</span>
                 <span class="cal-desktop-only" style="margin-left: auto; color: var(--muted);">Arrastre para crear · Eliminar con el botón × en cada ventana</span>
                 <span class="cal-mobile-only" style="margin-left: auto; color: var(--muted);">Toque o arrastre para crear · Eliminar solo con ×</span>
               </div>
@@ -840,6 +869,7 @@
           var HORA_MAX = 21;       // 21:00 excluido (último slot 20:45)
           var SLOT_MIN = 15;
           var NROWS = (HORA_MAX - HORA_MIN) * 60 / SLOT_MIN; // 52
+          var REM_REC_SLOT_ROWS = 2; // alto visual en la grilla (30 min) para recordatorios
           var DAY_NAMES = ["lun", "mar", "mié", "jue", "vie", "sáb", "dom"];
           var DAY_NAMES_LONG = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"];
           var MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
@@ -851,6 +881,7 @@
             config: { duracion: 60, separacion: 0 },
             configOriginal: { duracion: 60, separacion: 0 },
             reservas: [],
+            recordatorios: [],
             view: window.matchMedia("(max-width: 680px)").matches ? "day" : "week",
             anchorYmd: "",                                      // lunes (week) o día (day)
             ready: false
@@ -919,6 +950,17 @@
           }
           function clampSlot(idx) {
             return Math.max(0, Math.min(NROWS, idx));
+          }
+          function normHoraHHMM(h) {
+            if (h == null || h === "") return "";
+            var s = String(h).trim();
+            if (s.length >= 5 && s.indexOf(":") !== -1) return s.slice(0, 5);
+            var parts = s.split(":");
+            var h0 = parseInt(parts[0], 10);
+            var m0 = parseInt(parts[1], 10);
+            if (isNaN(h0)) h0 = 0;
+            if (isNaN(m0)) m0 = 0;
+            return pad2(h0) + ":" + pad2(m0);
           }
 
           /* ----- Mergeo y normalización de ventanas ----- */
@@ -1144,6 +1186,38 @@
               }
               el.overlay.appendChild(box);
             });
+
+            state.recordatorios.forEach(function (rec) {
+              var ymdR = String(rec.fecha || "").slice(0, 10);
+              var colR = ymdToCol[ymdR];
+              if (!colR) return;
+              var hiR = normHoraHHMM(rec.hora);
+              if (!hiR) return;
+              var sR = clampSlot(slotFromTime(hiR));
+              var eR = clampSlot(sR + REM_REC_SLOT_ROWS);
+              if (eR <= sR) return;
+              var nomRec = ((rec.cliente_nombre || "").trim()) || "Recordatorio";
+              var boxR = document.createElement("div");
+              boxR.className = "cal-rem";
+              boxR.style.gridColumn = colR + " / " + (colR + 1);
+              boxR.style.gridRow = (sR + 1) + " / " + (eR + 1);
+              boxR.title = nomRec;
+              boxR.innerHTML = '<span class="cal-rem-name">' + escapeHtml(nomRec) + "</span>";
+              if (rec.cliente_id) {
+                boxR.classList.add("cal-rem--click");
+                var cidCliente = rec.cliente_id;
+                boxR.addEventListener("click", function () {
+                  window.location.href = "ver-cliente.html?id=" + encodeURIComponent(cidCliente);
+                });
+              } else if (rec.cliente_potencial_id) {
+                boxR.classList.add("cal-rem--click");
+                var cidPot = rec.cliente_potencial_id;
+                boxR.addEventListener("click", function () {
+                  window.location.href = "ver-potencial.html?id=" + encodeURIComponent(cidPot);
+                });
+              }
+              el.overlay.appendChild(boxR);
+            });
           }
 
           function escapeHtml(s) {
@@ -1339,16 +1413,27 @@
           function loadReservas() {
             var from = state.anchorYmd;
             var to = state.view === "week" ? addDaysYmd(state.anchorYmd, 6) : state.anchorYmd;
-            return supabase
-              .from("agenda_reservas")
-              .select("id, fecha, hora_inicio, duracion_minutos, cliente_potencial_id, clientes_potenciales(id, nombre, telefono)")
-              .eq("owner_user_id", uid)
-              .gte("fecha", from)
-              .lte("fecha", to)
-              .then(function (r) {
-                state.reservas = (r && r.data) || [];
-                renderOverlay();
-              });
+            return Promise.all([
+              supabase
+                .from("agenda_reservas")
+                .select("id, fecha, hora_inicio, duracion_minutos, cliente_potencial_id, clientes_potenciales(id, nombre, telefono)")
+                .eq("owner_user_id", uid)
+                .gte("fecha", from)
+                .lte("fecha", to),
+              supabase
+                .from("recordatorios")
+                .select("id, cliente_id, cliente_potencial_id, cliente_nombre, fecha, hora")
+                .eq("user_id", uid)
+                .gte("fecha", from)
+                .lte("fecha", to)
+            ]).then(function (pair) {
+              var rRes = pair[0];
+              var rRec = pair[1];
+              state.reservas = (rRes && rRes.data) || [];
+              state.recordatorios = (rRec && rRec.data) || [];
+              if (rRec && rRec.error) state.recordatorios = [];
+              renderOverlay();
+            });
           }
 
           function saveVentanas() {
