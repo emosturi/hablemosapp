@@ -174,6 +174,67 @@
           box-shadow: var(--shadow);
         }
       }
+
+      .tutorials-section {
+        margin: 0 0 28px;
+        padding: 18px 16px 20px;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+      }
+      .tutorials-section h2 {
+        margin: 0 0 8px;
+        font-size: clamp(17px, 2vw, 19px);
+        letter-spacing: -0.02em;
+      }
+      .tutorials-intro {
+        margin: 0 0 18px;
+        font-size: 14px;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+      .tutorial-grid {
+        display: grid;
+        gap: 22px;
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+      }
+      .tutorial-card {
+        min-width: 0;
+      }
+      .tutorial-card h3 {
+        margin: 0 0 10px;
+        font-size: 15px;
+        font-weight: 600;
+        line-height: 1.35;
+      }
+      .tutorial-embed {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        border-radius: 10px;
+        overflow: hidden;
+        background: #0f0f0f;
+        border: 1px solid var(--border);
+      }
+      .tutorial-embed iframe {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        border: 0;
+      }
+      .tutorial-card-link {
+        display: inline-block;
+        margin-top: 10px;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--primary);
+        text-decoration: none;
+      }
+      .tutorial-card-link:hover {
+        text-decoration: underline;
+      }
     </style>
   </head>
   <body>
@@ -267,6 +328,54 @@
               />
               <p class="faq-search-hint" id="faqSearchHint"></p>
             </div>
+
+            <section class="tutorials-section" aria-labelledby="tutorialsTitle">
+              <h2 id="tutorialsTitle">Tutoriales en video</h2>
+              <p class="tutorials-intro">
+                Aprende a usar Prevy paso a paso. Los videos se reproducen aquí o puedes abrirlos en YouTube.
+              </p>
+              <div class="tutorial-grid">
+                <article class="tutorial-card">
+                  <h3>Cómo agregar Prevy a tu teléfono</h3>
+                  <div class="tutorial-embed">
+                    <iframe
+                      src="https://www.youtube.com/embed/InhWmcGXnpg"
+                      title="Cómo agregar Prevy a tu teléfono"
+                      loading="lazy"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowfullscreen
+                    ></iframe>
+                  </div>
+                  <a class="tutorial-card-link" href="https://www.youtube.com/watch?v=InhWmcGXnpg" target="_blank" rel="noopener noreferrer">Ver en YouTube</a>
+                </article>
+                <article class="tutorial-card">
+                  <h3>Cómo enviar el formulario de registro de clientes</h3>
+                  <div class="tutorial-embed">
+                    <iframe
+                      src="https://www.youtube.com/embed/_zZt1Y7pOak"
+                      title="Cómo enviar el formulario de registro de clientes"
+                      loading="lazy"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowfullscreen
+                    ></iframe>
+                  </div>
+                  <a class="tutorial-card-link" href="https://www.youtube.com/watch?v=_zZt1Y7pOak" target="_blank" rel="noopener noreferrer">Ver en YouTube</a>
+                </article>
+                <article class="tutorial-card">
+                  <h3>Cómo agregar disponibilidad en la agenda y compartir el enlace con tus clientes potenciales</h3>
+                  <div class="tutorial-embed">
+                    <iframe
+                      src="https://www.youtube.com/embed/3AOW-3OtHhc"
+                      title="Cómo agregar disponibilidad en la agenda y compartir el enlace"
+                      loading="lazy"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowfullscreen
+                    ></iframe>
+                  </div>
+                  <a class="tutorial-card-link" href="https://www.youtube.com/watch?v=3AOW-3OtHhc" target="_blank" rel="noopener noreferrer">Ver en YouTube</a>
+                </article>
+              </div>
+            </section>
 
             <div class="faq-list" id="faqList">
               <details
