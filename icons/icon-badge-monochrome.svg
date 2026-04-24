@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" fill="none">
+  <defs>
+    <mask id="prevyBadgeMask" maskUnits="userSpaceOnUse">
+      <rect width="1024" height="1024" fill="white"/>
+      <g transform="matrix(1,0,-0.17632698,1,73.325475,-93.466815)">
+        <g transform="translate(14.831349,92.053636)">
+          <path d="m 400,280 -7.80216,681.2132" stroke="black" stroke-width="120" stroke-linecap="round"/>
+          <path d="m 400,280 h 180 c 140,0 220,100 220,200 0,100 -80,200 -220,200 H 400" stroke="black" stroke-width="120" stroke-linecap="round" stroke-linejoin="round"/>
+        </g>
+      </g>
+    </mask>
+  </defs>
+  <rect x="112" y="112" width="800" height="800" rx="180" fill="#ffffff" mask="url(#prevyBadgeMask)"/>
+</svg>

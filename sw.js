@@ -1,5 +1,5 @@
 /* Plataforma asesores: caché solo de estáticos propios. Sin HTML ni APIs. Web Push para recordatorios. */
-const CACHE_NAME = "prevy-static-v14";
+const CACHE_NAME = "prevy-static-v18";
 const PRECACHE_URLS = [
   "/manifest.webmanifest",
   "/app-shell.css",
@@ -8,6 +8,7 @@ const PRECACHE_URLS = [
   "/pwa-update.js",
   "/icons/icon-192.png",
   "/icons/icon-512.png",
+  "/icons/icon-badge-monochrome.png",
 ];
 
 self.addEventListener("install", function (event) {
@@ -58,10 +59,11 @@ self.addEventListener("push", function (event) {
       if (j.tag) data.tag = j.tag;
     }
   } catch (_e) {}
+  var root = self.location.origin;
   var opts = {
     body: data.body,
-    icon: "/icons/icon-192.png",
-    badge: "/icons/icon-192.png",
+    icon: root + "/icons/icon-192.png",
+    badge: root + "/icons/icon-badge-monochrome.png",
     tag: data.tag,
     renotify: true,
     silent: false,
