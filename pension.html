@@ -1953,7 +1953,7 @@
         };
       }
 
-      /** Tabla de beneficiarios para contrato (6 col). */
+      /** Tabla de beneficiarios para contrato (5 col). Hijo del cónyuge no va en columna aparte: se refleja en parentesco cuando aplica. */
       function pmTablaBeneficiariosContrato(beneficiariosObj) {
         var rows = [
           [
@@ -1961,19 +1961,17 @@
             { text: "Parentesco", style: "tableHeader" },
             { text: "Fecha de nac.", style: "tableHeader" },
             { text: "Rut", style: "tableHeader" },
-            { text: "Inválido", style: "tableHeader" },
-            { text: "Hijo/a cónyuge", style: "tableHeader" }
+            { text: "Inválido", style: "tableHeader" }
           ]
         ];
         Object.values(beneficiariosObj).forEach(function (b) {
           var nombreBenef = ((b.nombres || "") + " " + (b.apellidoPaterno || "") + " " + (b.apellidoMaterno || "")).trim();
           var inval = b.esInvalido != null && b.esInvalido !== "" ? b.esInvalido : b.es_invalido;
-          var hdcPdf = b.esHijoDelConyuge != null && b.esHijoDelConyuge !== "" ? b.esHijoDelConyuge : b.es_hijo_del_conyuge;
           var cell = function (t) { return { text: aMayus(t), fontSize: 9, alignment: "left" }; };
-          rows.push([cell(nombreBenef), cell(b.parentesco), cell(b.fechaNacimiento), cell(b.rut), cell(inval), cell(hdcPdf || "")]);
+          rows.push([cell(nombreBenef), cell(b.parentesco), cell(b.fechaNacimiento), cell(b.rut), cell(inval)]);
         });
         return {
-          table: { headerRows: 1, dontBreakRows: true, widths: ["*", 72, 62, 72, 42, 52], body: rows },
+          table: { headerRows: 1, dontBreakRows: true, widths: ["*", 82, 65, 78, 48], body: rows },
           layout: PM_TABLE_LAYOUT_FINO,
           margin: [0, 0, 0, 10]
         };
@@ -3236,7 +3234,6 @@
           lista.forEach((b) => {
             const nombreBenef =
               `${b.nombres || ""} ${b.apellidoPaterno || ""} ${b.apellidoMaterno || ""}`.trim();
-            const hdcHtml = b.esHijoDelConyuge != null && b.esHijoDelConyuge !== "" ? b.esHijoDelConyuge : b.es_hijo_del_conyuge;
             filasBeneficiarios += `
         <tr>
         <td class="col-nombre-ben">${aMayus(nombreBenef)}</td>
@@ -3244,7 +3241,6 @@
         <td class="col-fnac-ben">${aMayus(b.fechaNacimiento)}</td>
         <td class="col-rut-ben">${aMayus(b.rut)}</td>
         <td class="col-inval-ben">${aMayus(b.esInvalido != null && b.esInvalido !== "" ? b.esInvalido : b.es_invalido)}</td>
-        <td class="col-hijo-cony-ben">${aMayus(hdcHtml || "")}</td>
         </tr>
         `;
           });
@@ -3378,12 +3374,11 @@
           word-break:break-word;
           overflow-wrap:break-word;
         }
-        .col-nombre-ben{ width:24%; }
-        .col-parentesco-ben{ width:18%; min-width:5.5em; }
-        .col-fnac-ben{ width:14%; min-width:6.5em; white-space:nowrap; }
-        .col-rut-ben{ width:18%; min-width:8em; white-space:nowrap; }
-        .col-inval-ben{ width:10%; min-width:3em; }
-        .col-hijo-cony-ben{ width:10%; min-width:3em; }
+        .col-nombre-ben{ width:28%; }
+        .col-parentesco-ben{ width:22%; min-width:5.5em; }
+        .col-fnac-ben{ width:16%; min-width:6.5em; white-space:nowrap; }
+        .col-rut-ben{ width:20%; min-width:8em; white-space:nowrap; }
+        .col-inval-ben{ width:14%; min-width:3em; }
         .col-rut{
           white-space:nowrap;
           width:1%;
@@ -3450,7 +3445,6 @@
           <th class="col-fnac-ben">Fecha de nac.</th>
           <th class="col-rut-ben">Rut</th>
           <th class="col-inval-ben">Inválido</th>
-          <th class="col-hijo-cony-ben">Hijo/a cónyuge</th>
         </tr>
         ${filasBeneficiarios}
         </table>
