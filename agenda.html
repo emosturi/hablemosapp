@@ -449,6 +449,75 @@
         margin-top: 18px;
       }
 
+      #calRecModalBackdrop {
+        z-index: 85;
+      }
+      .cal-rec-dl {
+        margin: 0 0 8px;
+        display: grid;
+        gap: 2px 12px;
+      }
+      .cal-rec-dl dt {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--muted);
+        margin: 10px 0 0;
+        font-weight: 600;
+      }
+      .cal-rec-dl dt:first-child {
+        margin-top: 0;
+      }
+      .cal-rec-dl dd {
+        margin: 0;
+        font-size: 14px;
+        line-height: 1.45;
+        color: var(--text);
+      }
+      .cal-rec-msg {
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      .cal-rec-modal-feedback {
+        margin: 10px 0 0;
+        font-size: 13px;
+        color: var(--danger-text, #b91c1c);
+      }
+      .cal-rec-modal-feedback.ok {
+        color: var(--primary-mid);
+      }
+      .cal-modal-actions.cal-rec-actions {
+        justify-content: space-between;
+        flex-wrap: wrap;
+        margin-top: 16px;
+      }
+      .cal-modal-actions.cal-rec-actions .cal-btn {
+        margin-left: auto;
+      }
+      .btn-cal-rec-delete {
+        padding: 10px 16px;
+        border-radius: 10px;
+        border: 1px solid rgba(185, 28, 28, 0.35);
+        background: var(--danger-bg, rgba(254, 226, 226, 0.85));
+        color: var(--danger-text, #b91c1c);
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: inherit;
+      }
+      .btn-cal-rec-delete:hover:not(:disabled) {
+        filter: brightness(0.97);
+      }
+      .btn-cal-rec-delete:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+      html[data-theme="dark"] .btn-cal-rec-delete {
+        background: rgba(127, 29, 29, 0.35);
+        border-color: rgba(248, 113, 113, 0.45);
+        color: #fecaca;
+      }
+
       /* ============ RESPONSIVE ============ */
       @media (max-width: 680px) {
         .cal-toolbar .cal-title { flex: 1 1 100%; }
@@ -760,6 +829,32 @@
                 </div>
               </div>
             </div>
+
+            <div class="cal-modal-backdrop" id="calRecModalBackdrop" role="dialog" aria-modal="true" aria-labelledby="calRecModalTitle">
+              <div class="cal-modal cal-rec-modal">
+                <h2 id="calRecModalTitle">Recordatorio</h2>
+                <p class="sub" style="margin-bottom: 14px;">Detalle del recordatorio en el calendario.</p>
+                <dl class="cal-rec-dl">
+                  <dt>Cliente</dt>
+                  <dd id="calRecModalCliente">—</dd>
+                  <dt>Teléfono</dt>
+                  <dd id="calRecModalTel">—</dd>
+                  <dt>Fecha y hora</dt>
+                  <dd id="calRecModalCuando">—</dd>
+                  <dt>Mensaje</dt>
+                  <dd id="calRecModalMsg" class="cal-rec-msg">—</dd>
+                  <dt>Enviado (Telegram / aviso)</dt>
+                  <dd id="calRecModalEnviado">—</dd>
+                  <dt>Origen</dt>
+                  <dd id="calRecModalOrigen">—</dd>
+                </dl>
+                <p id="calRecModalFeedback" class="cal-rec-modal-feedback" style="display: none" role="status"></p>
+                <div class="cal-modal-actions cal-rec-actions">
+                  <button type="button" class="btn-cal-rec-delete" id="calRecModalDelete">Borrar recordatorio</button>
+                  <button type="button" class="cal-btn ghost" id="calRecModalClose">Cerrar</button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -911,7 +1006,17 @@
             cfgDur: document.getElementById("cfgDuracion"),
             cfgSep: document.getElementById("cfgSeparacion"),
             cfgCancel: document.getElementById("cfgCancel"),
-            cfgSave: document.getElementById("cfgSave")
+            cfgSave: document.getElementById("cfgSave"),
+            recModalBackdrop: document.getElementById("calRecModalBackdrop"),
+            recModalCliente: document.getElementById("calRecModalCliente"),
+            recModalTel: document.getElementById("calRecModalTel"),
+            recModalCuando: document.getElementById("calRecModalCuando"),
+            recModalMsg: document.getElementById("calRecModalMsg"),
+            recModalEnviado: document.getElementById("calRecModalEnviado"),
+            recModalOrigen: document.getElementById("calRecModalOrigen"),
+            recModalFeedback: document.getElementById("calRecModalFeedback"),
+            recModalClose: document.getElementById("calRecModalClose"),
+            recModalDelete: document.getElementById("calRecModalDelete")
           };
 
           /* ----- Helpers de fecha / hora ----- */
@@ -961,6 +1066,19 @@
             if (isNaN(h0)) h0 = 0;
             if (isNaN(m0)) m0 = 0;
             return pad2(h0) + ":" + pad2(m0);
+          }
+          function fmtYmdToLocale(s) {
+            if (!s) return "—";
+            var m = String(s).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+            if (m) {
+              var y = parseInt(m[1], 10);
+              var mo = parseInt(m[2], 10) - 1;
+              var da = parseInt(m[3], 10);
+              var local = new Date(y, mo, da);
+              return isNaN(local.getTime()) ? s : local.toLocaleDateString("es-CL");
+            }
+            var d = new Date(s);
+            return isNaN(d.getTime()) ? String(s) : d.toLocaleDateString("es-CL");
           }
 
           /* ----- Mergeo y normalización de ventanas ----- */
@@ -1203,19 +1321,12 @@
               boxR.style.gridRow = (sR + 1) + " / " + (eR + 1);
               boxR.title = nomRec;
               boxR.innerHTML = '<span class="cal-rem-name">' + escapeHtml(nomRec) + "</span>";
-              if (rec.cliente_id) {
-                boxR.classList.add("cal-rem--click");
-                var cidCliente = rec.cliente_id;
-                boxR.addEventListener("click", function () {
-                  window.location.href = "ver-cliente.html?id=" + encodeURIComponent(cidCliente);
-                });
-              } else if (rec.cliente_potencial_id) {
-                boxR.classList.add("cal-rem--click");
-                var cidPot = rec.cliente_potencial_id;
-                boxR.addEventListener("click", function () {
-                  window.location.href = "ver-potencial.html?id=" + encodeURIComponent(cidPot);
-                });
-              }
+              boxR.classList.add("cal-rem--click");
+              boxR.addEventListener("click", function (ev) {
+                ev.preventDefault();
+                ev.stopPropagation();
+                openRecModal(rec);
+              });
               el.overlay.appendChild(boxR);
             });
           }
@@ -1224,6 +1335,33 @@
             return String(s == null ? "" : s)
               .replace(/&/g, "&amp;").replace(/</g, "&lt;")
               .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+          }
+
+          function openRecModal(rec) {
+            if (!rec || !rec.id || !el.recModalBackdrop) return;
+            el.recModalBackdrop.dataset.recId = String(rec.id);
+            el.recModalCliente.textContent = ((rec.cliente_nombre || "").trim()) || "—";
+            el.recModalTel.textContent = (rec.cliente_telefono && String(rec.cliente_telefono).trim()) || "—";
+            var hi = normHoraHHMM(rec.hora);
+            el.recModalCuando.textContent = fmtYmdToLocale(rec.fecha) + (hi ? " · " + hi : "");
+            el.recModalMsg.textContent = (rec.mensaje != null && String(rec.mensaje).trim()) ? String(rec.mensaje).trim() : "—";
+            var env = rec.enviado === true || rec.enviado === "true" || rec.enviado === 1;
+            el.recModalEnviado.textContent = env ? "Sí" : "No";
+            var auto = rec.auto_generado === true || rec.auto_generado === "true";
+            el.recModalOrigen.textContent = auto ? "Automático" : "Manual";
+            if (el.recModalFeedback) {
+              el.recModalFeedback.style.display = "none";
+              el.recModalFeedback.textContent = "";
+              el.recModalFeedback.className = "cal-rec-modal-feedback";
+            }
+            if (el.recModalDelete) el.recModalDelete.disabled = false;
+            el.recModalBackdrop.classList.add("open");
+          }
+
+          function closeRecModal() {
+            if (!el.recModalBackdrop) return;
+            el.recModalBackdrop.classList.remove("open");
+            delete el.recModalBackdrop.dataset.recId;
           }
 
           function updateTitle() {
@@ -1422,7 +1560,7 @@
                 .lte("fecha", to),
               supabase
                 .from("recordatorios")
-                .select("id, cliente_id, cliente_potencial_id, cliente_nombre, fecha, hora")
+                .select("id, cliente_id, cliente_potencial_id, cliente_nombre, cliente_telefono, fecha, hora, mensaje, enviado, auto_generado")
                 .eq("user_id", uid)
                 .gte("fecha", from)
                 .lte("fecha", to)
@@ -1518,6 +1656,47 @@
           el.modalBackdrop.addEventListener("click", function (ev) {
             if (ev.target === el.modalBackdrop) closeConfig();
           });
+          if (el.recModalClose) {
+            el.recModalClose.addEventListener("click", closeRecModal);
+          }
+          if (el.recModalBackdrop) {
+            el.recModalBackdrop.addEventListener("click", function (ev) {
+              if (ev.target === el.recModalBackdrop) closeRecModal();
+            });
+          }
+          if (el.recModalDelete) {
+            el.recModalDelete.addEventListener("click", function () {
+              var rid = el.recModalBackdrop && el.recModalBackdrop.dataset.recId;
+              if (!rid) return;
+              if (!confirm("¿Eliminar este recordatorio?")) return;
+              el.recModalDelete.disabled = true;
+              if (el.recModalFeedback) {
+                el.recModalFeedback.style.display = "none";
+                el.recModalFeedback.textContent = "";
+              }
+              supabase
+                .from("recordatorios")
+                .delete()
+                .eq("id", rid)
+                .then(function (delRes) {
+                  if (el.recModalDelete) el.recModalDelete.disabled = false;
+                  if (delRes.error) {
+                    if (el.recModalFeedback) {
+                      el.recModalFeedback.textContent =
+                        delRes.error.message || "No se pudo eliminar el recordatorio.";
+                      el.recModalFeedback.className = "cal-rec-modal-feedback";
+                      el.recModalFeedback.style.display = "block";
+                    }
+                    return;
+                  }
+                  state.recordatorios = state.recordatorios.filter(function (r) {
+                    return String(r.id) !== String(rid);
+                  });
+                  closeRecModal();
+                  renderOverlay();
+                });
+            });
+          }
           el.save.addEventListener("click", saveVentanas);
           el.discard.addEventListener("click", discardChanges);
 
