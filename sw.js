@@ -1,5 +1,5 @@
 /* Plataforma asesores: caché solo de estáticos propios. Sin HTML ni APIs. Web Push para recordatorios. */
-const CACHE_NAME = "prevy-static-v19";
+const CACHE_NAME = "prevy-static-v20";
 const PRECACHE_URLS = [
   "/manifest.webmanifest",
   "/app-shell.css",
@@ -96,6 +96,14 @@ self.addEventListener("notificationclick", function (event) {
           return false;
         }
       }
+      /* Chrome/Android: priorizar ventana PWA (standalone) sobre la pestaña del navegador. */
+      function clientPwaScore(c) {
+        try {
+          var dm = c.displayMode;
+          if (dm === "standalone" || dm === "fullscreen" || dm === "minimal-ui") return 2;
+        } catch (_e) {}
+        return 0;
+      }
       function notifyPageNavigate(c) {
         try {
           c.postMessage({ type: "PREVY_NOTIFICATION_NAVIGATE", url: abs });
@@ -119,11 +127,18 @@ self.addEventListener("notificationclick", function (event) {
           }
         });
       }
+      var same = [];
       for (var i = 0; i < list.length; i++) {
-        var c = list[i];
-        if (sameOriginClientUrl(c)) return focusThenNavigate(c);
+        if (sameOriginClientUrl(list[i])) same.push(list[i]);
       }
-      return openFresh();
+      if (same.length === 0) return openFresh();
+      same.sort(function (a, b) {
+        return clientPwaScore(b) - clientPwaScore(a);
+      });
+      for (var j = 0; j < same.length; j++) {
+        notifyPageNavigate(same[j]);
+      }
+      return focusThenNavigate(same[0]);
     })
   );
 });
