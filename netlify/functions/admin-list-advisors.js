@@ -33,6 +33,7 @@ exports.handler = async function (event) {
 
   const ids = allUsers.map(function (u) { return u.id; });
   let cuentasById = {};
+  let mandatarioLibreById = {};
   if (ids.length) {
     const c = await supabase
       .from("asesor_cuentas")
@@ -41,6 +42,14 @@ exports.handler = async function (event) {
       );
     if (!c.error && Array.isArray(c.data)) {
       c.data.forEach(function (x) { cuentasById[x.user_id] = x; });
+    }
+    const mp = await supabase
+      .from("asesor_mandatario_perfil")
+      .select("user_id, mandatario_edicion_sin_restriccion");
+    if (!mp.error && Array.isArray(mp.data)) {
+      mp.data.forEach(function (x) {
+        mandatarioLibreById[x.user_id] = x.mandatario_edicion_sin_restriccion === true;
+      });
     }
   }
 
@@ -64,6 +73,7 @@ exports.handler = async function (event) {
         c.annual_contract_discount_percent != null ? Number(c.annual_contract_discount_percent) : 0,
       telegram_chat_id: c.telegram_chat_id || null,
       telegram_chat_id_updated_at: c.telegram_chat_id_updated_at || null,
+      mandatario_edicion_sin_restriccion: mandatarioLibreById[u.id] === true,
     };
   });
 

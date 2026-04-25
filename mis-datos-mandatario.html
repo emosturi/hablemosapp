@@ -466,6 +466,9 @@
                 Estos datos se usan para autorellenar la sección <strong>Mandatario</strong> en el formulario de pensión. Una vez completos, solo podrás corregir
                 <strong>un campo cada 15 días</strong> (desde aquí).
               </p>
+              <p class="subtitle" id="mandatarioOwnerOverrideMsg" hidden style="color: var(--primary-mid); margin-top: 10px">
+                <strong>Edición ampliada:</strong> el equipo Prevy habilitó corregir todos los datos del mandatario sin esperar 15 días ni limitarse a un solo campo por guardado. Al volver al modo habitual, se aplicará de nuevo la regla habitual.
+              </p>
             </header>
 
             <form id="formPerfil" class="panel" novalidate>
@@ -710,6 +713,8 @@
         var MS_15_D = 15 * 24 * 60 * 60 * 1000;
         var serverSnapshotDatos = null;
         var mandatarioEditMode = "free";
+        var mandatarioEdicionSinRestriccion = false;
+        var mandatarioOwnerOverrideMsg = document.getElementById("mandatarioOwnerOverrideMsg");
 
         function profileIsComplete(d) {
           if (!d || typeof d !== "object") return false;
@@ -738,6 +743,26 @@
         }
 
         function configureMandatarioUx(datos, row) {
+          mandatarioEdicionSinRestriccion = !!(row && row.mandatario_edicion_sin_restriccion === true);
+          if (mandatarioOwnerOverrideMsg) mandatarioOwnerOverrideMsg.hidden = !mandatarioEdicionSinRestriccion;
+
+          if (mandatarioEdicionSinRestriccion) {
+            var completeOv = profileIsComplete(datos);
+            if (mandatarioSaveWarn) mandatarioSaveWarn.hidden = !completeOv;
+            mandatarioEditMode = "free";
+            if (mandatarioUnlockRow) mandatarioUnlockRow.hidden = true;
+            if (mandatarioBlurWrap) mandatarioBlurWrap.classList.remove("is-locked");
+            if (toggleMandatarioUnlock) {
+              toggleMandatarioUnlock.checked = true;
+              toggleMandatarioUnlock.setAttribute("aria-checked", "true");
+            }
+            setMandatarioFieldsDisabled(false, null);
+            if (mandatarioFieldPicker) mandatarioFieldPicker.hidden = true;
+            if (fCampoUnico) fCampoUnico.value = "";
+            if (mandatarioCooldownMsg) mandatarioCooldownMsg.hidden = true;
+            return;
+          }
+
           var complete = profileIsComplete(datos);
           if (mandatarioSaveWarn) mandatarioSaveWarn.hidden = !complete;
 
@@ -1038,7 +1063,7 @@
 
             supabase
               .from("asesor_mandatario_perfil")
-              .select("datos, updated_at, mandatario_datos_checkpoint_at")
+              .select("datos, updated_at, mandatario_datos_checkpoint_at, mandatario_edicion_sin_restriccion")
               .eq("user_id", r.data.session.user.id)
               .maybeSingle()
               .then(function (res) {
@@ -1106,7 +1131,7 @@
             flat.rut = normalizeRut(flat.rut || fRut.value);
             supabase
               .from("asesor_mandatario_perfil")
-              .select("datos, updated_at, mandatario_datos_checkpoint_at")
+              .select("datos, updated_at, mandatario_datos_checkpoint_at, mandatario_edicion_sin_restriccion")
               .eq("user_id", uid)
               .maybeSingle()
               .then(function (prevRes) {
@@ -1126,6 +1151,36 @@
                   prevDatos = Object.assign({}, prevRow.datos);
                 }
                 var incluirChecked = !!(fIncluirCodigoContrato && fIncluirCodigoContrato.checked);
+                var sinLimite = !!(prevRow && prevRow.mandatario_edicion_sin_restriccion === true);
+
+                if (sinLimite) {
+                  var mergedLibre = Object.assign({}, prevDatos);
+                  KEYS.forEach(function (k) {
+                    mergedLibre[k] = flat[k];
+                  });
+                  mergedLibre.incluirCodigoAsesorEnNumeroContrato = incluirChecked;
+                  var nowLibre = new Date().toISOString();
+                  var payloadLibre = {
+                    user_id: uid,
+                    datos: mergedLibre,
+                    updated_at: nowLibre,
+                  };
+                  if (prevRow && prevRow.mandatario_datos_checkpoint_at != null) {
+                    payloadLibre.mandatario_datos_checkpoint_at = prevRow.mandatario_datos_checkpoint_at;
+                  }
+                  return supabase
+                    .from("asesor_mandatario_perfil")
+                    .upsert(payloadLibre, { onConflict: "user_id" })
+                    .then(function (upRes) {
+                      return {
+                        upRes: upRes,
+                        mergedDatos: mergedLibre,
+                        nextCp: prevRow ? prevRow.mandatario_datos_checkpoint_at : null,
+                        nowIso: nowLibre,
+                      };
+                    });
+                }
+
                 var wasComplete = profileIsComplete(prevDatos);
                 var changes = countMandatarioChanges(prevDatos, flat, incluirChecked);
 
@@ -1198,6 +1253,7 @@
                   datos: pack.mergedDatos,
                   updated_at: pack.nowIso,
                   mandatario_datos_checkpoint_at: pack.nextCp,
+                  mandatario_edicion_sin_restriccion: mandatarioEdicionSinRestriccion,
                 };
                 fillForm(pack.mergedDatos, uxRow);
                 if (toggleMandatarioUnlock) toggleMandatarioUnlock.checked = false;

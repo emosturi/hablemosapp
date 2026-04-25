@@ -63,5 +63,25 @@ exports.handler = async function (event) {
   const r = await supabase.from("asesor_cuentas").upsert(payload, { onConflict: "user_id" });
   if (r.error) return json(500, { error: r.error.message || "No se pudo actualizar la cuenta" });
 
+  if (body.mandatario_edicion_sin_restriccion !== undefined && body.mandatario_edicion_sin_restriccion !== null) {
+    const enabled = body.mandatario_edicion_sin_restriccion === true;
+    const ex = await supabase.from("asesor_mandatario_perfil").select("user_id").eq("user_id", userId).maybeSingle();
+    if (ex.error) return json(500, { error: ex.error.message || "No se pudo leer perfil mandatario" });
+    if (ex.data) {
+      const u = await supabase
+        .from("asesor_mandatario_perfil")
+        .update({ mandatario_edicion_sin_restriccion: enabled })
+        .eq("user_id", userId);
+      if (u.error) return json(500, { error: u.error.message || "No se pudo actualizar permiso mandatario" });
+    } else {
+      const ins = await supabase.from("asesor_mandatario_perfil").insert({
+        user_id: userId,
+        datos: {},
+        mandatario_edicion_sin_restriccion: enabled,
+      });
+      if (ins.error) return json(500, { error: ins.error.message || "No se pudo crear perfil mandatario" });
+    }
+  }
+
   return json(200, { ok: true });
 };
