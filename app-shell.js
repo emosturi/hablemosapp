@@ -60,6 +60,29 @@
     document.head.appendChild(pushRegScript);
   }
 
+  /* Clic en notificación push (p. ej. pantalla bloqueada en Android): el SW enfoca la ventana y
+     envía este mensaje cuando Client.navigate no existe o falla. */
+  if ("serviceWorker" in navigator) {
+    try {
+      navigator.serviceWorker.addEventListener("message", function (event) {
+        var d = event.data;
+        if (!d || d.type !== "PREVY_NOTIFICATION_NAVIGATE") return;
+        if (d.url == null || d.url === "") return;
+        var target;
+        try {
+          target = new URL(String(d.url), window.location.origin).href;
+        } catch (_e) {
+          return;
+        }
+        if (target.indexOf(window.location.origin) !== 0) return;
+        try {
+          if (window.location.href === target) return;
+          window.location.assign(target);
+        } catch (_e2) {}
+      });
+    } catch (_e) {}
+  }
+
   function qs(id) {
     return document.getElementById(id);
   }

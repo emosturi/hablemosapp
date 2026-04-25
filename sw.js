@@ -1,5 +1,5 @@
 /* Plataforma asesores: caché solo de estáticos propios. Sin HTML ni APIs. Web Push para recordatorios. */
-const CACHE_NAME = "prevy-static-v18";
+const CACHE_NAME = "prevy-static-v19";
 const PRECACHE_URLS = [
   "/manifest.webmanifest",
   "/app-shell.css",
@@ -81,21 +81,49 @@ self.addEventListener("notificationclick", function (event) {
     }
   } catch (_e) {}
   var abs = new URL(url, self.location.origin).href;
+
   event.waitUntil(
     clients.matchAll({ type: "window", includeUncontrolled: true }).then(function (list) {
-      for (var i = 0; i < list.length; i++) {
-        var c = list[i];
-        if (c.url && "focus" in c) {
-          c.focus();
-          if (typeof c.navigate === "function") {
-            try {
-              c.navigate(abs);
-            } catch (_nav) {}
-          }
-          return;
+      function openFresh() {
+        if (clients.openWindow) return clients.openWindow(abs);
+        return Promise.resolve();
+      }
+      function sameOriginClientUrl(c) {
+        try {
+          if (!c.url) return false;
+          return new URL(c.url).origin === self.location.origin;
+        } catch (_e) {
+          return false;
         }
       }
-      if (clients.openWindow) return clients.openWindow(abs);
+      function notifyPageNavigate(c) {
+        try {
+          c.postMessage({ type: "PREVY_NOTIFICATION_NAVIGATE", url: abs });
+        } catch (_e) {}
+      }
+      function focusThenNavigate(c) {
+        var fp = null;
+        try {
+          if ("focus" in c) fp = c.focus();
+        } catch (_e) {}
+        var afterFocus = fp && typeof fp.then === "function" ? fp : Promise.resolve();
+        return afterFocus.then(function () {
+          notifyPageNavigate(c);
+          if (typeof c.navigate === "function") {
+            try {
+              var np = c.navigate(abs);
+              if (np && typeof np.then === "function") {
+                return np.catch(function () {});
+              }
+            } catch (_nav) {}
+          }
+        });
+      }
+      for (var i = 0; i < list.length; i++) {
+        var c = list[i];
+        if (sameOriginClientUrl(c)) return focusThenNavigate(c);
+      }
+      return openFresh();
     })
   );
 });
