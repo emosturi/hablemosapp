@@ -38,6 +38,14 @@
         at.href = "/icons/icon-192.png";
         document.head.appendChild(at);
       }
+      if (!document.getElementById("prevy-favicon")) {
+        var fi = document.createElement("link");
+        fi.id = "prevy-favicon";
+        fi.rel = "icon";
+        fi.type = "image/svg+xml";
+        fi.href = "/icons/icon-512.svg";
+        document.head.appendChild(fi);
+      }
     } catch (_e) {}
   })();
 

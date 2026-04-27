@@ -3,6 +3,17 @@
  * Persistencia: localStorage prevy_theme = "dark" | "light" (migra desde hablemosapp_theme).
  */
 (function () {
+  try {
+    if (!document.getElementById("prevy-favicon")) {
+      var fi = document.createElement("link");
+      fi.id = "prevy-favicon";
+      fi.rel = "icon";
+      fi.type = "image/svg+xml";
+      fi.href = "/icons/icon-512.svg";
+      document.head.appendChild(fi);
+    }
+  } catch (_e) {}
+
   var KEY = "prevy_theme";
   var LEGACY_KEY = "hablemosapp_theme";
 
