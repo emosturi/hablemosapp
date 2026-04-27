@@ -760,25 +760,38 @@
             done();
             return;
           }
-          var fromStorage = getPendingRefCode();
-          fetch(window.location.origin + "/.netlify/functions/referral-bind", {
-            method: "POST",
-            headers: {
-              Authorization: "Bearer " + accessToken,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(fromStorage ? { code: fromStorage } : {}),
-          })
-            .catch(function () {})
-            .finally(function () {
-              if (fromStorage) {
-                try {
-                  sessionStorage.removeItem("prevy_ref");
-                  sessionStorage.removeItem("hablemos_ref");
-                } catch (e2) {}
-              }
-              done();
-            });
+          function runReferralBind() {
+            var fromStorage = getPendingRefCode();
+            fetch(window.location.origin + "/.netlify/functions/referral-bind", {
+              method: "POST",
+              headers: {
+                Authorization: "Bearer " + accessToken,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(fromStorage ? { code: fromStorage } : {}),
+            })
+              .catch(function () {})
+              .finally(function () {
+                if (fromStorage) {
+                  try {
+                    sessionStorage.removeItem("prevy_ref");
+                    sessionStorage.removeItem("hablemos_ref");
+                  } catch (e2) {}
+                }
+                done();
+              });
+          }
+          if (typeof window.prevySyncLegalConsentToServer === "function") {
+            try {
+              window.prevySyncLegalConsentToServer(function () {
+                runReferralBind();
+              });
+            } catch (_e) {
+              runReferralBind();
+            }
+          } else {
+            runReferralBind();
+          }
         }
 
         var tabLogin = document.getElementById("tabLogin");

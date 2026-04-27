@@ -39,7 +39,17 @@ Si quieres usar la regla de etapa 4 basada en bono de reconocimiento, ejecuta ta
 3. Elige **Email** e introduce el email y la contraseña que quieras usar para acceder al formulario de pensión.
 4. Guarda. Ese email y contraseña son los que debes usar en la página de login (`login.html`).
 
-## 5. Netlify (opcional)
+## 5. Consentimiento legal y buscoasesor.cl
+
+La app guarda en Supabase la versión de términos/cookies que aceptó cada asesor (tabla **`asesor_legal_consent`**), además del `localStorage` del navegador. Así un backend separado (por ejemplo **buscoasesor.cl**) puede saber qué `user_id` de Prevy tienen consentimiento vigente y cuáles no.
+
+1. En **SQL Editor**, ejecuta la migración **`supabase/migrations/20260425120000_asesor_legal_consent.sql`** (o aplica las migraciones del repo con la CLI de Supabase).
+2. **RLS:** cada asesor solo ve y actualiza su propia fila con la sesión normal (anon key en el navegador).
+3. **Desde buscoasesor.cl:** consulta la tabla con la **`service_role`** en el servidor (nunca en el front público), o expón una función/Edge Function que filtre asesores habilitados. Compara `terms_version` con la versión que exige el marketplace (la misma que `window.PREVY_LEGAL_CONSENT_VERSION` en `legal-consent.js`).
+
+Columnas útiles: `user_id` (UUID = `auth.users.id`), `terms_version`, `accepted_at`, `updated_at`.
+
+## 6. Netlify (opcional)
 
 Si desplegas en Netlify y no quieres dejar las claves en `supabase-config.js`:
 
@@ -53,6 +63,7 @@ Si desplegas en Netlify y no quieres dejar las claves en `supabase-config.js`:
 | `supabase-config.js` | URL y anon key de tu proyecto (editar con tus datos). |
 | `supabase-config.example.js` | Plantilla para copiar y rellenar. |
 | `supabase-schema.sql` | Script para crear la tabla `clientes` y políticas RLS en Supabase. |
+| `asesor_legal_consent` | Versión de términos aceptada por asesor (sync desde `legal-consent.js`); uso desde buscoasesor.cl vía `service_role` en servidor. |
 | **Login** | Usa Supabase Auth (email + contraseña). El usuario se crea en Authentication > Users. |
 | **Registro de Afiliados** | Inserta en la tabla `clientes` (acceso público por RLS). |
 | **Formulario de pensión** | Solo accesible si hay sesión de Supabase; “Cerrar sesión” hace sign out. |

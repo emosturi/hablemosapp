@@ -1,11 +1,15 @@
 /**
  * Banner de consentimiento: términos, cookies y tratamiento de datos (Chile).
- * Al cambiar el texto legal en terminos-condiciones.html, incrementar LEGAL_CONSENT_VERSION
- * para volver a solicitar aceptación.
+ * La aceptación se guarda en localStorage y se replica en Supabase (tabla asesor_legal_consent)
+ * para que buscoasesor.cl u otros backends puedan saber qué asesores tienen versión vigente.
+ * Al cambiar el texto legal en terminos-condiciones.html, incrementar LEGAL_CONSENT_VERSION.
  */
 (function () {
   var LEGAL_CONSENT_VERSION = "2026-04-24";
   var STORAGE_KEY = "prevy_legal_consent";
+  var CONSENT_TABLE = "asesor_legal_consent";
+
+  window.PREVY_LEGAL_CONSENT_VERSION = LEGAL_CONSENT_VERSION;
 
   function termsHref() {
     try {
@@ -33,6 +37,81 @@
     return String(s.version) !== LEGAL_CONSENT_VERSION;
   }
 
+  function getSupabaseClient() {
+    var url = window.SUPABASE_URL;
+    var key = window.SUPABASE_ANON_KEY;
+    if (!url || !key || String(url).indexOf("TU_PROYECTO") !== -1) return null;
+    if (!window.supabase || !window.supabase.createClient) return null;
+    if (typeof window.createPrevySupabaseClient !== "function") return null;
+    return window.createPrevySupabaseClient(url, key);
+  }
+
+  /**
+   * Si hay en localStorage una aceptación de la versión vigente y hay sesión Supabase,
+   * hace upsert en asesor_legal_consent (para buscoasesor.cl / trazabilidad).
+   */
+  function syncLegalConsentToServer(done) {
+    done = typeof done === "function" ? done : function () {};
+    var stored = getStored();
+    if (!stored || String(stored.version) !== LEGAL_CONSENT_VERSION) {
+      done();
+      return;
+    }
+    var client = getSupabaseClient();
+    if (!client) {
+      done();
+      return;
+    }
+    client.auth.getSession().then(function (r) {
+      var sess = r && r.data && r.data.session;
+      if (!sess || !sess.user) {
+        done();
+        return;
+      }
+      var acceptedAt = stored.acceptedAt || new Date().toISOString();
+      client
+        .from(CONSENT_TABLE)
+        .upsert(
+          {
+            user_id: sess.user.id,
+            terms_version: LEGAL_CONSENT_VERSION,
+            accepted_at: acceptedAt,
+          },
+          { onConflict: "user_id" }
+        )
+        .then(function (res) {
+          if (res && res.error) {
+            try {
+              console.warn("[prevy legal-consent]", res.error.message || res.error);
+            } catch (_e) {}
+          }
+          done();
+        })
+        .catch(function () {
+          done();
+        });
+    });
+  }
+
+  window.prevySyncLegalConsentToServer = syncLegalConsentToServer;
+
+  function scheduleBackfillServerFromStorage() {
+    var s = getStored();
+    if (!s || String(s.version) !== LEGAL_CONSENT_VERSION) return;
+    function run() {
+      syncLegalConsentToServer(function () {});
+    }
+    if (document.readyState === "complete") {
+      setTimeout(run, 0);
+    } else {
+      window.addEventListener("load", function onLoad() {
+        window.removeEventListener("load", onLoad);
+        setTimeout(run, 0);
+      });
+    }
+  }
+  scheduleBackfillServerFromStorage();
+
   function removeBanner() {
     var el = document.getElementById("prevy-legal-consent-banner");
     if (el) el.remove();
@@ -50,6 +129,7 @@
       );
     } catch (_e) {}
     removeBanner();
+    syncLegalConsentToServer(function () {});
   }
 
   function injectStyles() {
