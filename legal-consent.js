@@ -1,8 +1,9 @@
 /**
  * Banner de consentimiento: términos, cookies y tratamiento de datos (Chile).
- * La aceptación se guarda en localStorage y se replica en Supabase (tabla asesor_legal_consent)
- * para que buscoasesor.cl u otros backends puedan saber qué asesores tienen versión vigente.
- * Al cambiar el texto legal en terminos-condiciones.html, incrementar LEGAL_CONSENT_VERSION.
+ * - Con sesión Supabase, el estado en asesor_legal_consent manda: si no hay fila o la versión
+ *   no coincide, se limpia localStorage y se vuelve a mostrar el banner (revocar en BD = re-prompt).
+ * - Al aceptar: localStorage + upsert en Supabase (único lugar que recrea fila sin fila previa).
+ * Al cambiar el texto legal, incrementar LEGAL_CONSENT_VERSION.
  */
 (function () {
   var LEGAL_CONSENT_VERSION = "2026-04-24";
@@ -47,10 +48,66 @@
   }
 
   /**
-   * Si hay en localStorage una aceptación de la versión vigente y hay sesión Supabase,
-   * hace upsert en asesor_legal_consent (para buscoasesor.cl / trazabilidad).
+   * Con sesión: alinea localStorage con asesor_legal_consent. Sin fila o versión distinta → borra local.
+   * Con fila vigente y local vacío/desactualizado → rellena local desde el servidor.
    */
-  function syncLegalConsentToServer(done) {
+  function reconcileLegalConsent(done) {
+    done = typeof done === "function" ? done : function () {};
+    var client = getSupabaseClient();
+    if (!client) {
+      done();
+      return;
+    }
+    client.auth.getSession().then(function (r) {
+      var sess = r && r.data && r.data.session;
+      if (!sess || !sess.user) {
+        done();
+        return;
+      }
+      client
+        .from(CONSENT_TABLE)
+        .select("terms_version, accepted_at")
+        .eq("user_id", sess.user.id)
+        .maybeSingle()
+        .then(function (res) {
+          if (res && res.error) {
+            done();
+            return;
+          }
+          var row = res && res.data;
+          var serverOk = row && String(row.terms_version) === LEGAL_CONSENT_VERSION;
+
+          if (!serverOk) {
+            try {
+              localStorage.removeItem(STORAGE_KEY);
+            } catch (_e) {}
+            done();
+            return;
+          }
+
+          var local = getStored();
+          var localOk = local && String(local.version) === LEGAL_CONSENT_VERSION;
+          if (!localOk) {
+            try {
+              localStorage.setItem(
+                STORAGE_KEY,
+                JSON.stringify({
+                  version: LEGAL_CONSENT_VERSION,
+                  acceptedAt: (row.accepted_at && String(row.accepted_at)) || new Date().toISOString(),
+                })
+              );
+            } catch (_e) {}
+          }
+          done();
+        })
+        .catch(function () {
+          done();
+        });
+    });
+  }
+
+  /** Solo tras clic en Aceptar (local ya guardado con versión vigente). */
+  function pushLegalConsentToServer(done) {
     done = typeof done === "function" ? done : function () {};
     var stored = getStored();
     if (!stored || String(stored.version) !== LEGAL_CONSENT_VERSION) {
@@ -93,24 +150,34 @@
     });
   }
 
-  window.prevySyncLegalConsentToServer = syncLegalConsentToServer;
+  /** Tras login: alinear con BD antes de seguir (no recrea fila borrada desde localStorage). */
+  window.prevySyncLegalConsentToServer = reconcileLegalConsent;
 
-  function scheduleBackfillServerFromStorage() {
-    var s = getStored();
-    if (!s || String(s.version) !== LEGAL_CONSENT_VERSION) return;
-    function run() {
-      syncLegalConsentToServer(function () {});
+  function scheduleReconcileAndMaybeBanner() {
+    function afterReconcile() {
+      if (needsBanner()) {
+        if (document.readyState === "loading") {
+          document.addEventListener("DOMContentLoaded", showBanner);
+        } else {
+          showBanner();
+        }
+      } else {
+        removeBanner();
+      }
     }
-    if (document.readyState === "complete") {
-      setTimeout(run, 0);
-    } else {
-      window.addEventListener("load", function onLoad() {
-        window.removeEventListener("load", onLoad);
+    function run() {
+      reconcileLegalConsent(afterReconcile);
+    }
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", function once() {
+        document.removeEventListener("DOMContentLoaded", once);
         setTimeout(run, 0);
       });
+    } else {
+      setTimeout(run, 0);
     }
   }
-  scheduleBackfillServerFromStorage();
+  scheduleReconcileAndMaybeBanner();
 
   function removeBanner() {
     var el = document.getElementById("prevy-legal-consent-banner");
@@ -129,7 +196,7 @@
       );
     } catch (_e) {}
     removeBanner();
-    syncLegalConsentToServer(function () {});
+    pushLegalConsentToServer(function () {});
   }
 
   function injectStyles() {
@@ -200,13 +267,5 @@
     wrap.appendChild(inner);
     document.body.appendChild(wrap);
     document.documentElement.classList.add("prevy-legal-consent-open");
-  }
-
-  if (!needsBanner()) return;
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", showBanner);
-  } else {
-    showBanner();
   }
 })();
