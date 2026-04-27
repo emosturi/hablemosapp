@@ -789,6 +789,9 @@
     if (btn) {
       btn.addEventListener("click", function (e) {
         e.stopPropagation();
+        try {
+          localStorage.removeItem("prevy_legal_consent");
+        } catch (_e) {}
         supabase.auth.signOut().then(function () {
           window.location.href = "login.html";
         });

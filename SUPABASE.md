@@ -41,7 +41,7 @@ Si quieres usar la regla de etapa 4 basada en bono de reconocimiento, ejecuta ta
 
 ## 5. Consentimiento legal y buscoasesor.cl
 
-La app guarda en Supabase la versión de términos/cookies que aceptó cada asesor (tabla **`asesor_legal_consent`**), además del `localStorage` del navegador. Así un backend separado (por ejemplo **buscoasesor.cl**) puede saber qué `user_id` de Prevy tienen consentimiento vigente y cuáles no.
+La app guarda en Supabase la versión de términos/cookies que aceptó cada asesor (tabla **`asesor_legal_consent`**), por **`user_id`** tras iniciar sesión (no se usa `localStorage` para el consentimiento, para no mezclar cuentas en el mismo dispositivo). Un backend separado (por ejemplo **buscoasesor.cl**) puede consultar qué asesores tienen versión vigente.
 
 1. En **SQL Editor**, ejecuta la migración **`supabase/migrations/20260425120000_asesor_legal_consent.sql`** (o aplica las migraciones del repo con la CLI de Supabase).
 2. **RLS:** cada asesor solo ve y actualiza su propia fila con la sesión normal (anon key en el navegador).

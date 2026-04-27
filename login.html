@@ -13,7 +13,6 @@
     <link rel="stylesheet" href="app-shell.css" />
     <script src="theme-init.js"></script>
     <script src="pwa-register.js" defer></script>
-    <script src="legal-consent.js" defer></script>
     <style>
       /* Contenedor propio: evita que estilos globales de body (app-shell.css) rompan el centrado en Chrome. */
       body.login-page {
@@ -761,38 +760,25 @@
             done();
             return;
           }
-          function runReferralBind() {
-            var fromStorage = getPendingRefCode();
-            fetch(window.location.origin + "/.netlify/functions/referral-bind", {
-              method: "POST",
-              headers: {
-                Authorization: "Bearer " + accessToken,
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(fromStorage ? { code: fromStorage } : {}),
-            })
-              .catch(function () {})
-              .finally(function () {
-                if (fromStorage) {
-                  try {
-                    sessionStorage.removeItem("prevy_ref");
-                    sessionStorage.removeItem("hablemos_ref");
-                  } catch (e2) {}
-                }
-                done();
-              });
-          }
-          if (typeof window.prevySyncLegalConsentToServer === "function") {
-            try {
-              window.prevySyncLegalConsentToServer(function () {
-                runReferralBind();
-              });
-            } catch (_e) {
-              runReferralBind();
-            }
-          } else {
-            runReferralBind();
-          }
+          var fromStorage = getPendingRefCode();
+          fetch(window.location.origin + "/.netlify/functions/referral-bind", {
+            method: "POST",
+            headers: {
+              Authorization: "Bearer " + accessToken,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(fromStorage ? { code: fromStorage } : {}),
+          })
+            .catch(function () {})
+            .finally(function () {
+              if (fromStorage) {
+                try {
+                  sessionStorage.removeItem("prevy_ref");
+                  sessionStorage.removeItem("hablemos_ref");
+                } catch (e2) {}
+              }
+              done();
+            });
         }
 
         var tabLogin = document.getElementById("tabLogin");

@@ -1,16 +1,23 @@
 /**
- * Banner de consentimiento: términos, cookies y tratamiento de datos (Chile).
- * - Con sesión Supabase, el estado en asesor_legal_consent manda: si no hay fila o la versión
- *   no coincide, se limpia localStorage y se vuelve a mostrar el banner (revocar en BD = re-prompt).
- * - Al aceptar: localStorage + upsert en Supabase (único lugar que recrea fila sin fila previa).
+ * Banner de consentimiento (términos, cookies, buscoasesor.cl).
+ * - Solo con sesión Supabase activa: se consulta asesor_legal_consent del usuario actual.
+ * - No se usa localStorage para “ya acepté”: evita que un mismo dispositivo marque consentimiento para otras cuentas.
+ * - Tras cerrar sesión se elimina la clave heredada prevy_legal_consent (versiones antiguas).
  * Al cambiar el texto legal, incrementar LEGAL_CONSENT_VERSION.
  */
 (function () {
   var LEGAL_CONSENT_VERSION = "2026-04-24";
-  var STORAGE_KEY = "prevy_legal_consent";
+  /** Solo para borrar datos legacy; el consentimiento vigente vive en Supabase por user_id. */
+  var LEGACY_STORAGE_KEY = "prevy_legal_consent";
   var CONSENT_TABLE = "asesor_legal_consent";
 
   window.PREVY_LEGAL_CONSENT_VERSION = LEGAL_CONSENT_VERSION;
+
+  function clearLegacyDeviceConsent() {
+    try {
+      localStorage.removeItem(LEGACY_STORAGE_KEY);
+    } catch (_e) {}
+  }
 
   function termsHref() {
     try {
@@ -18,24 +25,6 @@
     } catch (_e) {
       return "/terminos-condiciones.html";
     }
-  }
-
-  function getStored() {
-    try {
-      var raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return null;
-      var o = JSON.parse(raw);
-      if (!o || typeof o !== "object") return null;
-      return o;
-    } catch (_e) {
-      return null;
-    }
-  }
-
-  function needsBanner() {
-    var s = getStored();
-    if (!s || !s.version) return true;
-    return String(s.version) !== LEGAL_CONSENT_VERSION;
   }
 
   function getSupabaseClient() {
@@ -47,156 +36,10 @@
     return window.createPrevySupabaseClient(url, key);
   }
 
-  /**
-   * Con sesión: alinea localStorage con asesor_legal_consent. Sin fila o versión distinta → borra local.
-   * Con fila vigente y local vacío/desactualizado → rellena local desde el servidor.
-   */
-  function reconcileLegalConsent(done) {
-    done = typeof done === "function" ? done : function () {};
-    var client = getSupabaseClient();
-    if (!client) {
-      done();
-      return;
-    }
-    client.auth.getSession().then(function (r) {
-      var sess = r && r.data && r.data.session;
-      if (!sess || !sess.user) {
-        done();
-        return;
-      }
-      client
-        .from(CONSENT_TABLE)
-        .select("terms_version, accepted_at")
-        .eq("user_id", sess.user.id)
-        .maybeSingle()
-        .then(function (res) {
-          if (res && res.error) {
-            done();
-            return;
-          }
-          var row = res && res.data;
-          var serverOk = row && String(row.terms_version) === LEGAL_CONSENT_VERSION;
-
-          if (!serverOk) {
-            try {
-              localStorage.removeItem(STORAGE_KEY);
-            } catch (_e) {}
-            done();
-            return;
-          }
-
-          var local = getStored();
-          var localOk = local && String(local.version) === LEGAL_CONSENT_VERSION;
-          if (!localOk) {
-            try {
-              localStorage.setItem(
-                STORAGE_KEY,
-                JSON.stringify({
-                  version: LEGAL_CONSENT_VERSION,
-                  acceptedAt: (row.accepted_at && String(row.accepted_at)) || new Date().toISOString(),
-                })
-              );
-            } catch (_e) {}
-          }
-          done();
-        })
-        .catch(function () {
-          done();
-        });
-    });
-  }
-
-  /** Solo tras clic en Aceptar (local ya guardado con versión vigente). */
-  function pushLegalConsentToServer(done) {
-    done = typeof done === "function" ? done : function () {};
-    var stored = getStored();
-    if (!stored || String(stored.version) !== LEGAL_CONSENT_VERSION) {
-      done();
-      return;
-    }
-    var client = getSupabaseClient();
-    if (!client) {
-      done();
-      return;
-    }
-    client.auth.getSession().then(function (r) {
-      var sess = r && r.data && r.data.session;
-      if (!sess || !sess.user) {
-        done();
-        return;
-      }
-      var acceptedAt = stored.acceptedAt || new Date().toISOString();
-      client
-        .from(CONSENT_TABLE)
-        .upsert(
-          {
-            user_id: sess.user.id,
-            terms_version: LEGAL_CONSENT_VERSION,
-            accepted_at: acceptedAt,
-          },
-          { onConflict: "user_id" }
-        )
-        .then(function (res) {
-          if (res && res.error) {
-            try {
-              console.warn("[prevy legal-consent]", res.error.message || res.error);
-            } catch (_e) {}
-          }
-          done();
-        })
-        .catch(function () {
-          done();
-        });
-    });
-  }
-
-  /** Tras login: alinear con BD antes de seguir (no recrea fila borrada desde localStorage). */
-  window.prevySyncLegalConsentToServer = reconcileLegalConsent;
-
-  function scheduleReconcileAndMaybeBanner() {
-    function afterReconcile() {
-      if (needsBanner()) {
-        if (document.readyState === "loading") {
-          document.addEventListener("DOMContentLoaded", showBanner);
-        } else {
-          showBanner();
-        }
-      } else {
-        removeBanner();
-      }
-    }
-    function run() {
-      reconcileLegalConsent(afterReconcile);
-    }
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", function once() {
-        document.removeEventListener("DOMContentLoaded", once);
-        setTimeout(run, 0);
-      });
-    } else {
-      setTimeout(run, 0);
-    }
-  }
-  scheduleReconcileAndMaybeBanner();
-
   function removeBanner() {
     var el = document.getElementById("prevy-legal-consent-banner");
     if (el) el.remove();
     document.documentElement.classList.remove("prevy-legal-consent-open");
-  }
-
-  function accept() {
-    try {
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify({
-          version: LEGAL_CONSENT_VERSION,
-          acceptedAt: new Date().toISOString(),
-        })
-      );
-    } catch (_e) {}
-    removeBanner();
-    pushLegalConsentToServer(function () {});
   }
 
   function injectStyles() {
@@ -219,13 +62,13 @@
       "#prevy-legal-consent-banner button.prevy-legal-accept{" +
       "padding:10px 18px;border:none;border-radius:12px;font-weight:600;font-size:14px;cursor:pointer;" +
       "font-family:inherit;background:var(--primary,#00606c);color:#fff;}" +
-      "#prevy-legal-consent-banner button.prevy-legal-accept:hover{filter:brightness(1.05);}" +
+      "#prevy-legal-consent-banner button.prevy-legal-accept:hover:not(:disabled){filter:brightness(1.05);}" +
+      "#prevy-legal-consent-banner button.prevy-legal-accept:disabled{opacity:.65;cursor:wait;}" +
       "html.prevy-legal-consent-open body{padding-bottom:calc(8rem + env(safe-area-inset-bottom,0));}";
     document.head.appendChild(st);
   }
 
   function showBanner() {
-    if (!needsBanner()) return;
     if (document.getElementById("prevy-legal-consent-banner")) return;
 
     injectStyles();
@@ -259,7 +102,44 @@
     btn.type = "button";
     btn.className = "prevy-legal-accept";
     btn.textContent = "Acepto términos, cookies y tratamiento indicado";
-    btn.addEventListener("click", accept);
+
+    btn.addEventListener("click", function onAccept() {
+      var client = getSupabaseClient();
+      if (!client) return;
+      btn.disabled = true;
+      client.auth.getSession().then(function (r) {
+        var sess = r && r.data && r.data.session;
+        if (!sess || !sess.user) {
+          btn.disabled = false;
+          return;
+        }
+        var uid = sess.user.id;
+        var acceptedAt = new Date().toISOString();
+        client
+          .from(CONSENT_TABLE)
+          .upsert(
+            {
+              user_id: uid,
+              terms_version: LEGAL_CONSENT_VERSION,
+              accepted_at: acceptedAt,
+            },
+            { onConflict: "user_id" }
+          )
+          .then(function (res) {
+            if (res && res.error) {
+              try {
+                console.warn("[prevy legal-consent]", res.error.message || res.error);
+              } catch (_e) {}
+              btn.disabled = false;
+              return;
+            }
+            removeBanner();
+          })
+          .catch(function () {
+            btn.disabled = false;
+          });
+      });
+    });
 
     actions.appendChild(btn);
     inner.appendChild(p);
@@ -268,4 +148,74 @@
     document.body.appendChild(wrap);
     document.documentElement.classList.add("prevy-legal-consent-open");
   }
+
+  function applyConsentForClient(client, session) {
+    clearLegacyDeviceConsent();
+    if (!session || !session.user) {
+      removeBanner();
+      return;
+    }
+    client
+      .from(CONSENT_TABLE)
+      .select("terms_version")
+      .eq("user_id", session.user.id)
+      .maybeSingle()
+      .then(function (res) {
+        if (res && res.error) {
+          return;
+        }
+        var row = res && res.data;
+        var ok = row && String(row.terms_version) === LEGAL_CONSENT_VERSION;
+        if (ok) {
+          removeBanner();
+        } else {
+          showBanner();
+        }
+      })
+      .catch(function () {});
+  }
+
+  function initLegalConsentBanner() {
+    if (window.__prevyLegalConsentWired) return;
+    var url = window.SUPABASE_URL;
+    var key = window.SUPABASE_ANON_KEY;
+    if (typeof url !== "string" || !url || url.indexOf("TU_PROYECTO") !== -1) {
+      return;
+    }
+    if (typeof key !== "string" || !key) {
+      return;
+    }
+    var client = getSupabaseClient();
+    if (!client) {
+      var n = (window.__prevyLegalConsentRetry = (window.__prevyLegalConsentRetry || 0) + 1);
+      if (n < 60) {
+        setTimeout(initLegalConsentBanner, 50);
+      }
+      return;
+    }
+    window.__prevyLegalConsentWired = true;
+
+    client.auth.onAuthStateChange(function (_evt, session) {
+      applyConsentForClient(client, session);
+    });
+
+    client.auth.getSession().then(function (r) {
+      var session = r && r.data && r.data.session;
+      applyConsentForClient(client, session);
+    });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", function () {
+      setTimeout(initLegalConsentBanner, 0);
+    });
+  } else {
+    setTimeout(initLegalConsentBanner, 0);
+  }
+
+  /** Compatibilidad: antes sincronizaba con BD; ahora solo limpia clave legacy en el dispositivo. */
+  window.prevySyncLegalConsentToServer = function (done) {
+    clearLegacyDeviceConsent();
+    if (typeof done === "function") done();
+  };
 })();
