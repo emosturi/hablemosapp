@@ -60,6 +60,14 @@
     document.head.appendChild(pushRegScript);
   }
 
+  if (!document.querySelector('script[data-prevy-legal-consent]')) {
+    var legalScript = document.createElement("script");
+    legalScript.src = "/legal-consent.js";
+    legalScript.defer = true;
+    legalScript.setAttribute("data-prevy-legal-consent", "1");
+    document.head.appendChild(legalScript);
+  }
+
   /* Clic en notificación push (p. ej. pantalla bloqueada en Android): el SW enfoca la ventana y
      envía este mensaje cuando Client.navigate no existe o falla. */
   if ("serviceWorker" in navigator) {

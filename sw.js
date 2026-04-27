@@ -1,9 +1,10 @@
 /* Plataforma asesores: caché solo de estáticos propios. Sin HTML ni APIs. Web Push para recordatorios. */
-const CACHE_NAME = "prevy-static-v20";
+const CACHE_NAME = "prevy-static-v21";
 const PRECACHE_URLS = [
   "/manifest.webmanifest",
   "/app-shell.css",
   "/theme-init.js",
+  "/legal-consent.js",
   "/pwa-push-register.js",
   "/pwa-update.js",
   "/icons/icon-192.png",
