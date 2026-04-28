@@ -679,7 +679,7 @@
         <div class="modal-pension-header">
           <h3 id="modalPensionadoTitulo">Preparación de cierre: datos de pensión</h3>
           <p id="modalPensionadoIntro" class="modal-pension-intro">
-            En la etapa de preparación de carpeta de cierre, registra la compañía, el monto, la modalidad y el período garantizado cuando corresponda. Estos datos se conservan; si al cierre hubo cambios, se registrarán aparte al finalizar el trámite.
+            En modalidades con renta vitalicia indica si tiene período garantizado (y los meses, si aplica) y, por separado, la opción de aumento: no son excluyentes. Estos datos se conservan; si al cierre hubo cambios, se registrarán aparte al finalizar el trámite.
           </p>
         </div>
         <form id="formPensionado" class="modal-pension-form">
@@ -699,8 +699,10 @@
           </div>
 
           <div id="pensionRvDetalleWrap" style="display:none;">
-            <label for="pensionMesesPeriodoGarantizado">Número de meses de período garantizado</label>
-            <input type="number" id="pensionMesesPeriodoGarantizado" name="pensionMesesPeriodoGarantizado" min="1" step="1" />
+            <div id="pensionMesesPgBlock" style="display: none;">
+              <label for="pensionMesesPeriodoGarantizado">Número de meses de período garantizado</label>
+              <input type="number" id="pensionMesesPeriodoGarantizado" name="pensionMesesPeriodoGarantizado" min="1" step="1" />
+            </div>
 
             <fieldset id="pensionTipoAumentoFieldset" style="border: 0; padding: 0; margin: 14px 0 0;">
               <legend style="font-size: 13px; color: var(--muted); margin-bottom: 8px; padding: 0;">Opciones de aumento</legend>
@@ -1905,6 +1907,7 @@
             var wrapPeriodo = document.getElementById("pensionPeriodoWrap");
             var selPeriodoGarantizado = document.getElementById("pensionPeriodoGarantizado");
             var wrapRvDetalle = document.getElementById("pensionRvDetalleWrap");
+            var blockMesesPg = document.getElementById("pensionMesesPgBlock");
             var inputMesesPG = document.getElementById("pensionMesesPeriodoGarantizado");
             var wrapAumTemp = document.getElementById("pensionWrapAumentoTemporal");
             var wrapAumSobr = document.getElementById("pensionWrapAumentoSobrevivencia");
@@ -1935,8 +1938,12 @@
               return m.indexOf("renta vitalicia") !== -1;
             }
 
-            function limpiarPrepRvCamposOcultos() {
+            function limpiarMesesPeriodoGarantizadoSolo() {
               if (inputMesesPG) inputMesesPG.value = "";
+            }
+
+            function limpiarPrepRvCamposOcultos() {
+              limpiarMesesPeriodoGarantizadoSolo();
               if (formPensionado) {
                 var radios = formPensionado.querySelectorAll('input[name="pensionTipoAumento"]');
                 for (var i = 0; i < radios.length; i++) radios[i].checked = false;
@@ -1955,18 +1962,18 @@
               var requiere = modalidadTieneRentaVitalicia(selModalidad ? selModalidad.value : "");
               if (wrapPeriodo) wrapPeriodo.style.display = requiere ? "block" : "none";
               var pgSi = requiere && selPeriodoGarantizado && selPeriodoGarantizado.value === "Sí";
-              if (wrapRvDetalle) wrapRvDetalle.style.display = pgSi ? "block" : "none";
+              if (wrapRvDetalle) wrapRvDetalle.style.display = requiere ? "block" : "none";
+              if (blockMesesPg) blockMesesPg.style.display = pgSi ? "block" : "none";
               var tipo = obtenerTipoAumentoSeleccionado();
-              if (wrapAumTemp) wrapAumTemp.style.display = pgSi && tipo === "aumento_temporal" ? "block" : "none";
-              if (wrapAumSobr) wrapAumSobr.style.display = pgSi && tipo === "aumento_sobrevivencia" ? "block" : "none";
+              if (wrapAumTemp) wrapAumTemp.style.display = requiere && tipo === "aumento_temporal" ? "block" : "none";
+              if (wrapAumSobr) wrapAumSobr.style.display = requiere && tipo === "aumento_sobrevivencia" ? "block" : "none";
             }
 
             function aplicarPrepRvDetalleDesdeCliente() {
               limpiarPrepRvCamposOcultos();
-              if (c.pension_periodo_garantizado !== true) return;
               var d = c.pension_rv_detalle;
               if (!d || typeof d !== "object" || Array.isArray(d)) return;
-              if (inputMesesPG && d.meses_periodo_garantizado != null && d.meses_periodo_garantizado !== "") {
+              if (c.pension_periodo_garantizado === true && inputMesesPG && d.meses_periodo_garantizado != null && d.meses_periodo_garantizado !== "") {
                 inputMesesPG.value = String(d.meses_periodo_garantizado);
               }
               var tipo = (d.tipo_aumento || "").toString();
@@ -1985,17 +1992,22 @@
             }
 
             function construirPensionRvDetalleParaGuardar(requierePeriodo, periodoBool) {
-              if (!requierePeriodo || periodoBool !== true) return { value: null };
-              var mesesPgStr = inputMesesPG ? (inputMesesPG.value || "").toString().trim() : "";
-              var mesesPg = parseInt(mesesPgStr, 10);
+              if (!requierePeriodo) return { value: null };
               var tipo = obtenerTipoAumentoSeleccionado();
-              if (!mesesPgStr || isNaN(mesesPg) || mesesPg < 1) {
-                return { error: "Ingresa el número de meses de período garantizado (entero mayor a cero)." };
-              }
               if (!tipo) {
                 return { error: "Selecciona una opción de aumento (sin aumento, temporal o sobrevivencia)." };
               }
-              var out = { meses_periodo_garantizado: mesesPg, tipo_aumento: tipo };
+              var out = { tipo_aumento: tipo };
+              if (periodoBool === true) {
+                var mesesPgStr = inputMesesPG ? (inputMesesPG.value || "").toString().trim() : "";
+                var mesesPg = parseInt(mesesPgStr, 10);
+                if (!mesesPgStr || isNaN(mesesPg) || mesesPg < 1) {
+                  return { error: "Ingresa el número de meses de período garantizado (entero mayor a cero)." };
+                }
+                out.meses_periodo_garantizado = mesesPg;
+              } else {
+                out.meses_periodo_garantizado = null;
+              }
               if (tipo === "aumento_temporal") {
                 var pStr = inputPctTemp ? (inputPctTemp.value || "").toString().trim().replace(",", ".") : "";
                 var pmStr = inputMesesAum ? (inputMesesAum.value || "").toString().trim() : "";
@@ -2207,7 +2219,7 @@
             }
             if (selPeriodoGarantizado) {
               selPeriodoGarantizado.addEventListener("change", function () {
-                if (this.value !== "Sí") limpiarPrepRvCamposOcultos();
+                if (this.value !== "Sí") limpiarMesesPeriodoGarantizadoSolo();
                 sincronizarVisibilidadPrepRvDetalle();
               });
             }
