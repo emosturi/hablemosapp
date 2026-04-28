@@ -507,9 +507,12 @@
         font-size: 14px;
       }
       .timeline-controls .btn-save-tramite:disabled { opacity: 0.6; cursor: not-allowed; }
-      #tramiteSaveMsg { font-size: 13px; width: 100%; }
-      #tramiteSaveMsg.ok { color: var(--primary-mid); }
-      #tramiteSaveMsg.err { color: #ef4444; }
+      #tramiteSaveMsg,
+      .tramite-save-msg { font-size: 13px; width: 100%; display: block; }
+      #tramiteSaveMsg.ok,
+      .tramite-save-msg.ok { color: var(--primary-mid); }
+      #tramiteSaveMsg.err,
+      .tramite-save-msg.err { color: #ef4444; }
       .timeline { list-style: none; margin: 0; padding: 0 0 0 8px; border-left: 3px solid var(--border); }
       .timeline li { position: relative; padding: 0 0 18px 22px; margin-left: 2px; }
       .timeline li:last-child { padding-bottom: 0; }
@@ -521,11 +524,28 @@
       .timeline li.pending .etapa-titulo { color: var(--muted); font-weight: 500; }
       .timeline li .etapa-fecha { font-size: 12px; color: var(--muted); margin: 0; }
       .timeline li.current .etapa-titulo { color: var(--primary); }
+      .timeline li.timeline-step {
+        cursor: pointer;
+        border-radius: 12px;
+        margin-left: -8px;
+        padding-left: 30px;
+        padding-right: 8px;
+        transition: background-color 0.12s ease;
+      }
+      .timeline li.timeline-step:hover {
+        background: color-mix(in oklab, var(--primary) 10%, transparent);
+      }
+      .timeline li.timeline-step:focus {
+        outline: none;
+      }
+      .timeline li.timeline-step:focus-visible {
+        box-shadow: 0 0 0 2px var(--primary-mid);
+      }
       @media (max-width: 640px) {
         .page { padding-bottom: 24px; }
         .timeline-controls { display: block; }
         .timeline-controls > div { width: 100% !important; min-width: 0 !important; }
-        .timeline-controls .btn-save-tramite { width: 100%; margin-top: 10px; }
+        .timeline-controls .tramite-save-msg { display: block; margin-top: 8px; }
         .grid { grid-template-columns: 1fr; }
       }
     </style>
@@ -634,6 +654,18 @@
           <button type="button" id="btnBonoSi" class="btn-si">Sí</button>
         </div>
         <div class="modal-feedback" id="modalBonoFeedback" style="display: none;"></div>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="modalCambiarEtapaTramite" role="dialog" aria-labelledby="modalCambiarEtapaTramiteTitulo" aria-modal="true">
+      <div class="modal">
+        <h3 id="modalCambiarEtapaTramiteTitulo">Cambiar etapa del trámite</h3>
+        <p id="modalCambiarEtapaTramiteBody" style="margin: 0 0 18px; font-size: 14px; line-height: 1.5; color: var(--text);"></p>
+        <div class="modal-actions">
+          <button type="button" id="btnCambiarEtapaCancelar" class="btn-secondary">Cancelar</button>
+          <button type="button" id="btnCambiarEtapaGuardar" class="btn-primary">Guardar etapa</button>
+        </div>
+        <div class="modal-feedback" id="modalCambiarEtapaFeedback" style="display: none"></div>
       </div>
     </div>
 
@@ -1194,34 +1226,39 @@
             function buildTimelineSection(cRow) {
               var actual = etapaActualNumero(cRow);
               var fechas = fechasTramite(cRow);
-              var opts = "";
-              for (var j = 0; j < ETAPAS_TRAMITE.length; j++) {
-                var num = j + 1;
-                opts += '<option value="' + num + '"' + (num === actual ? " selected" : "") + ">Etapa " + num + ": " + ETAPAS_TRAMITE[j] + "</option>";
-              }
               var items = "";
               for (var i = 0; i < ETAPAS_TRAMITE.length; i++) {
                 var n = i + 1;
                 var cls = n < actual ? "done" : n === actual ? "current" : "pending";
+                cls += " timeline-step";
                 var fd = fechas[String(n)] != null ? fechas[String(n)] : fechas[n];
                 var sub = "";
                 if (fd) sub = '<p class="etapa-fecha">Completada: ' + fmtDate(String(fd)) + "</p>";
                 else if (n < actual) sub = '<p class="etapa-fecha">Completada (sin fecha registrada)</p>';
                 else if (n === actual) sub = '<p class="etapa-fecha">Etapa en curso</p>';
                 else sub = '<p class="etapa-fecha">Pendiente</p>';
-                items += '<li class="' + cls + '"><p class="etapa-titulo">' + (n + ". " + ETAPAS_TRAMITE[i]) + "</p>" + sub + "</li>";
+                var ariaLabel = "Etapa " + n + ": " + ETAPAS_TRAMITE[i] + ". Abrir confirmación para registrar esta etapa.";
+                items +=
+                  '<li class="' +
+                  cls +
+                  '" role="button" tabindex="0" data-etapa="' +
+                  n +
+                  '" aria-label="' +
+                  ariaLabel.replace(/"/g, "&quot;") +
+                  '">' +
+                  '<p class="etapa-titulo">' +
+                  n +
+                  ". " +
+                  ETAPAS_TRAMITE[i] +
+                  "</p>" +
+                  sub +
+                  "</li>";
               }
               return (
                 '<div class="section timeline-section"><h2>Línea de tiempo del trámite</h2>' +
-                '<p class="timeline-hint">Las etapas anteriores a la seleccionada se consideran completadas. Al guardar, se asigna la fecha de hoy a las etapas completadas que aún no tengan fecha.</p>' +
+                '<p class="timeline-hint">Haz clic en el paso donde se encuentra el cliente. Se abrirá una confirmación y, al guardar, las etapas hasta esa quedarán completadas con la fecha de hoy cuando corresponda. Después puedes seguir con los formularios de cada etapa (p. ej. pensión) si aplican.</p>' +
                 '<div class="timeline-controls">' +
-                '<div style="flex:1;min-width:220px">' +
-                '<label for="tramiteEtapaSelect">Etapa en la que se encuentra el cliente</label>' +
-                '<select id="tramiteEtapaSelect">' +
-                opts +
-                "</select></div>" +
-                '<button type="button" class="btn-save-tramite" id="btnGuardarTramite">Guardar etapa</button>' +
-                '<span id="tramiteSaveMsg"></span></div>' +
+                '<span id="tramiteSaveMsg" class="tramite-save-msg" aria-live="polite"></span></div>' +
                 '<ol class="timeline">' +
                 items +
                 "</ol></div>"
@@ -1573,13 +1610,93 @@
             }
             refreshNotasAsesorUI();
 
+            var tramiteEtapaModalObjetivo = null;
+
+            function wireTimelineStepClicks() {
+              var sec = document.querySelector(".timeline-section");
+              if (!sec) return;
+              var steps = sec.querySelectorAll(".timeline-step");
+              for (var i = 0; i < steps.length; i++) {
+                (function (li) {
+                  li.addEventListener("click", function () {
+                    var n = parseInt(li.getAttribute("data-etapa"), 10);
+                    if (!isNaN(n)) abrirModalConfirmarEtapa(n);
+                  });
+                  li.addEventListener("keydown", function (ev) {
+                    if (ev.key !== "Enter" && ev.key !== " ") return;
+                    ev.preventDefault();
+                    var n = parseInt(li.getAttribute("data-etapa"), 10);
+                    if (!isNaN(n)) abrirModalConfirmarEtapa(n);
+                  });
+                })(steps[i]);
+              }
+            }
+
+            function cerrarModalCambiarEtapa() {
+              var modalEl = document.getElementById("modalCambiarEtapaTramite");
+              if (modalEl) modalEl.classList.remove("open");
+              tramiteEtapaModalObjetivo = null;
+              var btnC = document.getElementById("btnCambiarEtapaCancelar");
+              if (btnC) btnC.textContent = "Cancelar";
+              var btnG = document.getElementById("btnCambiarEtapaGuardar");
+              if (btnG) {
+                btnG.style.display = "";
+                btnG.disabled = false;
+              }
+              var fb = document.getElementById("modalCambiarEtapaFeedback");
+              if (fb) {
+                fb.style.display = "none";
+                fb.textContent = "";
+                fb.className = "modal-feedback";
+              }
+            }
+
+            function abrirModalConfirmarEtapa(numEtapa) {
+              var modalEl = document.getElementById("modalCambiarEtapaTramite");
+              var bodyEl = document.getElementById("modalCambiarEtapaTramiteBody");
+              var titulo = document.getElementById("modalCambiarEtapaTramiteTitulo");
+              var btnGuardar = document.getElementById("btnCambiarEtapaGuardar");
+              var btnCancelar = document.getElementById("btnCambiarEtapaCancelar");
+              var fb = document.getElementById("modalCambiarEtapaFeedback");
+              if (!modalEl || !bodyEl || !titulo || !btnGuardar || !btnCancelar) return;
+              if (fb) {
+                fb.style.display = "none";
+                fb.textContent = "";
+                fb.className = "modal-feedback";
+              }
+              tramiteEtapaModalObjetivo = numEtapa;
+              var actual = etapaActualNumero(c);
+              if (numEtapa === actual) {
+                titulo.textContent = "Etapa actual";
+                bodyEl.textContent =
+                  "El trámite ya está en la etapa " +
+                  numEtapa +
+                  ": «" +
+                  ETAPAS_TRAMITE[numEtapa - 1] +
+                  "». Elige otra etapa en la línea de tiempo si necesitas corregir el avance.";
+                btnGuardar.style.display = "none";
+                btnCancelar.textContent = "Cerrar";
+              } else {
+                titulo.textContent = "Confirmar etapa del trámite";
+                bodyEl.textContent =
+                  "¿Registrar que el cliente está en la etapa " +
+                  numEtapa +
+                  ": «" +
+                  ETAPAS_TRAMITE[numEtapa - 1] +
+                  "»? Las etapas anteriores quedarán marcadas como completadas y se asignará la fecha de hoy donde falte.";
+                btnGuardar.style.display = "";
+                btnCancelar.textContent = "Cancelar";
+              }
+              modalEl.classList.add("open");
+            }
+
             function guardarEtapaTramite() {
-              var sel = document.getElementById("tramiteEtapaSelect");
-              var btn = document.getElementById("btnGuardarTramite");
+              var nuevo = tramiteEtapaModalObjetivo;
+              var btn = document.getElementById("btnCambiarEtapaGuardar");
               var msgEl = document.getElementById("tramiteSaveMsg");
-              if (!sel || !btn) return;
-              var nuevo = parseInt(sel && sel.value, 10);
-              if (isNaN(nuevo) || nuevo < 1 || nuevo > ETAPAS_TRAMITE.length) return;
+              var fb = document.getElementById("modalCambiarEtapaFeedback");
+              if (nuevo == null || isNaN(nuevo) || nuevo < 1 || nuevo > ETAPAS_TRAMITE.length) return;
+              if (nuevo === etapaActualNumero(c)) return;
               var fechasNuevas = JSON.parse(JSON.stringify(fechasTramite(c)));
               var hoy = new Date().toISOString().slice(0, 10);
               for (var k = 1; k <= nuevo; k++) {
@@ -1587,9 +1704,14 @@
                 if (!fechasNuevas[key]) fechasNuevas[key] = hoy;
               }
               if (btn) btn.disabled = true;
+              if (fb) {
+                fb.style.display = "block";
+                fb.className = "modal-feedback";
+                fb.textContent = "Guardando…";
+              }
               if (msgEl) {
-                msgEl.textContent = "Guardando…";
-                msgEl.className = "";
+                msgEl.textContent = "";
+                msgEl.className = "tramite-save-msg";
               }
               supabase
                 .from("clientes")
@@ -1600,11 +1722,12 @@
                 .then(function (up) {
                   if (btn) btn.disabled = false;
                   if (up.error) {
-                    if (msgEl) {
-                      msgEl.textContent =
+                    if (fb) {
+                      fb.style.display = "block";
+                      fb.className = "modal-feedback error";
+                      fb.textContent =
                         up.error.message ||
                         "No se pudo guardar. Ejecuta en Supabase: supabase-migration-clientes-tramite-etapas.sql";
-                      msgEl.className = "err";
                     }
                     return;
                   }
@@ -1612,14 +1735,14 @@
                   c.tramite_etapas_fechas = up.data.tramite_etapas_fechas;
                   scheduleAutoReminders(c, fechasTramite(c))
                     .then(function () {
+                      cerrarModalCambiarEtapa();
                       var sec = document.querySelector(".timeline-section");
                       if (sec) sec.outerHTML = buildTimelineSection(c);
-                      var btnNuevo = document.getElementById("btnGuardarTramite");
-                      if (btnNuevo) btnNuevo.addEventListener("click", guardarEtapaTramite);
+                      wireTimelineStepClicks();
                       var msgNuevo = document.getElementById("tramiteSaveMsg");
                       if (msgNuevo) {
                         msgNuevo.textContent = "Guardado correctamente. Recordatorios automáticos actualizados.";
-                        msgNuevo.className = "ok";
+                        msgNuevo.className = "tramite-save-msg ok";
                       }
                       if (nuevo === 11 && !esPensionadoFlag(c.pensionado)) {
                         abrirModalPensionadoSiCorresponde(true);
@@ -1628,21 +1751,33 @@
                       }
                     })
                     .catch(function (errAuto) {
+                      cerrarModalCambiarEtapa();
                       var sec = document.querySelector(".timeline-section");
                       if (sec) sec.outerHTML = buildTimelineSection(c);
-                      var btnNuevo = document.getElementById("btnGuardarTramite");
-                      if (btnNuevo) btnNuevo.addEventListener("click", guardarEtapaTramite);
+                      wireTimelineStepClicks();
                       var msgNuevo = document.getElementById("tramiteSaveMsg");
                       if (msgNuevo) {
-                        msgNuevo.textContent = "Etapa guardada, pero falló la programación automática de recordatorios: " + (errAuto && errAuto.message ? errAuto.message : "");
-                        msgNuevo.className = "err";
+                        msgNuevo.textContent =
+                          "Etapa guardada, pero falló la programación automática de recordatorios: " +
+                          (errAuto && errAuto.message ? errAuto.message : "");
+                        msgNuevo.className = "tramite-save-msg err";
                       }
                     });
                 });
             }
 
-            var btnGuardarTramite = document.getElementById("btnGuardarTramite");
-            if (btnGuardarTramite) btnGuardarTramite.addEventListener("click", guardarEtapaTramite);
+            var btnCambiarEtapaGuardar = document.getElementById("btnCambiarEtapaGuardar");
+            var btnCambiarEtapaCancelar = document.getElementById("btnCambiarEtapaCancelar");
+            var modalCambiarEtapaTramite = document.getElementById("modalCambiarEtapaTramite");
+            if (btnCambiarEtapaGuardar) btnCambiarEtapaGuardar.addEventListener("click", guardarEtapaTramite);
+            if (btnCambiarEtapaCancelar) btnCambiarEtapaCancelar.addEventListener("click", cerrarModalCambiarEtapa);
+            if (modalCambiarEtapaTramite) {
+              modalCambiarEtapaTramite.addEventListener("click", function (e) {
+                if (e.target === modalCambiarEtapaTramite) cerrarModalCambiarEtapa();
+              });
+            }
+
+            wireTimelineStepClicks();
 
             var modalBono = document.getElementById("modalActivarTramite");
             var btnActivarLineaTiempo = document.getElementById("btnActivarLineaTiempo");
@@ -1700,8 +1835,7 @@
                   cerrarModalBono();
                   var wrap = document.getElementById("tramiteActivarWrap");
                   if (wrap) wrap.outerHTML = buildTimelineSection(c);
-                  var btnNuevo = document.getElementById("btnGuardarTramite");
-                  if (btnNuevo) btnNuevo.addEventListener("click", guardarEtapaTramite);
+                  wireTimelineStepClicks();
                 });
             }
 
