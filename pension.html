@@ -1635,6 +1635,7 @@
             html += `<tr><td>${label}</td><td class="col-respuesta"><span style="white-space:nowrap">Sí</span></td></tr>\n`;
             if (item.key === "destinareApv") html += htmlFilasDetalleApvMandato(dataObj);
             if (item.key === "destinareApvc") html += htmlFilasDetalleApvcMandato(dataObj);
+            if (item.key === "traspasareCtaAhorroVoluntario") html += htmlFilasDetalleAvMandato(dataObj);
           }
         });
         return html;
@@ -1654,6 +1655,14 @@
         const inst = a.apvcNombreInstitucion != null ? String(a.apvcNombreInstitucion) : "";
         const pct = a.apvcPorcentajeTraspaso != null && String(a.apvcPorcentajeTraspaso).trim() !== "" ? String(a.apvcPorcentajeTraspaso) : "";
         return `<tr><td>Nombre Institución APVC:</td><td class="col-respuesta"><span style="white-space:nowrap">${inst}</span></td></tr>\n<tr><td>Porcentaje de APVC a traspasar:</td><td class="col-respuesta"><span style="white-space:nowrap">${pct}</span></td></tr>\n`;
+      }
+
+      /** AV = Ahorro Voluntario (cuenta 2), ya en AFP: solo porcentaje (no confundir con APV). */
+      function htmlFilasDetalleAvMandato(antecedentes) {
+        const a = antecedentes || {};
+        if (a.traspasareCtaAhorroVoluntario !== "Sí") return "";
+        const pct = a.avPorcentajeTraspaso != null && String(a.avPorcentajeTraspaso).trim() !== "" ? String(a.avPorcentajeTraspaso) : "";
+        return `<tr><td>Porcentaje AV (Cuenta 2) a destinar:</td><td class="col-respuesta"><span style="white-space:nowrap">${pct}%</span></td></tr>\n`;
       }
 
       const MESES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
@@ -2087,6 +2096,10 @@
             rowsAnt.push({ label: "Nombre Institución APVC:", valor: instC });
             rowsAnt.push({ label: "Porcentaje de APVC a traspasar:", valor: pctC });
           }
+          if (key === "traspasareCtaAhorroVoluntario" && antecedentes.traspasareCtaAhorroVoluntario === "Sí") {
+            var avPct = antecedentes.avPorcentajeTraspaso != null && String(antecedentes.avPorcentajeTraspaso).trim() !== "" ? String(antecedentes.avPorcentajeTraspaso) : "";
+            rowsAnt.push({ label: "Porcentaje AV (Cuenta 2) a destinar:", valor: avPct + "%" });
+          }
         });
         content.push(pmTablaSiNo(rowsAnt));
 
@@ -2180,6 +2193,10 @@
               var pctC = antecedentes.apvcPorcentajeTraspaso != null && String(antecedentes.apvcPorcentajeTraspaso).trim() !== "" ? String(antecedentes.apvcPorcentajeTraspaso) : "";
               rowsAnt.push({ label: "Nombre Institución APVC:", valor: instC });
               rowsAnt.push({ label: "Porcentaje de APVC a traspasar:", valor: pctC });
+            }
+            if (it.key === "traspasareCtaAhorroVoluntario") {
+              var avPctC = antecedentes.avPorcentajeTraspaso != null && String(antecedentes.avPorcentajeTraspaso).trim() !== "" ? String(antecedentes.avPorcentajeTraspaso) : "";
+              rowsAnt.push({ label: "Porcentaje AV (Cuenta 2) a destinar:", valor: avPctC + "%" });
             }
           }
         });
@@ -2833,9 +2850,10 @@
         ${htmlFilasDetalleApvcMandato(antecedentes)}
 
         <tr>
-        <td>Traspasaré fondos desde mi Cuenta de Ahorro Voluntario para financiar mi pensión</td>
+        <td>Traspasaré fondos desde mi cuenta de Ahorro Voluntario (cuenta 2) para financiar mi pensión</td>
         <td class="col-respuesta"><span style="white-space:nowrap">${antecedentes.traspasareCtaAhorroVoluntario === "Sí" ? "Sí" : "No"}</span></td>
         </tr>
+        ${htmlFilasDetalleAvMandato(antecedentes)}
 
         <tr>
         <td>Poseo depósitos convenidos</td>
@@ -5343,6 +5361,27 @@
           const apvcPct = form.querySelector('[name="antecedentes.apvcPorcentajeTraspaso"]');
           validarDetalleApv(apvSi, apvInst, apvPct, "antecedentes.apvDetalle", "APV");
           validarDetalleApv(apvcSi, apvcInst, apvcPct, "antecedentes.apvcDetalle", "APVC");
+          function validarDetalleAv(avSi, pctSel, errKey) {
+            if (!avSi || avSi.value !== "Sí") return true;
+            const pctRaw = pctSel ? String(pctSel.value || "").trim() : "";
+            if (!/^\d+$/.test(pctRaw)) {
+              ok = false;
+              if (pctSel) pctSel.setAttribute("aria-invalid", "true");
+              setError(form, errKey, "Porcentaje AV (Cuenta 2): ingresa un entero entre 0 y 100.");
+              return false;
+            }
+            const pctNum = parseInt(pctRaw, 10);
+            if (pctNum < 0 || pctNum > 100) {
+              ok = false;
+              if (pctSel) pctSel.setAttribute("aria-invalid", "true");
+              setError(form, errKey, "Porcentaje AV (Cuenta 2): entre 0 y 100.");
+              return false;
+            }
+            return true;
+          }
+          const avSi = form.querySelector('input[name="antecedentes.traspasareCtaAhorroVoluntario"]:checked');
+          const avPct = form.querySelector('[name="antecedentes.avPorcentajeTraspaso"]');
+          validarDetalleAv(avSi, avPct, "antecedentes.avDetalle");
         }
 
         if (soloParaContrato) {
@@ -5956,6 +5995,54 @@
           };
           form.addEventListener("change", function (ev) {
             if (ev.target && (ev.target.name === "antecedentes.destinareApv" || ev.target.name === "antecedentes.destinareApvc")) {
+              refreshAntecedentesApvApvcDetalle();
+            }
+          });
+          refreshAntecedentesApvApvcDetalle();
+        })();
+        (function setupAntecedentesAvDetalle() {
+          const avRow = form.querySelector('[name="antecedentes.traspasareCtaAhorroVoluntario"]')?.closest(".field");
+          if (!avRow) return;
+          const avBlock = el("div", { class: "field col-12", id: "bloqueDetalleAv" }, [
+            el("p", { style: "font-size:13px;color:var(--muted);margin:0 0 10px;line-height:1.45" }, [
+              "AV (Ahorro Voluntario, cuenta 2): fondos ya en la AFP; indica solo el porcentaje a destinar. ",
+              el("strong", {}, "No confundir con APV"),
+              " (Ahorro Previsional Voluntario).",
+            ]),
+            el("div", { class: "grid", style: "margin-top:0.35rem" }, [
+              el("div", { class: "field col-4" }, [
+                el("label", { for: "antecedentes_av_pct" }, "Porcentaje AV a destinar (%)"),
+                el("input", {
+                  type: "number",
+                  id: "antecedentes_av_pct",
+                  name: "antecedentes.avPorcentajeTraspaso",
+                  step: "1",
+                  min: "0",
+                  max: "100",
+                  inputmode: "numeric",
+                }),
+              ]),
+            ]),
+            el("div", { class: "error", "data-error-for": "antecedentes.avDetalle" }),
+          ]);
+          avBlock.style.display = "none";
+          avRow.after(avBlock);
+          const avPctIn = avBlock.querySelector('[name="antecedentes.avPorcentajeTraspaso"]');
+          const prevRefresh = refreshAntecedentesApvApvcDetalle;
+          refreshAntecedentesApvApvcDetalle = function () {
+            prevRefresh();
+            const rAv = form.querySelector('input[name="antecedentes.traspasareCtaAhorroVoluntario"]:checked');
+            if (rAv && rAv.value === "Sí") {
+              avBlock.style.display = "";
+              avPctIn.required = true;
+            } else {
+              avBlock.style.display = "none";
+              avPctIn.required = false;
+              avPctIn.value = "";
+            }
+          };
+          form.addEventListener("change", function (ev) {
+            if (ev.target && ev.target.name === "antecedentes.traspasareCtaAhorroVoluntario") {
               refreshAntecedentesApvApvcDetalle();
             }
           });
