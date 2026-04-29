@@ -140,6 +140,14 @@
         border-color: var(--primary);
       }
       .cal-btn.primary:hover { filter: brightness(1.05); }
+      .cal-btn.btn-danger-solid {
+        background: #dc2626;
+        color: #fff;
+        border-color: #b91c1c;
+      }
+      .cal-btn.btn-danger-solid:hover:not(:disabled) {
+        filter: brightness(1.05);
+      }
       .cal-btn.ghost {
         background: transparent;
         border-color: transparent;
@@ -351,6 +359,7 @@
       }
 
       .cal-res {
+        position: relative;
         background: rgba(234, 88, 12, 0.9);
         border: 1px solid rgba(194, 65, 12, 1);
         color: #fff;
@@ -359,8 +368,68 @@
         z-index: 2;
       }
       .cal-res:hover { filter: brightness(1.08); }
-      .cal-res .cal-res-time { font-weight: 700; font-size: 11px; display: block; }
-      .cal-res .cal-res-name { font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .cal-res:hover .cal-res-trash {
+        opacity: 1;
+        visibility: visible;
+      }
+      .cal-res:focus-within .cal-res-trash {
+        opacity: 1;
+        visibility: visible;
+      }
+      .cal-res-trash {
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        z-index: 4;
+        width: 24px;
+        height: 24px;
+        min-width: 24px;
+        min-height: 24px;
+        padding: 0;
+        border: none;
+        border-radius: 6px;
+        background: rgba(185, 28, 28, 0.95);
+        color: #fff;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 0;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.12s, background 0.12s;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .cal-res-trash:hover:not(:disabled) {
+        background: #991b1b;
+      }
+      .cal-res-trash:focus-visible {
+        opacity: 1;
+        visibility: visible;
+        outline: 2px solid #fff;
+        outline-offset: 1px;
+      }
+      html[data-theme="dark"] .cal-res-trash {
+        background: rgba(127, 29, 29, 0.95);
+      }
+      html[data-theme="dark"] .cal-res-trash:hover:not(:disabled) {
+        background: #7f1d1d;
+      }
+      .cal-res .cal-res-time {
+        font-weight: 700;
+        font-size: 11px;
+        display: block;
+        padding-right: 26px;
+        box-sizing: border-box;
+      }
+      .cal-res .cal-res-name {
+        font-size: 11px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        padding-right: 22px;
+        box-sizing: border-box;
+      }
 
       .cal-rem {
         background: rgba(22, 163, 74, 0.9);
@@ -451,6 +520,9 @@
 
       #calRecModalBackdrop {
         z-index: 85;
+      }
+      #calReservaCancelBackdrop {
+        z-index: 86;
       }
       .cal-rec-dl {
         margin: 0 0 8px;
@@ -564,6 +636,21 @@
           right: 4px;
           font-size: 22px;
           border-radius: 10px;
+        }
+        .cal-res .cal-res-trash {
+          display: flex;
+          opacity: 1;
+          visibility: visible;
+          width: 36px;
+          height: 36px;
+          min-width: 36px;
+          min-height: 36px;
+          top: 4px;
+          right: 4px;
+        }
+        .cal-res .cal-res-trash svg {
+          width: 18px;
+          height: 18px;
         }
       }
       @media (min-width: 681px) {
@@ -858,6 +945,17 @@
                 </div>
               </div>
             </div>
+
+            <div class="cal-modal-backdrop" id="calReservaCancelBackdrop" role="dialog" aria-modal="true" aria-labelledby="calReservaCancelTitle">
+              <div class="cal-modal">
+                <h2 id="calReservaCancelTitle">Anular reserva</h2>
+                <p class="sub" id="calReservaCancelText"></p>
+                <div class="cal-modal-actions">
+                  <button type="button" class="cal-btn ghost" id="calReservaCancelNo">Cancelar</button>
+                  <button type="button" class="cal-btn btn-danger-solid" id="calReservaCancelYes">Eliminar reserva</button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1019,8 +1117,20 @@
             recModalOrigen: document.getElementById("calRecModalOrigen"),
             recModalFeedback: document.getElementById("calRecModalFeedback"),
             recModalClose: document.getElementById("calRecModalClose"),
-            recModalDelete: document.getElementById("calRecModalDelete")
+            recModalDelete: document.getElementById("calRecModalDelete"),
+            reservaCancelBackdrop: document.getElementById("calReservaCancelBackdrop"),
+            reservaCancelText: document.getElementById("calReservaCancelText"),
+            reservaCancelNo: document.getElementById("calReservaCancelNo"),
+            reservaCancelYes: document.getElementById("calReservaCancelYes")
           };
+
+          /** Icono papelera solo (botón borrar en reserva naranjo). */
+          var ICON_TRASH_SVG =
+            '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">' +
+            '<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>' +
+            '<line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>';
+          /** Datos pendientes antes de borrar agenda_reservas + recordatorio. */
+          var pendingReservaDel = null;
 
           /* ----- Helpers de fecha / hora ----- */
           function pad2(n) { return (n < 10 ? "0" : "") + n; }
@@ -1228,6 +1338,96 @@
             }
           }
 
+          /* ----- Modal anular reserva de llamada ----- */
+          function closeReservaCancelModal() {
+            pendingReservaDel = null;
+            if (el.reservaCancelBackdrop) el.reservaCancelBackdrop.classList.remove("open");
+            if (el.reservaCancelYes) el.reservaCancelYes.disabled = false;
+          }
+
+          function openReservaCancelModal(reservaRow, ymd, hi, dur, nombrePlano) {
+            if (!el.reservaCancelBackdrop || !el.reservaCancelText || !reservaRow || !reservaRow.id) return;
+            var nomDisp = nombrePlano && String(nombrePlano).trim() ? nombrePlano.trim() : "Reserva";
+            el.reservaCancelText.textContent =
+              "¿Anular la reserva del " +
+              fmtYmdToLocale(ymd) +
+              " a las " +
+              hi +
+              " (" +
+              dur +
+              " min), " +
+              nomDisp +
+              "? Se libera el horario para nuevas citas y se elimina el recordatorio automático asociado a esa llamada.";
+            pendingReservaDel = {
+              id: reservaRow.id,
+              fechaYmd: String(ymd || "").slice(0, 10),
+              cpid: reservaRow.cliente_potencial_id || null,
+              horaLbl: normHoraHHMM(hi)
+            };
+            el.reservaCancelBackdrop.classList.add("open");
+          }
+
+          function ejecutarEliminarReserva() {
+            var p = pendingReservaDel;
+            if (!p || !p.id || !el.reservaCancelYes) return;
+            el.reservaCancelYes.disabled = true;
+
+            function doDeleteReserva() {
+              return supabase
+                .from("agenda_reservas")
+                .delete()
+                .eq("id", p.id)
+                .eq("owner_user_id", uid);
+            }
+
+            function finish(delRes) {
+              if (el.reservaCancelYes) el.reservaCancelYes.disabled = false;
+              if (!delRes || delRes.error) {
+                closeReservaCancelModal();
+                setStatus(
+                  delRes && delRes.error ? delRes.error.message || "No se pudo eliminar la reserva." : "No se pudo eliminar la reserva.",
+                  "err"
+                );
+                return;
+              }
+              closeReservaCancelModal();
+              setStatus("Reserva eliminada.", "ok");
+              try {
+                state.reservas = state.reservas.filter(function (x) {
+                  return String(x.id) !== String(p.id);
+                });
+                if (p.cpid) {
+                  state.recordatorios = state.recordatorios.filter(function (rec) {
+                    if (String(rec.cliente_potencial_id) !== String(p.cpid)) return true;
+                    if (String(rec.fecha || "").slice(0, 10) !== p.fechaYmd) return true;
+                    return normHoraHHMM(rec.hora) !== p.horaLbl;
+                  });
+                }
+              } catch (e2) {
+                /* ignore */
+              }
+              renderOverlay();
+              loadReservas();
+            }
+
+            if (!p.cpid) {
+              doDeleteReserva().then(finish);
+              return;
+            }
+            supabase
+              .from("recordatorios")
+              .delete()
+              .eq("user_id", uid)
+              .eq("cliente_potencial_id", p.cpid)
+              .eq("fecha", p.fechaYmd)
+              .eq("hora", p.horaLbl)
+              .then(function (recDel) {
+                if (recDel.error) console.warn("[agenda] recordatorio al anular:", recDel.error);
+                return doDeleteReserva();
+              })
+              .then(finish);
+          }
+
           /* ----- Pintar overlay (ventanas + reservas + drag preview) ----- */
           function renderOverlay() {
             el.overlay.innerHTML = "";
@@ -1295,16 +1495,32 @@
               box.style.gridColumn = col + " / " + (col + 1);
               box.style.gridRow = (s + 1) + " / " + (e + 1);
               box.innerHTML =
-                '<span class="cal-res-time">' + hi + " · " + dur + "min</span>" +
-                '<span class="cal-res-name">' + escapeHtml(nom) + "</span>";
+                '<button type="button" class="cal-res-trash" aria-label="Anular reserva">' +
+                ICON_TRASH_SVG +
+                "</button>" +
+                '<span class="cal-res-time">' +
+                hi +
+                " · " +
+                dur +
+                "min</span>" +
+                '<span class="cal-res-name">' +
+                escapeHtml(nom) +
+                "</span>";
               box.title = nom + " · " + hi + " (" + dur + " min)";
               var cid = (cp && cp.id) ? cp.id : r.cliente_potencial_id;
               if (cid) {
                 box.style.cursor = "pointer";
-                box.addEventListener("click", function () {
+                box.addEventListener("click", function (ev) {
+                  if (ev.target.closest(".cal-res-trash")) return;
                   window.location.href = "ver-potencial.html?id=" + encodeURIComponent(cid);
                 });
               }
+              var btnTrash = box.querySelector(".cal-res-trash");
+              btnTrash.addEventListener("click", function (ev) {
+                ev.preventDefault();
+                ev.stopPropagation();
+                openReservaCancelModal(r, ymd, hi, dur, nom);
+              });
               el.overlay.appendChild(box);
             });
 
@@ -1666,6 +1882,17 @@
             el.recModalBackdrop.addEventListener("click", function (ev) {
               if (ev.target === el.recModalBackdrop) closeRecModal();
             });
+          }
+          if (el.reservaCancelBackdrop) {
+            el.reservaCancelBackdrop.addEventListener("click", function (ev) {
+              if (ev.target === el.reservaCancelBackdrop) closeReservaCancelModal();
+            });
+          }
+          if (el.reservaCancelNo) {
+            el.reservaCancelNo.addEventListener("click", closeReservaCancelModal);
+          }
+          if (el.reservaCancelYes) {
+            el.reservaCancelYes.addEventListener("click", ejecutarEliminarReserva);
           }
           if (el.recModalDelete) {
             el.recModalDelete.addEventListener("click", function () {
