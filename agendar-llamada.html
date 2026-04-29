@@ -60,7 +60,9 @@
       .modal-inner h2 { margin: 0 0 14px; font-size: 1.1rem; }
       .field { margin-bottom: 12px; }
       .field label { display: block; font-size: 12px; margin-bottom: 4px; color: var(--muted); }
-      .field input {
+      .field input,
+      .field select,
+      .field textarea {
         width: 100%;
         padding: 10px 12px;
         border-radius: 10px;
@@ -69,7 +71,10 @@
         color: var(--text);
         font-size: 15px;
         box-sizing: border-box;
+        font-family: inherit;
       }
+      .field textarea { resize: vertical; min-height: 64px; }
+      .field-hint { font-size: 12px; color: var(--muted); margin: 6px 0 0; line-height: 1.4; }
       .modal-actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
       .modal-actions button {
         padding: 10px 16px;
@@ -92,8 +97,9 @@
       </div>
       <h1>Agendar llamada telefónica</h1>
       <p class="sub">
-        Elija un horario disponible (mínimo <strong>6 horas</strong> de anticipación respecto de ahora). Le pediremos sus datos
-        para confirmar. Con el mismo teléfono solo puede haber <strong>una reserva a la vez</strong> con este asesor (hasta que
+        Elija un horario disponible (mínimo <strong>6 horas</strong> de anticipación respecto de ahora). Le pediremos sus datos,
+        tema de consulta y un mensaje breve opcional para preparar la llamada.
+        Con el mismo teléfono solo puede haber <strong>una reserva a la vez</strong> con este asesor (hasta que
         pase la hora agendada).
       </p>
 
@@ -126,6 +132,20 @@
             <label for="fTel">Teléfono <span style="color:var(--danger)">*</span></label>
             <input id="fTel" name="telefono" type="tel" required autocomplete="tel" placeholder="Ej. +56 9 1234 5678" />
           </div>
+          <div class="field">
+            <label for="fTema">Tema de consulta <span style="color:var(--danger)">*</span></label>
+            <select id="fTema" name="tema" required>
+              <option value="">Seleccione…</option>
+              <option value="rentas_vitalicias">Rentas vitalicias</option>
+              <option value="retiro_programado">Retiro programado</option>
+              <option value="pension_sobrevivencia">Pensión de sobrevivencia</option>
+              <option value="invalidez">Invalidez</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="fMensaje">Mensaje breve (opcional)</label>
+            <textarea id="fMensaje" name="mensaje" maxlength="500" rows="3" placeholder="Ej. dudas sobre PG, modalidad, plazos…"></textarea>
+          </div>
           <div class="modal-actions">
             <button type="button" class="btn-ghost" id="btnCancelDlg">Cancelar</button>
             <button type="submit" class="btn-primary" id="btnConfirm">Confirmar reserva</button>
@@ -157,7 +177,25 @@
           return;
         }
 
-        var ref = (new URLSearchParams(window.location.search).get("ref") || "").trim();
+        var qp = new URLSearchParams(window.location.search);
+        var ref = (qp.get("ref") || "").trim();
+        /** Códigos de origen opcionales: ?src=… (mismo whitelist que la RPC). */
+        var CODIGOS_ORIGEN_VALIDOS = {
+          ig: true,
+          fb: true,
+          li: true,
+          wa: true,
+          tg: true,
+          tt: true,
+          yt: true,
+          mail: true,
+          buscoasesor: true,
+          referido: true,
+          web: true
+        };
+        var srcParam = (qp.get("src") || "").trim().toLowerCase();
+        var srcValido =
+          srcParam && CODIGOS_ORIGEN_VALIDOS[srcParam] === true ? srcParam : "";
         var uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
         if (!uuidRe.test(ref)) {
           loading.style.display = "none";
@@ -405,6 +443,15 @@
           var btn = document.getElementById("btnConfirm");
           btn.disabled = true;
           dlgStatus.style.display = "none";
+          var tema = (document.getElementById("fTema").value || "").trim();
+          var mensajeB = (document.getElementById("fMensaje").value || "").trim();
+          if (!tema) {
+            dlgStatus.style.display = "block";
+            dlgStatus.style.color = "var(--danger-text,#b91c1c)";
+            dlgStatus.textContent = "Seleccione el tema de consulta.";
+            btn.disabled = false;
+            return;
+          }
           supabase
             .rpc("agendar_llamada_publica_v2", {
               p_invite: ref,
@@ -414,7 +461,10 @@
               p_apellido_paterno: n2,
               p_apellido_materno: n3,
               p_ciudad: ciudad,
-              p_telefono: tel
+              p_telefono: tel,
+              p_tema: tema,
+              p_mensaje_breve: mensajeB === "" ? null : mensajeB,
+              p_origen_codigo: srcValido === "" ? null : srcValido
             })
             .then(function (res) {
               btn.disabled = false;
@@ -443,7 +493,9 @@
                   anticipacion_insuficiente:
                     "Debe elegir un horario con al menos " + minHoursAdvance + " horas de anticipación. Seleccione una franja más adelante.",
                   invite_invalida: "El enlace ya no es válido. Solicite uno nuevo a su asesor.",
-                  invite_requerida: "Falta el enlace de invitación."
+                  invite_requerida: "Falta el enlace de invitación.",
+                  tema_invalido: "Seleccione un tema de consulta válido.",
+                  origen_invalido: "El enlace de origen no es válido. Use el enlace completo proporcionado por su asesor."
                 };
                 dlgStatus.textContent = map[code] || "No se pudo completar la reserva.";
                 return;

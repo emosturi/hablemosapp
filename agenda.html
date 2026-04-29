@@ -779,6 +779,11 @@
                   <button type="button" class="btn-use" id="btnCopy" disabled>Copiar</button>
                 </div>
                 <p id="statusMsg" class="msg"></p>
+                <p class="hint" style="margin: 0 0 12px;">
+                  Para estadísticas puede añadir al enlace el parámetro <code style="font-size:11px;background:var(--surface);padding:2px 6px;border-radius:4px">&amp;src=…</code>
+                  (<code>códigos permitidos:</code>
+                  ig, fb, li, wa, tg, tt, yt, mail, buscoasesor, referido, web). Los botones de compartir de abajo incluyen uno adecuado.
+                </p>
                 <div class="share-block">
                   <p>Compartir:</p>
                   <div class="share-grid" id="shareGrid">
@@ -1735,14 +1740,25 @@
           }
           function asuntoCorreo() { return "Agendar llamada"; }
 
+          function urlConCodigoOrigen(enlaceBase, cod) {
+            try {
+              var u = new URL(enlaceBase);
+              u.searchParams.set("src", cod);
+              return u.href;
+            } catch (e) {
+              return enlaceBase;
+            }
+          }
+
           function actualizarHrefCompartir(enlace) {
             var ok = !!(enlace && enlace.trim());
-            var t = ok ? textoCompartir(enlace.trim()) : "";
-            var encT = encodeURIComponent(t);
-            var encU = encodeURIComponent(ok ? enlace.trim() : "");
-            shareWa.href = ok ? "https://wa.me/?text=" + encT : "#";
-            shareTg.href = ok ? "https://t.me/share/url?url=" + encU + "&text=" + encodeURIComponent("Agenda tu llamada aquí:") : "#";
-            shareMail.href = ok ? "mailto:?subject=" + encodeURIComponent(asuntoCorreo()) + "&body=" + encT : "#";
+            var trimmed = ok ? enlace.trim() : "";
+            var waU = ok ? urlConCodigoOrigen(trimmed, "wa") : "";
+            var tgU = ok ? urlConCodigoOrigen(trimmed, "tg") : "";
+            var mailU = ok ? urlConCodigoOrigen(trimmed, "mail") : "";
+            shareWa.href = ok ? "https://wa.me/?text=" + encodeURIComponent(textoCompartir(waU)) : "#";
+            shareTg.href = ok ? "https://t.me/share/url?url=" + encodeURIComponent(tgU) + "&text=" + encodeURIComponent("Agenda tu llamada aquí:") : "#";
+            shareMail.href = ok ? "mailto:?subject=" + encodeURIComponent(asuntoCorreo()) + "&body=" + encodeURIComponent(textoCompartir(mailU)) : "#";
             [shareWa, shareTg].forEach(function (el) {
               if (el) {
                 el.style.pointerEvents = ok ? "" : "none";
