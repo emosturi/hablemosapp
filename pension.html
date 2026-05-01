@@ -1657,12 +1657,12 @@
         return `<tr><td>Nombre Institución APVC:</td><td class="col-respuesta"><span style="white-space:nowrap">${inst}</span></td></tr>\n<tr><td>Porcentaje de APVC a traspasar:</td><td class="col-respuesta"><span style="white-space:nowrap">${pct}</span></td></tr>\n`;
       }
 
-      /** AV = Ahorro Voluntario (cuenta 2), ya en AFP: solo porcentaje (no confundir con APV). */
+      /** Cuenta de Ahorro Voluntario (CAV/cuenta 2), fondos ya en AFP: solo porcentaje (distinto de APV). */
       function htmlFilasDetalleAvMandato(antecedentes) {
         const a = antecedentes || {};
         if (a.traspasareCtaAhorroVoluntario !== "Sí") return "";
         const pct = a.avPorcentajeTraspaso != null && String(a.avPorcentajeTraspaso).trim() !== "" ? String(a.avPorcentajeTraspaso) : "";
-        return `<tr><td>Porcentaje AV (Cuenta 2) a destinar:</td><td class="col-respuesta"><span style="white-space:nowrap">${pct}%</span></td></tr>\n`;
+        return `<tr><td>Porcentaje a destinar — Cuenta de Ahorro Voluntario (CAV o cuenta 2):</td><td class="col-respuesta"><span style="white-space:nowrap">${pct}%</span></td></tr>\n`;
       }
 
       const MESES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
@@ -2098,7 +2098,7 @@
           }
           if (key === "traspasareCtaAhorroVoluntario" && antecedentes.traspasareCtaAhorroVoluntario === "Sí") {
             var avPct = antecedentes.avPorcentajeTraspaso != null && String(antecedentes.avPorcentajeTraspaso).trim() !== "" ? String(antecedentes.avPorcentajeTraspaso) : "";
-            rowsAnt.push({ label: "Porcentaje AV (Cuenta 2) a destinar:", valor: avPct + "%" });
+            rowsAnt.push({ label: "Porcentaje a destinar — Cuenta de Ahorro Voluntario (CAV o cuenta 2):", valor: avPct + "%" });
           }
         });
         content.push(pmTablaSiNo(rowsAnt));
@@ -2196,7 +2196,7 @@
             }
             if (it.key === "traspasareCtaAhorroVoluntario") {
               var avPctC = antecedentes.avPorcentajeTraspaso != null && String(antecedentes.avPorcentajeTraspaso).trim() !== "" ? String(antecedentes.avPorcentajeTraspaso) : "";
-              rowsAnt.push({ label: "Porcentaje AV (Cuenta 2) a destinar:", valor: avPctC + "%" });
+              rowsAnt.push({ label: "Porcentaje a destinar — Cuenta de Ahorro Voluntario (CAV o cuenta 2):", valor: avPctC + "%" });
             }
           }
         });
@@ -5367,14 +5367,14 @@
             if (!/^\d+$/.test(pctRaw)) {
               ok = false;
               if (pctSel) pctSel.setAttribute("aria-invalid", "true");
-              setError(form, errKey, "Porcentaje AV (Cuenta 2): ingresa un entero entre 0 y 100.");
+              setError(form, errKey, "Cuenta de Ahorro Voluntario (CAV o cuenta 2): ingresa un entero entre 0 y 100.");
               return false;
             }
             const pctNum = parseInt(pctRaw, 10);
             if (pctNum < 0 || pctNum > 100) {
               ok = false;
               if (pctSel) pctSel.setAttribute("aria-invalid", "true");
-              setError(form, errKey, "Porcentaje AV (Cuenta 2): entre 0 y 100.");
+              setError(form, errKey, "Cuenta de Ahorro Voluntario (CAV o cuenta 2): el porcentaje debe estar entre 0 y 100.");
               return false;
             }
             return true;
@@ -6005,13 +6005,13 @@
           if (!avRow) return;
           const avBlock = el("div", { class: "field col-12", id: "bloqueDetalleAv" }, [
             el("p", { style: "font-size:13px;color:var(--muted);margin:0 0 10px;line-height:1.45" }, [
-              "AV (Ahorro Voluntario, cuenta 2): fondos ya en la AFP; indica solo el porcentaje a destinar. ",
+              "Cuenta de Ahorro Voluntario (CAV o cuenta 2): fondos ya depositados en la AFP; solo indica el porcentaje a destinar. ",
               el("strong", {}, "No confundir con APV"),
               " (Ahorro Previsional Voluntario).",
             ]),
             el("div", { class: "grid", style: "margin-top:0.35rem" }, [
-              el("div", { class: "field col-4" }, [
-                el("label", { for: "antecedentes_av_pct" }, "Porcentaje AV a destinar (%)"),
+              el("div", { class: "field col-12" }, [
+                el("label", { for: "antecedentes_av_pct" }, "Porcentaje (%) — Cuenta de Ahorro Voluntario (CAV o cuenta 2)"),
                 el("input", {
                   type: "number",
                   id: "antecedentes_av_pct",
