@@ -280,6 +280,37 @@
           </p>
         </div>
         <form id="clienteForm" novalidate>
+          <div class="section" id="sectionSolicitudTipo" aria-labelledby="solicitudTipoTitle">
+            <div class="section-title">
+              <h2 id="solicitudTipoTitle">Tipo de pensión</h2>
+              <span class="hint">Obligatorio. Se reutiliza en el formulario de solicitud de pensión (mandato) en la plataforma.</span>
+            </div>
+            <div class="grid">
+              <div class="field col-12">
+                <label>Tipo de Pensión <span class="req">*</span></label>
+                <div class="radio-row" role="group" aria-label="Tipo de Pensión">
+                  <label class="radio-pill">
+                    <input type="radio" name="solicitud.tipoPension" value="Pensión de Vejez por edad" required />
+                    Pensión de Vejez por edad
+                  </label>
+                  <label class="radio-pill">
+                    <input type="radio" name="solicitud.tipoPension" value="Pensión de Vejez anticipada" required />
+                    Pensión de Vejez anticipada
+                  </label>
+                  <label class="radio-pill">
+                    <input type="radio" name="solicitud.tipoPension" value="Pensión de invalidez" required />
+                    Pensión de invalidez
+                  </label>
+                  <label class="radio-pill">
+                    <input type="radio" name="solicitud.tipoPension" value="Pensión de sobrevivencia" required />
+                    Pensión de sobrevivencia
+                  </label>
+                </div>
+                <div class="error" data-error-for="solicitud.tipoPension"></div>
+              </div>
+            </div>
+          </div>
+
           <!-- Datos del cliente -->
           <div class="section" aria-labelledby="clienteTitle">
             <div class="section-title">
@@ -524,56 +555,6 @@
           <p class="hint" style="margin: 0 0 14px">
             Datos de <strong>empleador</strong> y <strong>cuenta bancaria</strong> se completan en la solicitud de pensión (formulario de mandato).
           </p>
-
-          <!-- Solicitud de pensión (oculta en registro de afiliados) -->
-          <div class="section section-hidden collapsible collapsed" id="sectionSolicitud" aria-labelledby="solicitudTitle">
-            <div class="section-title" role="button" tabindex="0" aria-expanded="false">
-              <span class="toggle-icon" aria-hidden="true">▼</span>
-              <h2 id="solicitudTitle">Solicitud de pensión</h2>
-              <span class="hint">Estos datos se guardan, pero aquí no se generan mandatos</span>
-            </div>
-            <div class="section-body">
-            <div class="grid">
-              <div class="field col-12">
-                <label>Tipo de Pensión</label>
-                <div class="radio-row" role="group" aria-label="Tipo de Pensión">
-                  <label class="radio-pill">
-                    <input type="radio" name="solicitud.tipoPension" value="Pensión de Vejez por edad" />
-                    Pensión de Vejez por edad
-                  </label>
-                  <label class="radio-pill">
-                    <input type="radio" name="solicitud.tipoPension" value="Pensión de Vejez anticipada" />
-                    Pensión de Vejez anticipada
-                  </label>
-                  <label class="radio-pill">
-                    <input type="radio" name="solicitud.tipoPension" value="Pensión de invalidez" />
-                    Pensión de invalidez
-                  </label>
-                  <label class="radio-pill">
-                    <input type="radio" name="solicitud.tipoPension" value="Pensión de sobrevivencia" />
-                    Pensión de sobrevivencia
-                  </label>
-                </div>
-                <div class="error" data-error-for="solicitud.tipoPension"></div>
-              </div>
-
-              <div class="field col-12">
-                <label>Es un trámite de cambio de modalidad?</label>
-                <div class="radio-row" role="group" aria-label="Trámite de cambio de modalidad">
-                  <label class="radio-pill">
-                    <input type="radio" name="solicitud.cambioModalidadTramite" value="Sí" />
-                    Sí
-                  </label>
-                  <label class="radio-pill">
-                    <input type="radio" name="solicitud.cambioModalidadTramite" value="No" />
-                    No
-                  </label>
-                </div>
-                <div class="error" data-error-for="solicitud.cambioModalidadTramite"></div>
-              </div>
-            </div>
-            </div>
-          </div>
 
           <div class="section section-hidden collapsible collapsed" id="sectionAntecedentes" aria-labelledby="antecedentesTitle">
             <div class="section-title" role="button" tabindex="0" aria-expanded="false">
@@ -1185,6 +1166,13 @@
         var data = formDataToObject(form);
         var c = data.cliente || {};
         var solicitud = data.solicitud || {};
+        if (!(solicitud.tipoPension || "").trim()) {
+          setError(form, "solicitud.tipoPension", "Seleccione el tipo de pensión.");
+          var secTipo = document.getElementById("sectionSolicitudTipo");
+          if (secTipo) secTipo.scrollIntoView({ behavior: "smooth", block: "start" });
+          return;
+        }
+
         var antecedentes = data.antecedentes || {};
         var autorizaciones = data.autorizaciones || {};
         var certificados = data.certificados || {};
@@ -1337,9 +1325,6 @@
 
         // Secciones del formulario de solicitud de pensión (sin mandatario)
         row.solicitud_tipo_pension = (solicitud.tipoPension || "").trim() || null;
-        row.solicitud_cambio_modalidad_tramite = (solicitud.cambioModalidadTramite || "").trim()
-          ? ((solicitud.cambioModalidadTramite || "").trim() === "Sí")
-          : null;
 
         row.solicitud_numero_beneficiarios = inferNumeroBeneficiarios();
         // Armar solicitud_beneficiarios desde cónyuge e hijos (misma estructura que en el formulario de pensión)
@@ -1427,8 +1412,41 @@
         var notifyOwnerUserId = null;
         var notifyInviteToken = null;
 
-        function afterSaveOk() {
-          setStatus("Cliente guardado correctamente.");
+        function afterSaveOk(savedClienteId, options) {
+          options = options || {};
+          var st = document.getElementById("status");
+          if (st) {
+            st.innerHTML = "";
+            var span = document.createElement("span");
+            span.textContent = "Cliente guardado correctamente.";
+            st.appendChild(span);
+            if (savedClienteId && options.isAdvisor) {
+              st.appendChild(document.createTextNode(" "));
+              var a = document.createElement("a");
+              a.href = "pension.html?cliente=" + encodeURIComponent(savedClienteId);
+              a.textContent = "Abrir formulario de pensión";
+              st.appendChild(a);
+              var hint = document.createElement("small");
+              hint.style.display = "block";
+              hint.style.marginTop = "8px";
+              hint.style.color = "var(--muted)";
+              hint.style.lineHeight = "1.4";
+              hint.textContent =
+                "En el formulario de pensión el tipo de pensión y cambio de modalidad se cargarán desde este registro.";
+              st.appendChild(hint);
+            } else if (savedClienteId && !options.isAdvisor) {
+              var hintPu = document.createElement("small");
+              hintPu.style.display = "block";
+              hintPu.style.marginTop = "8px";
+              hintPu.style.color = "var(--muted)";
+              hintPu.style.lineHeight = "1.4";
+              hintPu.textContent =
+                "El tipo de pensión y sus datos quedaron guardados. Su asesor podrá completar la solicitud de pensión en la plataforma.";
+              st.appendChild(hintPu);
+            }
+          } else {
+            setStatus("Cliente guardado correctamente.");
+          }
           form.reset();
           if (hiddenFecha) hiddenFecha.value = "";
           if (numHijosSel) numHijosSel.value = "1";
@@ -1469,13 +1487,16 @@
           supabase
             .from("clientes")
             .upsert(row, { onConflict: "user_id,rut" })
+            .select("id")
+            .maybeSingle()
             .then(function (result) {
               if (result.error) {
                 setStatus("");
                 setError(form, "cliente_rut", result.error.message || "Error al guardar.");
                 return;
               }
-              afterSaveOk();
+              var cid = result.data && result.data.id ? result.data.id : null;
+              afterSaveOk(cid, { isAdvisor: true });
             })
             .catch(function (err) {
               setStatus("");
@@ -1524,6 +1545,12 @@
                 setError(form, "cliente_rut", msg);
                 return;
               }
+              var savedId =
+                typeof result.data === "string"
+                  ? result.data
+                  : result.data != null && String(result.data)
+                    ? String(result.data)
+                    : null;
               resolveAuthAdvisorUser().then(function (uNotify) {
                 if (uNotify) {
                   notifyOwnerUserId = uNotify.id;
@@ -1533,7 +1560,7 @@
                   notifyOwnerUserId = null;
                   notifyInviteToken = refToken.trim();
                 }
-                afterSaveOk();
+                afterSaveOk(savedId, { isAdvisor: !!uNotify });
               });
             })
             .catch(function (err) {
