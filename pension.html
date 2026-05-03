@@ -7421,7 +7421,7 @@
                         nombres: c.conyuge_nombres || (bbCony && bbCony.nombres) || "",
                         apellidoPaterno: c.conyuge_apellido_paterno || (bbCony && (bbCony.apellido_paterno || bbCony.apellidoPaterno)) || "",
                         apellidoMaterno: c.conyuge_apellido_materno || (bbCony && (bbCony.apellido_materno || bbCony.apellidoMaterno)) || "",
-                        nacionalidad: c.conyuge_nacionalidad || "",
+                        nacionalidad: (c.conyuge_nacionalidad || (bbCony && bbCony.nacionalidad) || "").trim(),
                         rut: c.conyuge_rut || (bbCony && bbCony.rut) || "",
                         sexo: c.conyuge_sexo || (bbCony && bbCony.sexo) || "",
                         fechaNacimiento: fechaConyuge,

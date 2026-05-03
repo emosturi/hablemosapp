@@ -283,7 +283,7 @@
           <div class="section" id="sectionSolicitudTipo" aria-labelledby="solicitudTipoTitle">
             <div class="section-title">
               <h2 id="solicitudTipoTitle">Tipo de pensión</h2>
-              <span class="hint">Obligatorio. Para <strong>sobrevivencia</strong> aparecerá además la sección <strong>Causante</strong>; el resto del formulario es del beneficiario que declara.</span>
+              <span class="hint">Obligatorio. En <strong>pensión de sobrevivencia</strong>, el primer bloque son datos del <strong>causante</strong> (fallecido); luego grupo familiar del causante; después elige quién declara y sus datos de contacto.</span>
             </div>
             <div class="grid">
               <div class="field col-12">
@@ -311,83 +311,11 @@
             </div>
           </div>
 
-          <div class="section section-hidden" id="sectionCausante" aria-labelledby="causanteTitle">
-            <div class="section-title">
-              <h2 id="causanteTitle">Causante (persona fallecida)</h2>
-              <span class="hint">Datos de quien genera el derecho a pensión de sobrevivencia. El resto del formulario corresponde al <strong>beneficiario a cargo</strong> que declara y firma.</span>
-            </div>
-            <div class="grid">
-              <div class="field col-4">
-                <label for="causante_nombres">Nombres <span class="req">*</span></label>
-                <input id="causante_nombres" name="causante.nombres" data-causante-req="" />
-                <div class="error" data-error-for="causante_nombres"></div>
-              </div>
-              <div class="field col-4">
-                <label for="causante_apPaterno">Apellido paterno <span class="req">*</span></label>
-                <input id="causante_apPaterno" name="causante.apellidoPaterno" data-causante-req="" />
-                <div class="error" data-error-for="causante_apPaterno"></div>
-              </div>
-              <div class="field col-4">
-                <label for="causante_apMaterno">Apellido materno <span class="req">*</span></label>
-                <input id="causante_apMaterno" name="causante.apellidoMaterno" data-causante-req="" />
-                <div class="error" data-error-for="causante_apMaterno"></div>
-              </div>
-              <div class="field col-4">
-                <label for="causante_rut">RUT <span class="req">*</span></label>
-                <input id="causante_rut" name="causante.rut" class="rut-input" inputmode="text" autocomplete="off" placeholder="12.345.678-5" data-causante-req="" />
-                <div class="error" data-error-for="causante_rut"></div>
-              </div>
-              <div class="field col-4">
-                <label for="causante_nacionalidad">Nacionalidad <span class="req">*</span></label>
-                <input id="causante_nacionalidad" name="causante.nacionalidad" autocomplete="country-name" placeholder="Ej. Chilena" data-causante-req="" />
-                <div class="error" data-error-for="causante_nacionalidad"></div>
-              </div>
-              <div class="field col-4">
-                <label>Sexo <span class="req">*</span></label>
-                <div class="radio-row" role="group" aria-label="Sexo causante">
-                  <label class="radio-pill">
-                    <input type="radio" name="causante.sexo" value="Masculino" data-causante-radio="" />
-                    Masculino
-                  </label>
-                  <label class="radio-pill">
-                    <input type="radio" name="causante.sexo" value="Femenino" data-causante-radio="" />
-                    Femenino
-                  </label>
-                </div>
-                <div class="error" data-error-for="causante.sexo"></div>
-              </div>
-              <div class="field col-4">
-                <label for="causante_fechaNac">Fecha de nacimiento <span class="req">*</span></label>
-                <div class="date-group">
-                  <select id="causante_fechaNac_dia"><option value="" selected disabled>Día</option></select>
-                  <select id="causante_fechaNac_mes"><option value="" selected disabled>Mes</option></select>
-                  <select id="causante_fechaNac_anio"><option value="" selected disabled>Año</option></select>
-                </div>
-                <input type="hidden" id="causante_fechaNac" name="causante.fechaNacimiento" />
-                <div class="error" data-error-for="causante_fechaNac"></div>
-              </div>
-              <div class="field col-4">
-                <label for="causante_fechaDef">Fecha de defunción <span class="req">*</span></label>
-                <div class="date-group">
-                  <select id="causante_fechaDef_dia"><option value="" selected disabled>Día</option></select>
-                  <select id="causante_fechaDef_mes"><option value="" selected disabled>Mes</option></select>
-                  <select id="causante_fechaDef_anio"><option value="" selected disabled>Año</option></select>
-                </div>
-                <input type="hidden" id="causante_fechaDef" name="causante.fechaDefuncion" />
-                <div class="error" data-error-for="causante_fechaDef"></div>
-              </div>
-              <div class="field col-4">
-                <label for="causante_afp">AFP afiliación del causante <span class="req">*</span></label>
-                <input id="causante_afp" name="causante.afp" placeholder="Ej. Capital" data-causante-req="" />
-                <div class="error" data-error-for="causante_afp"></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Datos del cliente -->
-          <div class="section" aria-labelledby="clienteTitle">
+          <!-- Datos del cliente (en sobrevivencia: datos del causante / fallecido) -->
+          <div class="section" id="sectionDatosCliente" aria-labelledby="clienteTitle">
             <div class="section-title">
               <h2 id="clienteTitle">Datos del cliente</h2>
+              <span class="hint" id="hintDatosPersona"></span>
             </div>
             <div class="grid">
               <div class="field col-4">
@@ -438,6 +366,16 @@
                   <input type="hidden" id="cliente_fechaNac" name="cliente.fechaNacimiento" required />
                 </div>
                 <div class="error" data-error-for="cliente_fechaNac"></div>
+              </div>
+              <div class="field col-12 section-hidden" id="bloqueFechaDefuncionCausante">
+                <label for="causante_fechaDef">Fecha de defunción del causante <span class="req">*</span></label>
+                <div class="date-group">
+                  <select id="causante_fechaDef_dia"><option value="" selected disabled>Día</option></select>
+                  <select id="causante_fechaDef_mes"><option value="" selected disabled>Mes</option></select>
+                  <select id="causante_fechaDef_anio"><option value="" selected disabled>Año</option></select>
+                </div>
+                <input type="hidden" id="causante_fechaDef" name="causante.fechaDefuncion" />
+                <div class="error" data-error-for="causante_fechaDef"></div>
               </div>
               <div class="field col-4">
                 <label for="cliente_estadoCivil">Estado civil <span class="req">*</span></label>
@@ -517,6 +455,7 @@
           <div class="section section-hidden" id="sectionConyuge" aria-labelledby="conyugeTitle">
             <div class="section-title">
               <h2 id="conyugeTitle">Datos del cónyuge / conviviente civil</h2>
+              <span class="hint" id="hintConyugePersona"></span>
             </div>
             <div class="grid">
               <div class="field col-4">
@@ -622,6 +561,66 @@
                 <div class="error" data-error-for="numHijos"></div>
               </div>
               <div id="hijosContainer"></div>
+            </div>
+          </div>
+
+          <div class="section section-hidden" id="sectionDeclaranteSobrev" aria-labelledby="declaranteSobrevTitle">
+            <div class="section-title">
+              <h2 id="declaranteSobrevTitle">Beneficiario que declara</h2>
+              <span class="hint">Seleccione quién de su grupo familiar está completando este formulario. El registro quedará a nombre de esa persona (RUT y nombres según lo indicado arriba en cónyuge o hijos/as).</span>
+            </div>
+            <div id="declaranteRadiosWrap" class="grid" style="margin-top: 8px"></div>
+            <div class="error" data-error-for="declaranteSobrev"></div>
+          </div>
+
+          <div class="section section-hidden" id="sectionContactoDeclarante" aria-labelledby="contactoDeclaranteTitle">
+            <div class="section-title">
+              <h2 id="contactoDeclaranteTitle">Datos del declarante</h2>
+              <span class="hint">Estado civil, domicilio y contacto de quien declara (pueden diferir del causante).</span>
+            </div>
+            <div class="grid">
+              <div class="field col-4">
+                <label for="declarante_estadoCivil">Estado civil del declarante <span class="req">*</span></label>
+                <select id="declarante_estadoCivil" name="declarante.estadoCivil">
+                  <option value="" selected disabled>Selecciona…</option>
+                  <option value="Soltero/a">Soltero/a</option>
+                  <option value="Casado/a">Casado/a</option>
+                  <option value="Conviviente civil">Conviviente civil</option>
+                  <option value="Divorciado/a">Divorciado/a</option>
+                  <option value="Viudo/a">Viudo/a</option>
+                </select>
+                <div class="error" data-error-for="declarante_estadoCivil"></div>
+              </div>
+              <div class="field col-6">
+                <label for="declarante_domicilio">Dirección <span class="req">*</span></label>
+                <textarea id="declarante_domicilio" name="declarante.domicilio"></textarea>
+                <div class="error" data-error-for="declarante_domicilio"></div>
+              </div>
+              <div class="field col-3">
+                <label for="declarante_comuna">Comuna <span class="req">*</span></label>
+                <input id="declarante_comuna" name="declarante.comuna" />
+                <div class="error" data-error-for="declarante_comuna"></div>
+              </div>
+              <div class="field col-3">
+                <label for="declarante_ciudad">Ciudad <span class="req">*</span></label>
+                <input id="declarante_ciudad" name="declarante.ciudad" />
+                <div class="error" data-error-for="declarante_ciudad"></div>
+              </div>
+              <div class="field col-4">
+                <label for="declarante_profesion">Profesión u ocupación <span class="req">*</span></label>
+                <input id="declarante_profesion" name="declarante.profesionUOficio" />
+                <div class="error" data-error-for="declarante_profesion"></div>
+              </div>
+              <div class="field col-4">
+                <label for="declarante_telefono">Teléfono <span class="req">*</span></label>
+                <input id="declarante_telefono" name="declarante.telefono" inputmode="tel" autocomplete="tel" placeholder="+56 9 1234 5678" />
+                <div class="error" data-error-for="declarante_telefono"></div>
+              </div>
+              <div class="field col-4">
+                <label for="declarante_email">Email</label>
+                <input id="declarante_email" name="declarante.email" inputmode="email" autocomplete="email" />
+                <div class="error" data-error-for="declarante_email"></div>
+              </div>
             </div>
           </div>
 
@@ -888,10 +887,6 @@
       var sectionHijosBloque = document.getElementById("sectionHijosBloque");
       var numHijosSel = document.getElementById("numHijos");
       var hijosContainer = document.getElementById("hijosContainer");
-      var causaDiaSel = document.getElementById("causante_fechaNac_dia");
-      var causaMesSel = document.getElementById("causante_fechaNac_mes");
-      var causaAnioSel = document.getElementById("causante_fechaNac_anio");
-      var causaHiddenNac = document.getElementById("causante_fechaNac");
       var causaDefDiaSel = document.getElementById("causante_fechaDef_dia");
       var causaDefMesSel = document.getElementById("causante_fechaDef_mes");
       var causaDefAnioSel = document.getElementById("causante_fechaDef_anio");
@@ -998,9 +993,6 @@
       });
 
       llenarSelectFecha(diaSel, mesSel, anioSel, 1900);
-      if (causaDiaSel && causaMesSel && causaAnioSel) {
-        llenarSelectFecha(causaDiaSel, causaMesSel, causaAnioSel, 1900);
-      }
       if (causaDefDiaSel && causaDefMesSel && causaDefAnioSel) {
         llenarSelectFecha(causaDefDiaSel, causaDefMesSel, causaDefAnioSel, 1900, new Date().getFullYear());
       }
@@ -1009,28 +1001,107 @@
         var r = form.querySelector('input[name="solicitud.tipoPension"]:checked');
         return !!(r && r.value === "Pensión de sobrevivencia");
       }
+      function syncDeclaranteContactRequired(on) {
+        var idsReq = [
+          "declarante_estadoCivil",
+          "declarante_domicilio",
+          "declarante_comuna",
+          "declarante_ciudad",
+          "declarante_profesion",
+          "declarante_telefono",
+        ];
+        idsReq.forEach(function (id) {
+          var el = document.getElementById(id);
+          if (!el) return;
+          if (on) el.setAttribute("required", "required");
+          else el.removeAttribute("required");
+        });
+      }
+
+      function refreshDeclaranteSobrevRadios() {
+        var wrap = document.getElementById("declaranteRadiosWrap");
+        if (!wrap) return;
+        wrap.innerHTML = "";
+        if (!esSobrevivenciaClientes()) return;
+        var opts = [];
+        if (sectionConyuge && !sectionConyuge.classList.contains("section-hidden")) {
+          var dCo = formDataToObject(form).conyuge || {};
+          var nomC = [dCo.nombres, dCo.apellidoPaterno, dCo.apellidoMaterno].filter(Boolean).join(" ").trim();
+          opts.push({
+            label: (nomC ? nomC + " — " : "") + "Cónyuge o conviviente civil del causante",
+          });
+        }
+        var siH = form.querySelector("input[name='tieneHijosMenores24']:checked");
+        var tieneH = siH && siH.value === "Sí";
+        if (tieneH && numHijosSel && hijosContainer) {
+          var nh = parseInt(numHijosSel.value || "0", 10);
+          for (var hi = 0; hi < nh; hi++) {
+            var inN = form.querySelector("input[name='hijo_" + hi + "_nombres']");
+            var nomH = inN && inN.value ? String(inN.value).trim() : "";
+            opts.push({
+              label: (nomH ? nomH + " — " : "") + "Hijo/a " + (hi + 1) + " del causante (menor de 24)",
+            });
+          }
+        }
+        if (!opts.length) {
+          wrap.innerHTML =
+            '<p class="hint" style="margin:0">Indique el cónyuge o conviviente del causante o al menos un hijo/a menor de 24 años para poder elegir quién declara.</p>';
+          return;
+        }
+        opts.forEach(function (o, k) {
+          var id = "declaranteSobrev_idx_" + k;
+          var lab = document.createElement("label");
+          lab.className = "radio-pill";
+          lab.style.gridColumn = "1 / -1";
+          var inp = document.createElement("input");
+          inp.type = "radio";
+          inp.name = "declaranteSobrevIdx";
+          inp.value = String(k);
+          inp.id = id;
+          inp.required = true;
+          if (opts.length === 1) inp.checked = true;
+          lab.appendChild(inp);
+          lab.appendChild(document.createTextNode(" " + o.label));
+          wrap.appendChild(lab);
+        });
+      }
+
       function syncTipoPensionSobrevivenciaUi() {
-        var sec = document.getElementById("sectionCausante");
         var show = esSobrevivenciaClientes();
-        if (sec) sec.classList.toggle("section-hidden", !show);
+        var bloqueDef = document.getElementById("bloqueFechaDefuncionCausante");
+        if (bloqueDef) bloqueDef.classList.toggle("section-hidden", !show);
         var tit = document.getElementById("clienteTitle");
-        if (tit) tit.textContent = show ? "Beneficiario a cargo (declara y firma)" : "Datos del cliente";
-        form.querySelectorAll("[data-causante-req]").forEach(function (el) {
-          if (show) el.setAttribute("required", "required");
-          else el.removeAttribute("required");
-        });
-        form.querySelectorAll("[data-causante-radio]").forEach(function (el) {
-          if (show) el.setAttribute("required", "required");
-          else el.removeAttribute("required");
-        });
-        if (causaHiddenNac) {
-          if (show) causaHiddenNac.setAttribute("required", "required");
-          else causaHiddenNac.removeAttribute("required");
+        if (tit) tit.textContent = show ? "Datos del causante (persona fallecida)" : "Datos del cliente";
+        var hint = document.getElementById("hintDatosPersona");
+        if (hint) {
+          hint.textContent = show
+            ? "Complete los mismos datos que en un registro ordinario de afiliado, pero correspondientes al fallecido (causante). Más abajo indicará grupo familiar y quién declara."
+            : "";
+        }
+        var hCon = document.getElementById("hintConyugePersona");
+        if (hCon) {
+          hCon.textContent = show ? "Datos del cónyuge o conviviente civil del causante (no del declarante)." : "";
+        }
+        var hijTit = document.getElementById("hijosTitle");
+        if (hijTit) {
+          hijTit.textContent = show ? "¿El causante tiene hijos/as menores de 24 años?" : "¿Tiene hijos menores de 24 años?";
         }
         if (causaHiddenDef) {
           if (show) causaHiddenDef.setAttribute("required", "required");
           else causaHiddenDef.removeAttribute("required");
         }
+        var secD = document.getElementById("sectionDeclaranteSobrev");
+        var secC = document.getElementById("sectionContactoDeclarante");
+        if (show) {
+          if (secD) secD.classList.remove("section-hidden");
+          if (secC) secC.classList.remove("section-hidden");
+          syncDeclaranteContactRequired(true);
+        } else {
+          if (secD) secD.classList.add("section-hidden");
+          if (secC) secC.classList.add("section-hidden");
+          syncDeclaranteContactRequired(false);
+        }
+        refreshDeclaranteSobrevRadios();
       }
       form.querySelectorAll('input[name="solicitud.tipoPension"]').forEach(function (r) {
         r.addEventListener("change", syncTipoPensionSobrevivenciaUi);
@@ -1053,15 +1124,6 @@
         anioSel.addEventListener("change", updateHidden);
       }
 
-      if (causaDiaSel && causaMesSel && causaAnioSel && causaHiddenNac) {
-        function updateCausaNacHidden() {
-          var d = causaDiaSel.value, m = causaMesSel.value, y = causaAnioSel.value;
-          causaHiddenNac.value = (d && m && y) ? d + "-" + m + "-" + y : "";
-        }
-        causaDiaSel.addEventListener("change", updateCausaNacHidden);
-        causaMesSel.addEventListener("change", updateCausaNacHidden);
-        causaAnioSel.addEventListener("change", updateCausaNacHidden);
-      }
       if (causaDefDiaSel && causaDefMesSel && causaDefAnioSel && causaHiddenDef) {
         function updateCausaDefHidden() {
           var d = causaDefDiaSel.value, m = causaDefMesSel.value, y = causaDefAnioSel.value;
@@ -1105,6 +1167,7 @@
             if (visible) r.setAttribute("required", "required");
             else r.removeAttribute("required");
           });
+          refreshDeclaranteSobrevRadios();
         }
         estadoCivilSel.addEventListener("change", toggleConyuge);
         toggleConyuge();
@@ -1123,9 +1186,21 @@
             if (typeof actualizarHijos === "function") actualizarHijos();
           }
         }
-        radiosHijos.forEach(function(r) { r.addEventListener("change", toggleHijos); });
+        radiosHijos.forEach(function(r) {
+          r.addEventListener("change", function () {
+            toggleHijos();
+            refreshDeclaranteSobrevRadios();
+          });
+        });
         toggleHijos();
       }
+
+      form.addEventListener("input", function (ev) {
+        if (!esSobrevivenciaClientes()) return;
+        var t = ev.target;
+        if (!t || !t.name) return;
+        if (t.name.indexOf("hijo_") === 0 || t.name.indexOf("conyuge.") === 0) refreshDeclaranteSobrevRadios();
+      });
 
       var conyugeDia = document.getElementById("conyuge_fechaNac_dia");
       var conyugeMes = document.getElementById("conyuge_fechaNac_mes");
@@ -1189,10 +1264,12 @@
         if (n < actual) {
           while (hijosContainer.children.length > n) hijosContainer.removeChild(hijosContainer.lastChild);
         }
+        refreshDeclaranteSobrevRadios();
       }
       if (numHijosSel && hijosContainer) {
         numHijosSel.addEventListener("change", function() {
           actualizarHijos();
+          refreshDeclaranteSobrevRadios();
         });
         actualizarHijos();
       }
@@ -1311,29 +1388,14 @@
           return;
         }
         if (esSobrevivenciaClientes()) {
-          var caRut = document.getElementById("causante_rut");
-          if (caRut) {
-            caRut.value = normalizeRut(String(caRut.value || "").trim());
-            if (!rutIsValid(caRut.value)) {
-              setError(form, "causante_rut", "RUT del causante inválido.");
-              var secC = document.getElementById("sectionCausante");
-              if (secC) secC.scrollIntoView({ behavior: "smooth", block: "start" });
-              return;
-            }
-          }
-          if (!causaHiddenNac || !causaHiddenNac.value || !/^\d{2}-\d{2}-\d{4}$/.test(causaHiddenNac.value)) {
-            setError(form, "causante_fechaNac", "Seleccione la fecha de nacimiento del causante.");
-            document.getElementById("sectionCausante").scrollIntoView({ behavior: "smooth", block: "start" });
-            return;
-          }
           if (!causaHiddenDef || !causaHiddenDef.value || !/^\d{2}-\d{2}-\d{4}$/.test(causaHiddenDef.value)) {
             setError(form, "causante_fechaDef", "Seleccione la fecha de defunción del causante.");
-            document.getElementById("sectionCausante").scrollIntoView({ behavior: "smooth", block: "start" });
+            var secDat = document.getElementById("sectionDatosCliente");
+            if (secDat) secDat.scrollIntoView({ behavior: "smooth", block: "start" });
             return;
           }
-          if (!form.querySelector('input[name="causante.sexo"]:checked')) {
-            setError(form, "causante.sexo", "Seleccione el sexo del causante.");
-            document.getElementById("sectionCausante").scrollIntoView({ behavior: "smooth", block: "start" });
+          if (!form.querySelector('input[name="cliente.sexo"]:checked')) {
+            setError(form, "cliente_sexo", "Seleccione el sexo del causante.");
             return;
           }
         }
@@ -1351,24 +1413,8 @@
           return;
         }
 
-        var row = {
-          rut: rutCanonico,
-          nombres: (c.nombres || "").trim() || null,
-          apellido_paterno: (c.apellidoPaterno || "").trim() || null,
-          apellido_materno: (c.apellidoMaterno || "").trim() || null,
-          fecha_nacimiento: fechaNac,
-          estado_civil: (c.estadoCivil || "").trim() || null,
-          domicilio: (c.domicilio || "").trim() || null,
-          comuna: (c.comuna || "").trim() || null,
-          ciudad: (c.ciudad || "").trim() || null,
-          profesion_oficio: (c.profesionUOficio || "").trim() || null,
-          telefono: (c.telefono || "").trim() || null,
-          email: (c.email || "").trim() || null,
-          afp: (c.afp || "").trim() || null,
-          institucion_salud: (c.institucionSalud || "").trim() || null,
-          nacionalidad: (c.nacionalidad || "").trim() || null,
-          sexo: (c.sexo || "").trim() || null
-        };
+        var esSob = esSobrevivenciaClientes();
+        var row = {};
 
         var co = data.conyuge || {};
         var showConyuge = sectionConyuge && !sectionConyuge.classList.contains("section-hidden");
@@ -1488,28 +1534,9 @@
         }
         row.hijos = hijosArr;
 
-        // Secciones del formulario de solicitud de pensión (sin mandatario)
         row.solicitud_tipo_pension = (solicitud.tipoPension || "").trim() || null;
 
-        if (esSobrevivenciaClientes()) {
-          var ca = data.causante || {};
-          row.causante = {
-            nombres: (ca.nombres || "").trim() || null,
-            apellido_paterno: (ca.apellidoPaterno || "").trim() || null,
-            apellido_materno: (ca.apellidoMaterno || "").trim() || null,
-            rut: rutToCanonical(ca.rut || "") || null,
-            nacionalidad: (ca.nacionalidad || "").trim() || null,
-            sexo: (ca.sexo || "").trim() || null,
-            fecha_nacimiento: causaHiddenNac ? toIsoDate(causaHiddenNac.value) : null,
-            fecha_defuncion: causaHiddenDef ? toIsoDate(causaHiddenDef.value) : null,
-            afp: (ca.afp || "").trim() || null
-          };
-        } else {
-          row.causante = null;
-        }
-
         row.solicitud_numero_beneficiarios = inferNumeroBeneficiarios();
-        // Armar solicitud_beneficiarios desde cónyuge e hijos (misma estructura que en el formulario de pensión)
         var solicitudBenef = [];
         if (showConyuge && (co.nombres || co.apellidoPaterno || co.apellidoMaterno || co.rut)) {
           var parentescoConyuge = (c.estadoCivil || "").toLowerCase().indexOf("conviviente") !== -1 ? "Conviviente civil" : "Cónyuge";
@@ -1521,6 +1548,7 @@
             fecha_nacimiento: toIsoDate(co.fechaNacimiento) || null,
             parentesco: parentescoConyuge,
             sexo: (co.sexo || "").trim() || null,
+            nacionalidad: (co.nacionalidad || "").trim() || null,
             fecha_matrimonio_union_civil: null,
             ciudad_matrimonio_union_civil: null,
             es_invalido: (co.esInvalido || "").trim() || null,
@@ -1536,6 +1564,7 @@
             fecha_nacimiento: h.fecha_nacimiento,
             parentesco: "Hijo/a",
             sexo: h.sexo,
+            nacionalidad: h.nacionalidad || null,
             fecha_matrimonio_union_civil: null,
             ciudad_matrimonio_union_civil: null,
             es_invalido: h.es_invalido || null,
@@ -1543,6 +1572,110 @@
             observaciones: null
           });
         });
+
+        var decData = data.declarante || {};
+        if (esSob) {
+          if (!solicitudBenef.length) {
+            setError(form, "declaranteSobrev", "En sobrevivencia debe indicar al menos un cónyuge o conviviente civil, o hijos menores de 24 años.");
+            var secFam = document.getElementById("sectionConyuge");
+            if (secFam) secFam.scrollIntoView({ behavior: "smooth", block: "start" });
+            return;
+          }
+          var decRad2 = form.querySelector('input[name="declaranteSobrevIdx"]:checked');
+          if (!decRad2) {
+            setError(form, "declaranteSobrev", "Seleccione quién es el beneficiario que declara.");
+            var secDec2 = document.getElementById("sectionDeclaranteSobrev");
+            if (secDec2) secDec2.scrollIntoView({ behavior: "smooth", block: "start" });
+            return;
+          }
+          if (!String(decData.estadoCivil || "").trim()) {
+            setError(form, "declarante_estadoCivil", "Indique el estado civil del declarante.");
+            return;
+          }
+          if (!String(decData.domicilio || "").trim()) {
+            setError(form, "declarante_domicilio", "Indique la dirección del declarante.");
+            return;
+          }
+          if (!String(decData.comuna || "").trim()) {
+            setError(form, "declarante_comuna", "Indique la comuna del declarante.");
+            return;
+          }
+          if (!String(decData.ciudad || "").trim()) {
+            setError(form, "declarante_ciudad", "Indique la ciudad del declarante.");
+            return;
+          }
+          if (!String(decData.profesionUOficio || "").trim()) {
+            setError(form, "declarante_profesion", "Indique la profesión u ocupación del declarante.");
+            return;
+          }
+          if (!String(decData.telefono || "").trim()) {
+            setError(form, "declarante_telefono", "Indique el teléfono del declarante.");
+            return;
+          }
+          var decIdx = parseInt(decRad2.value, 10);
+          if (isNaN(decIdx) || decIdx < 0 || decIdx >= solicitudBenef.length) {
+            setError(form, "declaranteSobrev", "Seleccione un beneficiario válido que declara.");
+            return;
+          }
+          var ben = solicitudBenef[decIdx];
+          for (var bj = 0; bj < solicitudBenef.length; bj++) {
+            solicitudBenef[bj].es_declarante = bj === decIdx;
+          }
+          row.rut = ben.rut;
+          row.nombres = ben.nombres;
+          row.apellido_paterno = ben.apellido_paterno;
+          row.apellido_materno = ben.apellido_materno;
+          row.fecha_nacimiento = ben.fecha_nacimiento;
+          row.nacionalidad = ben.nacionalidad || null;
+          row.sexo = ben.sexo || null;
+          row.estado_civil = (decData.estadoCivil || "").trim() || null;
+          row.domicilio = (decData.domicilio || "").trim() || null;
+          row.comuna = (decData.comuna || "").trim() || null;
+          row.ciudad = (decData.ciudad || "").trim() || null;
+          row.profesion_oficio = (decData.profesionUOficio || "").trim() || null;
+          row.telefono = (decData.telefono || "").trim() || null;
+          row.email = (decData.email || "").trim() || null;
+          row.afp = (c.afp || "").trim() || null;
+          row.institucion_salud = (c.institucionSalud || "").trim() || null;
+          row.causante = {
+            nombres: (c.nombres || "").trim() || null,
+            apellido_paterno: (c.apellidoPaterno || "").trim() || null,
+            apellido_materno: (c.apellidoMaterno || "").trim() || null,
+            rut: rutCanonico,
+            nacionalidad: (c.nacionalidad || "").trim() || null,
+            sexo: (c.sexo || "").trim() || null,
+            fecha_nacimiento: fechaNac,
+            fecha_defuncion: causaHiddenDef ? toIsoDate(causaHiddenDef.value) : null,
+            estado_civil: (c.estadoCivil || "").trim() || null,
+            domicilio: (c.domicilio || "").trim() || null,
+            comuna: (c.comuna || "").trim() || null,
+            ciudad: (c.ciudad || "").trim() || null,
+            profesion_oficio: (c.profesionUOficio || "").trim() || null,
+            telefono: (c.telefono || "").trim() || null,
+            email: (c.email || "").trim() || null,
+            afp: (c.afp || "").trim() || null,
+            institucion_salud: (c.institucionSalud || "").trim() || null
+          };
+        } else {
+          row.rut = rutCanonico;
+          row.nombres = (c.nombres || "").trim() || null;
+          row.apellido_paterno = (c.apellidoPaterno || "").trim() || null;
+          row.apellido_materno = (c.apellidoMaterno || "").trim() || null;
+          row.fecha_nacimiento = fechaNac;
+          row.estado_civil = (c.estadoCivil || "").trim() || null;
+          row.domicilio = (c.domicilio || "").trim() || null;
+          row.comuna = (c.comuna || "").trim() || null;
+          row.ciudad = (c.ciudad || "").trim() || null;
+          row.profesion_oficio = (c.profesionUOficio || "").trim() || null;
+          row.telefono = (c.telefono || "").trim() || null;
+          row.email = (c.email || "").trim() || null;
+          row.afp = (c.afp || "").trim() || null;
+          row.institucion_salud = (c.institucionSalud || "").trim() || null;
+          row.nacionalidad = (c.nacionalidad || "").trim() || null;
+          row.sexo = (c.sexo || "").trim() || null;
+          row.causante = null;
+        }
+
         row.solicitud_beneficiarios = solicitudBenef;
         if ((antecedentes.destinareApv || "").trim() === "Sí") {
           if (!String(antecedentes.apvNombreInstitucion || "").trim()) {
@@ -1637,6 +1770,7 @@
           if (sectionConyuge) sectionConyuge.classList.add("section-hidden");
           if (sectionHijosBloque) sectionHijosBloque.classList.add("section-hidden");
           if (typeof syncTipoPensionSobrevivenciaUi === "function") syncTipoPensionSobrevivenciaUi();
+          if (typeof refreshDeclaranteSobrevRadios === "function") refreshDeclaranteSobrevRadios();
 
           if (window.NOTIFY_FUNCTION_URL && window.NOTIFY_SECRET) {
             fetch(window.NOTIFY_FUNCTION_URL, {
@@ -1758,11 +1892,21 @@
         clearErrors(form);
         setStatus("");
         if (hiddenFecha) hiddenFecha.value = "";
+        if (causaHiddenDef) causaHiddenDef.value = "";
+        if (causaDefDiaSel) causaDefDiaSel.value = "";
+        if (causaDefMesSel) causaDefMesSel.value = "";
+        if (causaDefAnioSel) causaDefAnioSel.value = "";
         if (sectionConyuge) sectionConyuge.classList.add("section-hidden");
         if (sectionHijosBloque) sectionHijosBloque.classList.add("section-hidden");
         if (numHijosSel) numHijosSel.value = "1";
         hijosContainer.innerHTML = "";
         actualizarHijos();
+        if (typeof syncTipoPensionSobrevivenciaUi === "function") syncTipoPensionSobrevivenciaUi();
+        if (typeof refreshDeclaranteSobrevRadios === "function") refreshDeclaranteSobrevRadios();
+        if (estadoCivilSel) estadoCivilSel.dispatchEvent(new Event("change", { bubbles: true }));
+        radiosHijos.forEach(function (rh) {
+          if (rh.checked) rh.dispatchEvent(new Event("change", { bubbles: true }));
+        });
       });
     </script>
   </body>
