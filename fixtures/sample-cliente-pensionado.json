@@ -1,0 +1,136 @@
+{
+  "_nota": "Datos ficticios para pruebas. Misma forma que una fila real de public.clientes. solicitud_antecedentes.poseeBonoReconocimiento conserva la clave técnica; en la app corresponde a «¿tuvo cotizaciones en el antiguo sistema previsional?».",
+  "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "user_id": "00000000-0000-4000-8000-000000000001",
+  "rut": "12.345.678-9",
+  "nacionalidad": "Chilena",
+  "sexo": "Femenino",
+  "nombres": "María Ignacia",
+  "apellido_paterno": "Pérez",
+  "apellido_materno": "López",
+  "domicilio": "Calle Ejemplo 123, Depto. 45",
+  "comuna": "Las Condes",
+  "ciudad": "Santiago",
+  "fecha_nacimiento": "1965-03-15",
+  "estado_civil": "Casado/a",
+  "profesion_oficio": "Empleado administrativo",
+  "telefono": "+56912345678",
+  "email": "maria.perez.ejemplo@demo.test",
+  "afp": "Capital",
+  "institucion_salud": "FONASA",
+  "created_at": "2025-06-01T14:22:11.456Z",
+  "conyuge_nombres": "Juan Carlos",
+  "conyuge_apellido_paterno": "Soto",
+  "conyuge_apellido_materno": "Vera",
+  "conyuge_rut": "9.876.543-2",
+  "conyuge_fecha_nacimiento": "1967-07-21",
+  "conyuge_fecha_matrimonio": "1992-11-08",
+  "conyuge_lugar_matrimonio": "Santiago",
+  "conyuge_nacionalidad": "Chilena",
+  "conyuge_sexo": "Masculino",
+  "tiene_hijos_menores_24": true,
+  "hijos": [
+    {
+      "nombres": "Ana Paula",
+      "apellido_paterno": "Pérez",
+      "apellido_materno": "Soto",
+      "rut": "22.444.555-6",
+      "fecha_nacimiento": "2010-01-22",
+      "nacionalidad": "Chilena",
+      "sexo": "Femenino",
+      "es_invalido": "No",
+      "es_hijo_del_conyuge": "Sí"
+    }
+  ],
+  "empleador_razon_social": "Empresa Demo SpA",
+  "empleador_rut": "76.111.222-3",
+  "empleador_direccion": "Av. Apoquindo 3000, Piso 8",
+  "empleador_telefono": "+56223456789",
+  "empleador_email": "rrhh@empresa-demo.test",
+  "banco": "Banco Estado",
+  "tipo_cuenta": "Cuenta corriente",
+  "numero_cuenta": "12345678",
+  "solicitud_tipo_pension": "Vieja edad",
+  "solicitud_cambio_modalidad_tramite": false,
+  "solicitud_numero_beneficiarios": 2,
+  "solicitud_beneficiarios": [
+    {
+      "nombres": "Juan Carlos",
+      "apellido_paterno": "Soto",
+      "apellido_materno": "Vera",
+      "rut": "9.876.543-2",
+      "fecha_nacimiento": "1967-07-21",
+      "parentesco": "Cónyuge",
+      "sexo": "Masculino",
+      "nacionalidad": "Chilena",
+      "fecha_matrimonio_union_civil": "1992-11-08",
+      "ciudad_matrimonio_union_civil": "Santiago",
+      "es_invalido": "No",
+      "es_hijo_del_conyuge": null,
+      "fnm_hijo_indice": null,
+      "observaciones": null
+    },
+    {
+      "nombres": "Ana Paula",
+      "apellido_paterno": "Pérez",
+      "apellido_materno": "Soto",
+      "rut": "22.444.555-6",
+      "fecha_nacimiento": "2010-01-22",
+      "parentesco": "Hijo/a directo/a",
+      "sexo": "Femenino",
+      "nacionalidad": "Chilena",
+      "fecha_matrimonio_union_civil": null,
+      "ciudad_matrimonio_union_civil": null,
+      "es_invalido": "No",
+      "es_hijo_del_conyuge": "Sí",
+      "fnm_hijo_indice": null,
+      "observaciones": null
+    }
+  ],
+  "solicitud_antecedentes": {
+    "poseeBonoReconocimiento": "Sí"
+  },
+  "solicitud_autorizaciones": {
+    "ingresarDatosCuentaBancaria": "Sí",
+    "banco": "Banco Estado",
+    "tipoCuenta": "Cuenta corriente",
+    "numeroCuenta": "12345678"
+  },
+  "solicitud_certificados": {
+    "antecedentesPrevisionales": "Solicitado",
+    "registroSocial": false
+  },
+  "tiene_contrato": true,
+  "tiene_mandato_corto": true,
+  "tiene_mandato_largo": false,
+  "tramite_etapa_actual": 14,
+  "tramite_etapas_fechas": {
+    "1": "2025-06-02",
+    "2": "2025-06-10",
+    "14": "2025-09-01"
+  },
+  "posee_bono_reconocimiento": true,
+  "pensionado": true,
+  "pension_compania": "Compañía de Seguros Demo",
+  "pension_monto": "850000",
+  "pension_modalidad": "Renta vitalicia inmediata",
+  "pension_periodo_garantizado": true,
+  "checklist_caso": {
+    "copia_ci": true,
+    "contrato_firmado": true,
+    "antecedentes_cargados": true
+  },
+  "notas_asesor": "Cliente de ejemplo; seguimiento en etapa pensionado cerrada.",
+  "pension_datos_actualizados": {
+    "compania": "Compañía de Seguros Demo",
+    "monto": "850000",
+    "modalidad": "Renta vitalicia inmediata",
+    "periodo_garantizado": true
+  },
+  "pension_rv_detalle": {
+    "meses_periodo_garantizado": 120,
+    "tipo_aumento": "sin_aumento",
+    "porcentaje_aumento": null,
+    "periodo_aumento_meses": null
+  }
+}
