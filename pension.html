@@ -727,7 +727,7 @@
           <div class="section" aria-labelledby="mandanteTitle">
             <div class="section-title">
               <h2 id="mandanteTitle">Mandante</h2>
-              <span class="hint">Campos con * son obligatorios</span>
+              <span class="hint">Campos con * obligatorios. En pensión de <strong>sobrevivencia</strong>: el mandante es el <strong>beneficiario a cargo</strong> (no el fallecido); complete también «Causante».</span>
             </div>
 
             <div class="grid">
@@ -787,6 +787,87 @@
                   </label>
                 </div>
                 <div class="error" data-error-for="mandante.cambioModalidadTramite"></div>
+              </div>
+
+              <div class="section section-hidden" id="sectionCausantePension" aria-labelledby="causantePensionTitle">
+                <div class="section-title">
+                  <h2 id="causantePensionTitle">Causante (persona fallecida)</h2>
+                  <span class="hint">Datos de quien originó el derecho a <strong>pensión de sobrevivencia</strong>. El bloque «Mandante» corresponde al <strong>beneficiario a cargo</strong>.</span>
+                </div>
+                <div class="grid">
+                  <div class="field col-4">
+                    <label for="causante_pen_nombres">Nombres <span class="req">*</span></label>
+                    <input id="causante_pen_nombres" name="causante.nombres" data-causante-pension-req="" />
+                    <div class="error" data-error-for="causante_pen_nombres"></div>
+                  </div>
+                  <div class="field col-4">
+                    <label for="causante_pen_apPaterno">Apellido paterno <span class="req">*</span></label>
+                    <input id="causante_pen_apPaterno" name="causante.apellidoPaterno" data-causante-pension-req="" />
+                    <div class="error" data-error-for="causante_pen_apPaterno"></div>
+                  </div>
+                  <div class="field col-4">
+                    <label for="causante_pen_apMaterno">Apellido materno <span class="req">*</span></label>
+                    <input id="causante_pen_apMaterno" name="causante.apellidoMaterno" data-causante-pension-req="" />
+                    <div class="error" data-error-for="causante_pen_apMaterno"></div>
+                  </div>
+                  <div class="field col-4">
+                    <label for="causante_pen_rut">RUT <span class="req">*</span></label>
+                    <input
+                      id="causante_pen_rut"
+                      name="causante.rut"
+                      class="rut-input"
+                      inputmode="text"
+                      autocomplete="off"
+                      placeholder="12.345.678-5"
+                      data-causante-pension-req=""
+                    />
+                    <div class="error" data-error-for="causante_pen_rut"></div>
+                  </div>
+                  <div class="field col-4">
+                    <label for="causante_pen_nacionalidad">Nacionalidad <span class="req">*</span></label>
+                    <input id="causante_pen_nacionalidad" name="causante.nacionalidad" autocomplete="country-name" data-causante-pension-req="" />
+                    <div class="error" data-error-for="causante_pen_nacionalidad"></div>
+                  </div>
+                  <div class="field col-4">
+                    <label>Sexo <span class="req">*</span></label>
+                    <div class="radio-row" role="group" aria-label="Sexo causante">
+                      <label class="radio-pill">
+                        <input type="radio" name="causante.sexo" value="Masculino" data-causante-pension-radio="" />
+                        Masculino
+                      </label>
+                      <label class="radio-pill">
+                        <input type="radio" name="causante.sexo" value="Femenino" data-causante-pension-radio="" />
+                        Femenino
+                      </label>
+                    </div>
+                    <div class="error" data-error-for="causante.sexo"></div>
+                  </div>
+                  <div class="field col-4">
+                    <label for="causante_pen_fechaNac">Fecha de nacimiento <span class="req">*</span></label>
+                    <div class="date-group">
+                      <select id="causante_pen_fechaNac_dia"><option value="" selected disabled>Día</option></select>
+                      <select id="causante_pen_fechaNac_mes"><option value="" selected disabled>Mes</option></select>
+                      <select id="causante_pen_fechaNac_anio"><option value="" selected disabled>Año</option></select>
+                    </div>
+                    <input type="hidden" id="causante_pen_fechaNac" name="causante.fechaNacimiento" />
+                    <div class="error" data-error-for="causante_pen_fechaNac"></div>
+                  </div>
+                  <div class="field col-4">
+                    <label for="causante_pen_fechaDef">Fecha de defunción <span class="req">*</span></label>
+                    <div class="date-group">
+                      <select id="causante_pen_fechaDef_dia"><option value="" selected disabled>Día</option></select>
+                      <select id="causante_pen_fechaDef_mes"><option value="" selected disabled>Mes</option></select>
+                      <select id="causante_pen_fechaDef_anio"><option value="" selected disabled>Año</option></select>
+                    </div>
+                    <input type="hidden" id="causante_pen_fechaDef" name="causante.fechaDefuncion" />
+                    <div class="error" data-error-for="causante_pen_fechaDef"></div>
+                  </div>
+                  <div class="field col-4">
+                    <label for="causante_pen_afp">AFP afiliación del causante <span class="req">*</span></label>
+                    <input id="causante_pen_afp" name="causante.afp" data-causante-pension-req="" />
+                    <div class="error" data-error-for="causante_pen_afp"></div>
+                  </div>
+                </div>
               </div>
 
               <div class="field col-4">
@@ -1931,6 +2012,244 @@
         return nodes;
       }
 
+      /** True si el trámite es pensión de sobrevivencia (texto exacto del formulario). */
+      function pensionEsSobrevivenciaTipo(tipoPensionRaw) {
+        return String(tipoPensionRaw || "").trim().toLowerCase().indexOf("sobrevivencia") !== -1;
+      }
+
+      /** Nombre completo desde objeto con camelCase o snake_case. */
+      function nombreCompletoPersonaFlexible(obj) {
+        if (!obj || typeof obj !== "object") return "";
+        return (
+          String(obj.nombres || "").trim() +
+          " " +
+          String(obj.apellido_paterno != null ? obj.apellido_paterno : obj.apellidoPaterno || "").trim() +
+          " " +
+          String(obj.apellido_materno != null ? obj.apellido_materno : obj.apellidoMaterno || "").trim()
+        )
+          .trim()
+          .replace(/\s+/g, " ");
+      }
+
+      function fechaAHabladoFlexible(val) {
+        if (val == null || val === "") return "";
+        var s = String(val).trim();
+        var iso = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+        if (iso) return fechaAHablado(iso[3] + "-" + iso[2] + "-" + iso[1]);
+        return fechaAHablado(s);
+      }
+
+      function edadCumplidaAlHoyDesdeIso(isoDate) {
+        if (!isoDate || typeof isoDate !== "string") return null;
+        var p = isoDate.split("T")[0].split("-");
+        if (p.length !== 3) return null;
+        var y = parseInt(p[0], 10);
+        var m = parseInt(p[1], 10);
+        var d = parseInt(p[2], 10);
+        if (!y || !m || !d) return null;
+        var now = new Date();
+        var age = now.getFullYear() - y;
+        if (now.getMonth() + 1 < m || (now.getMonth() + 1 === m && now.getDate() < d)) age--;
+        return age;
+      }
+
+      /** Obtiene ISO YYYY-MM-DD desde fecha de beneficiario en data.beneficiarios (DD-MM-YYYY o ISO). */
+      function fechaNacBeneficiarioIso(b) {
+        if (!b) return null;
+        var fn = b.fechaNacimiento != null ? b.fechaNacimiento : b.fecha_nacimiento;
+        if (fn == null) return null;
+        var p = parseDDMMYYYY(fn);
+        if (p && p.iso) return p.iso;
+        var st = String(fn).trim();
+        if (/^\d{4}-\d{2}-\d{2}/.test(st)) return st.split("T")[0];
+        return null;
+      }
+
+      /**
+       * Beneficiario a cargo (mandante del formulario) + demás beneficiarios en la tabla con ≥18 años.
+       * Dedup por RUT canónico.
+       */
+      function armarListaFirmantesSobrevivencia(data) {
+        var mand = data.mandante || {};
+        if (!pensionEsSobrevivenciaTipo(mand.tipoPension)) return null;
+        var nombreM =
+          `${mand.nombres || ""} ${mand.apellidoPaterno || ""} ${mand.apellidoMaterno || ""}`.trim();
+        var rutMC = rutToCanonical(mand.rut || "");
+        var firmantes = [{ nombreCompleto: nombreM, rut: mand.rut || "" }];
+        var seen = {};
+        if (rutMC) seen[rutMC] = true;
+        var beneficiariosObj = data.beneficiarios && typeof data.beneficiarios === "object" ? data.beneficiarios : {};
+        Object.keys(beneficiariosObj).forEach(function (k) {
+          var b = beneficiariosObj[k];
+          var rutB = rutToCanonical(b.rut || "");
+          if (!rutB || seen[rutB]) return;
+          var isoFn = fechaNacBeneficiarioIso(b);
+          var age = isoFn ? edadCumplidaAlHoyDesdeIso(isoFn) : null;
+          if (age === null || age < 18) return;
+          seen[rutB] = true;
+          var nb = nombreCompletoPersonaFlexible({
+            nombres: b.nombres,
+            apellidoPaterno: b.apellidoPaterno,
+            apellidoMaterno: b.apellidoMaterno,
+            apellido_paterno: b.apellido_paterno,
+            apellido_materno: b.apellido_materno,
+          });
+          firmantes.push({
+            nombreCompleto: nb || (String(b.nombres || "").trim() + " " + String(b.apellidoPaterno || b.apellido_paterno || "").trim()),
+            rut: normalizeRut(String(b.rut || "").trim()) || b.rut,
+          });
+        });
+        return firmantes;
+      }
+
+      function htmlCeldaFirmaBeneficiarioLinea(tituloLinea, nombreCompleto, rut) {
+        return (
+          '<p style="margin:0;padding-top:88px;min-height:96px;box-sizing:border-box;">______________________________</p>' +
+          "<p>" +
+          tituloLinea +
+          "</p>" +
+          "<p><b>" +
+          aMayus(nombreCompleto) +
+          "</b></p>" +
+          '<p>RUT: <b>' +
+          aMayus(rut) +
+          "</b></p>"
+        );
+      }
+
+      function htmlTablaFirmasSobrevivencia(firmantes, mandatario) {
+        var nombreCompletoMandatario =
+          `${mandatario.nombres || ""} ${mandatario.apellidoPaterno || ""} ${mandatario.apellidoMaterno || ""}`.trim();
+        var rowsHtml = "";
+        var n = firmantes.length;
+        var ai = 0;
+        while (ai < n) {
+          if (ai + 1 < n) {
+            rowsHtml +=
+              "<tr><td>" +
+              htmlCeldaFirmaBeneficiarioLinea(
+                firmantes.length > 1 ? "Firma beneficiario/a (sobrevivencia)" : "Firma cliente",
+                firmantes[ai].nombreCompleto,
+                firmantes[ai].rut
+              ) +
+              "</td><td>" +
+              htmlCeldaFirmaBeneficiarioLinea(
+                firmantes.length > 1 ? "Firma beneficiario/a (sobrevivencia)" : "Firma cliente",
+                firmantes[ai + 1].nombreCompleto,
+                firmantes[ai + 1].rut
+              ) +
+              "</td></tr>";
+            ai += 2;
+          } else {
+            rowsHtml +=
+              "<tr><td>" +
+              htmlCeldaFirmaBeneficiarioLinea(
+                "Firma beneficiario/a (sobrevivencia)",
+                firmantes[ai].nombreCompleto,
+                firmantes[ai].rut
+              ) +
+              "</td><td>" +
+              htmlCeldaFirmaBeneficiarioLinea("Firma Asesor Previsional", nombreCompletoMandatario, mandatario.rut) +
+              "</td></tr>";
+            ai += 1;
+          }
+        }
+        if (n % 2 === 0) {
+          rowsHtml +=
+            '<tr><td colspan="2" style="text-align:center;padding-top:24px">' +
+            htmlCeldaFirmaBeneficiarioLinea("Firma Asesor Previsional", nombreCompletoMandatario, mandatario.rut) +
+            "</td></tr>";
+        }
+        return (
+          '<table class="tabla-firmas" border="0" cellpadding="0" cellspacing="0" style="margin-top:40px;width:100%;">' +
+          rowsHtml +
+          "</table>"
+        );
+      }
+
+      /** Bloque pdfmake: firmas múltiples beneficiarios sobrevivencia + una firma asesor. */
+      function pmFirmasSobrevivencia(firmantes, mandatario, opts) {
+        opts = opts || {};
+        var nombreMandatario =
+          ((mandatario.nombres || "") + " " + (mandatario.apellidoPaterno || "") + " " + (mandatario.apellidoMaterno || "")).trim();
+        var titBenef =
+          firmantes && firmantes.length > 1
+            ? "Firma beneficiario/a (pensión de sobrevivencia)"
+            : "Firma cliente";
+        var colCliente = function (titulo, nombre, rut) {
+          return {
+            stack: [
+              { text: " ", margin: [0, 40, 0, 0] },
+              { text: "______________________________", alignment: "center" },
+              { text: titulo, alignment: "center", margin: [0, 4, 0, 0], fontSize: 10 },
+              { text: aMayus(nombre), alignment: "center", bold: true, margin: [0, 4, 0, 0], fontSize: 10 },
+              {
+                text: ["RUT: ", { text: aMayus(rut), bold: true }],
+                alignment: "center",
+                margin: [0, 2, 0, 0],
+                fontSize: 10,
+              },
+            ],
+            width: "*",
+          };
+        };
+        var colAsesor = function () {
+          return {
+            stack: [
+              { text: " ", margin: [0, 40, 0, 0] },
+              { text: "______________________________", alignment: "center" },
+              {
+                text: "Firma Asesor Previsional",
+                alignment: "center",
+                margin: [0, 4, 0, 0],
+                fontSize: 10,
+              },
+              { text: aMayus(nombreMandatario), alignment: "center", bold: true, margin: [0, 4, 0, 0], fontSize: 10 },
+              {
+                text: ["RUT: ", { text: aMayus(mandatario.rut), bold: true }],
+                alignment: "center",
+                margin: [0, 2, 0, 0],
+                fontSize: 10,
+              },
+            ],
+            width: "*",
+          };
+        };
+        var nodes = [];
+        var fa = firmantes || [];
+        var ai = 0;
+        while (ai < fa.length) {
+          if (ai + 1 < fa.length) {
+            nodes.push({
+              columns: [
+                colCliente(titBenef, fa[ai].nombreCompleto, fa[ai].rut),
+                colCliente(titBenef, fa[ai + 1].nombreCompleto, fa[ai + 1].rut),
+              ],
+              columnGap: 12,
+              unbreakable: true,
+            });
+            ai += 2;
+          } else {
+            nodes.push({
+              columns: [
+                colCliente(titBenef, fa[ai].nombreCompleto, fa[ai].rut),
+                colAsesor(),
+              ],
+              columnGap: 12,
+              unbreakable: true,
+            });
+            ai += 1;
+          }
+        }
+        if (fa.length % 2 === 0 && fa.length > 0) {
+          nodes.push({ stack: colAsesor().stack, alignment: "center", margin: [40, 16, 40, 0], unbreakable: true });
+        }
+        if (opts.conFirmoAnteMi) {
+          nodes.push({ text: "Firmó ante mí:", alignment: "center", margin: [0, 24, 0, 12] });
+        }
+        return nodes;
+      }
+
       /** Tabla de beneficiarios para mandato (6 col, fuentes pequeñas). */
       function pmTablaBeneficiariosMandato(beneficiariosObj) {
         var rows = [
@@ -2030,30 +2349,78 @@
         content.push({ text: "MANDATO PARA INICIAR TRÁMITE DE " + aMayus(mandante.tipoPension), fontSize: 16, bold: true, alignment: "center", margin: [0, 0, 0, 4] });
         content.push({ text: aMayus(mandante.tipoPension), fontSize: 11, alignment: "center", margin: [0, 0, 0, 14] });
 
-        content.push(pmPara([
-          "Con fecha " + fechaHoy + " y por medio del siguiente instrumento, yo ",
-          pmBold(nombreMandante), ", RUT ", pmBold(mandante.rut),
-          ", de nacionalidad ", pmBold(mandante.nacionalidad),
-          ", de sexo ", pmBold(mandante.sexo),
-          ", nacido el ", pmBold(fechaAHablado(mandante.fechaNacimiento)),
-          ", estado civil ", pmBold(mandante.estadoCivil),
-          ", de profesión u oficio ", pmBold(mandante.profesionUOficio),
-          ", domiciliado en ", pmBold(mandante.domicilio),
-          ", comuna de ", pmBold(mandante.comuna),
-          ", ciudad de ", pmBold(mandante.ciudad),
-          ", teléfono ", pmBold(mandante.telefono),
-          ", correo electrónico ", pmBold(mandante.email),
-          ", e incorporado a la institución de salud ", pmBold(mandante.institucionSalud),
-          " confiero poder a ", pmBold(nombreMandatario),
-          ", RUT ", pmBold(mandatario.rut),
-          ", domiciliado en ", pmBold(mandatario.domicilio),
-          ", comuna de ", pmBold(mandatario.comuna),
-          ", ciudad de ", pmBold(mandatario.ciudad),
-          ", teléfono ", pmBold(mandatario.telefono),
-          ", correo electrónico ", pmBold(mandatario.email),
-          ", para que en mi nombre suscriba en ", pmBold(mandante.afp),
-          ", una solicitud de ", pmBold(mandante.tipoPension), "."
-        ]));
+        var esSobDoc = pensionEsSobrevivenciaTipo(mandante.tipoPension);
+        var firmantesDoc = esSobDoc ? armarListaFirmantesSobrevivencia(data) : null;
+        var causDoc = data.causante || {};
+
+        if (esSobDoc) {
+          var listaFirStr = (firmantesDoc || [{ nombreCompleto: nombreMandante, rut: mandante.rut }])
+            .map(function (f) {
+              return aMayus(f.nombreCompleto) + ", RUT " + aMayus(f.rut);
+            })
+            .join("; ");
+          var nomCaus = nombreCompletoPersonaFlexible(causDoc);
+          var rutCaus = normalizeRut(String(causDoc.rut || "").trim()) || String(causDoc.rut || "").trim();
+          var afpSus = ((causDoc.afp || mandante.afp || "") + "").trim();
+          content.push(pmPara([
+            "Con fecha " +
+              fechaHoy +
+              " y por medio del siguiente instrumento, nosotros, los abajo firmantes (",
+            pmBold(listaFirStr),
+            "), en calidad de beneficiarios de pensión de sobrevivencia del causante ",
+            pmBold(aMayus(nomCaus)),
+            ", RUT ",
+            pmBold(aMayus(rutCaus)),
+            ", quien nació el ",
+            pmBold(fechaAHabladoFlexible(causDoc.fechaNacimiento || causDoc.fecha_nacimiento || "")),
+            " y falleció el ",
+            pmBold(fechaAHabladoFlexible(causDoc.fechaDefuncion || causDoc.fecha_defuncion || "")),
+            ", otorgamos poder a ",
+            pmBold(nombreMandatario),
+            ", RUT ",
+            pmBold(mandatario.rut),
+            ", domiciliado en ",
+            pmBold(mandatario.domicilio),
+            ", comuna de ",
+            pmBold(mandatario.comuna),
+            ", ciudad de ",
+            pmBold(mandatario.ciudad),
+            ", teléfono ",
+            pmBold(mandatario.telefono),
+            ", correo electrónico ",
+            pmBold(mandatario.email),
+            ", para que en nuestro nombre suscriba en ",
+            pmBold(aMayus(afpSus)),
+            ", una solicitud de ",
+            pmBold(mandante.tipoPension),
+            "."
+          ]));
+        } else {
+          content.push(pmPara([
+            "Con fecha " + fechaHoy + " y por medio del siguiente instrumento, yo ",
+            pmBold(nombreMandante), ", RUT ", pmBold(mandante.rut),
+            ", de nacionalidad ", pmBold(mandante.nacionalidad),
+            ", de sexo ", pmBold(mandante.sexo),
+            ", nacido el ", pmBold(fechaAHablado(mandante.fechaNacimiento)),
+            ", estado civil ", pmBold(mandante.estadoCivil),
+            ", de profesión u oficio ", pmBold(mandante.profesionUOficio),
+            ", domiciliado en ", pmBold(mandante.domicilio),
+            ", comuna de ", pmBold(mandante.comuna),
+            ", ciudad de ", pmBold(mandante.ciudad),
+            ", teléfono ", pmBold(mandante.telefono),
+            ", correo electrónico ", pmBold(mandante.email),
+            ", e incorporado a la institución de salud ", pmBold(mandante.institucionSalud),
+            " confiero poder a ", pmBold(nombreMandatario),
+            ", RUT ", pmBold(mandatario.rut),
+            ", domiciliado en ", pmBold(mandatario.domicilio),
+            ", comuna de ", pmBold(mandatario.comuna),
+            ", ciudad de ", pmBold(mandatario.ciudad),
+            ", teléfono ", pmBold(mandatario.telefono),
+            ", correo electrónico ", pmBold(mandatario.email),
+            ", para que en mi nombre suscriba en ", pmBold(mandante.afp),
+            ", una solicitud de ", pmBold(mandante.tipoPension), "."
+          ]));
+        }
 
         if (empleador.nombreORazonSocial || empleador.rut || empleador.domicilio || empleador.email || empleador.telefono) {
           content.push(pmPara("Asimismo, expongo que a la fecha, los datos de mi empleador son los siguientes:", { margin: [0, 4, 0, 4] }));
@@ -2069,7 +2436,13 @@
           });
         }
 
-        content.push(pmPara("Para efectos de la suscripción de la pensión antes mencionada, declaro conocer que tienen la calidad de beneficiarios de pensión de sobrevivencia: el cónyuge, los hijos, la madre o padre de hijos de filiación no matrimonial y, a falta de todos los anteriores, los padres. En consecuencia, efectúo la siguiente declaración de beneficiarios:"));
+        content.push(
+          pmPara(
+            esSobDoc
+              ? "Para efectos de la suscripción de la pensión antes mencionada, declaramos conocer que tienen la calidad de beneficiarios de pensión de sobrevivencia: el cónyuge, los hijos, la madre o padre de hijos de filiación no matrimonial y, a falta de todos los anteriores, los padres. En consecuencia, efectuamos la siguiente declaración de beneficiarios:"
+              : "Para efectos de la suscripción de la pensión antes mencionada, declaro conocer que tienen la calidad de beneficiarios de pensión de sobrevivencia: el cónyuge, los hijos, la madre o padre de hijos de filiación no matrimonial y, a falta de todos los anteriores, los padres. En consecuencia, efectúo la siguiente declaración de beneficiarios:"
+          )
+        );
 
         if (data.beneficiarios && Object.keys(data.beneficiarios).length > 0) {
           content.push(pmH3("Beneficiarios"));
@@ -2078,7 +2451,12 @@
           content.push({ text: "Sin beneficiarios legales", bold: true, margin: [0, 0, 0, 10] });
         }
 
-        content.push(pmPara("Por otra parte, señalo los siguientes antecedentes que el mandatario deberá considerar para suscribir en mi nombre en la solicitud de " + aMayus(mandante.tipoPension)));
+        content.push(
+          pmPara(
+            (esSobDoc ? "Por otra parte, señalamos los siguientes antecedentes que el mandatario deberá considerar para suscribir en nuestro nombre en la solicitud de " : "Por otra parte, señalo los siguientes antecedentes que el mandatario deberá considerar para suscribir en mi nombre en la solicitud de ") +
+              aMayus(mandante.tipoPension)
+          )
+        );
         content.push(pmH3("Antecedentes"));
 
         var rowsAnt = [];
@@ -2124,11 +2502,32 @@
           ]));
         }
 
-        content.push(pmPara("Otorgo el presente mandato para los únicos fines antes señalados y se entiende revocado por otro de fecha posterior o por término de la gestión encomendada."));
-        content.push(pmPara("Finalmente, declaro conocer que el trámite de pensión es gratuito, sin perjuicio de que puedo contratar voluntariamente una asesoría previsional para dicho trámite."));
+        content.push(
+          pmPara(
+            esSobDoc
+              ? "Otorgamos el presente mandato para los únicos fines antes señalados y se entiende revocado por otro de fecha posterior o por término de la gestión encomendada."
+              : "Otorgo el presente mandato para los únicos fines antes señalados y se entiende revocado por otro de fecha posterior o por término de la gestión encomendada."
+          )
+        );
+        content.push(
+          pmPara(
+            esSobDoc
+              ? "Finalmente, declaramos conocer que el trámite de pensión es gratuito, sin perjuicio de que podamos contratar voluntariamente una asesoría previsional para dicho trámite."
+              : "Finalmente, declaro conocer que el trámite de pensión es gratuito, sin perjuicio de que puedo contratar voluntariamente una asesoría previsional para dicho trámite."
+          )
+        );
 
-        pmFirmas({ nombreCliente: nombreMandante, rutCliente: mandante.rut, nombreAsesor: nombreMandatario, rutAsesor: mandatario.rut, conFirmoAnteMi: true })
-          .forEach(function (n) { content.push(n); });
+        if (esSobDoc && firmantesDoc && firmantesDoc.length > 0) {
+          pmFirmasSobrevivencia(firmantesDoc, mandatario, { conFirmoAnteMi: true }).forEach(function (n) {
+            content.push(n);
+          });
+        } else {
+          pmFirmas({ nombreCliente: nombreMandante, rutCliente: mandante.rut, nombreAsesor: nombreMandatario, rutAsesor: mandatario.rut, conFirmoAnteMi: true }).forEach(
+            function (n) {
+              content.push(n);
+            }
+          );
+        }
 
         return Object.assign({}, PDFMAKE_PAGE_OPTS, PDFMAKE_BASE_STYLES, {
           info: { title: "Mandato — " + nombreMandante },
@@ -2154,29 +2553,75 @@
         var content = [];
         content.push({ text: titulo, fontSize: 14, bold: true, alignment: "center", margin: [0, 0, 0, 14] });
 
-        content.push(pmPara([
-          "Con fecha " + fechaHoy + " y por medio del siguiente instrumento, yo ",
-          pmBold(nombreMandante), ", RUT ", pmBold(mandante.rut),
-          ", de nacionalidad ", pmBold(mandante.nacionalidad),
-          ", de sexo ", pmBold(mandante.sexo),
-          ", nacido el ", pmBold(fechaAHablado(mandante.fechaNacimiento)),
-          ", estado civil ", pmBold(mandante.estadoCivil),
-          ", de profesión u oficio ", pmBold(mandante.profesionUOficio),
-          ", domiciliado en ", pmBold(mandante.domicilio),
-          ", comuna de ", pmBold(mandante.comuna),
-          ", ciudad de ", pmBold(mandante.ciudad),
-          ", teléfono ", pmBold(mandante.telefono),
-          ", correo electrónico ", pmBold(mandante.email),
-          ", e incorporado a la institución de salud ", pmBold(mandante.institucionSalud),
-          " confiero poder a ", pmBold(nombreMandatario),
-          ", RUT ", pmBold(mandatario.rut),
-          ", domiciliado en ", pmBold(mandatario.domicilio),
-          ", comuna de ", pmBold(mandatario.comuna),
-          ", ciudad de ", pmBold(mandatario.ciudad),
-          ", teléfono ", pmBold(mandatario.telefono),
-          ", correo electrónico ", pmBold(mandatario.email),
-          ", para que en mi nombre y en representación efectúe en ", pmBold(mandante.afp), " lo siguiente:"
-        ]));
+        var esSobCorto = pensionEsSobrevivenciaTipo(mandante.tipoPension);
+        var firmantesCorto = esSobCorto ? armarListaFirmantesSobrevivencia(data) : null;
+        var causCorto = data.causante || {};
+
+        if (esSobCorto) {
+          var listaFirStrC = (firmantesCorto || [{ nombreCompleto: nombreMandante, rut: mandante.rut }])
+            .map(function (f) {
+              return aMayus(f.nombreCompleto) + ", RUT " + aMayus(f.rut);
+            })
+            .join("; ");
+          var nomCausC = nombreCompletoPersonaFlexible(causCorto);
+          var rutCausC = normalizeRut(String(causCorto.rut || "").trim()) || String(causCorto.rut || "").trim();
+          var afpSusC = ((causCorto.afp || mandante.afp || "") + "").trim();
+          content.push(pmPara([
+            "Con fecha " +
+              fechaHoy +
+              " y por medio del siguiente instrumento, nosotros, los abajo firmantes (",
+            pmBold(listaFirStrC),
+            "), beneficiarios de pensión de sobrevivencia del causante ",
+            pmBold(aMayus(nomCausC)),
+            ", RUT ",
+            pmBold(aMayus(rutCausC)),
+            ", quien nació el ",
+            pmBold(fechaAHabladoFlexible(causCorto.fechaNacimiento || causCorto.fecha_nacimiento || "")),
+            " y falleció el ",
+            pmBold(fechaAHabladoFlexible(causCorto.fechaDefuncion || causCorto.fecha_defuncion || "")),
+            ", otorgamos poder a ",
+            pmBold(nombreMandatario),
+            ", RUT ",
+            pmBold(mandatario.rut),
+            ", domiciliado en ",
+            pmBold(mandatario.domicilio),
+            ", comuna de ",
+            pmBold(mandatario.comuna),
+            ", ciudad de ",
+            pmBold(mandatario.ciudad),
+            ", teléfono ",
+            pmBold(mandatario.telefono),
+            ", correo electrónico ",
+            pmBold(mandatario.email),
+            ", para que en nuestro nombre y en representación efectúe en ",
+            pmBold(aMayus(afpSusC)),
+            " lo siguiente:"
+          ]));
+        } else {
+          content.push(pmPara([
+            "Con fecha " + fechaHoy + " y por medio del siguiente instrumento, yo ",
+            pmBold(nombreMandante), ", RUT ", pmBold(mandante.rut),
+            ", de nacionalidad ", pmBold(mandante.nacionalidad),
+            ", de sexo ", pmBold(mandante.sexo),
+            ", nacido el ", pmBold(fechaAHablado(mandante.fechaNacimiento)),
+            ", estado civil ", pmBold(mandante.estadoCivil),
+            ", de profesión u oficio ", pmBold(mandante.profesionUOficio),
+            ", domiciliado en ", pmBold(mandante.domicilio),
+            ", comuna de ", pmBold(mandante.comuna),
+            ", ciudad de ", pmBold(mandante.ciudad),
+            ", teléfono ", pmBold(mandante.telefono),
+            ", correo electrónico ", pmBold(mandante.email),
+            ", e incorporado a la institución de salud ", pmBold(mandante.institucionSalud),
+            " confiero poder a ", pmBold(nombreMandatario),
+            ", RUT ", pmBold(mandatario.rut),
+            ", domiciliado en ", pmBold(mandatario.domicilio),
+            ", comuna de ", pmBold(mandatario.comuna),
+            ", ciudad de ", pmBold(mandatario.ciudad),
+            ", teléfono ", pmBold(mandatario.telefono),
+            ", correo electrónico ", pmBold(mandatario.email),
+            ", para que en mi nombre y en representación efectúe en ", pmBold(mandante.afp), " lo siguiente:"
+          ]));
+        }
 
         var rowsAnt = [];
         antecedentesItems.forEach(function (it) {
@@ -2201,7 +2646,14 @@
           }
         });
         if (rowsAnt.length) {
-          content.push(pmPara("Por otra parte, señalo los siguientes antecedentes que el mandatario deberá considerar para suscribir en mi nombre en la solicitud de " + aMayus(mandante.tipoPension)));
+          content.push(
+            pmPara(
+              (esSobCorto
+                ? "Por otra parte, señalamos los siguientes antecedentes que el mandatario deberá considerar para suscribir en nuestro nombre en la solicitud de "
+                : "Por otra parte, señalo los siguientes antecedentes que el mandatario deberá considerar para suscribir en mi nombre en la solicitud de ") +
+                aMayus(mandante.tipoPension)
+            )
+          );
           content.push(pmH3("Antecedentes"));
           content.push(pmTablaSiNo(rowsAnt));
         }
@@ -2222,8 +2674,17 @@
           content.push(pmTablaSiNo(rowsAut));
         }
 
-        pmFirmas({ nombreCliente: nombreMandante, rutCliente: mandante.rut, nombreAsesor: nombreMandatario, rutAsesor: mandatario.rut, conFirmoAnteMi: true })
-          .forEach(function (n) { content.push(n); });
+        if (esSobCorto && firmantesCorto && firmantesCorto.length > 0) {
+          pmFirmasSobrevivencia(firmantesCorto, mandatario, { conFirmoAnteMi: true }).forEach(function (n) {
+            content.push(n);
+          });
+        } else {
+          pmFirmas({ nombreCliente: nombreMandante, rutCliente: mandante.rut, nombreAsesor: nombreMandatario, rutAsesor: mandatario.rut, conFirmoAnteMi: true }).forEach(
+            function (n) {
+              content.push(n);
+            }
+          );
+        }
 
         return Object.assign({}, PDFMAKE_PAGE_OPTS, PDFMAKE_BASE_STYLES, {
           info: { title: "Mandato corto — " + nombreMandante },
@@ -2253,41 +2714,118 @@
 
         var content = [];
 
+        var esSobContr = pensionEsSobrevivenciaTipo(mandante.tipoPension);
+        var firmantesContr = esSobContr ? armarListaFirmantesSobrevivencia(data) : null;
+        var causContr = data.causante || {};
+
         content.push({
           text: ["CONTRATO DE PRESTACIÓN DE SERVICIOS DE ASESORÍA PARA PENSIONARSE O CAMBIAR MODALIDAD DE PENSIÓN N° ", { text: aMayus(numeroContrato), bold: true }],
           fontSize: 14, bold: true, alignment: "center", margin: [0, 0, 0, 12]
         });
 
         content.push(pmH2("INDIVIDUALIZACIÓN DE LAS PARTES"));
-        content.push(pmPara([
-          "En la Ciudad de ", pmBold(ciudad), " a ", pmBold(fechaActualTexto), ", suscriben el presente contrato, por una parte, don ",
-          pmBold(nombreCompletoMandante), ", Rut ", pmBold(mandante.rut),
-          ", nacido el ", pmBold(fechaAHablado(mandante.fechaNacimiento)),
-          ", estado civil ", pmBold(mandante.estadoCivil),
-          ", profesión u oficio ", pmBold(mandante.profesionUOficio),
-          ", domiciliado en ", pmBold(mandante.domicilio),
-          ", comuna de ", pmBold(mandante.comuna),
-          " ciudad de ", pmBold(mandante.ciudad),
-          ", celular ", pmBold(mandante.telefono),
-          ", correo electrónico ", pmBold(mandante.email),
-          ", afiliado a la ", pmBold(mandante.afp),
-          ", Sistema de Salud ", pmBold(mandante.institucionSalud),
-          "; por otra parte, ", pmBold(nombreCompletoMandatario),
-          ", Rut ", pmBold(mandatario.rut),
-          ", Profesión ", pmBold("ASESOR PREVISIONAL"),
-          ", inscrito en el Registro de Asesores Previsionales de la Superintendencia de Pensiones con el N° ", pmBold(mandatario.numeroRegistroAsesorPrevisional),
-          ", domiciliado en ", pmBold(mandatario.domicilio),
-          ", comuna de ", pmBold(mandatario.comuna),
-          " ciudad de ", pmBold(mandatario.ciudad),
-          ", celular ", pmBold(mandatario.telefono),
-          " e-mail: ", pmBold(mandatario.email),
-          ", en adelante el “ASESOR PREVISIONAL”. Las partes acuerdan el siguiente contrato de asesoría para realizar trámite de ",
-          pmBold(esCambioModalidad ? "cambio de modalidad para " + nombreTramite : nombreTramite), "."
-        ]));
+        if (esSobContr) {
+          var nomCausK = nombreCompletoPersonaFlexible(causContr);
+          var rutCausK = normalizeRut(String(causContr.rut || "").trim()) || String(causContr.rut || "").trim();
+          var listaFirK = (firmantesContr || [{ nombreCompleto: nombreCompletoMandante, rut: mandante.rut }])
+            .map(function (f) {
+              return aMayus(f.nombreCompleto) + ", Rut " + aMayus(f.rut);
+            })
+            .join("; ");
+          content.push(pmPara([
+            "En la Ciudad de ",
+            pmBold(ciudad),
+            " a ",
+            pmBold(fechaActualTexto),
+            ", en relación con un trámite de pensión de sobrevivencia por el fallecimiento del causante ",
+            pmBold(aMayus(nomCausK)),
+            ", Rut ",
+            pmBold(aMayus(rutCausK)),
+            " (nacido el ",
+            pmBold(fechaAHabladoFlexible(causContr.fecha_nacimiento || causContr.fechaNacimiento || "")),
+            ", fallecido el ",
+            pmBold(fechaAHabladoFlexible(causContr.fecha_defuncion || causContr.fechaDefuncion || "")),
+            "), suscriben el presente contrato, por una parte, los beneficiarios antes individualizados, en su calidad de contratantes: ",
+            pmBold(listaFirK),
+            " (cuya individualización complementaria obra en esta misma hoja mediante sus firmas)",
+            "; por otra parte, ",
+            pmBold(nombreCompletoMandatario),
+            ", Rut ",
+            pmBold(mandatario.rut),
+            ", Profesión ",
+            pmBold("ASESOR PREVISIONAL"),
+            ", inscrito en el Registro de Asesores Previsionales de la Superintendencia de Pensiones con el N° ",
+            pmBold(mandatario.numeroRegistroAsesorPrevisional),
+            ", domiciliado en ",
+            pmBold(mandatario.domicilio),
+            ", comuna de ",
+            pmBold(mandatario.comuna),
+            " ciudad de ",
+            pmBold(mandatario.ciudad),
+            ", celular ",
+            pmBold(mandatario.telefono),
+            " e-mail: ",
+            pmBold(mandatario.email),
+            ", en adelante el “ASESOR PREVISIONAL”. Las partes acuerdan el siguiente contrato de asesoría para realizar el trámite de ",
+            pmBold(esCambioModalidad ? "cambio de modalidad para " + nombreTramite : nombreTramite),
+            "."
+          ]));
+          content.push(
+            pmPara(
+              "Sin perjuicio de lo anterior, el beneficiario a cargo que suscribe en primera instancia ante el Asesor es don " +
+                aMayus(nombreCompletoMandante) +
+                ", Rut " +
+                aMayus(mandante.rut) +
+                ", correo electrónico " +
+                aMayus(mandante.email) +
+                ", teléfono " +
+                aMayus(mandante.telefono) +
+                ", domicilio en " +
+                aMayus(mandante.domicilio) +
+                ", comuna de " +
+                aMayus(mandante.comuna) +
+                ", institución de salud " +
+                aMayus(mandante.institucionSalud) +
+                "."
+            )
+          );
+        } else {
+          content.push(pmPara([
+            "En la Ciudad de ", pmBold(ciudad), " a ", pmBold(fechaActualTexto), ", suscriben el presente contrato, por una parte, don ",
+            pmBold(nombreCompletoMandante), ", Rut ", pmBold(mandante.rut),
+            ", nacido el ", pmBold(fechaAHablado(mandante.fechaNacimiento)),
+            ", estado civil ", pmBold(mandante.estadoCivil),
+            ", profesión u oficio ", pmBold(mandante.profesionUOficio),
+            ", domiciliado en ", pmBold(mandante.domicilio),
+            ", comuna de ", pmBold(mandante.comuna),
+            " ciudad de ", pmBold(mandante.ciudad),
+            ", celular ", pmBold(mandante.telefono),
+            ", correo electrónico ", pmBold(mandante.email),
+            ", afiliado a la ", pmBold(mandante.afp),
+            ", Sistema de Salud ", pmBold(mandante.institucionSalud),
+            "; por otra parte, ", pmBold(nombreCompletoMandatario),
+            ", Rut ", pmBold(mandatario.rut),
+            ", Profesión ", pmBold("ASESOR PREVISIONAL"),
+            ", inscrito en el Registro de Asesores Previsionales de la Superintendencia de Pensiones con el N° ", pmBold(mandatario.numeroRegistroAsesorPrevisional),
+            ", domiciliado en ", pmBold(mandatario.domicilio),
+            ", comuna de ", pmBold(mandatario.comuna),
+            " ciudad de ", pmBold(mandatario.ciudad),
+            ", celular ", pmBold(mandatario.telefono),
+            " e-mail: ", pmBold(mandatario.email),
+            ", en adelante el “ASESOR PREVISIONAL”. Las partes acuerdan el siguiente contrato de asesoría para realizar trámite de ",
+            pmBold(esCambioModalidad ? "cambio de modalidad para " + nombreTramite : nombreTramite), "."
+          ]));
+        }
 
         content.push(pmH2("ANTECEDENTES DEL GRUPO FAMILIAR CON DERECHO A PENSIÓN"));
         if (Object.keys(beneficiariosData).length > 0) {
-          content.push(pmPara("El Afiliado declara que la composición de su grupo familiar con derecho a pensión es:"));
+          content.push(
+            pmPara(
+              esSobContr
+                ? "Los contratantes declaran que la composición del grupo familiar con derecho a pensión es:"
+                : "El Afiliado declara que la composición de su grupo familiar con derecho a pensión es:"
+            )
+          );
           content.push(pmTablaBeneficiariosContrato(beneficiariosData));
         } else {
           content.push({ text: "Sin beneficiarios legales", bold: true, margin: [0, 0, 0, 10] });
@@ -2355,8 +2893,21 @@
           }
         }
 
-        pmFirmas({ nombreCliente: nombreCompletoMandante, rutCliente: mandante.rut, nombreAsesor: nombreCompletoMandatario, rutAsesor: mandatario.rut, conFirmoAnteMi: false })
-          .forEach(function (n) { content.push(n); });
+        if (esSobContr && firmantesContr && firmantesContr.length > 0) {
+          pmFirmasSobrevivencia(firmantesContr, mandatario, { conFirmoAnteMi: false }).forEach(function (n) {
+            content.push(n);
+          });
+        } else {
+          pmFirmas({
+            nombreCliente: nombreCompletoMandante,
+            rutCliente: mandante.rut,
+            nombreAsesor: nombreCompletoMandatario,
+            rutAsesor: mandatario.rut,
+            conFirmoAnteMi: false,
+          }).forEach(function (n) {
+            content.push(n);
+          });
+        }
 
         return Object.assign({}, PDFMAKE_PAGE_OPTS, PDFMAKE_BASE_STYLES, {
           info: { title: "Contrato — " + nombreCompletoMandante + " — " + numeroContrato },
@@ -2545,6 +3096,157 @@
 
         const fechaHoy = fechaHoyHablado();
 
+        const esSobHtmlMs = pensionEsSobrevivenciaTipo(mandante.tipoPension);
+        const firmantesHtmlMs = esSobHtmlMs ? armarListaFirmantesSobrevivencia(data) : null;
+        const causHtmlMs = data.causante || {};
+        var parrafoIntroMandatoHtml;
+        var parrafoDeclBenefHtml;
+        var parrafoAntecedentesMandatoHtml;
+        var parrafoCierreAHtml;
+        var parrafoCierreBHtml;
+        var tablaFirmasMandatoHtmlMs;
+        if (esSobHtmlMs) {
+          var lfMs = firmantesHtmlMs || [{ nombreCompleto: nombreMandante.trim(), rut: mandante.rut }];
+          var listaTxtMs = lfMs
+            .map(function (f) {
+              return "<b>" + aMayus(f.nombreCompleto) + "</b>, RUT <b>" + aMayus(f.rut) + "</b>";
+            })
+            .join("; ");
+          var nomCausMs = aMayus(nombreCompletoPersonaFlexible(causHtmlMs));
+          var rutCausMs = aMayus(normalizeRut(String(causHtmlMs.rut || "").trim()) || String(causHtmlMs.rut || ""));
+          var afpTrMs = aMayus(((causHtmlMs.afp || mandante.afp || "") + "").trim());
+          parrafoIntroMandatoHtml =
+            "<p>Con fecha " +
+            fechaHoy +
+            " y por medio del siguiente instrumento, nosotros, los abajo firmantes (" +
+            listaTxtMs +
+            "), en calidad de <b>beneficiarios de pensión de sobrevivencia</b> del causante <b>" +
+            nomCausMs +
+            "</b>, RUT <b>" +
+            rutCausMs +
+            "</b>, quien nació el <b>" +
+            fechaAHabladoFlexible(causHtmlMs.fechaNacimiento || causHtmlMs.fecha_nacimiento || "") +
+            "</b> y falleció el <b>" +
+            fechaAHabladoFlexible(causHtmlMs.fechaDefuncion || causHtmlMs.fecha_defuncion || "") +
+            "</b>, otorgamos poder a <b>" +
+            aMayus(nombreCompletoMandatario) +
+            "</b>, RUT <b>" +
+            aMayus(mandatario.rut) +
+            "</b>, domiciliado en <b>" +
+            aMayus(mandatario.domicilio) +
+            "</b>, comuna de <b>" +
+            aMayus(mandatario.comuna) +
+            "</b>, ciudad de <b>" +
+            aMayus(mandatario.ciudad) +
+            "</b>, teléfono <b>" +
+            aMayus(mandatario.telefono) +
+            "</b>, correo electrónico <b>" +
+            aMayus(mandatario.email) +
+            "</b>, para que en <b>nuestro nombre</b> suscriba en <b>" +
+            afpTrMs +
+            "</b>, una solicitud de <b>" +
+            aMayus(mandante.tipoPension) +
+            "</b>.</p>";
+          parrafoDeclBenefHtml =
+            "<p>Para efectos de la suscripción de la pensión antes mencionada, declaramos conocer que tienen la calidad de beneficiarios de pensión de sobrevivencia: el cónyuge, los hijos, la madre o padre de hijos de filiación no matrimonial y, a falta de todos los anteriores, los padres. En consecuencia, efectuamos la siguiente declaración de beneficiarios:</p>";
+          parrafoAntecedentesMandatoHtml =
+            "<p>Por otra parte, señalamos los siguientes antecedentes que el mandatario deberá considerar para suscribir en <b>nuestro nombre</b> en la solicitud de <b>" +
+            aMayus(mandante.tipoPension) +
+            "</b></p>";
+          parrafoCierreAHtml =
+            "<p>Otorgamos el presente mandato para los únicos fines antes señalados y se entiende revocado por otro de fecha posterior o por término de la gestión encomendada.</p>";
+          parrafoCierreBHtml =
+            "<p>Finalmente, declaramos conocer que el trámite de pensión es gratuito, sin perjuicio de que podamos contratar voluntariamente una asesoría previsional para dicho trámite.</p>";
+          tablaFirmasMandatoHtmlMs = htmlTablaFirmasSobrevivencia(lfMs, mandatario);
+        } else {
+          parrafoIntroMandatoHtml =
+            "<p>" +
+            "Con fecha " +
+            fechaHoy +
+            " y por medio del siguiente instrumento, yo " +
+            "<b>" +
+            aMayus(nombreMandante) +
+            "</b>, RUT <b>" +
+            aMayus(mandante.rut) +
+            "</b>, de nacionalidad <b>" +
+            aMayus(mandante.nacionalidad) +
+            "</b>, de sexo <b>" +
+            aMayus(mandante.sexo) +
+            "</b>, nacido el <b>" +
+            fechaAHablado(mandante.fechaNacimiento) +
+            "</b>, estado civil <b>" +
+            aMayus(mandante.estadoCivil) +
+            "</b>, de profesión u oficio <b>" +
+            aMayus(mandante.profesionUOficio) +
+            "</b>, domiciliado en <b>" +
+            aMayus(mandante.domicilio) +
+            "</b>, comuna de <b>" +
+            aMayus(mandante.comuna) +
+            "</b>, ciudad de <b>" +
+            aMayus(mandante.ciudad) +
+            "</b>, teléfono <b>" +
+            aMayus(mandante.telefono) +
+            "</b>, correo electrónico <b>" +
+            aMayus(mandante.email) +
+            "</b>, e incorporado a la institución de salud <b>" +
+            aMayus(mandante.institucionSalud) +
+            "</b> confiero poder a <b>" +
+            aMayus(nombreCompletoMandatario) +
+            "</b>, RUT <b>" +
+            aMayus(mandatario.rut) +
+            "</b>, domiciliado en <b>" +
+            aMayus(mandatario.domicilio) +
+            "</b>, comuna de <b>" +
+            aMayus(mandatario.comuna) +
+            "</b>, ciudad de <b>" +
+            aMayus(mandatario.ciudad) +
+            "</b>, teléfono <b>" +
+            aMayus(mandatario.telefono) +
+            "</b>, correo electrónico <b>" +
+            aMayus(mandatario.email) +
+            "</b>, para que en mi nombre suscriba en <b>" +
+            aMayus(mandante.afp) +
+            "</b>, una solicitud de <b>" +
+            aMayus(mandante.tipoPension) +
+            "</b>." +
+            "</p>";
+          parrafoDeclBenefHtml =
+            "<p>Para efectos de la suscripción de la pensión antes mencionada, declaro conocer que tienen la calidad de beneficiarios de pensión de sobrevivencia: el cónyuge, los hijos, la madre o padre de hijos de filiación no matrimonial y, a falta de todos los anteriores, los padres. En consecuencia, efectúo la siguiente declaración de beneficiarios:</p>";
+          parrafoAntecedentesMandatoHtml =
+            "<p>Por otra parte, señalo los siguientes antecedentes que el mandatario deberá considerar para suscribir en mi nombre en la solicitud de <b>" +
+            aMayus(mandante.tipoPension) +
+            "</b></p>";
+          parrafoCierreAHtml =
+            "<p>Otorgo el presente mandato para los únicos fines antes señalados y se entiende revocado por otro de fecha posterior o por término de la gestión encomendada.</p>";
+          parrafoCierreBHtml =
+            "<p>Finalmente, declaro conocer que el trámite de pensión es gratuito, sin perjuicio de que puedo contratar voluntariamente una asesoría previsional para dicho trámite.</p>";
+          tablaFirmasMandatoHtmlMs =
+            '<table class="tabla-firmas" border="0" cellpadding="0" cellspacing="0" style="margin-top:40px;width:100%;">' +
+            "<tr>" +
+            "<td>" +
+            '<p style="margin:0;padding-top:88px;min-height:96px;box-sizing:border-box;">______________________________</p>' +
+            "<p>Firma Cliente</p>" +
+            "<p><b>" +
+            aMayus(nombreMandante) +
+            "</b></p>" +
+            '<p>RUT: <b>' +
+            aMayus(mandante.rut) +
+            "</b></p>" +
+            "</td>" +
+            "<td>" +
+            '<p style="margin:0;padding-top:88px;min-height:96px;box-sizing:border-box;">______________________________</p>' +
+            "<p>Firma Asesor Previsional</p>" +
+            "<p><b>" +
+            aMayus(nombreCompletoMandatario) +
+            "</b></p>" +
+            '<p>RUT: <b>' +
+            aMayus(mandatario.rut) +
+            "</b></p>" +
+            "</td>" +
+            "</tr>" +
+            "</table>";
+        }
+
         const html = `
         <html>
         <head>
@@ -2713,32 +3415,7 @@
         <h2 style="font-size:16pt;font-weight:bold;line-height:1.25;text-align:center;text-transform:uppercase;width:100%;display:block;margin:20px 0 0 0;box-sizing:border-box;">MANDATO PARA INICIAR TRÁMITE DE ${aMayus(mandante.tipoPension)}</h2>
         <h3 class="mandato-encabezado-tipo" style="font-size:11pt;font-weight:normal;line-height:1.3;text-align:center;text-transform:uppercase;width:100%;display:block;margin-top:10px;">${aMayus(mandante.tipoPension)}</h3>
 
-        <p>
-        Con fecha ${fechaHoy} y por medio del siguiente instrumento, yo 
-        <b>${aMayus(nombreMandante)}</b>,
-        RUT <b>${aMayus(mandante.rut)}</b>,
-        de nacionalidad <b>${aMayus(mandante.nacionalidad)}</b>,
-        de sexo <b>${aMayus(mandante.sexo)}</b>,
-        nacido el <b>${fechaAHablado(mandante.fechaNacimiento)}</b>,
-        estado civil <b>${aMayus(mandante.estadoCivil)}</b>,
-        de profesión u oficio <b>${aMayus(mandante.profesionUOficio)}</b>,
-        domiciliado en <b>${aMayus(mandante.domicilio)}</b>,
-        comuna de <b>${aMayus(mandante.comuna)}</b>,
-        ciudad de <b>${aMayus(mandante.ciudad)}</b>,
-        teléfono <b>${aMayus(mandante.telefono)}</b>,
-        correo electrónico <b>${aMayus(mandante.email)}</b>,
-        e incorporado a la institución de salud
-        <b>${aMayus(mandante.institucionSalud)}</b>
-        confiero poder a 
-        <b>${aMayus(nombreCompletoMandatario)}</b>,
-        RUT <b>${aMayus(mandatario.rut)}</b>,
-        domiciliado en <b>${aMayus(mandatario.domicilio)}</b>,
-        comuna de <b>${aMayus(mandatario.comuna)}</b>,
-        ciudad de <b>${aMayus(mandatario.ciudad)}</b>,
-        teléfono <b>${aMayus(mandatario.telefono)}</b>,
-        correo electrónico <b>${aMayus(mandatario.email)}</b>,
-        para que en mi nombre suscriba en <b>${aMayus(mandante.afp)}</b>, una solicitud de <b>${aMayus(mandante.tipoPension)}</b>.
-        </p>
+        ${parrafoIntroMandatoHtml}
 
         ${(empleador.nombreORazonSocial || empleador.rut || empleador.domicilio || empleador.email || empleador.telefono) ? `
         <p class="empleador-datos">
@@ -2754,9 +3431,7 @@
         ` : ''}
 
         
-        <p>
-        Para efectos de la suscripción de la pensión antes mencionada, declaro conocer que tienen la calidad de beneficiarios de pensión de sobrevivencia: el cónyuge, los hijos, la madre o padre de hijos de filiación no matrimonial y, a falta de todos los anteriores, los padres. En consecuencia, efectúo la siguiente declaración de beneficiarios:
-        </p> 
+        ${parrafoDeclBenefHtml}
         ${data.beneficiarios && Object.keys(data.beneficiarios).length > 0 ? `
         
           
@@ -2781,12 +3456,7 @@
         
         <br/>
         ` : `<p><b>Sin beneficiarios legales</b></p>`}
-        <p>
-        Por otra parte, señalo los siguientes antecedentes 
-        que el mandatario deberá considerar para suscribir 
-        en mi nombre en la solicitud 
-        de ${aMayus(mandante.tipoPension)}
-        </p>
+        ${parrafoAntecedentesMandatoHtml}
 
         <h3>Antecedentes</h3>
 
@@ -3032,36 +3702,12 @@
         </table>
         <br>
         ` : ''}
-        <p>
-        Otorgo el presente mandato para los únicos 
-        fines antes señalados y se entiende revocado 
-        por otro de fecha posterior o por término de 
-        la gestión encomendada.
-        </p>
-        <p>
-        Finalmente, declaro conocer que el trámite de pensión 
-        es gratuito, sin perjuicio de que puedo contratar 
-        voluntariamente una asesoría previsional para dicho trámite.    
-        </p>
+        ${parrafoCierreAHtml}
+        ${parrafoCierreBHtml}
 
         <br><br><br><br><br><br>
 
-        <table class="tabla-firmas" border="0" cellpadding="0" cellspacing="0" style="margin-top:40px;width:100%;">
-        <tr>
-        <td>
-        <p style="margin:0;padding-top:88px;min-height:96px;box-sizing:border-box;">______________________________</p>
-        <p>Firma Cliente</p>
-        <p><b>${aMayus(nombreMandante)}</b></p>
-        <p>RUT: <b>${aMayus(mandante.rut)}</b></p>
-        </td>
-        <td>
-        <p style="margin:0;padding-top:88px;min-height:96px;box-sizing:border-box;">______________________________</p>
-        <p>Firma Asesor Previsional</p>
-        <p><b>${aMayus(nombreCompletoMandatario)}</b></p>
-        <p>RUT: <b>${aMayus(mandatario.rut)}</b></p>
-        </td>
-        </tr>
-        </table>
+        ${tablaFirmasMandatoHtmlMs}
 
         <p style="margin-top:24px;margin-bottom:12px;text-align:center;">Firmó ante mí:</p>
 
@@ -3096,6 +3742,137 @@
         const tablaAutorizacionesCorto = buildTablaSoloSi(autorizacionesItems, autorizaciones, autorizacionesMandateLabels);
         const tablaCertificadosCorto = buildTablaSoloSi(certificadosItems, certificados, certificadosMandateLabels);
 
+        const esSobCortoHtml = pensionEsSobrevivenciaTipo(mandante.tipoPension);
+        const firmantesCortoHtmlList = esSobCortoHtml ? armarListaFirmantesSobrevivencia(data) : null;
+        const causCortoHtml = data.causante || {};
+        let parrafoIntroMandatoCortoHtml;
+        let textoAntecedentesCortoLead;
+        let tablaFirmasMandatoCortoHtml;
+
+        const nombreMandanteTrim = nombreMandante.trim();
+
+        if (esSobCortoHtml) {
+          const lfMc = firmantesCortoHtmlList || [{ nombreCompleto: nombreMandanteTrim, rut: mandante.rut }];
+          const listaTxtMc = lfMc
+            .map(function (f) {
+              return "<b>" + aMayus(f.nombreCompleto) + "</b>, RUT <b>" + aMayus(f.rut) + "</b>";
+            })
+            .join("; ");
+          const nomCausMc = aMayus(nombreCompletoPersonaFlexible(causCortoHtml));
+          const rutCausMc = aMayus(normalizeRut(String(causCortoHtml.rut || "").trim()) || String(causCortoHtml.rut || ""));
+          const afpTrMc = aMayus(String((causCortoHtml.afp || mandante.afp || "") + "").trim());
+          parrafoIntroMandatoCortoHtml =
+            "<p>Con fecha " +
+            fechaHoy +
+            " y por medio del siguiente instrumento, nosotros, los abajo firmantes (" +
+            listaTxtMc +
+            "), beneficiarios de pensión de sobrevivencia del causante <b>" +
+            nomCausMc +
+            "</b>, RUT <b>" +
+            rutCausMc +
+            "</b>, quien nació el <b>" +
+            fechaAHabladoFlexible(causCortoHtml.fechaNacimiento || causCortoHtml.fecha_nacimiento || "") +
+            "</b> y falleció el <b>" +
+            fechaAHabladoFlexible(causCortoHtml.fechaDefuncion || causCortoHtml.fecha_defuncion || "") +
+            "</b>, otorgamos poder a <b>" +
+            aMayus(nombreCompletoMandatario) +
+            "</b>, RUT <b>" +
+            aMayus(mandatario.rut) +
+            "</b>, domiciliado en <b>" +
+            aMayus(mandatario.domicilio) +
+            "</b>, comuna de <b>" +
+            aMayus(mandatario.comuna) +
+            "</b>, ciudad de <b>" +
+            aMayus(mandatario.ciudad) +
+            "</b>, teléfono <b>" +
+            aMayus(mandatario.telefono) +
+            "</b>, correo electrónico <b>" +
+            aMayus(mandatario.email) +
+            "</b>, para que en <b>nuestro nombre</b> y en representación efectúe en <b>" +
+            afpTrMc +
+            "</b> lo siguiente:</p>";
+          textoAntecedentesCortoLead =
+            "Por otra parte, señalamos los siguientes antecedentes que el mandatario deberá considerar para suscribir en nuestro nombre en la solicitud de " +
+            aMayus(mandante.tipoPension);
+          tablaFirmasMandatoCortoHtml = htmlTablaFirmasSobrevivencia(lfMc, mandatario);
+        } else {
+          parrafoIntroMandatoCortoHtml =
+            "<p>Con fecha " +
+            fechaHoy +
+            " y por medio del siguiente instrumento, yo " +
+            "<b>" +
+            aMayus(nombreMandante) +
+            "</b>, RUT <b>" +
+            aMayus(mandante.rut) +
+            "</b>, de nacionalidad <b>" +
+            aMayus(mandante.nacionalidad) +
+            "</b>, de sexo <b>" +
+            aMayus(mandante.sexo) +
+            "</b>, nacido el <b>" +
+            fechaAHablado(mandante.fechaNacimiento) +
+            "</b>, estado civil <b>" +
+            aMayus(mandante.estadoCivil) +
+            "</b>, de profesión u oficio <b>" +
+            aMayus(mandante.profesionUOficio) +
+            "</b>, domiciliado en <b>" +
+            aMayus(mandante.domicilio) +
+            "</b>, comuna de <b>" +
+            aMayus(mandante.comuna) +
+            "</b>, ciudad de <b>" +
+            aMayus(mandante.ciudad) +
+            "</b>, teléfono <b>" +
+            aMayus(mandante.telefono) +
+            "</b>, correo electrónico <b>" +
+            aMayus(mandante.email) +
+            "</b>, e incorporado a la institución de salud <b>" +
+            aMayus(mandante.institucionSalud) +
+            "</b> confiero poder a <b>" +
+            aMayus(nombreCompletoMandatario) +
+            "</b>, RUT <b>" +
+            aMayus(mandatario.rut) +
+            "</b>, domiciliado en <b>" +
+            aMayus(mandatario.domicilio) +
+            "</b>, comuna de <b>" +
+            aMayus(mandatario.comuna) +
+            "</b>, ciudad de <b>" +
+            aMayus(mandatario.ciudad) +
+            "</b>, teléfono <b>" +
+            aMayus(mandatario.telefono) +
+            "</b>, correo electrónico <b>" +
+            aMayus(mandatario.email) +
+            "</b>, para que en mi nombre y en representación efectúe en <b>" +
+            aMayus(mandante.afp) +
+            "</b> lo siguiente:</p>";
+          textoAntecedentesCortoLead =
+            "Por otra parte, señalo los siguientes antecedentes que el mandatario deberá considerar para suscribir en mi nombre en la solicitud de " +
+            aMayus(mandante.tipoPension);
+          tablaFirmasMandatoCortoHtml =
+            '<table class="tabla-firmas" border="0" cellpadding="0" cellspacing="0" style="margin-top:40px;width:100%;">' +
+            "<tr>" +
+            "<td>" +
+            '<p style="margin:0;padding-top:88px;min-height:96px;box-sizing:border-box;">______________________________</p>' +
+            "<p>Firma Cliente</p>" +
+            "<p><b>" +
+            aMayus(nombreMandante) +
+            "</b></p>" +
+            '<p>RUT: <b>' +
+            aMayus(mandante.rut) +
+            "</b></p>" +
+            "</td>" +
+            "<td>" +
+            '<p style="margin:0;padding-top:88px;min-height:96px;box-sizing:border-box;">______________________________</p>' +
+            "<p>Firma Asesor Previsional</p>" +
+            "<p><b>" +
+            aMayus(nombreCompletoMandatario) +
+            "</b></p>" +
+            '<p>RUT: <b>' +
+            aMayus(mandatario.rut) +
+            "</b></p>" +
+            "</td>" +
+            "</tr>" +
+            "</table>";
+        }
+
         const html = `
         <html>
         <head>
@@ -3129,41 +3906,13 @@
 
         <h2 style="text-align:center;text-transform:uppercase;width:100%;display:block;margin:20px 0 0 0;box-sizing:border-box;">MANDATO PARA  ${aMayus(mandante.cambioModalidadTramite === "Sí" ? "INICIAR TRÁMITE DE CAMBIO DE MODALIDAD" : "RETIRAR CERTIFICADO DE SALDO")} DE ${aMayus(mandante.tipoPension)}</h2>
 
-        <p>
-        Con fecha ${fechaHoy} y por medio del siguiente instrumento, yo 
-        <b>${aMayus(nombreMandante)}</b>,
-        RUT <b>${aMayus(mandante.rut)}</b>,
-        de nacionalidad <b>${aMayus(mandante.nacionalidad)}</b>,
-        de sexo <b>${aMayus(mandante.sexo)}</b>,
-        nacido el <b>${fechaAHablado(mandante.fechaNacimiento)}</b>,
-        estado civil <b>${aMayus(mandante.estadoCivil)}</b>,
-        de profesión u oficio <b>${aMayus(mandante.profesionUOficio)}</b>,
-        domiciliado en <b>${aMayus(mandante.domicilio)}</b>,
-        comuna de <b>${aMayus(mandante.comuna)}</b>,
-        ciudad de <b>${aMayus(mandante.ciudad)}</b>,
-        teléfono <b>${aMayus(mandante.telefono)}</b>,
-        correo electrónico <b>${aMayus(mandante.email)}</b>,
-        e incorporado a la institución de salud
-        <b>${aMayus(mandante.institucionSalud)}</b>
-        confiero poder a 
-        <b>${aMayus(nombreCompletoMandatario)}</b>,
-        RUT <b>${aMayus(mandatario.rut)}</b>,
-        domiciliado en <b>${aMayus(mandatario.domicilio)}</b>,
-        comuna de <b>${aMayus(mandatario.comuna)}</b>,
-        ciudad de <b>${aMayus(mandatario.ciudad)}</b>,
-        teléfono <b>${aMayus(mandatario.telefono)}</b>,
-        correo electrónico <b>${aMayus(mandatario.email)}</b>,
-        para que en mi nombre y en representación efectúe en <b>${aMayus(mandante.afp)}</b> lo siguiente:
-        </p>
+        ${parrafoIntroMandatoCortoHtml}
 
        
 
         ${tablaAntecedentesCorto ? `
         <p>
-        Por otra parte, señalo los siguientes antecedentes 
-        que el mandatario deberá considerar para suscribir 
-        en mi nombre en la solicitud 
-        de ${aMayus(mandante.tipoPension)}
+        ${textoAntecedentesCortoLead}
         </p>
         <h3>Antecedentes</h3>
         <table border="1" style="border-collapse:collapse;width:100%;">
@@ -3183,22 +3932,7 @@
 
         <br><br><br><br><br><br>
 
-        <table class="tabla-firmas" border="0" cellpadding="0" cellspacing="0" style="margin-top:40px;width:100%;">
-        <tr>
-        <td>
-        <p style="margin:0;padding-top:88px;min-height:96px;box-sizing:border-box;">______________________________</p>
-        <p>Firma Cliente</p>
-        <p><b>${aMayus(nombreMandante)}</b></p>
-        <p>RUT: <b>${aMayus(mandante.rut)}</b></p>
-        </td>
-        <td>
-        <p style="margin:0;padding-top:88px;min-height:96px;box-sizing:border-box;">______________________________</p>
-        <p>Firma Asesor Previsional</p>
-        <p><b>${aMayus(nombreCompletoMandatario)}</b></p>
-        <p>RUT: <b>${aMayus(mandatario.rut)}</b></p>
-        </td>
-        </tr>
-        </table>
+        ${tablaFirmasMandatoCortoHtml}
 
         <p style="margin-top:24px;margin-bottom:12px;text-align:center;">Firmó ante mí:</p>
 
@@ -3293,6 +4027,151 @@
                 })
                 .join("");
           }
+        }
+
+        const esSobContratoHtml = pensionEsSobrevivenciaTipo(mandante.tipoPension);
+        const firmantesContratoHtml = esSobContratoHtml ? armarListaFirmantesSobrevivencia(data) : null;
+        const causContratoHtml = data.causante || {};
+        var parrafoIndividContratoHtml = "";
+        var textoGrupoFamiliarContratoLead = "";
+        var tablaFirmasContratoHtml = "";
+        if (esSobContratoHtml) {
+          var lfCt = firmantesContratoHtml || [{ nombreCompleto: nombreCompletoMandante, rut: mandante.rut }];
+          var listaFirCt = lfCt
+            .map(function (f) {
+              return "<b>" + aMayus(f.nombreCompleto) + "</b>, Rut <b>" + aMayus(f.rut) + "</b>";
+            })
+            .join("; ");
+          var nomCt = aMayus(nombreCompletoPersonaFlexible(causContratoHtml));
+          var rutCt = aMayus(normalizeRut(String(causContratoHtml.rut || "").trim()) || String(causContratoHtml.rut || ""));
+          parrafoIndividContratoHtml =
+            "<p>En la Ciudad de <b>" +
+            aMayus(ciudad) +
+            "</b> a <b>" +
+            fechaActualTexto +
+            "</b>, en relación con pensión de sobrevivencia por el fallecimiento del causante <b>" +
+            nomCt +
+            "</b>, Rut <b>" +
+            rutCt +
+            "</b> (nacido el <b>" +
+            fechaAHabladoFlexible(causContratoHtml.fecha_nacimiento || causContratoHtml.fechaNacimiento || "") +
+            "</b>, fallecido el <b>" +
+            fechaAHabladoFlexible(causContratoHtml.fecha_defuncion || causContratoHtml.fechaDefuncion || "") +
+            "</b>), suscriben el presente contrato, por una parte, como contratantes y beneficiarios: " +
+            listaFirCt +
+            "; por otra parte, <b>" +
+            aMayus(nombreCompletoMandatario) +
+            "</b>, Rut <b>" +
+            aMayus(mandatario.rut) +
+            '</b>, Profesión <b>ASESOR PREVISIONAL</b>, inscrito en el Registro de Asesores Previsionales de la Superintendencia de Pensiones con el N° <b>' +
+            aMayus(mandatario.numeroRegistroAsesorPrevisional) +
+            "</b>, domiciliado en <b>" +
+            aMayus(mandatario.domicilio) +
+            "</b>, comuna de <b>" +
+            aMayus(mandatario.comuna) +
+            "</b> ciudad de <b>" +
+            aMayus(mandatario.ciudad) +
+            "</b>, celular <b>" +
+            aMayus(mandatario.telefono) +
+            "</b> e-mail: <b>" +
+            aMayus(mandatario.email) +
+            '</b>, en adelante el “ASESOR PREVISIONAL”. Las partes acuerdan el siguiente contrato de asesoría para realizar trámite de <b>' +
+            aMayus(esCambioModalidad ? "cambio de modalidad para " + nombreTramite : nombreTramite) +
+            "</b>.</p>" +
+            "<p>Los contratantes dejan expresa constancia que el beneficiario a cargo ante el Asesor es don <b>" +
+            aMayus(nombreCompletoMandante) +
+            "</b>, Rut <b>" +
+            aMayus(mandante.rut) +
+            "</b>, domicilio <b>" +
+            aMayus(mandante.domicilio) +
+            "</b>, comuna de <b>" +
+            aMayus(mandante.comuna) +
+            "</b>, ciudad de <b>" +
+            aMayus(mandante.ciudad) +
+            "</b>, correo electrónico <b>" +
+            aMayus(mandante.email) +
+            "</b>, celular <b>" +
+            aMayus(mandante.telefono) +
+            "</b>, institución de salud <b>" +
+            aMayus(mandante.institucionSalud) +
+            "</b>.</p>";
+          textoGrupoFamiliarContratoLead = "Los contratantes declaran que la composición del grupo familiar con derecho a pensión es:";
+          tablaFirmasContratoHtml = htmlTablaFirmasSobrevivencia(lfCt, mandatario);
+        } else {
+          parrafoIndividContratoHtml =
+            "<p>En la Ciudad de <b>" +
+            aMayus(ciudad) +
+            "</b> a <b>" +
+            fechaActualTexto +
+            '</b>, suscriben el presente contrato, por una parte, don <b>' +
+            aMayus(nombreCompletoMandante) +
+            "</b>, Rut <b>" +
+            aMayus(mandante.rut) +
+            "</b>, nacido el <b>" +
+            fechaAHablado(mandante.fechaNacimiento) +
+            "</b>, estado civil <b>" +
+            aMayus(mandante.estadoCivil) +
+            "</b>, profesión u oficio <b>" +
+            aMayus(mandante.profesionUOficio) +
+            "</b>, domiciliado en <b>" +
+            aMayus(mandante.domicilio) +
+            "</b>, comuna de <b>" +
+            aMayus(mandante.comuna) +
+            "</b> ciudad de <b>" +
+            aMayus(mandante.ciudad) +
+            "</b>, celular <b>" +
+            aMayus(mandante.telefono) +
+            "</b>, correo electrónico <b>" +
+            aMayus(mandante.email) +
+            "</b>, afiliado a la <b>" +
+            aMayus(mandante.afp) +
+            "</b>, Sistema de Salud <b>" +
+            aMayus(mandante.institucionSalud) +
+            "</b>; por otra parte, <b>" +
+            aMayus(nombreCompletoMandatario) +
+            "</b>, Rut <b>" +
+            aMayus(mandatario.rut) +
+            '</b>, Profesión <b>ASESOR PREVISIONAL</b>, inscrito en el Registro de Asesores Previsionales de la Superintendencia de Pensiones con el N° <b>' +
+            aMayus(mandatario.numeroRegistroAsesorPrevisional) +
+            "</b>, domiciliado en <b>" +
+            aMayus(mandatario.domicilio) +
+            "</b>, comuna de <b>" +
+            aMayus(mandatario.comuna) +
+            "</b> ciudad de <b>" +
+            aMayus(mandatario.ciudad) +
+            "</b>, celular <b>" +
+            aMayus(mandatario.telefono) +
+            "</b> e-mail: <b>" +
+            aMayus(mandatario.email) +
+            '</b>, en adelante el “ASESOR PREVISIONAL”. Las partes acuerdan el siguiente contrato de asesoría para realizar trámite de <b>' +
+            aMayus(esCambioModalidad ? "cambio de modalidad para " + nombreTramite : nombreTramite) +
+            "</b>.</p>";
+          textoGrupoFamiliarContratoLead = "El Afiliado declara que la composición de su grupo familiar con derecho a pensión es:";
+          tablaFirmasContratoHtml =
+            '<table class="tabla-firmas" border="0" cellpadding="0" cellspacing="0" style="margin-top:40px;width:100%;">' +
+            "<tr>" +
+            "<td>" +
+            '<p style="margin:0;padding-top:88px;min-height:96px;box-sizing:border-box;">______________________________</p>' +
+            "<p>Firma Cliente</p>" +
+            "<p><b>" +
+            aMayus(nombreCompletoMandante) +
+            "</b></p>" +
+            '<p>RUT: <b>' +
+            aMayus(mandante.rut) +
+            "</b></p>" +
+            "</td>" +
+            "<td>" +
+            '<p style="margin:0;padding-top:88px;min-height:96px;box-sizing:border-box;">______________________________</p>' +
+            "<p>Firma Asesor Previsional</p>" +
+            "<p><b>" +
+            aMayus(nombreCompletoMandatario) +
+            "</b></p>" +
+            '<p>RUT: <b>' +
+            aMayus(mandatario.rut) +
+            "</b></p>" +
+            "</td>" +
+            "</tr>" +
+            "</table>";
         }
 
         const html = `
@@ -3431,20 +4310,7 @@
 
         <h2 style="${contratoH2Style}">INDIVIDUALIZACIÓN DE LAS PARTES</h2>
 
-        <p>
-        En la Ciudad de <b>${aMayus(ciudad)}</b> a <b>${fechaActualTexto}</b>, suscriben el presente contrato, por una parte,
-        don <b>${aMayus(nombreCompletoMandante)}</b>, Rut <b>${aMayus(mandante.rut)}</b>, nacido el <b>${fechaAHablado(mandante.fechaNacimiento)}</b>,
-        estado civil <b>${aMayus(mandante.estadoCivil)}</b>, profesión u oficio <b>${aMayus(mandante.profesionUOficio)}</b>,
-        domiciliado en <b>${aMayus(mandante.domicilio)}</b>, comuna de <b>${aMayus(mandante.comuna)}</b> ciudad de <b>${aMayus(mandante.ciudad)}</b>,
-        celular <b>${aMayus(mandante.telefono)}</b>, correo electrónico <b>${aMayus(mandante.email)}</b>,
-        afiliado a la <b>${aMayus(mandante.afp)}</b>, Sistema de Salud <b>${aMayus(mandante.institucionSalud)}</b>;
-        por otra parte, <b>${aMayus(nombreCompletoMandatario)}</b>, Rut <b>${aMayus(mandatario.rut)}</b>,
-        Profesión <b>ASESOR PREVISIONAL</b>, inscrito en el Registro de Asesores Previsionales de la
-        Superintendencia de Pensiones con el N° <b>${aMayus(mandatario.numeroRegistroAsesorPrevisional)}</b>,
-        domiciliado en <b>${aMayus(mandatario.domicilio)}</b>, comuna de <b>${aMayus(mandatario.comuna)}</b> ciudad de <b>${aMayus(mandatario.ciudad)}</b>,
-        celular <b>${aMayus(mandatario.telefono)}</b> e-mail: <b>${aMayus(mandatario.email)}</b>, en adelante el “ASESOR PREVISIONAL”.
-        Las partes acuerdan el siguiente contrato de asesoría para realizar trámite de <b>${aMayus(esCambioModalidad ? "cambio de modalidad para " + nombreTramite : nombreTramite)}</b>.
-        </p>
+        ${parrafoIndividContratoHtml}
 
         <h2 style="${contratoH2Style}">ANTECEDENTES DEL GRUPO FAMILIAR CON DERECHO A PENSIÓN</h2>
 
@@ -3452,7 +4318,7 @@
 
         ${filasBeneficiarios ? `
         <p>
-        El Afiliado declara que la composición de su grupo familiar con derecho a pensión es:
+        ${textoGrupoFamiliarContratoLead}
         </p>
         <table class="tabla-benef-contrato" border="1" style="border-collapse:collapse;width:100%;">
         <tr>
@@ -3641,22 +4507,7 @@
 
         <br/><br/><br/><br/><br/><br/>
 
-        <table class="tabla-firmas" border="0" cellpadding="0" cellspacing="0" style="margin-top:40px;width:100%;">
-        <tr>
-        <td>
-        <p style="margin:0;padding-top:88px;min-height:96px;box-sizing:border-box;">______________________________</p>
-        <p>Firma Cliente</p>
-        <p><b>${aMayus(nombreCompletoMandante)}</b></p>
-        <p>RUT: <b>${aMayus(mandante.rut)}</b></p>
-        </td>
-        <td>
-        <p style="margin:0;padding-top:88px;min-height:96px;box-sizing:border-box;">______________________________</p>
-        <p>Firma Asesor Previsional</p>
-        <p><b>${aMayus(nombreCompletoMandatario)}</b></p>
-        <p>RUT: <b>${aMayus(mandatario.rut)}</b></p>
-        </td>
-        </tr>
-        </table>
+        ${tablaFirmasContratoHtml}
 
         </body>
         </html>
@@ -4343,6 +5194,25 @@
       }
 
       // Construye el objeto fila para la tabla clientes a partir de los datos del formulario de pensión (mandato).
+      function buildCausanteJsonFromPensionFormData(data) {
+        var mand = data.mandante || {};
+        if (!pensionEsSobrevivenciaTipo(mand.tipoPension)) return null;
+        var c = data.causante || {};
+        var fn = parseDDMMYYYY(c.fechaNacimiento || "");
+        var fd = parseDDMMYYYY(c.fechaDefuncion || "");
+        return {
+          nombres: (c.nombres || "").trim() || null,
+          apellido_paterno: (c.apellidoPaterno || "").trim() || null,
+          apellido_materno: (c.apellidoMaterno || "").trim() || null,
+          rut: rutToCanonical(c.rut || "") || null,
+          nacionalidad: (c.nacionalidad || "").trim() || null,
+          sexo: (c.sexo || "").trim() || null,
+          fecha_nacimiento: fn && fn.iso ? fn.iso : null,
+          fecha_defuncion: fd && fd.iso ? fd.iso : null,
+          afp: (c.afp || "").trim() || null,
+        };
+      }
+
       function buildClienteRowFromMandatoData(data, userId) {
         const mandante = data.mandante || {};
         const empleador = data.empleador || {};
@@ -4435,6 +5305,8 @@
           row.conyuge_nacionalidad = (co2.nacionalidad || "").trim() || row.conyuge_nacionalidad || null;
         }
 
+        row.causante = buildCausanteJsonFromPensionFormData(data);
+
         return row;
       }
 
@@ -4523,6 +5395,7 @@
           rowNew.solicitud_beneficiarios = bn;
           rowNew.solicitud_numero_beneficiarios = bn.length;
           aplicarConyugeColumnasDesdeBeneficiarios(rowNew);
+          rowNew.causante = incoming.causante !== undefined ? incoming.causante : null;
           return rowNew;
         }
 
@@ -4626,6 +5499,10 @@
           merged.conyuge_sexo = null;
           merged.conyuge_fecha_matrimonio = null;
           merged.conyuge_lugar_matrimonio = null;
+        }
+
+        if (incoming.causante !== undefined) {
+          merged.causante = incoming.causante;
         }
 
         return merged;
@@ -4879,6 +5756,47 @@
         if (dia) dia.value = String(parsed.dd).padStart(2, "0");
         if (mes) mes.value = String(parsed.mm).padStart(2, "0");
         if (anio) anio.value = String(parsed.yyyy);
+      }
+
+      /** Sincroniza selects de fecha del causante (nacimiento o defunción) con el hidden DD-MM-YYYY. */
+      function syncCausantePensionFechaSelects(kind, parsed) {
+        if (!parsed) return;
+        var base = kind === "def" ? "causante_pen_fechaDef" : "causante_pen_fechaNac";
+        var hid = document.getElementById(base);
+        var dia = document.getElementById(base + "_dia");
+        var mes = document.getElementById(base + "_mes");
+        var anio = document.getElementById(base + "_anio");
+        if (hid) hid.value = mandanteFechaCanonical(parsed);
+        if (dia) dia.value = String(parsed.dd).padStart(2, "0");
+        if (mes) mes.value = String(parsed.mm).padStart(2, "0");
+        if (anio) anio.value = String(parsed.yyyy);
+      }
+
+      /** Muestra la sección causante solo para pensión de sobrevivencia y activa/desactiva `required`. */
+      function syncSectionCausantePension(form) {
+        if (!form) return;
+        var rad = form.querySelector('input[name="mandante.tipoPension"]:checked');
+        var tipo = rad ? String(rad.value || "") : "";
+        var show = pensionEsSobrevivenciaTipo(tipo);
+        var sec = document.getElementById("sectionCausantePension");
+        if (!sec) return;
+        if (show) {
+          sec.classList.remove("section-hidden");
+          form.querySelectorAll("[data-causante-pension-req]").forEach(function (el) {
+            el.required = true;
+          });
+          form.querySelectorAll("[data-causante-pension-radio]").forEach(function (el) {
+            el.required = true;
+          });
+        } else {
+          sec.classList.add("section-hidden");
+          form.querySelectorAll("[data-causante-pension-req]").forEach(function (el) {
+            el.required = false;
+          });
+          form.querySelectorAll("[data-causante-pension-radio]").forEach(function (el) {
+            el.required = false;
+          });
+        }
       }
 
       // Fecha de póliza en DD/MM/AAAA o DD-MM-AAAA (formulario contrato).
@@ -5313,6 +6231,61 @@
           }
         }
 
+        const tipoPensionRad = form.querySelector('input[name="mandante.tipoPension"]:checked');
+        const tipoPensionVal = tipoPensionRad ? String(tipoPensionRad.value || "") : "";
+        if (pensionEsSobrevivenciaTipo(tipoPensionVal)) {
+          const crut = document.getElementById("causante_pen_rut");
+          if (crut) {
+            crut.value = normalizeRut(String(crut.value || "").trim());
+            if (!rutIsValid(crut.value)) {
+              ok = false;
+              crut.setAttribute("aria-invalid", "true");
+              setError(form, "causante_pen_rut", "RUT del causante inválido u obligatorio.");
+            }
+          }
+          const causFn = document.getElementById("causante_pen_fechaNac");
+          const parsedCausFn = parseDDMMYYYY(causFn?.value);
+          if (!parsedCausFn) {
+            ok = false;
+            if (causFn) {
+              causFn.setAttribute("aria-invalid", "true");
+              setError(form, "causante_pen_fechaNac", "Seleccione la fecha de nacimiento del causante.");
+            }
+          } else if (causFn && String(causFn.value || "").trim() !== mandanteFechaCanonical(parsedCausFn)) {
+            syncCausantePensionFechaSelects("nac", parsedCausFn);
+          }
+          const causFd = document.getElementById("causante_pen_fechaDef");
+          const parsedCausFd = parseDDMMYYYY(causFd?.value);
+          if (!parsedCausFd) {
+            ok = false;
+            if (causFd) {
+              causFd.setAttribute("aria-invalid", "true");
+              setError(form, "causante_pen_fechaDef", "Seleccione la fecha de defunción del causante.");
+            }
+          } else if (causFd && String(causFd.value || "").trim() !== mandanteFechaCanonical(parsedCausFd)) {
+            syncCausantePensionFechaSelects("def", parsedCausFd);
+          }
+          const sexoCau = form.querySelector('input[name="causante.sexo"]:checked');
+          if (!sexoCau) {
+            ok = false;
+            setError(form, "causante.sexo", "Seleccione el sexo del causante.");
+          }
+          for (const cid of [
+            "causante_pen_nombres",
+            "causante_pen_apPaterno",
+            "causante_pen_apMaterno",
+            "causante_pen_nacionalidad",
+            "causante_pen_afp",
+          ]) {
+            const cel = document.getElementById(cid);
+            if (cel && !String(cel.value || "").trim()) {
+              ok = false;
+              cel.setAttribute("aria-invalid", "true");
+              setError(form, cid, "Este campo es obligatorio (causante).");
+            }
+          }
+        }
+
         const emailIds = ["mandante_email", "mandatario_email", "empleador_email"];
         for (const id of emailIds) {
           const input = document.getElementById(id);
@@ -5670,6 +6643,47 @@
           mandanteMes.addEventListener("change", updateMandanteFecha);
           mandanteAnio.addEventListener("change", updateMandanteFecha);
         }
+
+            const causanteNacDia = document.getElementById("causante_pen_fechaNac_dia");
+            const causanteNacMes = document.getElementById("causante_pen_fechaNac_mes");
+            const causanteNacAnio = document.getElementById("causante_pen_fechaNac_anio");
+            const causanteNacHidden = document.getElementById("causante_pen_fechaNac");
+            const causanteDefDia = document.getElementById("causante_pen_fechaDef_dia");
+            const causanteDefMes = document.getElementById("causante_pen_fechaDef_mes");
+            const causanteDefAnio = document.getElementById("causante_pen_fechaDef_anio");
+            const causanteDefHidden = document.getElementById("causante_pen_fechaDef");
+            const yMax = new Date().getFullYear();
+            if (causanteNacDia && causanteNacMes && causanteNacAnio && causanteNacHidden) {
+              llenarSelectFecha(causanteNacDia, causanteNacMes, causanteNacAnio, 1900, yMax);
+              const updCausNac = function () {
+                var d = causanteNacDia.value;
+                var m = causanteNacMes.value;
+                var y = causanteNacAnio.value;
+                causanteNacHidden.value = d && m && y ? d + "-" + m + "-" + y : "";
+              };
+              causanteNacDia.addEventListener("change", updCausNac);
+              causanteNacMes.addEventListener("change", updCausNac);
+              causanteNacAnio.addEventListener("change", updCausNac);
+            }
+            if (causanteDefDia && causanteDefMes && causanteDefAnio && causanteDefHidden) {
+              llenarSelectFecha(causanteDefDia, causanteDefMes, causanteDefAnio, 1900, yMax);
+              const updCausDef = function () {
+                var d = causanteDefDia.value;
+                var m = causanteDefMes.value;
+                var y = causanteDefAnio.value;
+                causanteDefHidden.value = d && m && y ? d + "-" + m + "-" + y : "";
+              };
+              causanteDefDia.addEventListener("change", updCausDef);
+              causanteDefMes.addEventListener("change", updCausDef);
+              causanteDefAnio.addEventListener("change", updCausDef);
+            }
+
+            form.querySelectorAll('input[name="mandante.tipoPension"]').forEach(function (r) {
+              r.addEventListener("change", function () {
+                syncSectionCausantePension(form);
+              });
+            });
+            syncSectionCausantePension(form);
 
             const estadoCivilSel = document.getElementById("mandante_estadoCivil");
             const sectionConyuge = document.getElementById("sectionConyuge");
@@ -6100,6 +7114,7 @@
                 if (!confirm("¿Seguro que quieres limpiar el formulario?")) return;
                 form.reset();
                 clearErrors(form);
+                syncSectionCausantePension(form);
                 var ecReset = document.getElementById("mandante_estadoCivil");
                 if (ecReset) ecReset.dispatchEvent(new Event("change", { bubbles: true }));
                 var rHNo = form.querySelector("input[name='tieneHijosMenores24'][value='No']");
@@ -6258,6 +7273,36 @@
                     mandanteAnio.value = match[3];
                   }
                 }
+                function isoCausanteToDdMmYyyy(isoRaw) {
+                  if (!isoRaw || typeof isoRaw !== "string") return "";
+                  var iso = isoRaw.split("T")[0];
+                  if (!iso || !iso.match(/^\d{4}-\d{2}-\d{2}$/)) return "";
+                  var pt = iso.split("-");
+                  return pt[2] + "-" + pt[1] + "-" + pt[0];
+                }
+                if (c.causante && typeof c.causante === "object") {
+                  var cq = c.causante;
+                  setFormFromObject(form, {
+                    causante: {
+                      nombres: cq.nombres || "",
+                      apellidoPaterno: cq.apellido_paterno != null ? String(cq.apellido_paterno) : cq.apellidoPaterno || "",
+                      apellidoMaterno: cq.apellido_materno != null ? String(cq.apellido_materno) : cq.apellidoMaterno || "",
+                      rut: cq.rut ? normalizeRut(String(cq.rut).trim()) || String(cq.rut).trim() : "",
+                      nacionalidad: cq.nacionalidad || "",
+                      sexo: cq.sexo || "",
+                      afp: cq.afp || "",
+                      fechaNacimiento: isoCausanteToDdMmYyyy(cq.fecha_nacimiento || cq.fechaNacimiento || ""),
+                      fechaDefuncion: isoCausanteToDdMmYyyy(cq.fecha_defuncion || cq.fechaDefuncion || ""),
+                    },
+                  });
+                  var causanteNacHiddenP = document.getElementById("causante_pen_fechaNac");
+                  var causanteDefHiddenP = document.getElementById("causante_pen_fechaDef");
+                  var pN = parseDDMMYYYY(causanteNacHiddenP && causanteNacHiddenP.value ? causanteNacHiddenP.value : "");
+                  if (pN) syncCausantePensionFechaSelects("nac", pN);
+                  var pD = parseDDMMYYYY(causanteDefHiddenP && causanteDefHiddenP.value ? causanteDefHiddenP.value : "");
+                  if (pD) syncCausantePensionFechaSelects("def", pD);
+                }
+                syncSectionCausantePension(form);
                 // Empleador
                 if (c.empleador_rut || c.empleador_razon_social || c.empleador_direccion || c.empleador_telefono || c.empleador_email) {
                   setFormFromObject(form, {
