@@ -140,6 +140,13 @@
         gap: 10px;
       }
 
+      /* Subsección .section anidada dentro del grid (p. ej. causante en Mandante): sin esto solo ocupa 1 columna. */
+      .grid > .section {
+        grid-column: 1 / -1;
+        width: 100%;
+        min-width: 0;
+      }
+
       .field {
         grid-column: span 12;
         display: grid;
