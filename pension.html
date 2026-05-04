@@ -2024,6 +2024,18 @@
         return String(tipoPensionRaw || "").trim().toLowerCase().indexOf("sobrevivencia") !== -1;
       }
 
+      /**
+       * Línea de encabezado del causante para contratos/mandatos de sobrevivencia.
+       * Formato: "CAUSANTE : NOMBRES APELLIDOP APELLIDOM, RUT : 12.345.678-9"
+       */
+      function textoLineaCausanteDocumento(causObj) {
+        var cq = causObj && typeof causObj === "object" ? causObj : {};
+        var nom = nombreCompletoPersonaFlexible(cq).trim();
+        var rutDisp = normalizeRut(String(cq.rut || "").trim()) || String(cq.rut || "").trim();
+        if (!nom && !rutDisp) return "";
+        return "CAUSANTE : " + aMayus(nom) + ", RUT : " + aMayus(rutDisp);
+      }
+
       /** Nombre completo desde objeto con camelCase o snake_case. */
       function nombreCompletoPersonaFlexible(obj) {
         if (!obj || typeof obj !== "object") return "";
@@ -2443,6 +2455,11 @@
           });
         }
 
+        if (esSobDoc) {
+          var lineaCausMandPdf = textoLineaCausanteDocumento(causDoc);
+          if (lineaCausMandPdf) content.push(pmPara(lineaCausMandPdf, { bold: true, alignment: "center" }));
+        }
+
         content.push(
           pmPara(
             esSobDoc
@@ -2604,6 +2621,8 @@
             pmBold(aMayus(afpSusC)),
             " lo siguiente:"
           ]));
+          var lineaCausCortoPdf = textoLineaCausanteDocumento(causCorto);
+          if (lineaCausCortoPdf) content.push(pmPara(lineaCausCortoPdf, { bold: true, alignment: "center" }));
         } else {
           content.push(pmPara([
             "Con fecha " + fechaHoy + " y por medio del siguiente instrumento, yo ",
@@ -2822,6 +2841,11 @@
             ", en adelante el “ASESOR PREVISIONAL”. Las partes acuerdan el siguiente contrato de asesoría para realizar trámite de ",
             pmBold(esCambioModalidad ? "cambio de modalidad para " + nombreTramite : nombreTramite), "."
           ]));
+        }
+
+        if (esSobContr) {
+          var lineaCausContrPdf = textoLineaCausanteDocumento(causContr);
+          if (lineaCausContrPdf) content.push(pmPara(lineaCausContrPdf, { bold: true, alignment: "center" }));
         }
 
         content.push(pmH2("ANTECEDENTES DEL GRUPO FAMILIAR CON DERECHO A PENSIÓN"));
@@ -3112,6 +3136,7 @@
         var parrafoCierreAHtml;
         var parrafoCierreBHtml;
         var tablaFirmasMandatoHtmlMs;
+        var lineaCausanteMandatoHtml = "";
         if (esSobHtmlMs) {
           var lfMs = firmantesHtmlMs || [{ nombreCompleto: nombreMandante.trim(), rut: mandante.rut }];
           var listaTxtMs = lfMs
@@ -3165,6 +3190,10 @@
           parrafoCierreBHtml =
             "<p>Finalmente, declaramos conocer que el trámite de pensión es gratuito, sin perjuicio de que podamos contratar voluntariamente una asesoría previsional para dicho trámite.</p>";
           tablaFirmasMandatoHtmlMs = htmlTablaFirmasSobrevivencia(lfMs, mandatario);
+          var tLcMs = textoLineaCausanteDocumento(causHtmlMs);
+          lineaCausanteMandatoHtml = tLcMs
+            ? '<p style="margin:12px 0 10px;text-align:center;font-weight:bold;">' + escapeHtmlContrato(tLcMs) + "</p>"
+            : "";
         } else {
           parrafoIntroMandatoHtml =
             "<p>" +
@@ -3438,6 +3467,7 @@
         ` : ''}
 
         
+        ${lineaCausanteMandatoHtml}
         ${parrafoDeclBenefHtml}
         ${data.beneficiarios && Object.keys(data.beneficiarios).length > 0 ? `
         
@@ -3880,6 +3910,15 @@
             "</table>";
         }
 
+        var lineaCausanteMandatoCortoHtml = "";
+        if (esSobCortoHtml) {
+          var tMcHtml = textoLineaCausanteDocumento(causCortoHtml);
+          if (tMcHtml) {
+            lineaCausanteMandatoCortoHtml =
+              '<p style="margin:12px 0 14px;text-align:center;font-weight:bold;">' + escapeHtmlContrato(tMcHtml) + "</p>";
+          }
+        }
+
         const html = `
         <html>
         <head>
@@ -3914,6 +3953,8 @@
         <h2 style="text-align:center;text-transform:uppercase;width:100%;display:block;margin:20px 0 0 0;box-sizing:border-box;">MANDATO PARA  ${aMayus(mandante.cambioModalidadTramite === "Sí" ? "INICIAR TRÁMITE DE CAMBIO DE MODALIDAD" : "RETIRAR CERTIFICADO DE SALDO")} DE ${aMayus(mandante.tipoPension)}</h2>
 
         ${parrafoIntroMandatoCortoHtml}
+
+        ${lineaCausanteMandatoCortoHtml}
 
        
 
@@ -4181,6 +4222,17 @@
             "</table>";
         }
 
+        var lineaCausanteContratoHtml = "";
+        if (esSobContratoHtml) {
+          var tccHtml = textoLineaCausanteDocumento(causContratoHtml);
+          if (tccHtml) {
+            lineaCausanteContratoHtml =
+              '<p style="margin:10px 0 16px;text-align:center;font-weight:bold;font-size:11pt;letter-spacing:0.02em;">' +
+              escapeHtmlContrato(tccHtml) +
+              "</p>";
+          }
+        }
+
         const html = `
         <html>
         <head>
@@ -4318,6 +4370,8 @@
         <h2 style="${contratoH2Style}">INDIVIDUALIZACIÓN DE LAS PARTES</h2>
 
         ${parrafoIndividContratoHtml}
+
+        ${lineaCausanteContratoHtml}
 
         <h2 style="${contratoH2Style}">ANTECEDENTES DEL GRUPO FAMILIAR CON DERECHO A PENSIÓN</h2>
 
