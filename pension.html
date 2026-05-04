@@ -5195,6 +5195,62 @@
           }
         });
 
+        // Pensión de sobrevivencia: el mandante es el declarante/beneficiario a cargo y debe figurar en la tabla
+        // (y en solicitud_beneficiarios). Si ya viene como cónyuge o hijo/a, solo marcamos es_declarante; si no, agregamos fila.
+        if (pensionEsSobrevivenciaTipo(mand.tipoPension)) {
+          var rutMandSob = rutToCanonical(mand.rut || "");
+          if (rutMandSob) {
+            var posDecl = -1;
+            for (var sbi = 0; sbi < solicitudBenef.length; sbi++) {
+              if (rutToCanonical(String(solicitudBenef[sbi].rut || "")) === rutMandSob) {
+                posDecl = sbi;
+                break;
+              }
+            }
+            if (posDecl >= 0) {
+              for (var sd = 0; sd < solicitudBenef.length; sd++) {
+                solicitudBenef[sd].es_declarante = sd === posDecl;
+              }
+            } else {
+              for (var sd0 = 0; sd0 < solicitudBenef.length; sd0++) {
+                solicitudBenef[sd0].es_declarante = false;
+              }
+              var fnDeclIso = mand.fechaNacimiento && parseDDMMYYYY(mand.fechaNacimiento) ? parseDDMMYYYY(mand.fechaNacimiento).iso : null;
+              var ddMmDecl = (mand.fechaNacimiento || "").trim();
+              solicitudBenef.push({
+                nombres: (mand.nombres || "").trim() || null,
+                apellido_paterno: (mand.apellidoPaterno || "").trim() || null,
+                apellido_materno: (mand.apellidoMaterno || "").trim() || null,
+                rut: rutMandSob,
+                fecha_nacimiento: fnDeclIso,
+                parentesco: "Beneficiario que declara",
+                sexo: (mand.sexo || "").trim() || null,
+                nacionalidad: (mand.nacionalidad || "").trim() || null,
+                fecha_matrimonio_union_civil: null,
+                ciudad_matrimonio_union_civil: null,
+                es_invalido: null,
+                es_hijo_del_conyuge: null,
+                observaciones: null,
+                es_declarante: true,
+              });
+              benefEnumerado[String(idx)] = {
+                nombres: mand.nombres || "",
+                apellidoPaterno: mand.apellidoPaterno || "",
+                apellidoMaterno: mand.apellidoMaterno || "",
+                rut: mand.rut || "",
+                sexo: mand.sexo || "",
+                parentesco: "Beneficiario que declara",
+                fechaNacimiento: ddMmDecl,
+                fechaMatrimonioUnionCivil: "",
+                ciudadMatrimonioUnionCivil: "",
+                esInvalido: "",
+                observaciones: "",
+              };
+              idx++;
+            }
+          }
+        }
+
         data.beneficiarios = benefEnumerado;
         data.mandante.numeroBeneficiarios = String(solicitudBenef.length);
         data.pensionSolicitudBeneficiariosSnapshot = solicitudBenef;
