@@ -842,7 +842,7 @@
           <li><input type="checkbox" id="chk_copia_ci" /><div><div class="checklist-title"><label for="chk_copia_ci">COPIA CI</label></div></div></li>
           <li><input type="checkbox" id="chk_contrato_firmado" /><div><div class="checklist-title"><label for="chk_contrato_firmado">CONTRATO FIRMADO</label></div></div></li>
           <li><input type="checkbox" id="chk_informe_final_firmado" /><div><div class="checklist-title"><label for="chk_informe_final_firmado">INFORME FINAL FIRMADO</label></div></div></li>
-          <li><input type="checkbox" id="chk_certificado_saldo" /><div><div class="checklist-title"><label for="chk_certificado_saldo">CERTIFICADO DE SALDO</label></div></div></li>
+          <li><input type="checkbox" id="chk_certificado_saldo" /><div><div class="checklist-title"><label for="chk_certificado_saldo">CERTIFICADO DE OFERTAS</label></div></div></li>
           <li><input type="checkbox" id="chk_solicitud_ofertas_firmadas" /><div><div class="checklist-title"><label for="chk_solicitud_ofertas_firmadas">SOLICITUD DE OFERTAS FIRMADAS</label></div></div></li>
           <li><input type="checkbox" id="chk_scomp_original" /><div><div class="checklist-title"><label for="chk_scomp_original">SCOMP ORIGINAL</label></div></div></li>
           <li><input type="checkbox" id="chk_aceptacion_con_respaldo" /><div><div class="checklist-title"><label for="chk_aceptacion_con_respaldo">ACEPTACIÓN CON RESPALDO</label></div></div></li>
@@ -955,7 +955,7 @@
           "Presentación de mandato en la AFP",
           "Visado del mandato en la AFP",
           "Inicio de trámite de Pensión (AFP)",
-          "Emisión de Certificado de Saldo",
+          "Emisión de Certificado de Ofertas",
           "Estudios Preliminares",
           "Ingreso de Consulta al Sistema SCOMP",
           "Recepción de certificado de ofertas original (correo personal afiliado)",
@@ -1025,14 +1025,14 @@
             var hasBono = clienteRow && clienteRow.posee_bono_reconocimiento === true;
             if (yesNo(aut, "suscribirBonoReconocimiento")) {
               var dueBono90 = addCalendarDays(etapa4, 90);
-              if (dueBono90) out.push({ key: "e4_bono_suscribir_90c", due: dueBono90, msg: "Seguimiento Bono de Reconocimiento: plazo de 90 días corridos para siguiente paso (Certificado de Saldo)." });
+              if (dueBono90) out.push({ key: "e4_bono_suscribir_90c", due: dueBono90, msg: "Seguimiento Bono de Reconocimiento: plazo de 90 días corridos para siguiente paso (Certificado de Ofertas)." });
             } else if (hasBono) {
               var dueBono45 = addBusinessDays(etapa4, 45);
-              if (dueBono45) out.push({ key: "e4_bono_posee_45h", due: dueBono45, msg: "Seguimiento Bono de Reconocimiento: plazo de 45 días hábiles para siguiente paso (Certificado de Saldo)." });
+              if (dueBono45) out.push({ key: "e4_bono_posee_45h", due: dueBono45, msg: "Seguimiento Bono de Reconocimiento: plazo de 45 días hábiles para siguiente paso (Certificado de Ofertas)." });
             } else {
               var hasAPV = yesNo(ant, "destinareApv") || yesNo(ant, "destinareApvc") || yesNo(ant, "traspasareCesantia");
               var dueSaldo = addBusinessDays(etapa4, hasAPV ? 45 : 10);
-              if (dueSaldo) out.push({ key: "e4_cert_saldo_base", due: dueSaldo, msg: "Seguimiento: plazo estimado para Emisión de Certificado de Saldo desde Inicio de trámite de Pensión." });
+              if (dueSaldo) out.push({ key: "e4_cert_saldo_base", due: dueSaldo, msg: "Seguimiento: plazo estimado para Emisión de Certificado de Ofertas desde Inicio de trámite de Pensión." });
             }
           }
           var etapa5 = fechasEtapas["5"];
