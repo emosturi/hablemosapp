@@ -1021,7 +1021,8 @@
             if (dueVisado) out.push({ key: "e2_visado_3hb", due: dueVisado, msg: "Vence plazo de 3 días hábiles para Visado del mandato en AFP." });
           }
           var etapa4 = fechasEtapas["4"];
-          if (etapa4) {
+          var etapa7Completada = !!fechasEtapas["7"];
+          if (etapa4 && !etapa7Completada) {
             var hasBono = clienteRow && clienteRow.posee_bono_reconocimiento === true;
             if (yesNo(aut, "suscribirBonoReconocimiento")) {
               var dueBono90 = addCalendarDays(etapa4, 90);
@@ -1043,7 +1044,7 @@
           var etapa7 = fechasEtapas["7"];
           if (etapa7) {
             var dueOferta = addBusinessDays(etapa7, 4);
-            if (dueOferta) out.push({ key: "e7_ofertas_4hb", due: dueOferta, msg: "Vence plazo de 4 días hábiles para recepción de certificado de ofertas original (SCOMP)." });
+            if (dueOferta) out.push({ key: "e7_ofertas_4hb", due: dueOferta, msg: "Seguimiento: plazo estimado para Emisión de Certificado de Ofertas desde Ingreso de Consulta al Sistema SCOMP." });
           }
           var etapa8 = fechasEtapas["8"];
           if (etapa8) {
