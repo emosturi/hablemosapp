@@ -2700,6 +2700,15 @@
           content.push(pmTablaSiNo(rowsAut));
         }
 
+        if (autorizaciones.ingresarDatosCuentaBancaria === "Sí" && (autorizaciones.banco || autorizaciones.tipoCuenta || autorizaciones.numeroCuenta)) {
+          content.push(pmH3("Datos de cuenta bancaria"));
+          content.push(pmTablaSiNo([
+            { label: "Banco", valor: aMayus(autorizaciones.banco || "") },
+            { label: "Tipo de cuenta", valor: aMayus(autorizaciones.tipoCuenta || "") },
+            { label: "Número de cuenta", valor: aMayus(autorizaciones.numeroCuenta || "") }
+          ]));
+        }
+
         if (esSobCorto && firmantesCorto && firmantesCorto.length > 0) {
           pmFirmasSobrevivencia(firmantesCorto, mandatario, { conFirmoAnteMi: true }).forEach(function (n) {
             content.push(n);
@@ -3778,6 +3787,28 @@
         const tablaAntecedentesCorto = buildTablaSoloSi(antecedentesItems, antecedentes, antecedentesMandateLabels);
         const tablaAutorizacionesCorto = buildTablaSoloSi(autorizacionesItems, autorizaciones, autorizacionesMandateLabels);
         const tablaCertificadosCorto = buildTablaSoloSi(certificadosItems, certificados, certificadosMandateLabels);
+        const tablaDatosCuentaCorto =
+          autorizaciones.ingresarDatosCuentaBancaria === "Sí" &&
+          (autorizaciones.banco || autorizaciones.tipoCuenta || autorizaciones.numeroCuenta)
+            ? `
+        <h3>Datos de cuenta bancaria</h3>
+        <table border="1" style="border-collapse:collapse;width:100%;">
+        <tr>
+        <td>Banco</td>
+        <td>${aMayus(autorizaciones.banco || "")}</td>
+        </tr>
+        <tr>
+        <td>Tipo de cuenta</td>
+        <td>${aMayus(autorizaciones.tipoCuenta || "")}</td>
+        </tr>
+        <tr>
+        <td>Número de cuenta</td>
+        <td>${aMayus(autorizaciones.numeroCuenta || "")}</td>
+        </tr>
+        </table>
+        <br>
+        `
+            : "";
 
         const esSobCortoHtml = pensionEsSobrevivenciaTipo(mandante.tipoPension);
         const firmantesCortoHtmlList = esSobCortoHtml ? armarListaFirmantesSobrevivencia(data) : null;
@@ -3977,6 +4008,8 @@
         </table>
         <br>
         ` : ''}
+
+        ${tablaDatosCuentaCorto}
 
         <br><br><br><br><br><br>
 
