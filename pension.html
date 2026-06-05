@@ -1812,6 +1812,11 @@
         return String(s ?? "").toUpperCase();
       }
 
+      // Tipo de cuenta bancaria en tablas de mandato: «Cuenta» → «Cta.» para ahorrar espacio.
+      function tipoCuentaMandatoDisplay(tipo) {
+        return aMayus(tipo).replace(/\bCUENTA\b/g, "CTA.");
+      }
+
       // Segmento seguro para nombre de archivo (minúsculas, sin acentos, solo a-z 0-9 y _).
       function segmentoNombreArchivo(s) {
         let t = String(s || "").trim();
@@ -2521,7 +2526,7 @@
           content.push(pmH3("Datos de cuenta bancaria"));
           content.push(pmTablaSiNo([
             { label: "Banco", valor: aMayus(autorizaciones.banco || "") },
-            { label: "Tipo de cuenta", valor: aMayus(autorizaciones.tipoCuenta || "") },
+            { label: "Tipo de cuenta", valor: tipoCuentaMandatoDisplay(autorizaciones.tipoCuenta || "") },
             { label: "Número de cuenta", valor: aMayus(autorizaciones.numeroCuenta || "") }
           ]));
         }
@@ -2704,7 +2709,7 @@
           content.push(pmH3("Datos de cuenta bancaria"));
           content.push(pmTablaSiNo([
             { label: "Banco", valor: aMayus(autorizaciones.banco || "") },
-            { label: "Tipo de cuenta", valor: aMayus(autorizaciones.tipoCuenta || "") },
+            { label: "Tipo de cuenta", valor: tipoCuentaMandatoDisplay(autorizaciones.tipoCuenta || "") },
             { label: "Número de cuenta", valor: aMayus(autorizaciones.numeroCuenta || "") }
           ]));
         }
@@ -3739,7 +3744,7 @@
         </tr>
         <tr>
         <td>Tipo de cuenta</td>
-        <td>${aMayus(autorizaciones.tipoCuenta || "")}</td>
+        <td>${tipoCuentaMandatoDisplay(autorizaciones.tipoCuenta || "")}</td>
         </tr>
         <tr>
         <td>Número de cuenta</td>
@@ -3799,7 +3804,7 @@
         </tr>
         <tr>
         <td>Tipo de cuenta</td>
-        <td>${aMayus(autorizaciones.tipoCuenta || "")}</td>
+        <td>${tipoCuentaMandatoDisplay(autorizaciones.tipoCuenta || "")}</td>
         </tr>
         <tr>
         <td>Número de cuenta</td>
