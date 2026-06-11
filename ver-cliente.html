@@ -628,6 +628,7 @@
           <button type="button" id="btnRecordatorio" class="btn">Agregar Recordatorio</button>
           <button type="button" id="btnAgregarNota" class="btn">Agregar nota</button>
           <button type="button" id="btnChecklist" class="btn">Checklist</button>
+          <button type="button" id="btnDescargarFichaPdf" class="btn">Descargar ficha PDF</button>
         </div>
       </header>
 
@@ -924,6 +925,353 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script>
       (function () {
+        var __pdfMakeLoadPromise = null;
+        function ensurePdfMakeLoaded() {
+          if (typeof window.pdfMake !== "undefined" && window.pdfMake && window.pdfMake.vfs) {
+            return Promise.resolve();
+          }
+          if (__pdfMakeLoadPromise) return __pdfMakeLoadPromise;
+          function loadScript(src) {
+            return new Promise(function (resolve, reject) {
+              var s = document.createElement("script");
+              s.src = src;
+              s.async = true;
+              s.crossOrigin = "anonymous";
+              s.onload = function () { resolve(); };
+              s.onerror = function () { reject(new Error("Error al cargar " + src)); };
+              document.head.appendChild(s);
+            });
+          }
+          __pdfMakeLoadPromise = loadScript("https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.10/pdfmake.min.js")
+            .then(function () { return loadScript("https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.10/vfs_fonts.js"); })
+            .then(function () {
+              if (typeof window.pdfMake === "undefined") throw new Error("pdfMake no disponible");
+            })
+            .catch(function (err) { __pdfMakeLoadPromise = null; throw err; });
+          return __pdfMakeLoadPromise;
+        }
+
+        function descargarPdfMake(docDef, safeBase) {
+          var veil = document.createElement("div");
+          veil.setAttribute("role", "status");
+          veil.setAttribute("aria-live", "polite");
+          veil.style.cssText =
+            "position:fixed;inset:0;background:rgba(255,255,255,0.94);z-index:2147483645;display:flex;align-items:center;justify-content:center;padding:1rem;font-family:system-ui,sans-serif;font-size:16px;color:#111;text-align:center;box-sizing:border-box;";
+          veil.textContent = "Generando PDF…";
+          document.body.appendChild(veil);
+          function cleanup() { if (veil.parentNode) veil.parentNode.removeChild(veil); }
+          return ensurePdfMakeLoaded()
+            .then(function () {
+              return new Promise(function (resolve, reject) {
+                try {
+                  window.pdfMake.createPdf(docDef).getBlob(function (blob) {
+                    if (!blob) { reject(new Error("PDF vacío")); return; }
+                    try {
+                      var url = URL.createObjectURL(blob);
+                      var a = document.createElement("a");
+                      a.href = url;
+                      a.download = safeBase + ".pdf";
+                      document.body.appendChild(a);
+                      a.click();
+                      document.body.removeChild(a);
+                      setTimeout(function () { URL.revokeObjectURL(url); }, 1500);
+                      resolve();
+                    } catch (e) { reject(e); }
+                  });
+                } catch (err) { reject(err); }
+              });
+            })
+            .then(function () { cleanup(); }, function (err) { cleanup(); throw err; });
+        }
+
+        var FICHA_PDF_TABLE_LAYOUT = {
+          hLineWidth: function () { return 0.5; },
+          vLineWidth: function () { return 0.5; },
+          hLineColor: function () { return "#444"; },
+          vLineColor: function () { return "#444"; },
+          paddingLeft: function () { return 4; },
+          paddingRight: function () { return 4; },
+          paddingTop: function () { return 3; },
+          paddingBottom: function () { return 3; }
+        };
+
+        function fichaPdfH3(s) {
+          return { text: String(s || ""), fontSize: 11, bold: true, margin: [0, 12, 0, 6] };
+        }
+
+        function fichaPdfTablaCampos(filas) {
+          if (!filas || !filas.length) return null;
+          return {
+            table: {
+              widths: ["*", "*"],
+              dontBreakRows: true,
+              body: filas.map(function (f) {
+                return [
+                  { text: String(f.label || ""), fontSize: 9, bold: true },
+                  { text: String(f.valor != null && String(f.valor).trim() !== "" ? f.valor : "—"), fontSize: 9 }
+                ];
+              })
+            },
+            layout: FICHA_PDF_TABLE_LAYOUT,
+            margin: [0, 0, 0, 8]
+          };
+        }
+
+        function fichaPdfSeccion(titulo, filas) {
+          var out = [fichaPdfH3(titulo)];
+          var tabla = fichaPdfTablaCampos(filas);
+          if (tabla) out.push(tabla);
+          return out;
+        }
+
+        function fichaPdfNombreCompleto(obj) {
+          if (!obj || typeof obj !== "object") return "";
+          return [obj.nombres, obj.apellido_paterno != null ? obj.apellido_paterno : obj.apellidoPaterno, obj.apellido_materno != null ? obj.apellido_materno : obj.apellidoMaterno]
+            .filter(function (x) { return x != null && String(x).trim() !== ""; })
+            .join(" ")
+            .trim();
+        }
+
+        function fichaPdfSafeBaseName(c) {
+          var part = [c.nombres, c.apellido_paterno].filter(Boolean).join("_").toLowerCase();
+          try {
+            part = part.normalize("NFD").replace(/\p{M}/gu, "");
+          } catch (_e) {
+            part = part.replace(/[\u0300-\u036f]/g, "");
+          }
+          part = part.replace(/[^a-z0-9_-]+/g, "_").replace(/^-+|-+$/g, "").slice(0, 40) || "cliente";
+          var rut = String(c.rut || "").replace(/[^0-9kK]/g, "").toLowerCase() || "sin_rut";
+          return "ficha_" + part + "_" + rut;
+        }
+
+        function buildPdfDocFichaCliente(c, ctx) {
+          var content = [];
+          var nombre = [c.nombres, c.apellido_paterno, c.apellido_materno].filter(Boolean).join(" ");
+          var hoy = new Date();
+          var fechaGen =
+            String(hoy.getDate()).padStart(2, "0") + "/" +
+            String(hoy.getMonth() + 1).padStart(2, "0") + "/" +
+            hoy.getFullYear();
+
+          content.push({
+            text: "FICHA DEL CLIENTE",
+            fontSize: 14,
+            bold: true,
+            alignment: "center",
+            margin: [0, 0, 0, 6]
+          });
+          content.push({
+            text: (nombre || "Sin nombre") + (c.rut ? " — RUT " + ctx.formatRutDisplay(c.rut) : ""),
+            fontSize: 11,
+            alignment: "center",
+            margin: [0, 0, 0, 4]
+          });
+          content.push({
+            text: "Generado el " + fechaGen,
+            fontSize: 9,
+            color: "#666",
+            alignment: "center",
+            margin: [0, 0, 0, 14]
+          });
+
+          var tramiteFilas = [];
+          if (c.solicitud_tipo_pension) tramiteFilas.push({ label: "Tipo de pensión", valor: c.solicitud_tipo_pension });
+          if (c.solicitud_cambio_modalidad_tramite === true) tramiteFilas.push({ label: "Cambio de modalidad", valor: "Sí" });
+          if (c.posee_bono_reconocimiento === true) tramiteFilas.push({ label: "Cotizaciones antiguo sistema", valor: "Sí" });
+          else if (c.posee_bono_reconocimiento === false) tramiteFilas.push({ label: "Cotizaciones antiguo sistema", valor: "No" });
+          if (c.pensionado === true) tramiteFilas.push({ label: "Estado", valor: "Pensionado" });
+          else if (ctx.etapas && ctx.etapas.length) {
+            var etapaN = ctx.etapaActualNumero(c);
+            tramiteFilas.push({ label: "Etapa actual del trámite", valor: etapaN + ". " + ctx.etapas[etapaN - 1] });
+          }
+          if (tramiteFilas.length) content = content.concat(fichaPdfSeccion("Trámite", tramiteFilas));
+
+          content = content.concat(
+            fichaPdfSeccion("Datos del cliente", [
+              { label: "Nombres", valor: c.nombres },
+              { label: "Apellido paterno", valor: c.apellido_paterno },
+              { label: "Apellido materno", valor: c.apellido_materno },
+              { label: "RUT", valor: c.rut ? ctx.formatRutDisplay(c.rut) : c.rut },
+              { label: "Nacionalidad", valor: c.nacionalidad },
+              { label: "Sexo", valor: c.sexo },
+              { label: "Fecha de nacimiento", valor: ctx.fmtDate(c.fecha_nacimiento) },
+              { label: "Estado civil", valor: c.estado_civil },
+              { label: "Dirección", valor: c.domicilio },
+              { label: "Comuna", valor: c.comuna },
+              { label: "Ciudad", valor: c.ciudad },
+              { label: "Profesión u ocupación", valor: c.profesion_oficio },
+              { label: "Teléfono", valor: c.telefono },
+              { label: "Email", valor: c.email },
+              { label: "AFP", valor: c.afp },
+              { label: "Previsión de salud", valor: c.institucion_salud }
+            ])
+          );
+
+          var caus = c.causante && typeof c.causante === "object" && !Array.isArray(c.causante) ? c.causante : null;
+          if (caus && (fichaPdfNombreCompleto(caus) || caus.rut)) {
+            content = content.concat(
+              fichaPdfSeccion("Causante (sobrevivencia)", [
+                { label: "Nombres", valor: caus.nombres },
+                { label: "Apellido paterno", valor: caus.apellido_paterno != null ? caus.apellido_paterno : caus.apellidoPaterno },
+                { label: "Apellido materno", valor: caus.apellido_materno != null ? caus.apellido_materno : caus.apellidoMaterno },
+                { label: "RUT", valor: caus.rut ? ctx.formatRutDisplay(caus.rut) : caus.rut },
+                { label: "Nacionalidad", valor: caus.nacionalidad },
+                { label: "Sexo", valor: caus.sexo },
+                { label: "Fecha de nacimiento", valor: ctx.fmtDate(caus.fecha_nacimiento || caus.fechaNacimiento) },
+                { label: "Fecha de defunción", valor: ctx.fmtDate(caus.fecha_defuncion || caus.fechaDefuncion) },
+                { label: "AFP", valor: caus.afp },
+                { label: "Estado civil", valor: caus.estado_civil || caus.estadoCivil },
+                { label: "Dirección", valor: caus.domicilio },
+                { label: "Comuna", valor: caus.comuna },
+                { label: "Ciudad", valor: caus.ciudad }
+              ])
+            );
+          }
+
+          var benefCony = ctx.primerBeneficiarioConyuge(c);
+          var matDesdeBenef = ctx.matrimonioConyugeDesdeBeneficiarios(c);
+          var conyNombres = c.conyuge_nombres || (benefCony && benefCony.nombres) || "";
+          var conyAp = c.conyuge_apellido_paterno || (benefCony && benefCony.apellido_paterno) || "";
+          var conyAm = c.conyuge_apellido_materno || (benefCony && benefCony.apellido_materno) || "";
+          var conyRutRaw = c.conyuge_rut || (benefCony && benefCony.rut) || "";
+          if (conyNombres || conyRutRaw || conyAp || conyAm) {
+            content = content.concat(
+              fichaPdfSeccion("Cónyuge / Conviviente civil", [
+                { label: "Nombres", valor: conyNombres },
+                { label: "Apellido paterno", valor: conyAp },
+                { label: "Apellido materno", valor: conyAm },
+                { label: "Nacionalidad", valor: c.conyuge_nacionalidad || (benefCony && benefCony.nacionalidad) },
+                { label: "Sexo", valor: c.conyuge_sexo || (benefCony && benefCony.sexo) },
+                { label: "RUT", valor: conyRutRaw ? ctx.formatRutDisplay(conyRutRaw) : conyRutRaw },
+                { label: "Fecha de nacimiento", valor: ctx.fmtDate(c.conyuge_fecha_nacimiento || (benefCony && benefCony.fecha_nacimiento)) },
+                { label: "Fecha matrimonio / unión civil", valor: ctx.fmtDate(c.conyuge_fecha_matrimonio || matDesdeBenef.fecha) },
+                { label: "Lugar matrimonio / unión civil", valor: c.conyuge_lugar_matrimonio || matDesdeBenef.lugar },
+                { label: "Inválido", valor: ctx.textoEsInvalido(matDesdeBenef.es_invalido) }
+              ])
+            );
+          }
+
+          if (c.tiene_hijos_menores_24 && c.hijos && Array.isArray(c.hijos) && c.hijos.length) {
+            content.push(fichaPdfH3("Hijos menores de 24 años"));
+            c.hijos.forEach(function (h, i) {
+              var hijoTabla = fichaPdfTablaCampos([
+                { label: "Nombres", valor: h.nombres },
+                { label: "Apellido paterno", valor: h.apellido_paterno },
+                { label: "Apellido materno", valor: h.apellido_materno },
+                { label: "Nacionalidad", valor: h.nacionalidad },
+                { label: "Sexo", valor: h.sexo },
+                { label: "RUT", valor: h.rut ? ctx.formatRutDisplay(h.rut) : h.rut },
+                { label: "Fecha de nacimiento", valor: ctx.fmtDate(h.fecha_nacimiento) },
+                { label: "Inválido", valor: ctx.textoEsInvalido(h.es_invalido != null ? h.es_invalido : h.esInvalido) },
+                { label: "Hijo/a del cónyuge", valor: ctx.textoEsInvalido(h.es_hijo_del_conyuge != null ? h.es_hijo_del_conyuge : h.esHijoDelConyuge) }
+              ]);
+              if (hijoTabla) {
+                content.push({ text: "Hijo/a " + (i + 1), fontSize: 10, bold: true, margin: [0, 4, 0, 2] });
+                content.push(hijoTabla);
+              }
+            });
+          }
+
+          var beneficiarios = c.solicitud_beneficiarios;
+          if (beneficiarios && Array.isArray(beneficiarios) && beneficiarios.length) {
+            content.push(fichaPdfH3("Beneficiarios"));
+            var bodyBen = [[
+              { text: "#", bold: true, fontSize: 8, alignment: "center" },
+              { text: "Parentesco", bold: true, fontSize: 8 },
+              { text: "Nombre completo", bold: true, fontSize: 8 },
+              { text: "RUT", bold: true, fontSize: 8 },
+              { text: "F. nac.", bold: true, fontSize: 8 },
+              { text: "Sexo", bold: true, fontSize: 8 },
+              { text: "Nacionalidad", bold: true, fontSize: 8 },
+              { text: "Inválido", bold: true, fontSize: 8 }
+            ]];
+            beneficiarios.forEach(function (b, idx) {
+              var parentesco = String(b.parentesco || "").trim();
+              if (b.es_declarante === true) parentesco = (parentesco ? parentesco + " — " : "") + "Declarante";
+              bodyBen.push([
+                { text: String(idx + 1), fontSize: 8, alignment: "center" },
+                { text: parentesco || "—", fontSize: 8 },
+                { text: fichaPdfNombreCompleto(b) || "—", fontSize: 8 },
+                { text: b.rut ? ctx.formatRutDisplay(b.rut) : "—", fontSize: 8 },
+                { text: ctx.fmtDate(b.fecha_nacimiento) || "—", fontSize: 8 },
+                { text: String(b.sexo || "—"), fontSize: 8 },
+                { text: String(b.nacionalidad || "—"), fontSize: 8 },
+                { text: ctx.textoEsInvalido(b.es_invalido != null ? b.es_invalido : b.esInvalido) || "—", fontSize: 8 }
+              ]);
+            });
+            content.push({
+              table: { headerRows: 1, widths: [16, 72, "*", 58, 42, 28, 52, 32], body: bodyBen },
+              layout: FICHA_PDF_TABLE_LAYOUT,
+              margin: [0, 0, 0, 10]
+            });
+          }
+
+          if (c.empleador_razon_social || c.empleador_rut) {
+            content = content.concat(
+              fichaPdfSeccion("Datos del empleador", [
+                { label: "Razón social", valor: c.empleador_razon_social },
+                { label: "RUT", valor: c.empleador_rut ? ctx.formatRutDisplay(c.empleador_rut) : c.empleador_rut },
+                { label: "Dirección", valor: c.empleador_direccion },
+                { label: "Teléfono", valor: c.empleador_telefono },
+                { label: "Email", valor: c.empleador_email }
+              ])
+            );
+          }
+
+          if (c.banco || c.tipo_cuenta || c.numero_cuenta) {
+            content = content.concat(
+              fichaPdfSeccion("Datos bancarios", [
+                { label: "Banco", valor: c.banco },
+                { label: "Tipo de cuenta", valor: c.tipo_cuenta },
+                { label: "Número de cuenta", valor: c.numero_cuenta }
+              ])
+            );
+          }
+
+          if (c.pensionado === true) {
+            var pensionFilas = [
+              { label: "Compañía", valor: c.pension_compania },
+              { label: "Monto pensión", valor: ctx.fmtMontoUf(c.pension_monto) },
+              { label: "Modalidad", valor: c.pension_modalidad },
+              { label: "Período garantizado", valor: c.pension_periodo_garantizado === true ? "Sí" : c.pension_periodo_garantizado === false ? "No" : "" }
+            ];
+            var rvDet = c.pension_rv_detalle;
+            if (rvDet && typeof rvDet === "object" && !Array.isArray(rvDet)) {
+              if (rvDet.meses_periodo_garantizado != null && rvDet.meses_periodo_garantizado !== "") {
+                pensionFilas.push({ label: "Meses período garantizado", valor: rvDet.meses_periodo_garantizado });
+              }
+            }
+            content = content.concat(fichaPdfSeccion("Pensionado", pensionFilas));
+          }
+
+          var notas = (c.notas_asesor || "").toString().trim();
+          if (notas) {
+            content.push(fichaPdfH3("Notas del asesor"));
+            content.push({
+              text: notas,
+              fontSize: 9,
+              margin: [0, 0, 0, 8],
+              preserveLeadingSpaces: true
+            });
+          }
+
+          return {
+            pageSize: "A4",
+            pageMargins: [40, 40, 40, 50],
+            defaultStyle: { fontSize: 10, lineHeight: 1.3, color: "#111" },
+            footer: function (currentPage, pageCount) {
+              return {
+                text: "Página " + currentPage + " de " + pageCount,
+                alignment: "center",
+                fontSize: 8,
+                color: "#666",
+                margin: [0, 8, 0, 0]
+              };
+            },
+            info: { title: "Ficha — " + (nombre || "Cliente") },
+            content: content
+          };
+        }
         if (typeof window.initAppShell === "function") window.initAppShell();
         if (typeof window.initAppShellSearch === "function") window.initAppShellSearch();
         var params = new URLSearchParams(window.location.search);
@@ -1610,6 +1958,30 @@
               wireEliminarNotasAsesorClick();
             }
             refreshNotasAsesorUI();
+
+            var btnDescargarFichaPdf = document.getElementById("btnDescargarFichaPdf");
+            if (btnDescargarFichaPdf) {
+              btnDescargarFichaPdf.addEventListener("click", function () {
+                btnDescargarFichaPdf.disabled = true;
+                var ctxPdf = {
+                  formatRutDisplay: formatRutDisplay,
+                  fmtDate: fmtDate,
+                  fmtMontoUf: fmtMontoUf,
+                  textoEsInvalido: textoEsInvalido,
+                  etapas: ETAPAS_TRAMITE,
+                  etapaActualNumero: etapaActualNumero,
+                  primerBeneficiarioConyuge: primerBeneficiarioConyuge,
+                  matrimonioConyugeDesdeBeneficiarios: matrimonioConyugeDesdeBeneficiarios
+                };
+                descargarPdfMake(buildPdfDocFichaCliente(c, ctxPdf), fichaPdfSafeBaseName(c))
+                  .catch(function (err) {
+                    alert((err && err.message) ? err.message : "No se pudo generar el PDF.");
+                  })
+                  .then(function () {
+                    btnDescargarFichaPdf.disabled = false;
+                  });
+              });
+            }
 
             var tramiteEtapaModalObjetivo = null;
 
