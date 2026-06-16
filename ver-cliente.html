@@ -989,14 +989,26 @@
           vLineWidth: function () { return 0.5; },
           hLineColor: function () { return "#444"; },
           vLineColor: function () { return "#444"; },
-          paddingLeft: function () { return 4; },
-          paddingRight: function () { return 4; },
-          paddingTop: function () { return 3; },
-          paddingBottom: function () { return 3; }
+          paddingLeft: function () { return 5; },
+          paddingRight: function () { return 5; },
+          paddingTop: function () { return 4; },
+          paddingBottom: function () { return 4; }
+        };
+
+        var FICHA_PDF_FONT = {
+          title: 16,
+          subtitle: 13,
+          meta: 10,
+          section: 13,
+          body: 11,
+          table: 10,
+          hijoLabel: 12,
+          notas: 11,
+          footer: 9
         };
 
         function fichaPdfH3(s) {
-          return { text: String(s || ""), fontSize: 11, bold: true, margin: [0, 12, 0, 6] };
+          return { text: String(s || ""), fontSize: FICHA_PDF_FONT.section, bold: true, margin: [0, 12, 0, 6] };
         }
 
         function fichaPdfTablaCampos(filas) {
@@ -1007,8 +1019,8 @@
               dontBreakRows: true,
               body: filas.map(function (f) {
                 return [
-                  { text: String(f.label || ""), fontSize: 9, bold: true },
-                  { text: String(f.valor != null && String(f.valor).trim() !== "" ? f.valor : "—"), fontSize: 9 }
+                  { text: String(f.label || ""), fontSize: FICHA_PDF_FONT.body, bold: true },
+                  { text: String(f.valor != null && String(f.valor).trim() !== "" ? f.valor : "—"), fontSize: FICHA_PDF_FONT.body }
                 ];
               })
             },
@@ -1055,20 +1067,20 @@
 
           content.push({
             text: "FICHA DEL CLIENTE",
-            fontSize: 14,
+            fontSize: FICHA_PDF_FONT.title,
             bold: true,
             alignment: "center",
             margin: [0, 0, 0, 6]
           });
           content.push({
             text: (nombre || "Sin nombre") + (c.rut ? " — RUT " + ctx.formatRutDisplay(c.rut) : ""),
-            fontSize: 11,
+            fontSize: FICHA_PDF_FONT.subtitle,
             alignment: "center",
             margin: [0, 0, 0, 4]
           });
           content.push({
             text: "Generado el " + fechaGen,
-            fontSize: 9,
+            fontSize: FICHA_PDF_FONT.meta,
             color: "#666",
             alignment: "center",
             margin: [0, 0, 0, 14]
@@ -1166,7 +1178,7 @@
                 { label: "Hijo/a del cónyuge", valor: ctx.textoEsInvalido(h.es_hijo_del_conyuge != null ? h.es_hijo_del_conyuge : h.esHijoDelConyuge) }
               ]);
               if (hijoTabla) {
-                content.push({ text: "Hijo/a " + (i + 1), fontSize: 10, bold: true, margin: [0, 4, 0, 2] });
+                content.push({ text: "Hijo/a " + (i + 1), fontSize: FICHA_PDF_FONT.hijoLabel, bold: true, margin: [0, 4, 0, 2] });
                 content.push(hijoTabla);
               }
             });
@@ -1176,27 +1188,27 @@
           if (beneficiarios && Array.isArray(beneficiarios) && beneficiarios.length) {
             content.push(fichaPdfH3("Beneficiarios"));
             var bodyBen = [[
-              { text: "#", bold: true, fontSize: 8, alignment: "center" },
-              { text: "Parentesco", bold: true, fontSize: 8 },
-              { text: "Nombre completo", bold: true, fontSize: 8 },
-              { text: "RUT", bold: true, fontSize: 8 },
-              { text: "F. nac.", bold: true, fontSize: 8 },
-              { text: "Sexo", bold: true, fontSize: 8 },
-              { text: "Nacionalidad", bold: true, fontSize: 8 },
-              { text: "Inválido", bold: true, fontSize: 8 }
+              { text: "#", bold: true, fontSize: FICHA_PDF_FONT.table, alignment: "center" },
+              { text: "Parentesco", bold: true, fontSize: FICHA_PDF_FONT.table },
+              { text: "Nombre completo", bold: true, fontSize: FICHA_PDF_FONT.table },
+              { text: "RUT", bold: true, fontSize: FICHA_PDF_FONT.table },
+              { text: "F. nac.", bold: true, fontSize: FICHA_PDF_FONT.table },
+              { text: "Sexo", bold: true, fontSize: FICHA_PDF_FONT.table },
+              { text: "Nacionalidad", bold: true, fontSize: FICHA_PDF_FONT.table },
+              { text: "Inválido", bold: true, fontSize: FICHA_PDF_FONT.table }
             ]];
             beneficiarios.forEach(function (b, idx) {
               var parentesco = String(b.parentesco || "").trim();
               if (b.es_declarante === true) parentesco = (parentesco ? parentesco + " — " : "") + "Declarante";
               bodyBen.push([
-                { text: String(idx + 1), fontSize: 8, alignment: "center" },
-                { text: parentesco || "—", fontSize: 8 },
-                { text: fichaPdfNombreCompleto(b) || "—", fontSize: 8 },
-                { text: b.rut ? ctx.formatRutDisplay(b.rut) : "—", fontSize: 8 },
-                { text: ctx.fmtDate(b.fecha_nacimiento) || "—", fontSize: 8 },
-                { text: String(b.sexo || "—"), fontSize: 8 },
-                { text: String(b.nacionalidad || "—"), fontSize: 8 },
-                { text: ctx.textoEsInvalido(b.es_invalido != null ? b.es_invalido : b.esInvalido) || "—", fontSize: 8 }
+                { text: String(idx + 1), fontSize: FICHA_PDF_FONT.table, alignment: "center" },
+                { text: parentesco || "—", fontSize: FICHA_PDF_FONT.table },
+                { text: fichaPdfNombreCompleto(b) || "—", fontSize: FICHA_PDF_FONT.table },
+                { text: b.rut ? ctx.formatRutDisplay(b.rut) : "—", fontSize: FICHA_PDF_FONT.table },
+                { text: ctx.fmtDate(b.fecha_nacimiento) || "—", fontSize: FICHA_PDF_FONT.table },
+                { text: String(b.sexo || "—"), fontSize: FICHA_PDF_FONT.table },
+                { text: String(b.nacionalidad || "—"), fontSize: FICHA_PDF_FONT.table },
+                { text: ctx.textoEsInvalido(b.es_invalido != null ? b.es_invalido : b.esInvalido) || "—", fontSize: FICHA_PDF_FONT.table }
               ]);
             });
             content.push({
@@ -1249,7 +1261,7 @@
             content.push(fichaPdfH3("Notas del asesor"));
             content.push({
               text: notas,
-              fontSize: 9,
+              fontSize: FICHA_PDF_FONT.notas,
               margin: [0, 0, 0, 8],
               preserveLeadingSpaces: true
             });
@@ -1258,12 +1270,12 @@
           return {
             pageSize: "A4",
             pageMargins: [40, 40, 40, 50],
-            defaultStyle: { fontSize: 10, lineHeight: 1.3, color: "#111" },
+            defaultStyle: { fontSize: FICHA_PDF_FONT.body, lineHeight: 1.35, color: "#111" },
             footer: function (currentPage, pageCount) {
               return {
                 text: "Página " + currentPage + " de " + pageCount,
                 alignment: "center",
-                fontSize: 8,
+                fontSize: FICHA_PDF_FONT.footer,
                 color: "#666",
                 margin: [0, 8, 0, 0]
               };
