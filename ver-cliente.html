@@ -16,6 +16,51 @@
       header { margin: 10px 0 18px; }
       h1 { font-size: clamp(22px, 2.6vw, 28px); letter-spacing: -0.02em; margin: 0; }
       .subtitle { margin: 8px 0 0; color: var(--muted); font-size: 14px; }
+      .contrato-row {
+        display: none;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px 10px;
+        margin: 10px 0 0;
+        font-size: 14px;
+      }
+      .contrato-row .contrato-label {
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .contrato-row .contrato-valor {
+        color: var(--text);
+      }
+      .contrato-chip {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        color: var(--primary);
+        background: var(--accent-soft);
+        border: 1px solid rgba(0, 96, 108, 0.25);
+        vertical-align: middle;
+      }
+      .btn-contrato-editar {
+        padding: 4px 10px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--primary);
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: inherit;
+      }
+      .btn-contrato-editar:hover:not(:disabled) {
+        background: rgba(0, 96, 108, 0.08);
+      }
+      .btn-contrato-editar:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
       a.back {
         display: inline-block;
         margin-bottom: 16px;
@@ -622,6 +667,11 @@
       <header>
         <h1 id="titulo">Ver cliente</h1>
         <p class="subtitle" id="subtitulo">Cargando…</p>
+        <p class="contrato-row" id="contratoRow">
+          <span class="contrato-label">N° de contrato:</span>
+          <span class="contrato-valor" id="contratoNumeroDisplay">—</span>
+          <button type="button" class="btn-contrato-editar" id="btnEditarNumeroContrato">Editar</button>
+        </p>
         <div class="header-actions">
           <a href="#" id="lnkEditar" class="btn">Editar cliente</a>
           <a href="pension.html" id="lnkUsar" class="btn">Usar en formulario de pensión</a>
@@ -667,6 +717,24 @@
           <button type="button" id="btnCambiarEtapaGuardar" class="btn-primary">Guardar etapa</button>
         </div>
         <div class="modal-feedback" id="modalCambiarEtapaFeedback" style="display: none"></div>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="modalNumeroContrato" role="dialog" aria-labelledby="modalNumeroContratoTitulo" aria-modal="true">
+      <div class="modal">
+        <h3 id="modalNumeroContratoTitulo">Número de contrato</h3>
+        <p style="margin: 0 0 14px; font-size: 13px; line-height: 1.45; color: var(--muted);">
+          Este número se usará al generar contratos y mandatos para este cliente. Los clientes nuevos seguirán recibiendo el correlativo automático al crear el primer contrato.
+        </p>
+        <form id="formNumeroContrato">
+          <label for="numeroContratoClienteInput">Número secuencial</label>
+          <input type="number" id="numeroContratoClienteInput" name="numero" min="1" step="1" required inputmode="numeric" />
+          <div class="modal-actions">
+            <button type="button" id="btnCerrarModalNumeroContrato" class="btn-secondary">Cancelar</button>
+            <button type="submit" id="btnGuardarNumeroContrato" class="btn-primary">Guardar</button>
+          </div>
+          <div class="modal-feedback" id="modalNumeroContratoFeedback" style="display: none;"></div>
+        </form>
       </div>
     </div>
 
@@ -1309,6 +1377,54 @@
         }
 
         var currentSessionUserId = null;
+        var clienteNumeroContratoState = { rutKey: null, numero: null };
+
+        function rutToCanonical(rut) {
+          if (!rut) return "";
+          return String(rut).trim().toUpperCase().replace(/[^0-9K]/g, "");
+        }
+
+        function refreshContratoHeaderUI() {
+          var row = document.getElementById("contratoRow");
+          var display = document.getElementById("contratoNumeroDisplay");
+          var btn = document.getElementById("btnEditarNumeroContrato");
+          if (!row || !display || !btn) return;
+          row.style.display = "flex";
+          if (!clienteNumeroContratoState.rutKey) {
+            display.textContent = "Requiere RUT del cliente";
+            btn.disabled = true;
+            btn.textContent = "Asignar número";
+          } else if (clienteNumeroContratoState.numero != null) {
+            display.innerHTML = '<span class="contrato-chip">N° ' + String(clienteNumeroContratoState.numero) + "</span>";
+            btn.disabled = false;
+            btn.textContent = "Editar";
+          } else {
+            display.textContent = "Sin asignar (se asignará al generar el contrato)";
+            btn.disabled = false;
+            btn.textContent = "Asignar número";
+          }
+        }
+
+        function cargarNumeroContratoCliente(cRow) {
+          var rutKey = rutToCanonical(cRow && cRow.rut);
+          clienteNumeroContratoState.rutKey = rutKey && rutKey.length >= 2 ? rutKey : null;
+          if (!clienteNumeroContratoState.rutKey || !currentSessionUserId) {
+            clienteNumeroContratoState.numero = null;
+            refreshContratoHeaderUI();
+            return Promise.resolve();
+          }
+          return supabase
+            .from("numeros_contrato")
+            .select("numero_secuencial")
+            .eq("user_id", currentSessionUserId)
+            .eq("rut_mandante", clienteNumeroContratoState.rutKey)
+            .maybeSingle()
+            .then(function (res) {
+              clienteNumeroContratoState.numero =
+                res.data && res.data.numero_secuencial != null ? res.data.numero_secuencial : null;
+              refreshContratoHeaderUI();
+            });
+        }
 
         var ETAPAS_TRAMITE = [
           "Reunión de firma de contrato y mandato",
@@ -1543,6 +1659,7 @@
             document.getElementById("subtitulo").textContent = "RUT: " + (c.rut ? formatRutDisplay(c.rut) : "-");
             document.getElementById("lnkEditar").href = "editar-cliente.html?id=" + encodeURIComponent(id);
             document.getElementById("lnkUsar").href = "pension.html?cliente=" + encodeURIComponent(id);
+            cargarNumeroContratoCliente(c);
 
             function formatRutDisplay(rut) {
               if (!rut) return "";
@@ -1970,6 +2087,108 @@
               wireEliminarNotasAsesorClick();
             }
             refreshNotasAsesorUI();
+
+            var modalNumeroContrato = document.getElementById("modalNumeroContrato");
+            var formNumeroContrato = document.getElementById("formNumeroContrato");
+            var inputNumeroContrato = document.getElementById("numeroContratoClienteInput");
+            var btnCerrarModalNumeroContrato = document.getElementById("btnCerrarModalNumeroContrato");
+            var btnEditarNumeroContrato = document.getElementById("btnEditarNumeroContrato");
+            var modalNumeroContratoFeedback = document.getElementById("modalNumeroContratoFeedback");
+            var modalNumeroContratoTitulo = document.getElementById("modalNumeroContratoTitulo");
+            var btnGuardarNumeroContrato = document.getElementById("btnGuardarNumeroContrato");
+
+            function cerrarModalNumeroContrato() {
+              if (modalNumeroContrato) modalNumeroContrato.classList.remove("open");
+              if (modalNumeroContratoFeedback) {
+                modalNumeroContratoFeedback.style.display = "none";
+                modalNumeroContratoFeedback.textContent = "";
+                modalNumeroContratoFeedback.className = "modal-feedback";
+              }
+            }
+
+            function mostrarFeedbackNumeroContrato(msg, esError) {
+              if (!modalNumeroContratoFeedback) return;
+              modalNumeroContratoFeedback.textContent = msg;
+              modalNumeroContratoFeedback.className = "modal-feedback " + (esError ? "error" : "success");
+              modalNumeroContratoFeedback.style.display = "block";
+            }
+
+            function abrirModalNumeroContrato() {
+              if (!clienteNumeroContratoState.rutKey) return;
+              if (modalNumeroContratoTitulo) {
+                modalNumeroContratoTitulo.textContent =
+                  clienteNumeroContratoState.numero != null ? "Editar número de contrato" : "Asignar número de contrato";
+              }
+              if (inputNumeroContrato) {
+                inputNumeroContrato.value =
+                  clienteNumeroContratoState.numero != null ? String(clienteNumeroContratoState.numero) : "";
+              }
+              if (modalNumeroContratoFeedback) {
+                modalNumeroContratoFeedback.style.display = "none";
+                modalNumeroContratoFeedback.textContent = "";
+              }
+              if (modalNumeroContrato) modalNumeroContrato.classList.add("open");
+              setTimeout(function () {
+                if (inputNumeroContrato) inputNumeroContrato.focus();
+              }, 50);
+            }
+
+            if (btnEditarNumeroContrato) {
+              btnEditarNumeroContrato.addEventListener("click", abrirModalNumeroContrato);
+            }
+            if (btnCerrarModalNumeroContrato) {
+              btnCerrarModalNumeroContrato.addEventListener("click", cerrarModalNumeroContrato);
+            }
+            if (modalNumeroContrato) {
+              modalNumeroContrato.addEventListener("click", function (e) {
+                if (e.target === modalNumeroContrato) cerrarModalNumeroContrato();
+              });
+            }
+            if (formNumeroContrato) {
+              formNumeroContrato.addEventListener("submit", function (e) {
+                e.preventDefault();
+                if (!clienteNumeroContratoState.rutKey || !currentSessionUserId) {
+                  mostrarFeedbackNumeroContrato("El cliente no tiene un RUT válido.", true);
+                  return;
+                }
+                var n = parseInt(String((inputNumeroContrato && inputNumeroContrato.value) || "").trim(), 10);
+                if (!Number.isFinite(n) || n < 1) {
+                  mostrarFeedbackNumeroContrato("Ingresa un número entero mayor o igual a 1.", true);
+                  return;
+                }
+                if (btnGuardarNumeroContrato) btnGuardarNumeroContrato.disabled = true;
+                mostrarFeedbackNumeroContrato("Guardando…", false);
+                supabase
+                  .from("numeros_contrato")
+                  .upsert(
+                    {
+                      user_id: currentSessionUserId,
+                      rut_mandante: clienteNumeroContratoState.rutKey,
+                      numero_secuencial: n,
+                      updated_at: new Date().toISOString(),
+                    },
+                    { onConflict: "user_id,rut_mandante" }
+                  )
+                  .select("numero_secuencial")
+                  .single()
+                  .then(function (up) {
+                    if (btnGuardarNumeroContrato) btnGuardarNumeroContrato.disabled = false;
+                    if (up.error) {
+                      mostrarFeedbackNumeroContrato(up.error.message || "No se pudo guardar el número.", true);
+                      return;
+                    }
+                    clienteNumeroContratoState.numero =
+                      up.data && up.data.numero_secuencial != null ? up.data.numero_secuencial : n;
+                    refreshContratoHeaderUI();
+                    mostrarFeedbackNumeroContrato("Número guardado.", false);
+                    setTimeout(cerrarModalNumeroContrato, 900);
+                  })
+                  .catch(function () {
+                    if (btnGuardarNumeroContrato) btnGuardarNumeroContrato.disabled = false;
+                    mostrarFeedbackNumeroContrato("Error de red al guardar.", true);
+                  });
+              });
+            }
 
             var btnDescargarFichaPdf = document.getElementById("btnDescargarFichaPdf");
             if (btnDescargarFichaPdf) {
