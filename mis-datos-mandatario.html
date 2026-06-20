@@ -51,7 +51,39 @@
         padding: 18px;
       }
       #formPerfil.panel {
+        margin-bottom: 24px;
+      }
+      #formPoliza.panel {
         margin-bottom: 40px;
+      }
+      .poliza-panel h2 {
+        font-size: 1.05rem;
+        margin: 0 0 8px;
+        color: var(--text);
+      }
+      .poliza-panel-lead {
+        margin: 0 0 16px;
+        font-size: 13px;
+        line-height: 1.45;
+        color: var(--muted);
+      }
+      .poliza-panel.poliza-expirada {
+        border-color: var(--danger, #dc2626);
+        background: color-mix(in oklab, #dc2626 6%, var(--card));
+        box-shadow: 0 0 0 1px rgba(220, 38, 38, 0.12);
+      }
+      .poliza-panel.poliza-expirada h2 {
+        color: var(--danger-text, #991b1b);
+      }
+      .poliza-expirada-msg {
+        margin: 0 0 12px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        background: var(--danger-bg, rgba(220, 38, 38, 0.12));
+        color: var(--danger-text, #991b1b);
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 1.4;
       }
       .grid {
         display: grid;
@@ -569,6 +601,63 @@
               </div>
             </form>
 
+            <form id="formPoliza" class="panel poliza-panel" novalidate aria-labelledby="polizaPerfilTitulo">
+              <h2 id="polizaPerfilTitulo">Póliza de responsabilidad civil</h2>
+              <p class="poliza-panel-lead">
+                Estos datos se usan en los contratos de asesoría. Puedes actualizarlos cuando renueves tu póliza, sin la
+                limitación de 15 días de los datos del mandatario.
+              </p>
+              <div id="polizaExpiradaMsg" class="poliza-expirada-msg" hidden role="alert"></div>
+              <div class="grid cols-2">
+                <div>
+                  <label for="f_poliza_registro">Registro de póliza (C.M.F.)</label>
+                  <input id="f_poliza_registro" name="registroPoliza" type="text" autocomplete="off" />
+                </div>
+                <div>
+                  <label for="f_poliza_numero">N° de póliza</label>
+                  <input id="f_poliza_numero" name="numeroPoliza" type="text" autocomplete="off" />
+                </div>
+                <div>
+                  <label for="f_poliza_fecha_contrato">Fecha contratación póliza</label>
+                  <input
+                    id="f_poliza_fecha_contrato"
+                    name="fechaContrato"
+                    type="text"
+                    placeholder="DD/MM/AAAA"
+                    autocomplete="off"
+                  />
+                </div>
+                <div>
+                  <label for="f_poliza_fecha_inicio">Vigencia desde</label>
+                  <input
+                    id="f_poliza_fecha_inicio"
+                    name="fechaInicio"
+                    type="text"
+                    placeholder="DD/MM/AAAA"
+                    autocomplete="off"
+                  />
+                </div>
+                <div>
+                  <label for="f_poliza_fecha_venc">Vencimiento</label>
+                  <input
+                    id="f_poliza_fecha_venc"
+                    name="fechaVencimiento"
+                    type="text"
+                    placeholder="DD/MM/AAAA"
+                    autocomplete="off"
+                  />
+                </div>
+                <div style="grid-column: 1 / -1">
+                  <label for="f_poliza_compania">Compañía aseguradora</label>
+                  <textarea id="f_poliza_compania" name="compania" rows="2" autocomplete="organization"></textarea>
+                </div>
+              </div>
+              <div class="actions">
+                <button type="submit" class="btn" id="btnGuardarPoliza">Guardar póliza</button>
+                <span class="status" id="statusPoliza" aria-live="polite"></span>
+              </div>
+            </form>
+
             <section class="panel sensitive-panel" id="seguridad-cuenta" aria-labelledby="seguridadTitulo">
               <h2 id="seguridadTitulo">Contraseña de acceso</h2>
               <p class="sensitive-lead">
@@ -639,6 +728,24 @@
           "email",
         ];
 
+        var POLIZA_DEFAULTS = {
+          registroPoliza: "1.2013.0970",
+          compania: "COMPAÑÍA DE SEGUROS GENERALES SURAMERICANA S.A.",
+          numeroPoliza: "9148151",
+          fechaContrato: "23/09/2025",
+          fechaInicio: "01/10/2025",
+          fechaVencimiento: "30/09/2026",
+        };
+
+        var POLIZA_KEYS = [
+          "registroPoliza",
+          "compania",
+          "numeroPoliza",
+          "fechaContrato",
+          "fechaInicio",
+          "fechaVencimiento",
+        ];
+
         function normalizeRut(raw) {
           if (!raw) return "";
           var s = String(raw).trim().toUpperCase().replace(/[^0-9K]/g, "");
@@ -691,8 +798,13 @@
         }
 
         var form = document.getElementById("formPerfil");
+        var formPoliza = document.getElementById("formPoliza");
         var statusMsg = document.getElementById("statusMsg");
+        var statusPoliza = document.getElementById("statusPoliza");
         var btnGuardar = document.getElementById("btnGuardar");
+        var btnGuardarPoliza = document.getElementById("btnGuardarPoliza");
+        var polizaExpiradaMsg = document.getElementById("polizaExpiradaMsg");
+        var fPolizaFechaVenc = document.getElementById("f_poliza_fecha_venc");
         var errRut = document.getElementById("err_rut");
         var fRut = document.getElementById("f_rut");
         var fIncluirCodigoContrato = document.getElementById("f_incluir_codigo_contrato");
@@ -712,6 +824,7 @@
 
         var MS_15_D = 15 * 24 * 60 * 60 * 1000;
         var serverSnapshotDatos = null;
+        var serverSnapshotPoliza = null;
         var mandatarioEditMode = "free";
         var mandatarioEdicionSinRestriccion = false;
         var mandatarioOwnerOverrideMsg = document.getElementById("mandatarioOwnerOverrideMsg");
@@ -978,6 +1091,100 @@
           });
         }
 
+        function setStatusPoliza(text, cls) {
+          if (!statusPoliza) return;
+          statusPoliza.textContent = text || "";
+          statusPoliza.className = "status" + (cls ? " " + cls : "");
+        }
+
+        function parsePolizaFechaFlexible(value) {
+          var s = String(value || "").trim();
+          if (!s) return null;
+          var m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+          if (!m) return null;
+          var dd = Number(m[1]);
+          var mm = Number(m[2]);
+          var yyyy = Number(m[3]);
+          if (dd < 1 || dd > 31 || mm < 1 || mm > 12 || yyyy < 1900 || yyyy > 2200) return null;
+          var d = new Date(yyyy, mm - 1, dd);
+          if (d.getFullYear() !== yyyy || d.getMonth() !== mm - 1 || d.getDate() !== dd) return null;
+          return { dd: dd, mm: mm, yyyy: yyyy };
+        }
+
+        function updatePolizaVencimientoWarning() {
+          if (!formPoliza) return;
+          var raw = fPolizaFechaVenc && fPolizaFechaVenc.value ? fPolizaFechaVenc.value : "";
+          var parsed = parsePolizaFechaFlexible(raw);
+          if (!parsed) {
+            formPoliza.classList.remove("poliza-expirada");
+            if (polizaExpiradaMsg) {
+              polizaExpiradaMsg.hidden = true;
+              polizaExpiradaMsg.textContent = "";
+            }
+            return;
+          }
+          var now = new Date();
+          var hoyInt = now.getFullYear() * 10000 + (now.getMonth() + 1) * 100 + now.getDate();
+          var venInt = parsed.yyyy * 10000 + parsed.mm * 100 + parsed.dd;
+          if (hoyInt > venInt) {
+            formPoliza.classList.add("poliza-expirada");
+            if (polizaExpiradaMsg) {
+              polizaExpiradaMsg.hidden = false;
+              polizaExpiradaMsg.textContent = "Actualizar póliza: póliza expirada";
+            }
+          } else {
+            formPoliza.classList.remove("poliza-expirada");
+            if (polizaExpiradaMsg) {
+              polizaExpiradaMsg.hidden = true;
+              polizaExpiradaMsg.textContent = "";
+            }
+          }
+        }
+
+        function polizaFromDatos(datos) {
+          var p =
+            datos && datos.poliza && typeof datos.poliza === "object" && !Array.isArray(datos.poliza)
+              ? datos.poliza
+              : {};
+          var out = {};
+          POLIZA_KEYS.forEach(function (k) {
+            out[k] = p[k] != null ? String(p[k]).trim() : String(POLIZA_DEFAULTS[k] || "").trim();
+          });
+          return out;
+        }
+
+        function fillFormPoliza(datos) {
+          if (!formPoliza) return;
+          var merged = polizaFromDatos(datos);
+          POLIZA_KEYS.forEach(function (k) {
+            var el = formPoliza.elements.namedItem(k);
+            if (el) el.value = merged[k] || "";
+          });
+          serverSnapshotPoliza = merged;
+          updatePolizaVencimientoWarning();
+        }
+
+        function readFormPoliza() {
+          var out = {};
+          if (!formPoliza) return out;
+          POLIZA_KEYS.forEach(function (k) {
+            var el = formPoliza.elements.namedItem(k);
+            out[k] = el ? String(el.value || "").trim() : "";
+          });
+          return out;
+        }
+
+        function countPolizaChanges(prevPoliza, flat) {
+          var prev = prevPoliza && typeof prevPoliza === "object" ? prevPoliza : {};
+          var n = 0;
+          POLIZA_KEYS.forEach(function (k) {
+            var a = prev[k] != null ? String(prev[k]).trim() : "";
+            var b = flat[k] != null ? String(flat[k]).trim() : "";
+            if (a !== b) n++;
+          });
+          return n;
+        }
+
         function setStatus(text, cls) {
           statusMsg.textContent = text || "";
           statusMsg.className = "status" + (cls ? " " + cls : "");
@@ -1005,6 +1212,8 @@
             swIncl.setAttribute("aria-checked", swIncl.checked ? "true" : "false");
           }
           if (rowForUx !== undefined) configureMandatarioUx(datos, rowForUx);
+          fillFormPoliza(datos);
+          serverSnapshotDatos = datos && typeof datos === "object" ? Object.assign({}, datos) : {};
         }
 
         function readFormFlat() {
@@ -1085,6 +1294,100 @@
               });
           });
         });
+
+        if (fPolizaFechaVenc) {
+          fPolizaFechaVenc.addEventListener("input", updatePolizaVencimientoWarning);
+          fPolizaFechaVenc.addEventListener("change", updatePolizaVencimientoWarning);
+        }
+
+        if (formPoliza) {
+          formPoliza.addEventListener("submit", function (e) {
+            e.preventDefault();
+            setStatusPoliza("");
+
+            var flatPoliza = readFormPoliza();
+            if (countPolizaChanges(serverSnapshotPoliza, flatPoliza) === 0) {
+              setStatusPoliza("No hay cambios que guardar.", "err");
+              return;
+            }
+
+            btnGuardarPoliza.disabled = true;
+            setStatusPoliza("Guardando póliza…");
+
+            supabase.auth.getSession().then(function (sr) {
+              var uid = sr && sr.data && sr.data.session && sr.data.session.user && sr.data.session.user.id;
+              if (!uid) {
+                btnGuardarPoliza.disabled = false;
+                setStatusPoliza("Sesión expirada.", "err");
+                return;
+              }
+
+              supabase
+                .from("asesor_mandatario_perfil")
+                .select("datos, mandatario_datos_checkpoint_at")
+                .eq("user_id", uid)
+                .maybeSingle()
+                .then(function (prevRes) {
+                  if (prevRes.error) {
+                    btnGuardarPoliza.disabled = false;
+                    setStatusPoliza(prevRes.error.message || "No se pudo leer el perfil.", "err");
+                    return null;
+                  }
+
+                  var prevRow = prevRes.data || null;
+                  var prevDatos = {};
+                  if (
+                    prevRow &&
+                    prevRow.datos &&
+                    typeof prevRow.datos === "object" &&
+                    !Array.isArray(prevRow.datos)
+                  ) {
+                    prevDatos = Object.assign({}, prevRow.datos);
+                  }
+
+                  var mergedDatos = Object.assign({}, prevDatos);
+                  mergedDatos.poliza = Object.assign(
+                    {},
+                    POLIZA_DEFAULTS,
+                    prevDatos.poliza && typeof prevDatos.poliza === "object" ? prevDatos.poliza : {},
+                    flatPoliza
+                  );
+
+                  var nowIso = new Date().toISOString();
+                  var payload = {
+                    user_id: uid,
+                    datos: mergedDatos,
+                    updated_at: nowIso,
+                  };
+                  if (prevRow && prevRow.mandatario_datos_checkpoint_at != null) {
+                    payload.mandatario_datos_checkpoint_at = prevRow.mandatario_datos_checkpoint_at;
+                  }
+
+                  return supabase
+                    .from("asesor_mandatario_perfil")
+                    .upsert(payload, { onConflict: "user_id" })
+                    .then(function (upRes) {
+                      return { upRes: upRes, mergedDatos: mergedDatos };
+                    });
+                })
+                .then(function (pack) {
+                  btnGuardarPoliza.disabled = false;
+                  if (pack === null) return;
+                  if (pack.upRes.error) {
+                    setStatusPoliza(pack.upRes.error.message || "No se pudo guardar la póliza.", "err");
+                    return;
+                  }
+                  setStatusPoliza("Póliza guardada. Se aplicará al generar contratos.", "ok");
+                  serverSnapshotDatos = pack.mergedDatos;
+                  fillFormPoliza(pack.mergedDatos);
+                })
+                .catch(function (err) {
+                  btnGuardarPoliza.disabled = false;
+                  setStatusPoliza((err && err.message) || "Error al guardar la póliza.", "err");
+                });
+            });
+          });
+        }
 
         fRut.addEventListener("blur", function () {
           fRut.value = normalizeRut(fRut.value);
