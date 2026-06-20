@@ -754,6 +754,15 @@
                     <input
                       type="radio"
                       name="mandante.tipoPension"
+                      value="Pensión de Vejez por edad con trabajo pesado"
+                      required
+                    />
+                    Pensión de Vejez por edad con trabajo pesado
+                  </label>
+                  <label class="radio-pill">
+                    <input
+                      type="radio"
+                      name="mandante.tipoPension"
                       value="Pensión de Vejez anticipada"
                       required
                     />
@@ -2058,6 +2067,27 @@
         return String(tipoPensionRaw || "").trim().toLowerCase().indexOf("sobrevivencia") !== -1;
       }
 
+      /** True si el trámite es pensión de vejez por edad con trabajo pesado. */
+      function pensionEsTrabajoPesadoTipo(tipoPensionRaw) {
+        return String(tipoPensionRaw || "").trim().toLowerCase().indexOf("trabajo pesado") !== -1;
+      }
+
+      var TEXTO_DECLARACION_TRABAJO_PESADO_MANDATO =
+        "Asimismo, declaro que he desempeñado labores calificadas como trabajo pesado conforme a la normativa vigente, encontrándome en condiciones de acogerme a la Pensión de Vejez por edad con trabajo pesado establecida en el Decreto Ley N° 3.500, de 1980, y autorizo al mandatario a solicitar, ante la Administradora de Fondos de Pensiones, el certificado de trabajo pesado y los demás antecedentes necesarios para acreditar dicha condición.";
+
+      var TEXTO_DECLARACION_TRABAJO_PESADO_CONTRATO =
+        "Las partes dejan expresa constancia que el trámite objeto del presente contrato corresponde a Pensión de Vejez por edad con trabajo pesado, en virtud del desempeño de labores calificadas como trabajo pesado por el Afiliado, debiendo acreditarse dicha condición mediante el certificado de trabajo pesado correspondiente y demás antecedentes que exija la normativa previsional vigente.";
+
+      function parrafoHtmlTrabajoPesadoMandato(tipoPension) {
+        if (!pensionEsTrabajoPesadoTipo(tipoPension)) return "";
+        return "<p>" + TEXTO_DECLARACION_TRABAJO_PESADO_MANDATO + "</p>";
+      }
+
+      function parrafoHtmlTrabajoPesadoContrato(tipoPension) {
+        if (!pensionEsTrabajoPesadoTipo(tipoPension)) return "";
+        return "<p>" + TEXTO_DECLARACION_TRABAJO_PESADO_CONTRATO + "</p>";
+      }
+
       /**
        * Línea de encabezado del causante para contratos/mandatos de sobrevivencia.
        * Formato: "CAUSANTE : NOMBRES APELLIDOP APELLIDOM, RUT : 12.345.678-9"
@@ -2476,6 +2506,10 @@
           ]));
         }
 
+        if (pensionEsTrabajoPesadoTipo(mandante.tipoPension)) {
+          content.push(pmPara(TEXTO_DECLARACION_TRABAJO_PESADO_MANDATO));
+        }
+
         if (empleador.nombreORazonSocial || empleador.rut || empleador.domicilio || empleador.email || empleador.telefono) {
           content.push(pmPara("Asimismo, expongo que a la fecha, los datos de mi empleador son los siguientes:", { margin: [0, 4, 0, 4] }));
           content.push({
@@ -2685,6 +2719,10 @@
           ]));
         }
 
+        if (pensionEsTrabajoPesadoTipo(mandante.tipoPension)) {
+          content.push(pmPara(TEXTO_DECLARACION_TRABAJO_PESADO_MANDATO));
+        }
+
         var rowsAnt = [];
         antecedentesItems.forEach(function (it) {
           if (antecedentes[it.key] === "Sí") {
@@ -2886,6 +2924,10 @@
             ", en adelante el “ASESOR PREVISIONAL”. Las partes acuerdan el siguiente contrato de asesoría para realizar trámite de ",
             pmBold(esCambioModalidad ? "cambio de modalidad para " + nombreTramite : nombreTramite), "."
           ]));
+        }
+
+        if (pensionEsTrabajoPesadoTipo(mandante.tipoPension)) {
+          content.push(pmPara(TEXTO_DECLARACION_TRABAJO_PESADO_CONTRATO));
         }
 
         if (esSobContr) {
@@ -3328,6 +3370,8 @@
             "</table>";
         }
 
+        var parrafoTrabajoPesadoMandatoHtml = parrafoHtmlTrabajoPesadoMandato(mandante.tipoPension);
+
         const html = `
         <html>
         <head>
@@ -3498,6 +3542,8 @@
         ${htmlLineaFolioMandatoDesdeData(data)}
 
         ${parrafoIntroMandatoHtml}
+
+        ${parrafoTrabajoPesadoMandatoHtml}
 
         ${(empleador.nombreORazonSocial || empleador.rut || empleador.domicilio || empleador.email || empleador.telefono) ? `
         <p class="empleador-datos">
@@ -3978,6 +4024,8 @@
             "</table>";
         }
 
+        var parrafoTrabajoPesadoMandatoCortoHtml = parrafoHtmlTrabajoPesadoMandato(mandante.tipoPension);
+
         var lineaCausanteMandatoCortoHtml = "";
         if (esSobCortoHtml) {
           var tMcHtml = textoLineaCausanteDocumento(causCortoHtml);
@@ -4022,6 +4070,8 @@
         ${htmlLineaFolioMandatoDesdeData(data)}
 
         ${parrafoIntroMandatoCortoHtml}
+
+        ${parrafoTrabajoPesadoMandatoCortoHtml}
 
         ${lineaCausanteMandatoCortoHtml}
 
@@ -4293,6 +4343,8 @@
             "</table>";
         }
 
+        var parrafoTrabajoPesadoContratoHtml = parrafoHtmlTrabajoPesadoContrato(mandante.tipoPension);
+
         var lineaCausanteContratoHtml = "";
         if (esSobContratoHtml) {
           var tccHtml = textoLineaCausanteDocumento(causContratoHtml);
@@ -4441,6 +4493,8 @@
         <h2 style="${contratoH2Style}">INDIVIDUALIZACIÓN DE LAS PARTES</h2>
 
         ${parrafoIndividContratoHtml}
+
+        ${parrafoTrabajoPesadoContratoHtml}
 
         ${lineaCausanteContratoHtml}
 
