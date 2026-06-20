@@ -1872,6 +1872,35 @@
         return seq;
       }
 
+      function htmlLineaFolioMandatoDesdeData(data) {
+        aplicarPreferenciaIncluirCodigoAsesorContratoDesdeSwitch(data);
+        var folio = construirTextoNumeroContratoParaDocumento(data);
+        return (
+          '<p style="text-align:center;margin:6px 0 16px;font-size:11pt;font-weight:bold;">FOLIO N° ' +
+          aMayus(folio) +
+          "</p>"
+        );
+      }
+
+      function pmBloqueFolioMandato(data) {
+        aplicarPreferenciaIncluirCodigoAsesorContratoDesdeSwitch(data);
+        var folio = construirTextoNumeroContratoParaDocumento(data);
+        return { text: "FOLIO N° " + aMayus(folio), fontSize: 11, bold: true, alignment: "center", margin: [0, 0, 0, 12] };
+      }
+
+      /** Asigna o reutiliza el número de folio del mandato (= número de contrato del cliente). */
+      async function prepararNumeroFolioMandatoEnData(supabaseClient, data) {
+        aplicarPreferenciaIncluirCodigoAsesorContratoDesdeSwitch(data);
+        if (supabaseClient) {
+          var nc = await getOrAssignNumeroContrato(supabaseClient, data);
+          data.numeroContratoSecuencial = nc.secuencial;
+          data.contratoFechaDocumentoHablado = nc.fechaContratoDocumentoHablado;
+        } else if (data.numeroContratoSecuencial == null) {
+          data.numeroContratoSecuencial = "NNN";
+        }
+        return data;
+      }
+
       function truncarBaseNombreArchivo(base, maxLen = 180) {
         if (base.length <= maxLen) return base;
         return base.slice(0, maxLen).replace(/_+$/g, "");
@@ -2371,7 +2400,8 @@
         var content = [];
 
         content.push({ text: "MANDATO PARA INICIAR TRÁMITE DE " + aMayus(mandante.tipoPension), fontSize: 16, bold: true, alignment: "center", margin: [0, 0, 0, 4] });
-        content.push({ text: aMayus(mandante.tipoPension), fontSize: 11, alignment: "center", margin: [0, 0, 0, 14] });
+        content.push({ text: aMayus(mandante.tipoPension), fontSize: 11, alignment: "center", margin: [0, 0, 0, 6] });
+        content.push(pmBloqueFolioMandato(data));
 
         var esSobDoc = pensionEsSobrevivenciaTipo(mandante.tipoPension);
         var firmantesDoc = esSobDoc ? armarListaFirmantesSobrevivencia(data) : null;
@@ -2580,7 +2610,8 @@
         var titulo = "MANDATO PARA " + aMayus(esCambioModalidad ? "INICIAR TRÁMITE DE CAMBIO DE MODALIDAD" : "RETIRAR CERTIFICADO DE SALDO") + " DE " + aMayus(mandante.tipoPension);
 
         var content = [];
-        content.push({ text: titulo, fontSize: 14, bold: true, alignment: "center", margin: [0, 0, 0, 14] });
+        content.push({ text: titulo, fontSize: 14, bold: true, alignment: "center", margin: [0, 0, 0, 6] });
+        content.push(pmBloqueFolioMandato(data));
 
         var esSobCorto = pensionEsSobrevivenciaTipo(mandante.tipoPension);
         var firmantesCorto = esSobCorto ? armarListaFirmantesSobrevivencia(data) : null;
@@ -3464,6 +3495,7 @@
 
         <h2 style="font-size:16pt;font-weight:bold;line-height:1.25;text-align:center;text-transform:uppercase;width:100%;display:block;margin:20px 0 0 0;box-sizing:border-box;">MANDATO PARA INICIAR TRÁMITE DE ${aMayus(mandante.tipoPension)}</h2>
         <h3 class="mandato-encabezado-tipo" style="font-size:11pt;font-weight:normal;line-height:1.3;text-align:center;text-transform:uppercase;width:100%;display:block;margin-top:10px;">${aMayus(mandante.tipoPension)}</h3>
+        ${htmlLineaFolioMandatoDesdeData(data)}
 
         ${parrafoIntroMandatoHtml}
 
@@ -3987,6 +4019,7 @@
         <body style="width:794px;max-width:794px;min-width:794px;margin:0;padding:0;box-sizing:border-box;font-family:Arial;font-size:12pt;line-height:1.5;text-align:justify;overflow-wrap:break-word;word-wrap:break-word;color:#111;background:#fff;">
 
         <h2 style="text-align:center;text-transform:uppercase;width:100%;display:block;margin:20px 0 0 0;box-sizing:border-box;">MANDATO PARA  ${aMayus(mandante.cambioModalidadTramite === "Sí" ? "INICIAR TRÁMITE DE CAMBIO DE MODALIDAD" : "RETIRAR CERTIFICADO DE SALDO")} DE ${aMayus(mandante.tipoPension)}</h2>
+        ${htmlLineaFolioMandatoDesdeData(data)}
 
         ${parrafoIntroMandatoCortoHtml}
 
@@ -6666,6 +6699,16 @@
               }
               const data = formDataToObject(form);
               enrichDataConyugeHijosBeneficiarios(form, data);
+              try {
+                await prepararNumeroFolioMandatoEnData(supabaseClient, data);
+              } catch (e) {
+                if (e && e.message === NUMERO_CONTRATO_CANCELADO) {
+                  setStatus("Generación de mandato cancelada.");
+                  return;
+                }
+                console.warn("No se pudo asignar folio del mandato:", e);
+                data.numeroContratoSecuencial = data.numeroContratoSecuencial || "NNN";
+              }
               if (supabaseClient) {
                 try {
                   await markClienteDocumentoGenerado(supabaseClient, data.mandante && data.mandante.rut, { tiene_mandato_largo: true });
@@ -6719,6 +6762,16 @@
               }
               const data = formDataToObject(form);
               enrichDataConyugeHijosBeneficiarios(form, data);
+              try {
+                await prepararNumeroFolioMandatoEnData(supabaseClient, data);
+              } catch (e) {
+                if (e && e.message === NUMERO_CONTRATO_CANCELADO) {
+                  setStatus("Generación de mandato corto cancelada.");
+                  return;
+                }
+                console.warn("No se pudo asignar folio del mandato:", e);
+                data.numeroContratoSecuencial = data.numeroContratoSecuencial || "NNN";
+              }
               if (supabaseClient) {
                 try {
                   await markClienteDocumentoGenerado(supabaseClient, data.mandante && data.mandante.rut, { tiene_mandato_corto: true });
@@ -7711,13 +7764,39 @@
                   var dataAuto = formDataToObject(form);
                   enrichDataConyugeHijosBeneficiarios(form, dataAuto);
                   if (autoDoc === "mandato_largo") {
-                    generarMandatoSimple(dataAuto);
-                    finalizarPrefill("Mandato descargado.");
+                    prepararNumeroFolioMandatoEnData(supabaseClient, dataAuto)
+                      .then(function () {
+                        generarMandatoSimple(dataAuto);
+                        finalizarPrefill("Mandato descargado.");
+                      })
+                      .catch(function (e) {
+                        if (e && e.message === NUMERO_CONTRATO_CANCELADO) {
+                          setStatus("Generación de mandato cancelada.");
+                          finalizarPrefill("Mandato no generado.");
+                          return;
+                        }
+                        dataAuto.numeroContratoSecuencial = dataAuto.numeroContratoSecuencial || "NNN";
+                        generarMandatoSimple(dataAuto);
+                        finalizarPrefill("Mandato descargado.");
+                      });
                     return;
                   }
                   if (autoDoc === "mandato_corto") {
-                    generarMandatoCorto(dataAuto);
-                    finalizarPrefill("Mandato corto descargado.");
+                    prepararNumeroFolioMandatoEnData(supabaseClient, dataAuto)
+                      .then(function () {
+                        generarMandatoCorto(dataAuto);
+                        finalizarPrefill("Mandato corto descargado.");
+                      })
+                      .catch(function (e) {
+                        if (e && e.message === NUMERO_CONTRATO_CANCELADO) {
+                          setStatus("Generación de mandato corto cancelada.");
+                          finalizarPrefill("Mandato corto no generado.");
+                          return;
+                        }
+                        dataAuto.numeroContratoSecuencial = dataAuto.numeroContratoSecuencial || "NNN";
+                        generarMandatoCorto(dataAuto);
+                        finalizarPrefill("Mandato corto descargado.");
+                      });
                     return;
                   }
                   if (autoDoc === "contrato") {
