@@ -1550,14 +1550,23 @@
           }
           return out;
         }
+        function deleteTramiteAutoReminders(exceptKey) {
+          var q = supabase
+            .from("recordatorios")
+            .delete()
+            .eq("cliente_id", id)
+            .eq("auto_generado", true)
+            .like("auto_key", "e%");
+          if (exceptKey) q = q.neq("auto_key", exceptKey);
+          return q;
+        }
+
         function scheduleAutoReminders(clienteRow, fechasEtapas) {
           var rules = buildAutoReminderRules(clienteRow, fechasEtapas);
           if (!rules || rules.length === 0) {
-            // Si no hay reglas vigentes, limpiar recordatorios automáticos anteriores del cliente.
-            return supabase.from("recordatorios").delete().eq("cliente_id", id).eq("auto_generado", true)
-              .then(function (res) {
-                if (res && res.error) throw res.error;
-              });
+            return deleteTramiteAutoReminders(null).then(function (res) {
+              if (res && res.error) throw res.error;
+            });
           }
           var nombre = [clienteRow.nombres, clienteRow.apellido_paterno, clienteRow.apellido_materno].filter(Boolean).join(" ") || "Cliente";
           var tel = (clienteRow.telefono || "").toString().trim() || null;
@@ -1577,10 +1586,9 @@
           });
 
           if (!latest) {
-            return supabase.from("recordatorios").delete().eq("cliente_id", id).eq("auto_generado", true)
-              .then(function (res) {
-                if (res && res.error) throw res.error;
-              });
+            return deleteTramiteAutoReminders(null).then(function (res) {
+              if (res && res.error) throw res.error;
+            });
           }
 
           var payload = {
@@ -1598,7 +1606,7 @@
 
           return Promise.all([
             supabase.from("recordatorios").upsert(payload, { onConflict: "cliente_id,auto_key" }),
-            supabase.from("recordatorios").delete().eq("cliente_id", id).eq("auto_generado", true).neq("auto_key", latest.rule.key),
+            deleteTramiteAutoReminders(latest.rule.key),
           ]).then(function (results) {
             var errs = (results || [])
               .map(function (r) { return r && r.error ? r.error : null; })

@@ -13,6 +13,9 @@
 [functions."process-reminders"]
   schedule = "*/5 * * * *"
 
+[functions."sync-birthday-reminders"]
+  schedule = "0 8 * * *"
+
 # Raíz con parámetros del formulario pensión (cualquier host)
 [[redirects]]
   from = "/"
