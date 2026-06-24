@@ -617,7 +617,7 @@
 
     <script src="supabase-config.js"></script>
     <script src="app-shell.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/vendor/supabase.min.js"></script>
     <script>
       (function () {
         if (typeof window.initAppShell === "function") window.initAppShell();
@@ -1225,7 +1225,9 @@
             window.installInactivityAutoLogout(supabaseEdit, { timeoutMs: window.SESSION_IDLE_TIMEOUT_MS, redirectTo: "login.html" });
           }
           supabaseEdit.auth.getSession().then(function(r) {
-            if (!r.data.session) { window.location.replace("login.html"); return; }
+            if (window.prevyBlockInitWithoutSession && window.prevyBlockInitWithoutSession(r.data && r.data.session, {
+              onOffline: function (msg) { setStatus(msg); }
+            })) return;
             if (typeof window.applyAppShellUser === "function") window.applyAppShellUser(r.data.session.user);
             if (typeof window.setAppShellGuest === "function") window.setAppShellGuest(false);
             function onClientLoaded(c, errMsg) {

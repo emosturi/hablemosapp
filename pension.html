@@ -1576,7 +1576,7 @@
 
     <script src="supabase-config.js"></script>
     <script src="app-shell.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="/vendor/supabase.min.js"></script>
     <script>
       (function () {
         if (typeof window.initAppShell === "function") window.initAppShell();
@@ -1584,19 +1584,27 @@
         var url = window.SUPABASE_URL;
         var key = window.SUPABASE_ANON_KEY;
         if (!url || !key || url.indexOf("TU_PROYECTO") !== -1) {
+          if (window.prevyIsOfflineNetwork && window.prevyIsOfflineNetwork()) return;
           window.location.replace("login.html");
           return;
         }
         var supabase = window.createPrevySupabaseClient(url, key);
+        if (!supabase) {
+          if (window.prevyIsOfflineNetwork && window.prevyIsOfflineNetwork()) return;
+          window.location.replace("login.html");
+          return;
+        }
         if (typeof window.wireAppShellLogout === "function") window.wireAppShellLogout(supabase);
         if (typeof window.installInactivityAutoLogout === "function") {
           window.installInactivityAutoLogout(supabase, { timeoutMs: window.SESSION_IDLE_TIMEOUT_MS, redirectTo: "login.html" });
         }
         supabase.auth.getSession().then(function (r) {
-          if (!r || !r.data || !r.data.session) {
-            window.location.replace("login.html");
-            return;
-          }
+          if (window.prevyBlockInitWithoutSession && window.prevyBlockInitWithoutSession(r && r.data && r.data.session, {
+            onOffline: function (msg) {
+              var st = document.getElementById("status");
+              if (st) st.textContent = msg;
+            }
+          })) return;
           if (typeof window.applyAppShellUser === "function") window.applyAppShellUser(r.data.session.user);
           if (typeof window.setAppShellGuest === "function") window.setAppShellGuest(false);
         });

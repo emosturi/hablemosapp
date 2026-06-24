@@ -177,3 +177,27 @@ window.createPrevySupabaseClient = function (optionalUrl, optionalKey) {
     },
   });
 };
+
+/** true cuando el navegador reporta sin conexión (modo offline PWA). */
+window.prevyIsOfflineNetwork = function () {
+  return typeof navigator !== "undefined" && navigator.onLine === false;
+};
+
+/**
+ * Redirige a login si no hay sesión. Offline: no redirige (login.html no está cacheada).
+ * opts.onOffline(msg) — callback para mostrar aviso en la página.
+ * Devuelve true si se debe detener la inicialización.
+ */
+window.prevyBlockInitWithoutSession = function (session, opts) {
+  opts = opts || {};
+  if (session) return false;
+  if (window.prevyIsOfflineNetwork()) {
+    var msg =
+      opts.offlineMessage ||
+      "Sin conexión y sin sesión en este dispositivo. Inicia sesión con internet al menos una vez.";
+    if (typeof opts.onOffline === "function") opts.onOffline(msg);
+    return true;
+  }
+  window.location.replace(opts.loginUrl || "login.html");
+  return true;
+};

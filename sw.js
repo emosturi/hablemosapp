@@ -1,5 +1,5 @@
 /* Plataforma asesores: estáticos + páginas offline de clientes. Web Push para recordatorios. */
-const CACHE_NAME = "prevy-static-v29";
+const CACHE_NAME = "prevy-static-v30";
 const OFFLINE_FALLBACK_URL = "/offline.html";
 const OFFLINE_HTML_URLS = [
   "/offline.html",
@@ -7,6 +7,13 @@ const OFFLINE_HTML_URLS = [
   "/editar-cliente.html",
   "/revisar-clientes.html",
 ];
+/** URLs limpias (Netlify) → archivo cacheado */
+const OFFLINE_HTML_ALIASES = {
+  "/revisar-clientes": "/revisar-clientes.html",
+  "/pension": "/pension.html",
+  "/editar-cliente": "/editar-cliente.html",
+  "/offline": "/offline.html",
+};
 const PRECACHE_URLS = [
   "/manifest.webmanifest",
   "/app-shell.css",
@@ -20,23 +27,33 @@ const PRECACHE_URLS = [
   "/pwa-update.js",
   "/app-shell.js",
   "/supabase-config.js",
+  "/vendor/supabase.min.js",
   "/icons/icon-512.svg",
   "/icons/icon-192.png",
   "/icons/icon-512.png",
   "/icons/icon-badge-monochrome.png",
 ].concat(OFFLINE_HTML_URLS);
 
+function normalizeOfflinePath(pathname) {
+  if (OFFLINE_HTML_ALIASES[pathname]) return OFFLINE_HTML_ALIASES[pathname];
+  return pathname;
+}
+
+function precacheAll(cache, urls) {
+  return Promise.all(
+    urls.map(function (u) {
+      return cache.add(u).catch(function () {
+        /* Un fallo no debe impedir el resto del precache */
+      });
+    })
+  );
+}
+
 self.addEventListener("install", function (event) {
-  /* Sin skipWaiting automático: la nueva versión queda "waiting" hasta que el cliente
-     envíe {type:'SKIP_WAITING'} (botón "Actualizar" del banner). Así el usuario siempre
-     sabe cuándo pasa a la nueva versión y puede completar el flujo en curso. */
   event.waitUntil(
-    caches
-      .open(CACHE_NAME)
-      .then(function (cache) {
-        return cache.addAll(PRECACHE_URLS);
-      })
-      .catch(function () {})
+    caches.open(CACHE_NAME).then(function (cache) {
+      return precacheAll(cache, PRECACHE_URLS);
+    })
   );
 });
 
@@ -112,7 +129,6 @@ self.addEventListener("notificationclick", function (event) {
           return false;
         }
       }
-      /* Chrome/Android: priorizar ventana PWA (standalone) sobre la pestaña del navegador. */
       function clientPwaScore(c) {
         try {
           var dm = c.displayMode;
@@ -164,7 +180,7 @@ function isStaticAsset(pathname) {
 }
 
 function isOfflineHtml(pathname) {
-  return OFFLINE_HTML_URLS.indexOf(pathname) !== -1;
+  return OFFLINE_HTML_URLS.indexOf(normalizeOfflinePath(pathname)) !== -1;
 }
 
 function isNavigateRequest(request) {
@@ -173,13 +189,30 @@ function isNavigateRequest(request) {
   return accept.indexOf("text/html") !== -1;
 }
 
+function matchCachedOfflinePage(pathname) {
+  var canonical = normalizeOfflinePath(pathname);
+  return caches.match(canonical).then(function (page) {
+    if (page) return page;
+    if (canonical !== pathname) return caches.match(pathname);
+    return null;
+  });
+}
+
 function offlineNavigateResponse(pathname) {
   if (isOfflineHtml(pathname)) {
-    return caches.match(pathname).then(function (page) {
+    return matchCachedOfflinePage(pathname).then(function (page) {
       return page || caches.match(OFFLINE_FALLBACK_URL);
     });
   }
   return caches.match(OFFLINE_FALLBACK_URL);
+}
+
+function cachePutCanonical(pathname, response) {
+  var canonical = normalizeOfflinePath(pathname);
+  caches.open(CACHE_NAME).then(function (c) {
+    c.put(canonical, response);
+    if (canonical !== pathname) c.put(pathname, response.clone());
+  });
 }
 
 self.addEventListener("fetch", function (event) {
@@ -189,21 +222,22 @@ self.addEventListener("fetch", function (event) {
   if (url.pathname.startsWith("/.netlify/")) return;
 
   if (isNavigateRequest(event.request)) {
+    var pathname = url.pathname;
     event.respondWith(
       fetch(event.request)
         .then(function (networkResponse) {
-          if (networkResponse && networkResponse.ok && isOfflineHtml(url.pathname)) {
-            var copy = networkResponse.clone();
-            caches.open(CACHE_NAME).then(function (c) {
-              c.put(event.request, copy);
-            });
+          if (networkResponse && networkResponse.ok && isOfflineHtml(pathname)) {
+            cachePutCanonical(pathname, networkResponse.clone());
           }
           return networkResponse;
         })
         .catch(function () {
-          return caches.match(event.request).then(function (cached) {
+          return matchCachedOfflinePage(pathname).then(function (cached) {
             if (cached) return cached;
-            return offlineNavigateResponse(url.pathname);
+            return caches.match(event.request).then(function (reqCached) {
+              if (reqCached) return reqCached;
+              return offlineNavigateResponse(pathname);
+            });
           });
         })
     );
