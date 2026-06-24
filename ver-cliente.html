@@ -1199,38 +1199,95 @@
           return isNaN(d.getTime()) ? null : d.getTime();
         }
 
-        function bitacoraAgruparNotasPorEtapa(notasParsed, fechas) {
-          var slots = {};
-          var boundaries = {};
+        function bitacoraInferSortMsEtapaSinFecha(n, fechas, totalEtapas) {
+          var prevMs = null;
           var k;
-          for (k = 1; k <= 99; k++) {
-            var fd = fechas[String(k)] != null ? fechas[String(k)] : fechas[k];
-            if (fd) boundaries[k] = bitacoraIsoToSortMs(fd);
-          }
-          function slotForNote(ms) {
-            if (ms == null) return "sin_fecha";
-            var slot = 0;
-            for (k = 1; k <= 99; k++) {
-              if (boundaries[k] != null && ms >= boundaries[k]) slot = k;
+          for (k = n - 1; k >= 1; k--) {
+            var fdPrev = fechas[String(k)] != null ? fechas[String(k)] : fechas[k];
+            if (fdPrev) {
+              prevMs = bitacoraIsoToSortMs(fdPrev);
+              break;
             }
-            return slot;
           }
+          var nextMs = null;
+          for (k = n + 1; k <= totalEtapas; k++) {
+            var fdNext = fechas[String(k)] != null ? fechas[String(k)] : fechas[k];
+            if (fdNext) {
+              nextMs = bitacoraIsoToSortMs(fdNext);
+              break;
+            }
+          }
+          if (prevMs != null && nextMs != null) {
+            return prevMs + Math.max(1, Math.floor((nextMs - prevMs) / 2));
+          }
+          if (prevMs != null) return prevMs + n * 60000;
+          if (nextMs != null) return nextMs - (totalEtapas - n + 1) * 60000;
+          return n * 60000;
+        }
+
+        function bitacoraConstruirEventosOrdenados(etapas, fechas, actual, notasParsed) {
+          var events = [];
+          var i;
+          var n;
+          for (i = 0; i < etapas.length; i++) {
+            n = i + 1;
+            var fd = fechas[String(n)] != null ? fechas[String(n)] : fechas[n];
+            var estado = "Pendiente";
+            if (n < actual) estado = "Completada";
+            else if (n === actual) estado = "En curso";
+
+            var sortMs = null;
+            var sortTier = 3;
+            if (fd) {
+              sortMs = bitacoraIsoToSortMs(fd);
+              sortTier = 0;
+            } else if (n < actual) {
+              sortMs = bitacoraInferSortMsEtapaSinFecha(n, fechas, etapas.length);
+              sortTier = 0;
+            } else if (n === actual) {
+              sortTier = 2;
+            }
+
+            events.push({
+              kind: "etapa",
+              sortMs: sortMs,
+              sortTier: sortTier,
+              sortEtapa: n,
+              sortIdx: i,
+              etapaNum: n,
+              etapaTitulo: etapas[i],
+              estado: estado,
+              fechaIso: fd || null,
+              fechaSinRegistro: !fd && n < actual,
+            });
+          }
+
           notasParsed.forEach(function (nota, idx) {
-            var slot = slotForNote(nota.sortMs);
-            if (!slots[slot]) slots[slot] = [];
-            slots[slot].push({ nota: nota, idx: idx });
-          });
-          Object.keys(slots).forEach(function (key) {
-            slots[key].sort(function (a, b) {
-              var am = a.nota.sortMs;
-              var bm = b.nota.sortMs;
-              if (am != null && bm != null && am !== bm) return am - bm;
-              if (am != null && bm == null) return -1;
-              if (am == null && bm != null) return 1;
-              return a.idx - b.idx;
+            events.push({
+              kind: "nota",
+              sortMs: nota.sortMs,
+              sortTier: nota.sortMs != null ? 0 : 4,
+              sortEtapa: 0,
+              sortIdx: idx,
+              nota: nota,
             });
           });
-          return slots;
+
+          events.sort(function (a, b) {
+            if (a.sortTier !== b.sortTier) return a.sortTier - b.sortTier;
+            if (a.sortTier === 0) {
+              if (a.sortMs != null && b.sortMs != null && a.sortMs !== b.sortMs) return a.sortMs - b.sortMs;
+              if (a.sortMs != null && b.sortMs == null) return -1;
+              if (a.sortMs == null && b.sortMs != null) return 1;
+              if (a.kind === "etapa" && b.kind === "nota") return -1;
+              if (a.kind === "nota" && b.kind === "etapa") return 1;
+              if (a.kind === "etapa" && b.kind === "etapa") return a.sortEtapa - b.sortEtapa;
+              return a.sortIdx - b.sortIdx;
+            }
+            return a.sortEtapa - b.sortEtapa || a.sortIdx - b.sortIdx;
+          });
+
+          return events;
         }
 
         function buildPdfDocBitacoraTramite(c, ctx) {
@@ -1277,7 +1334,7 @@
           var actual = ctx.etapaActualNumero(c);
           var fechas = ctx.fechasTramite(c);
           var notasParsed = bitacoraParseNotasBloques(c.notas_asesor).map(bitacoraParseNotaEntrada);
-          var notasPorEtapa = bitacoraAgruparNotasPorEtapa(notasParsed, fechas);
+          var eventos = bitacoraConstruirEventosOrdenados(ctx.etapas, fechas, actual, notasParsed);
 
           var tablaBody = [
             [
@@ -1287,41 +1344,28 @@
             ]
           ];
 
-          function pushNotaRows(slotKey) {
-            var list = notasPorEtapa[slotKey];
-            if (!list || !list.length) return;
-            list.forEach(function (item) {
+          eventos.forEach(function (ev) {
+            if (ev.kind === "nota") {
               tablaBody.push([
-                { text: item.nota.fechaTexto, fontSize: FICHA_PDF_FONT.table },
+                { text: ev.nota.fechaTexto, fontSize: FICHA_PDF_FONT.table },
                 { text: "Nota del asesor", fontSize: FICHA_PDF_FONT.table, italics: true },
-                { text: item.nota.texto, fontSize: FICHA_PDF_FONT.table }
+                { text: ev.nota.texto, fontSize: FICHA_PDF_FONT.table }
               ]);
-            });
-          }
-
-          pushNotaRows(0);
-
-          for (var i = 0; i < ctx.etapas.length; i++) {
-            var n = i + 1;
-            var fd = fechas[String(n)] != null ? fechas[String(n)] : fechas[n];
-            var estado = "Pendiente";
-            var fechaTxt = "—";
-            if (n < actual) {
-              estado = "Completada";
-              fechaTxt = fd ? ctx.fmtDate(String(fd)) : "Sin fecha registrada";
-            } else if (n === actual) {
-              estado = "En curso";
-              fechaTxt = fd ? ctx.fmtDate(String(fd)) : "—";
+              return;
             }
+            var fechaTxt = "—";
+            if (ev.fechaIso) fechaTxt = ctx.fmtDate(String(ev.fechaIso));
+            else if (ev.fechaSinRegistro) fechaTxt = "Sin fecha registrada";
             tablaBody.push([
               { text: fechaTxt, fontSize: FICHA_PDF_FONT.table },
-              { text: "Etapa " + n + " — " + estado, fontSize: FICHA_PDF_FONT.table, bold: true },
-              { text: n + ". " + ctx.etapas[i], fontSize: FICHA_PDF_FONT.table }
+              {
+                text: "Etapa " + ev.etapaNum + " — " + ev.estado,
+                fontSize: FICHA_PDF_FONT.table,
+                bold: true
+              },
+              { text: ev.etapaNum + ". " + ev.etapaTitulo, fontSize: FICHA_PDF_FONT.table }
             ]);
-            pushNotaRows(n);
-          }
-
-          pushNotaRows("sin_fecha");
+          });
 
           content.push(fichaPdfH3("Bitácora del trámite (etapas y notas)"));
           content.push({
