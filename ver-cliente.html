@@ -552,6 +552,30 @@
         font-size: 14px;
       }
       .timeline-controls .btn-save-tramite:disabled { opacity: 0.6; cursor: not-allowed; }
+      .timeline-controls .btn-descargar-bitacora {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
+        min-height: 40px;
+        padding: 8px 16px;
+        border-radius: 10px;
+        border: 1px solid var(--primary-mid);
+        background: var(--card);
+        color: var(--primary);
+        font-weight: 600;
+        font-family: inherit;
+        line-height: 1.2;
+        cursor: pointer;
+        font-size: 14px;
+      }
+      .timeline-controls .btn-descargar-bitacora:hover {
+        background: rgba(0, 105, 108, 0.08);
+      }
+      .timeline-controls .btn-descargar-bitacora:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
       #tramiteSaveMsg,
       .tramite-save-msg { font-size: 13px; width: 100%; display: block; }
       #tramiteSaveMsg.ok,
@@ -1122,6 +1146,210 @@
           part = part.replace(/[^a-z0-9_-]+/g, "_").replace(/^-+|-+$/g, "").slice(0, 40) || "cliente";
           var rut = String(c.rut || "").replace(/[^0-9kK]/g, "").toLowerCase() || "sin_rut";
           return "ficha_" + part + "_" + rut;
+        }
+
+        function bitacoraPdfSafeBaseName(c) {
+          var part = [c.nombres, c.apellido_paterno].filter(Boolean).join("_").toLowerCase();
+          try {
+            part = part.normalize("NFD").replace(/\p{M}/gu, "");
+          } catch (_e) {
+            part = part.replace(/[\u0300-\u036f]/g, "");
+          }
+          part = part.replace(/[^a-z0-9_-]+/g, "_").replace(/^-+|-+$/g, "").slice(0, 40) || "cliente";
+          var rut = String(c.rut || "").replace(/[^0-9kK]/g, "").toLowerCase() || "sin_rut";
+          return "bitacora_" + part + "_" + rut;
+        }
+
+        function bitacoraParseNotasBloques(raw) {
+          var s = (raw || "").toString().trim();
+          if (!s) return [];
+          return s
+            .split(/\n\n+/)
+            .map(function (b) {
+              return b.trim();
+            })
+            .filter(Boolean);
+        }
+
+        function bitacoraParseNotaFechaChile(s) {
+          var m = String(s || "").match(/^(\d{1,2})\/(\d{1,2})\/(\d{4}),\s*(\d{1,2}):(\d{2})$/);
+          if (!m) return null;
+          var d = new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]), Number(m[4]), Number(m[5]));
+          return isNaN(d.getTime()) ? null : d;
+        }
+
+        function bitacoraParseNotaEntrada(bloque) {
+          var m = String(bloque || "").match(/^\[([^\]]+)\]\s*([\s\S]*)$/);
+          if (!m) {
+            return { fechaTexto: "—", sortMs: null, texto: String(bloque || "").trim() };
+          }
+          var fechaTexto = String(m[1] || "").trim();
+          var d = bitacoraParseNotaFechaChile(fechaTexto);
+          return {
+            fechaTexto: fechaTexto || "—",
+            sortMs: d ? d.getTime() : null,
+            texto: String(m[2] || "").trim() || String(bloque || "").trim(),
+          };
+        }
+
+        function bitacoraIsoToSortMs(iso) {
+          var m = String(iso || "").match(/^(\d{4})-(\d{2})-(\d{2})/);
+          if (!m) return null;
+          var d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+          return isNaN(d.getTime()) ? null : d.getTime();
+        }
+
+        function bitacoraAgruparNotasPorEtapa(notasParsed, fechas) {
+          var slots = {};
+          var boundaries = {};
+          var k;
+          for (k = 1; k <= 99; k++) {
+            var fd = fechas[String(k)] != null ? fechas[String(k)] : fechas[k];
+            if (fd) boundaries[k] = bitacoraIsoToSortMs(fd);
+          }
+          function slotForNote(ms) {
+            if (ms == null) return "sin_fecha";
+            var slot = 0;
+            for (k = 1; k <= 99; k++) {
+              if (boundaries[k] != null && ms >= boundaries[k]) slot = k;
+            }
+            return slot;
+          }
+          notasParsed.forEach(function (nota, idx) {
+            var slot = slotForNote(nota.sortMs);
+            if (!slots[slot]) slots[slot] = [];
+            slots[slot].push({ nota: nota, idx: idx });
+          });
+          Object.keys(slots).forEach(function (key) {
+            slots[key].sort(function (a, b) {
+              var am = a.nota.sortMs;
+              var bm = b.nota.sortMs;
+              if (am != null && bm != null && am !== bm) return am - bm;
+              if (am != null && bm == null) return -1;
+              if (am == null && bm != null) return 1;
+              return a.idx - b.idx;
+            });
+          });
+          return slots;
+        }
+
+        function buildPdfDocBitacoraTramite(c, ctx) {
+          var content = [];
+          var nombre = [c.nombres, c.apellido_paterno, c.apellido_materno].filter(Boolean).join(" ");
+          var hoy = new Date();
+          var fechaGen =
+            String(hoy.getDate()).padStart(2, "0") + "/" +
+            String(hoy.getMonth() + 1).padStart(2, "0") + "/" +
+            hoy.getFullYear();
+
+          content.push({
+            text: "BITÁCORA DEL TRÁMITE",
+            fontSize: FICHA_PDF_FONT.title,
+            bold: true,
+            alignment: "center",
+            margin: [0, 0, 0, 6]
+          });
+          content.push({
+            text: (nombre || "Sin nombre") + (c.rut ? " — RUT " + ctx.formatRutDisplay(c.rut) : ""),
+            fontSize: FICHA_PDF_FONT.subtitle,
+            alignment: "center",
+            margin: [0, 0, 0, 4]
+          });
+          content.push({
+            text: "Generado el " + fechaGen,
+            fontSize: FICHA_PDF_FONT.meta,
+            color: "#666",
+            alignment: "center",
+            margin: [0, 0, 0, 14]
+          });
+
+          var metaFilas = [];
+          if (c.solicitud_tipo_pension) metaFilas.push({ label: "Tipo de pensión", valor: c.solicitud_tipo_pension });
+          if (c.posee_bono_reconocimiento === true) metaFilas.push({ label: "Cotizaciones antiguo sistema", valor: "Sí" });
+          else if (c.posee_bono_reconocimiento === false) metaFilas.push({ label: "Cotizaciones antiguo sistema", valor: "No" });
+          if (c.pensionado === true) metaFilas.push({ label: "Estado", valor: "Pensionado" });
+          else if (ctx.etapas && ctx.etapas.length) {
+            var etapaN = ctx.etapaActualNumero(c);
+            metaFilas.push({ label: "Etapa actual", valor: etapaN + ". " + ctx.etapas[etapaN - 1] });
+          }
+          if (metaFilas.length) content = content.concat(fichaPdfSeccion("Resumen", metaFilas));
+
+          var actual = ctx.etapaActualNumero(c);
+          var fechas = ctx.fechasTramite(c);
+          var notasParsed = bitacoraParseNotasBloques(c.notas_asesor).map(bitacoraParseNotaEntrada);
+          var notasPorEtapa = bitacoraAgruparNotasPorEtapa(notasParsed, fechas);
+
+          var tablaBody = [
+            [
+              { text: "Fecha", bold: true, fontSize: FICHA_PDF_FONT.table },
+              { text: "Tipo", bold: true, fontSize: FICHA_PDF_FONT.table },
+              { text: "Detalle", bold: true, fontSize: FICHA_PDF_FONT.table }
+            ]
+          ];
+
+          function pushNotaRows(slotKey) {
+            var list = notasPorEtapa[slotKey];
+            if (!list || !list.length) return;
+            list.forEach(function (item) {
+              tablaBody.push([
+                { text: item.nota.fechaTexto, fontSize: FICHA_PDF_FONT.table },
+                { text: "Nota del asesor", fontSize: FICHA_PDF_FONT.table, italics: true },
+                { text: item.nota.texto, fontSize: FICHA_PDF_FONT.table }
+              ]);
+            });
+          }
+
+          pushNotaRows(0);
+
+          for (var i = 0; i < ctx.etapas.length; i++) {
+            var n = i + 1;
+            var fd = fechas[String(n)] != null ? fechas[String(n)] : fechas[n];
+            var estado = "Pendiente";
+            var fechaTxt = "—";
+            if (n < actual) {
+              estado = "Completada";
+              fechaTxt = fd ? ctx.fmtDate(String(fd)) : "Sin fecha registrada";
+            } else if (n === actual) {
+              estado = "En curso";
+              fechaTxt = fd ? ctx.fmtDate(String(fd)) : "—";
+            }
+            tablaBody.push([
+              { text: fechaTxt, fontSize: FICHA_PDF_FONT.table },
+              { text: "Etapa " + n + " — " + estado, fontSize: FICHA_PDF_FONT.table, bold: true },
+              { text: n + ". " + ctx.etapas[i], fontSize: FICHA_PDF_FONT.table }
+            ]);
+            pushNotaRows(n);
+          }
+
+          pushNotaRows("sin_fecha");
+
+          content.push(fichaPdfH3("Bitácora del trámite (etapas y notas)"));
+          content.push({
+            table: {
+              widths: [88, 92, "*"],
+              dontBreakRows: true,
+              body: tablaBody
+            },
+            layout: FICHA_PDF_TABLE_LAYOUT,
+            margin: [0, 0, 0, 8]
+          });
+
+          return {
+            pageSize: "A4",
+            pageMargins: [40, 40, 40, 50],
+            defaultStyle: { fontSize: FICHA_PDF_FONT.body, lineHeight: 1.4, color: "#111" },
+            footer: function (currentPage, pageCount) {
+              return {
+                text: "Página " + currentPage + " de " + pageCount,
+                alignment: "center",
+                fontSize: FICHA_PDF_FONT.footer,
+                color: "#666",
+                margin: [0, 8, 0, 0]
+              };
+            },
+            info: { title: "Bitácora — " + (nombre || "Cliente") },
+            content: content
+          };
         }
 
         function buildPdfDocFichaCliente(c, ctx) {
@@ -1744,6 +1972,7 @@
                 '<div class="section timeline-section"><h2>Línea de tiempo del trámite</h2>' +
                 '<p class="timeline-hint">Haz clic en el paso donde se encuentra el cliente. Se abrirá una confirmación y, al guardar, las etapas hasta esa quedarán completadas con la fecha de hoy cuando corresponda. Después puedes seguir con los formularios de cada etapa (p. ej. pensión) si aplican.</p>' +
                 '<div class="timeline-controls">' +
+                '<button type="button" class="btn-descargar-bitacora" id="btnDescargarBitacora">descargar bitácora</button>' +
                 '<span id="tramiteSaveMsg" class="tramite-save-msg" aria-live="polite"></span></div>' +
                 '<ol class="timeline">' +
                 items +
@@ -2242,6 +2471,29 @@
                   });
                 })(steps[i]);
               }
+              wireBitacoraDescarga();
+            }
+
+            function wireBitacoraDescarga() {
+              var btn = document.getElementById("btnDescargarBitacora");
+              if (!btn) return;
+              btn.addEventListener("click", function () {
+                btn.disabled = true;
+                var ctxPdf = {
+                  formatRutDisplay: formatRutDisplay,
+                  fmtDate: fmtDate,
+                  etapas: ETAPAS_TRAMITE,
+                  etapaActualNumero: etapaActualNumero,
+                  fechasTramite: fechasTramite
+                };
+                descargarPdfMake(buildPdfDocBitacoraTramite(c, ctxPdf), bitacoraPdfSafeBaseName(c))
+                  .catch(function (err) {
+                    alert((err && err.message) ? err.message : "No se pudo generar la bitácora en PDF.");
+                  })
+                  .then(function () {
+                    btn.disabled = false;
+                  });
+              });
             }
 
             function cerrarModalCambiarEtapa() {
