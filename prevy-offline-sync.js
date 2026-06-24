@@ -69,15 +69,25 @@
       return Promise.reject(new Error("Faltan datos para guardar offline (RUT obligatorio)."));
     }
 
+    function findByRut(list) {
+      var rut = incoming.rut;
+      for (var i = 0; i < list.length; i++) {
+        if (list[i].rut === rut) return list[i];
+      }
+      return null;
+    }
+
     return Promise.resolve()
       .then(function () {
-        if (clientId) return store.getClient(clientId);
-        return store.getClientsByUser(userId).then(function (list) {
-          var rut = incoming.rut;
-          for (var i = 0; i < list.length; i++) {
-            if (list[i].rut === rut) return list[i];
+        if (!clientId) {
+          return store.getClientsByUser(userId).then(findByRut);
+        }
+        return store.getClient(clientId).then(function (row) {
+          if (row && incoming.rut && row.rut !== incoming.rut) {
+            clientId = null;
+            return store.getClientsByUser(userId).then(findByRut);
           }
-          return null;
+          return row;
         });
       })
       .then(function (existing) {

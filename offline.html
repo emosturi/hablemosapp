@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sin conexión — Prevy</title>
+    <link rel="stylesheet" href="app-shell.css" />
+    <script src="theme-init.js"></script>
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px 16px;
+        background: var(--bg);
+        color: var(--text);
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      }
+      .offline-card {
+        max-width: 420px;
+        width: 100%;
+        padding: 28px 24px;
+        border-radius: var(--radius, 12px);
+        border: 1px solid rgba(234, 88, 12, 0.35);
+        background: var(--surface, #fff);
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+      }
+      .offline-card h1 {
+        margin: 0 0 8px;
+        font-size: 1.35rem;
+        letter-spacing: -0.02em;
+      }
+      .offline-card p {
+        margin: 0 0 20px;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.5;
+      }
+      .offline-links {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .offline-links a {
+        display: block;
+        padding: 12px 16px;
+        border-radius: var(--radius, 12px);
+        border: 1px solid rgba(0, 105, 108, 0.35);
+        background: rgba(0, 105, 108, 0.08);
+        color: var(--primary-mid, #00696c);
+        font-weight: 600;
+        font-size: 15px;
+        text-decoration: none;
+        text-align: center;
+      }
+      .offline-links a:hover {
+        border-color: var(--primary-mid, #00696c);
+        background: rgba(0, 105, 108, 0.12);
+      }
+      .offline-links a.primary {
+        background: var(--primary, #00696c);
+        border-color: var(--primary, #00696c);
+        color: #fff;
+      }
+      .offline-links a.primary:hover {
+        background: var(--primary-hover, #005456);
+      }
+      .offline-hint {
+        margin-top: 18px;
+        font-size: 12px;
+        color: var(--muted);
+        line-height: 1.45;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="offline-card" role="main">
+      <h1>Sin conexión</h1>
+      <p>
+        Esta página no está disponible offline. Puedes seguir trabajando con clientes en las secciones
+        habilitadas en este dispositivo.
+      </p>
+      <nav class="offline-links" aria-label="Secciones disponibles sin conexión">
+        <a href="revisar-clientes.html" class="primary">Revisar clientes</a>
+        <a href="pension.html">Nuevo formulario de pensión</a>
+      </nav>
+      <p class="offline-hint">
+        Los cambios se guardan en este dispositivo y se suben al servidor cuando vuelva la conexión.
+      </p>
+    </main>
+  </body>
+</html>

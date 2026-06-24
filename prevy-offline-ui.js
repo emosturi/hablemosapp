@@ -1,5 +1,5 @@
 /**
- * Banner offline: estado de red, pendientes y sincronización manual.
+ * Banner offline: estado de red, pendientes, sincronización y navegación local.
  */
 (function (global) {
   var wired = false;
@@ -16,6 +16,8 @@
     if (!bar) return;
     var online = global.prevyOfflineIsOnline && global.prevyOfflineIsOnline();
     global.document.documentElement.setAttribute("data-prevy-offline", online ? "0" : "1");
+    var nav = bar.querySelector(".prevy-offline-nav");
+    if (nav) nav.style.display = online ? "none" : "flex";
     pendingCount().then(function (n) {
       var msg = bar.querySelector(".prevy-offline-msg");
       var btn = bar.querySelector(".prevy-offline-sync-btn");
@@ -49,6 +51,11 @@
     bar.innerHTML =
       '<div class="prevy-offline-bar-inner">' +
       '<span class="prevy-offline-msg"></span>' +
+      '<nav class="prevy-offline-nav" aria-label="Secciones offline">' +
+      '<a href="/revisar-clientes.html">Clientes</a>' +
+      '<a href="/pension.html">Nueva pensión</a>' +
+      '<a href="/offline.html">Sin conexión</a>' +
+      "</nav>" +
       '<button type="button" class="prevy-offline-sync-btn">Sincronizar ahora</button>' +
       "</div>";
     (global.document.body || global.document.documentElement).appendChild(bar);

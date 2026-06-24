@@ -1,6 +1,8 @@
 /* Plataforma asesores: estáticos + páginas offline de clientes. Web Push para recordatorios. */
-const CACHE_NAME = "prevy-static-v28";
+const CACHE_NAME = "prevy-static-v29";
+const OFFLINE_FALLBACK_URL = "/offline.html";
 const OFFLINE_HTML_URLS = [
+  "/offline.html",
   "/pension.html",
   "/editar-cliente.html",
   "/revisar-clientes.html",
@@ -165,11 +167,48 @@ function isOfflineHtml(pathname) {
   return OFFLINE_HTML_URLS.indexOf(pathname) !== -1;
 }
 
+function isNavigateRequest(request) {
+  if (request.mode === "navigate") return true;
+  var accept = request.headers.get("accept") || "";
+  return accept.indexOf("text/html") !== -1;
+}
+
+function offlineNavigateResponse(pathname) {
+  if (isOfflineHtml(pathname)) {
+    return caches.match(pathname).then(function (page) {
+      return page || caches.match(OFFLINE_FALLBACK_URL);
+    });
+  }
+  return caches.match(OFFLINE_FALLBACK_URL);
+}
+
 self.addEventListener("fetch", function (event) {
   if (event.request.method !== "GET") return;
   var url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
   if (url.pathname.startsWith("/.netlify/")) return;
+
+  if (isNavigateRequest(event.request)) {
+    event.respondWith(
+      fetch(event.request)
+        .then(function (networkResponse) {
+          if (networkResponse && networkResponse.ok && isOfflineHtml(url.pathname)) {
+            var copy = networkResponse.clone();
+            caches.open(CACHE_NAME).then(function (c) {
+              c.put(event.request, copy);
+            });
+          }
+          return networkResponse;
+        })
+        .catch(function () {
+          return caches.match(event.request).then(function (cached) {
+            if (cached) return cached;
+            return offlineNavigateResponse(url.pathname);
+          });
+        })
+    );
+    return;
+  }
 
   if (!isStaticAsset(url.pathname) && !isOfflineHtml(url.pathname)) return;
 

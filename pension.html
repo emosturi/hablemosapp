@@ -329,6 +329,17 @@
         align-items: center;
       }
 
+      #btnNuevoCliente {
+        border: 1px solid rgba(0, 105, 108, 0.45);
+        background: rgba(0, 105, 108, 0.08);
+        color: var(--primary-mid, #00696c);
+        font-weight: 600;
+      }
+      #btnNuevoCliente:hover {
+        border-color: var(--primary-mid, #00696c);
+        background: rgba(0, 105, 108, 0.14);
+      }
+
       .btns-limpiar-pdf {
         display: inline-flex;
         flex-wrap: wrap;
@@ -1498,6 +1509,7 @@
           <div class="actions">
             <div class="btns">
               <button type="button" id="btnGuardarBD">Guardar en BD</button>
+              <button type="button" id="btnNuevoCliente" class="btn-secondary-offline" title="Vaciar formulario para ingresar otro cliente">Nuevo cliente</button>
               <button type="button" id="btnMandatoSimple">Generar Mandato</button>
               <button type="button" id="btnMandatoCorto">Generar Mandato Corto</button>
               <button type="button" id="btnContrato">Generar Contrato</button>
@@ -6682,6 +6694,61 @@
         return true;
       }
 
+      function clearPensionClienteUrl() {
+        try {
+          history.replaceState({}, "", "pension.html");
+        } catch (_eUrl) {}
+      }
+
+      function resetPensionFormForNewCliente(formEl, outEl, previewEl, statusMsg) {
+        formEl.reset();
+        clearErrors(formEl);
+        syncSectionCausantePension(formEl);
+        var ecReset = document.getElementById("mandante_estadoCivil");
+        if (ecReset) ecReset.dispatchEvent(new Event("change", { bubbles: true }));
+        var rHNo = formEl.querySelector("input[name='tieneHijosMenores24'][value='No']");
+        if (rHNo) {
+          rHNo.checked = true;
+          rHNo.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+        var swCodContr = document.getElementById("switchIncluirCodigoAsesorContrato");
+        if (swCodContr) {
+          swCodContr.checked = true;
+          swCodContr.setAttribute("aria-checked", "true");
+        }
+        if (outEl) outEl.hidden = true;
+        if (previewEl) previewEl.textContent = "";
+        setStatus(statusMsg || "Formulario listo para un cliente nuevo.");
+        refreshAntecedentesApvApvcDetalle();
+        updateCuentaBancariaVisibility();
+        clearPensionClienteUrl();
+        if (supabaseClient) {
+          loadAsesorMandatarioPerfil(supabaseClient)
+            .then(function (d) {
+              if (d) {
+                applyMandatarioPerfilToForm(formEl, d);
+                applyPolizaPerfilToForm(formEl, d);
+                applyContratoAnexosUiFromPerfil(d, formEl);
+              } else {
+                applyMandatarioPerfilToForm(formEl, null);
+                applyPolizaPerfilToForm(formEl, null);
+                resetContratoAnexosUiDefault(formEl);
+              }
+            })
+            .catch(function () {
+              applyMandatarioPerfilToForm(formEl, null);
+              applyPolizaPerfilToForm(formEl, null);
+            })
+            .finally(function () {
+              scheduleSetPensionFormBaseline(formEl, 120);
+            });
+        } else {
+          applyPolizaPerfilToForm(formEl, null);
+          resetContratoAnexosUiDefault(formEl);
+          scheduleSetPensionFormBaseline(formEl, 120);
+        }
+      }
+
       // Inicializa todos los manejadores de eventos y estado inicial del formulario.
       function init() {
             const form = document.getElementById("pensionForm");
@@ -6689,6 +6756,7 @@
             const preview = document.getElementById("jsonPreview");
             const btnLimpiar = document.getElementById("btnLimpiar");
             const btnGuardarBD = document.getElementById("btnGuardarBD");
+            const btnNuevoCliente = document.getElementById("btnNuevoCliente");
             const btnMandatoSimple = document.getElementById("btnMandatoSimple");
             const btnMandatoCorto = document.getElementById("btnMandatoCorto");
             const btnContrato = document.getElementById("btnContrato");
@@ -6815,13 +6883,16 @@
                       incomingRow: incomingOff,
                       formData: data,
                     });
-                    if (rOff && rOff.clientId && !clienteIdSave) {
+                    if (rOff && rOff.clientId) {
                       var newUrl = new URL(window.location.href);
                       newUrl.searchParams.set("cliente", rOff.clientId);
                       window.history.replaceState({}, "", newUrl.pathname + newUrl.search);
                     }
                     setPensionFormBaselineNow(form);
-                    setStatus("Guardado en este dispositivo. Se subirá al servidor cuando haya conexión.");
+                    setStatus(
+                      "Guardado en este dispositivo. Se subirá al servidor cuando haya conexión. " +
+                        "Usa «Nuevo cliente» para ingresar otro."
+                    );
                   } catch (e) {
                     console.error("Error al guardar offline:", e);
                     setStatus("No se pudo guardar offline. " + (e && e.message ? e.message : ""));
@@ -7422,52 +7493,16 @@
               btnLimpiar.addEventListener("click", () => {
                 if (blockIfPensionFormUnsaved(form)) return;
                 if (!confirm("¿Seguro que quieres limpiar el formulario?")) return;
-                form.reset();
-                clearErrors(form);
-                syncSectionCausantePension(form);
-                var ecReset = document.getElementById("mandante_estadoCivil");
-                if (ecReset) ecReset.dispatchEvent(new Event("change", { bubbles: true }));
-                var rHNo = form.querySelector("input[name='tieneHijosMenores24'][value='No']");
-                if (rHNo) {
-                  rHNo.checked = true;
-                  rHNo.dispatchEvent(new Event("change", { bubbles: true }));
-                }
-                var swCodContr = document.getElementById("switchIncluirCodigoAsesorContrato");
-                if (swCodContr) {
-                  swCodContr.checked = true;
-                  swCodContr.setAttribute("aria-checked", "true");
-                }
-                out.hidden = true;
-                preview.textContent = "";
-                setStatus("Formulario limpio.");
-                refreshAntecedentesApvApvcDetalle();
-                updateCuentaBancariaVisibility();
-                if (supabaseClient) {
-                  loadAsesorMandatarioPerfil(supabaseClient)
-                    .then(function (d) {
-                      if (d) {
-                        applyMandatarioPerfilToForm(form, d);
-                        applyPolizaPerfilToForm(form, d);
-                        applyContratoAnexosUiFromPerfil(d, form);
-                      } else {
-                        applyMandatarioPerfilToForm(form, null);
-                        applyPolizaPerfilToForm(form, null);
-                        resetContratoAnexosUiDefault(form);
-                      }
-                    })
-                    .catch(function () {
-                      applyMandatarioPerfilToForm(form, null);
-                      applyPolizaPerfilToForm(form, null);
-                    })
-                    .finally(function () {
-                      scheduleSetPensionFormBaseline(form, 120);
-                    });
-                } else {
-                  applyPolizaPerfilToForm(form, null);
-                  resetContratoAnexosUiDefault(form);
-                  scheduleSetPensionFormBaseline(form, 120);
-                }
+                resetPensionFormForNewCliente(form, out, preview, "Formulario limpio.");
               });
+
+            if (btnNuevoCliente) {
+              btnNuevoCliente.addEventListener("click", function () {
+                if (blockIfPensionFormUnsaved(form)) return;
+                if (!confirm("¿Empezar un cliente nuevo? El formulario se vaciará.")) return;
+                resetPensionFormForNewCliente(form, out, preview, "Listo para ingresar un cliente nuevo.");
+              });
+            }
 
             var params = new URLSearchParams(window.location.search);
             var clienteId = params.get("cliente");
