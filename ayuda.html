@@ -703,7 +703,7 @@
               <details
                 class="faq-item"
                 id="faq-push-notificaciones"
-                data-search="push notificaciones pwa android telefono tablet avisos recordatorios registrar dispositivo sonido vibrar"
+                data-search="push notificaciones pwa android iphone ios telefono tablet avisos recordatorios registrar dispositivo sonido vibrar safari"
               >
                 <summary>¿Cómo activo las notificaciones push en mi teléfono o tablet?</summary>
                 <div class="faq-body">
@@ -716,6 +716,54 @@
                   </ol>
                   <p class="faq-note">Si el permiso está bloqueado, ve a Ajustes del sitio → Notificaciones → Permitir. Usa Chrome en Android (no un navegador embebido de otra app). Si aparece el aviso de nueva versión de la app, pulsa <strong>Actualizar</strong>.</p>
                   <p class="faq-note"><a href="#pushNotifyPanel">Ir al panel de notificaciones</a></p>
+                </div>
+              </details>
+
+              <details
+                class="faq-item"
+                id="faq-push-ios-sonido"
+                data-search="iphone ios ipad safari sonido push notificaciones pwa pantalla inicio silencio focus apple"
+              >
+                <summary>¿Cómo configuro mi iPhone o iPad para que suenen las notificaciones push de Prevy?</summary>
+                <div class="faq-body">
+                  <p>En <strong>iPhone y iPad</strong> las notificaciones de una PWA las controla sobre todo <strong>iOS</strong>, no Prevy. No podemos elegir un tono personalizado como en una app nativa, pero estos pasos aumentan la probabilidad de que <strong>suenen y se vean</strong>.</p>
+
+                  <p><strong>1. Instala Prevy en la pantalla de inicio</strong></p>
+                  <ol>
+                    <li>Abre <strong>Safari</strong> (no un navegador dentro de otra app).</li>
+                    <li>Entra a la plataforma e inicia sesión.</li>
+                    <li>Pulsa el botón <strong>Compartir</strong> (cuadrado con flecha) → <strong>Añadir a pantalla de inicio</strong>.</li>
+                    <li>Abre Prevy <strong>desde el icono instalado</strong>, no desde una pestaña suelta de Safari.</li>
+                  </ol>
+                  <p class="faq-note">Las notificaciones push web en iOS requieren iOS <strong>16.4 o posterior</strong> y funcionan mejor con la app instalada así.</p>
+
+                  <p><strong>2. Activa las notificaciones en Prevy</strong></p>
+                  <ol>
+                    <li>Menú de tu avatar → <strong>Ayuda</strong>.</li>
+                    <li>En <strong>Notificaciones en este dispositivo</strong>, pulsa <strong>Activar notificaciones en este dispositivo</strong> (o <strong>Volver a registrar este dispositivo</strong> si antes funcionaban).</li>
+                    <li>Acepta <strong>Permitir</strong> cuando iOS lo pida.</li>
+                  </ol>
+                  <p class="faq-note"><a href="#pushNotifyPanel">Ir al panel de notificaciones</a></p>
+
+                  <p><strong>3. Revisa Ajustes del iPhone</strong></p>
+                  <p>Ve a <strong>Ajustes → Notificaciones → Prevy</strong> (o el nombre que tenga el icono en tu pantalla de inicio) y comprueba:</p>
+                  <ul>
+                    <li><strong>Permitir notificaciones:</strong> activado.</li>
+                    <li><strong>Sonidos:</strong> activado.</li>
+                    <li><strong>Mostrar en pantalla de bloqueo</strong> y <strong>Centro de notificaciones:</strong> activados.</li>
+                    <li><strong>Estilos de aviso:</strong> elige <strong>Alertas</strong> (no solo «Banners» si quieres un aviso más visible).</li>
+                  </ul>
+                  <p class="faq-note">Si alguna vez elegiste <strong>Entregar en silencio</strong> al deslizar una notificación, vuelve a Ajustes → Notificaciones → Prevy y desactiva la entrega silenciosa.</p>
+
+                  <p><strong>4. Comprueba que el teléfono no esté en silencio</strong></p>
+                  <ul>
+                    <li>El <strong>interruptor lateral</strong> no debe estar en modo silencio (naranja visible).</li>
+                    <li>Revisa que no tengas un modo <strong>Enfoque</strong> (No molestar, Dormir, Trabajo, etc.) que silencie notificaciones.</li>
+                    <li>En <strong>Ajustes → Sonidos y vibración</strong>, sube el volumen de <strong>Tono de llamada y alertas</strong>.</li>
+                  </ul>
+
+                  <p><strong>5. Si aun así no suenan</strong></p>
+                  <p>Es una limitación habitual de las PWA en iOS: la notificación puede <strong>llegar sin sonido</strong> aunque todo esté bien configurado. Para recordatorios urgentes, configura también <a href="configuracion-telegram.html">Telegram</a>: suele ser más fiable y con sonido en iPhone.</p>
                 </div>
               </details>
 
