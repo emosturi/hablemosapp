@@ -5750,6 +5750,10 @@
         return merged;
       }
 
+      if (typeof window.prevyOfflineRegisterHandlers === "function") {
+        window.prevyOfflineRegisterHandlers({ pensionMerge: mergeClienteRowPensionSave });
+      }
+
       /** Validación mínima para persistir: solo RUT mandante válido (guardado parcial del resto). */
       function validatePensionFormForDbSave(form) {
         clearErrors(form);
@@ -6784,18 +6788,62 @@
                   });
                   return;
                 }
+                const data = formDataToObject(form);
+                enrichDataConyugeHijosBeneficiarios(form, data);
+                const anexosSnap = collectContratoAnexosForData(form);
+                const paramsSave = new URLSearchParams(window.location.search);
+                const clienteIdSave = paramsSave.get("cliente");
+                var clientForAuth = supabaseClient;
+                if (!clientForAuth && window.createPrevySupabaseClient && window.SUPABASE_URL && window.SUPABASE_ANON_KEY) {
+                  clientForAuth = window.createPrevySupabaseClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+                }
+                if (!navigator.onLine && window.prevyOfflineSavePension) {
+                  if (!clientForAuth) {
+                    setStatus("No hay sesión local. Inicia sesión con conexión al menos una vez.");
+                    return;
+                  }
+                  btnGuardarBD.disabled = true;
+                  setStatus("Guardando en este dispositivo…");
+                  try {
+                    const sessOff = await clientForAuth.auth.getSession();
+                    const uidOff = sessOff && sessOff.data && sessOff.data.session && sessOff.data.session.user && sessOff.data.session.user.id;
+                    if (!uidOff) throw new Error("No hay sesión activa. Vuelve a iniciar sesión con conexión.");
+                    const incomingOff = buildClienteRowFromMandatoData(data, uidOff);
+                    const rOff = await window.prevyOfflineSavePension({
+                      userId: uidOff,
+                      clientId: clienteIdSave,
+                      incomingRow: incomingOff,
+                      formData: data,
+                    });
+                    if (rOff && rOff.clientId && !clienteIdSave) {
+                      var newUrl = new URL(window.location.href);
+                      newUrl.searchParams.set("cliente", rOff.clientId);
+                      window.history.replaceState({}, "", newUrl.pathname + newUrl.search);
+                    }
+                    setPensionFormBaselineNow(form);
+                    setStatus("Guardado en este dispositivo. Se subirá al servidor cuando haya conexión.");
+                  } catch (e) {
+                    console.error("Error al guardar offline:", e);
+                    setStatus("No se pudo guardar offline. " + (e && e.message ? e.message : ""));
+                  } finally {
+                    btnGuardarBD.disabled = false;
+                  }
+                  return;
+                }
                 if (!supabaseClient) {
                   setStatus("No hay conexión a Supabase (inicia sesión o configura supabase-config.js).");
                   return;
                 }
-                const data = formDataToObject(form);
-                enrichDataConyugeHijosBeneficiarios(form, data);
-                const anexosSnap = collectContratoAnexosForData(form);
                 btnGuardarBD.disabled = true;
                 setStatus("Guardando en la base de datos…");
                 try {
                   await saveClienteFromMandatoData(supabaseClient, data);
                   await saveAsesorMandatarioPerfil(supabaseClient, data, { contrato_anexos: anexosSnap });
+                  const sessOk = await supabaseClient.auth.getSession();
+                  const uidOk = sessOk && sessOk.data && sessOk.data.session && sessOk.data.session.user && sessOk.data.session.user.id;
+                  if (uidOk && window.prevyOfflineRefreshCache) {
+                    window.prevyOfflineRefreshCache(supabaseClient, uidOk).catch(function () {});
+                  }
                   setPensionFormBaselineNow(form);
                   setStatus("Datos guardados correctamente. Puedes generar documentos cuando quieras.");
                 } catch (e) {
@@ -7455,15 +7503,13 @@
               resetContratoAnexosUiDefault(form);
               scheduleSetPensionFormBaseline(form, 120);
             }
-            if (clienteId && supabaseClient) {
-              supabaseClient.from("clientes").select("*").eq("id", clienteId).single().then(function (r) {
-                if (r.error || !r.data) {
-                  setStatus("No se pudieron cargar los datos del cliente. " + (r.error ? r.error.message : "Cliente no encontrado."));
-                  if (r.error) console.error("Prefill cliente:", r.error);
+            if (clienteId) {
+              function prefillPensionFromCliente(c, errMsg) {
+                if (!c) {
+                  setStatus(errMsg || "No se pudieron cargar los datos del cliente.");
                   scheduleSetPensionFormBaseline(form, 120);
                   return;
                 }
-                var c = r.data;
                 var fechaStr = c.fecha_nacimiento;
                 if (fechaStr && typeof fechaStr === "string") {
                   var iso = fechaStr.split("T")[0];
@@ -7887,7 +7933,35 @@
                 }
 
                 finalizarPrefill();
-              });
+              }
+
+              if (!navigator.onLine && window.prevyOfflineGetClient) {
+                window.prevyOfflineGetClient(clienteId).then(function (c) {
+                  prefillPensionFromCliente(
+                    c,
+                    c ? null : "Sin conexión: cliente no encontrado en este dispositivo. Ábrelo con internet al menos una vez."
+                  );
+                });
+              } else if (supabaseClient) {
+                supabaseClient.from("clientes").select("*").eq("id", clienteId).single().then(function (r) {
+                  if (r.error || !r.data) {
+                    if (r.error) console.error("Prefill cliente:", r.error);
+                    prefillPensionFromCliente(
+                      null,
+                      "No se pudieron cargar los datos del cliente. " + (r.error ? r.error.message : "Cliente no encontrado.")
+                    );
+                    return;
+                  }
+                  if (window.prevyOfflineStore) {
+                    var cachedRow = Object.assign({}, r.data);
+                    cachedRow.pendingSync = false;
+                    window.prevyOfflineStore.putClient(cachedRow);
+                  }
+                  prefillPensionFromCliente(r.data);
+                });
+              } else {
+                prefillPensionFromCliente(null, "No hay conexión a Supabase.");
+              }
             }
             }
 

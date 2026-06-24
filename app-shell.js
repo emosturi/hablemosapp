@@ -76,6 +76,28 @@
     document.head.appendChild(pushUiScript);
   }
 
+  if (!document.querySelector('script[data-prevy-offline-store]')) {
+    var offlineStoreScript = document.createElement("script");
+    offlineStoreScript.src = "/prevy-offline-store.js";
+    offlineStoreScript.defer = true;
+    offlineStoreScript.setAttribute("data-prevy-offline-store", "1");
+    document.head.appendChild(offlineStoreScript);
+  }
+  if (!document.querySelector('script[data-prevy-offline-sync]')) {
+    var offlineSyncScript = document.createElement("script");
+    offlineSyncScript.src = "/prevy-offline-sync.js";
+    offlineSyncScript.defer = true;
+    offlineSyncScript.setAttribute("data-prevy-offline-sync", "1");
+    document.head.appendChild(offlineSyncScript);
+  }
+  if (!document.querySelector('script[data-prevy-offline-ui]')) {
+    var offlineUiScript = document.createElement("script");
+    offlineUiScript.src = "/prevy-offline-ui.js";
+    offlineUiScript.defer = true;
+    offlineUiScript.setAttribute("data-prevy-offline-ui", "1");
+    document.head.appendChild(offlineUiScript);
+  }
+
   if (!document.querySelector('script[data-prevy-legal-consent]')) {
     var legalScript = document.createElement("script");
     legalScript.src = "/legal-consent.js";
@@ -345,6 +367,27 @@
     window.setTimeout(run, 1500);
   }
 
+  function prevyTryOfflineUi(user) {
+    if (!user || !user.id) return;
+    function run() {
+      if (typeof window.prevyOfflineUiAttach !== "function") return;
+      var url = window.SUPABASE_URL;
+      var key = window.SUPABASE_ANON_KEY;
+      if (!url || !key || String(url).indexOf("TU_PROYECTO") !== -1) return;
+      if (typeof window.createPrevySupabaseClient !== "function") return;
+      var client = window.createPrevySupabaseClient(url, key);
+      window.prevyOfflineUiAttach(client, user.id);
+    }
+    if (typeof window.prevyOfflineUiAttach === "function") {
+      run();
+      return;
+    }
+    var scr = document.querySelector("script[data-prevy-offline-ui]");
+    if (scr) scr.addEventListener("load", run);
+    window.setTimeout(run, 400);
+    window.setTimeout(run, 1500);
+  }
+
   window.applyAppShellUser = function (user) {
     if (!user) return;
     var email = user.email || "";
@@ -364,6 +407,7 @@
       ut.setAttribute("aria-label", al);
     }
     prevyTryRegisterWebPush(user);
+    prevyTryOfflineUi(user);
   };
 
   window.setAppShellGuest = function (isGuest) {

@@ -1228,12 +1228,34 @@
             if (!r.data.session) { window.location.replace("login.html"); return; }
             if (typeof window.applyAppShellUser === "function") window.applyAppShellUser(r.data.session.user);
             if (typeof window.setAppShellGuest === "function") window.setAppShellGuest(false);
-            supabaseEdit.from("clientes").select("*").eq("id", clientId).single().then(function(res) {
-              if (res.error || !res.data) {
-                setStatus(res.error ? res.error.message : "Cliente no encontrado.");
+            function onClientLoaded(c, errMsg) {
+              if (!c) {
+                setStatus(errMsg || "Cliente no encontrado.");
                 return;
               }
-              populateFormFromClient(res.data);
+              clienteDbSnapshot = c;
+              populateFormFromClient(c);
+            }
+            if (!navigator.onLine && window.prevyOfflineGetClient) {
+              window.prevyOfflineGetClient(clientId).then(function(c) {
+                onClientLoaded(
+                  c,
+                  c ? null : "Sin conexión: cliente no encontrado en este dispositivo. Ábrelo con internet al menos una vez."
+                );
+              });
+              return;
+            }
+            supabaseEdit.from("clientes").select("*").eq("id", clientId).single().then(function(res) {
+              if (res.error || !res.data) {
+                onClientLoaded(null, res.error ? res.error.message : "Cliente no encontrado.");
+                return;
+              }
+              if (window.prevyOfflineStore) {
+                var cached = Object.assign({}, res.data);
+                cached.pendingSync = false;
+                window.prevyOfflineStore.putClient(cached);
+              }
+              onClientLoaded(res.data);
             });
           });
         }
@@ -1504,6 +1526,38 @@
         if (typeof window.installInactivityAutoLogout === "function") {
           window.installInactivityAutoLogout(supabase, { timeoutMs: window.SESSION_IDLE_TIMEOUT_MS, redirectTo: "login.html" });
         }
+
+          function finishSaveOk() {
+            document.getElementById("status").innerHTML =
+              'Cliente actualizado correctamente. <a href="ver-cliente.html?id=' +
+              encodeURIComponent(clientId) +
+              '" style="color:var(--primary-mid);font-weight:600">Ver cliente</a>';
+          }
+
+          if (!navigator.onLine && window.prevyOfflineSaveEditar) {
+            supabase.auth.getSession().then(function(sessR) {
+              var uid = sessR && sessR.data && sessR.data.session && sessR.data.session.user && sessR.data.session.user.id;
+              if (!uid) {
+                setStatus("No hay sesión activa. Vuelve a iniciar sesión con conexión.");
+                if (btnSubmit) btnSubmit.disabled = false;
+                return;
+              }
+              window.prevyOfflineSaveEditar({ userId: uid, clientId: clientId, row: row })
+                .then(function() {
+                  clienteDbSnapshot = Object.assign({}, clienteDbSnapshot || {}, row);
+                  setStatus("Guardado en este dispositivo. Se subirá al servidor cuando haya conexión.");
+                })
+                .catch(function(err) {
+                  setStatus("Error al guardar offline: " + (err && err.message ? err.message : "Intenta de nuevo."));
+                  setError(form, "cliente_rut", (err && err.message) ? err.message : "Error al guardar offline.");
+                })
+                .finally(function() {
+                  if (btnSubmit) btnSubmit.disabled = false;
+                });
+            });
+            return;
+          }
+
           supabase.from("clientes").update(row).eq("id", clientId)
             .then(function(result) {
               if (result.error) {
@@ -1511,10 +1565,14 @@
                 setError(form, "cliente_rut", result.error.message || "Error al guardar.");
                 return;
               }
-              document.getElementById("status").innerHTML =
-                'Cliente actualizado correctamente. <a href="ver-cliente.html?id=' +
-                encodeURIComponent(clientId) +
-                '" style="color:var(--primary-mid);font-weight:600">Ver cliente</a>';
+              if (window.prevyOfflineStore) {
+                var cachedUp = Object.assign({}, clienteDbSnapshot || {}, row);
+                cachedUp.id = clientId;
+                cachedUp.pendingSync = false;
+                window.prevyOfflineStore.putClient(cachedUp);
+              }
+              clienteDbSnapshot = Object.assign({}, clienteDbSnapshot || {}, row);
+              finishSaveOk();
             })
             .catch(function(err) {
               setStatus("Error: " + (err && err.message ? err.message : "Error de conexión."));

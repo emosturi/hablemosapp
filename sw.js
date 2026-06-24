@@ -1,5 +1,10 @@
-/* Plataforma asesores: caché solo de estáticos propios. Sin HTML ni APIs. Web Push para recordatorios. */
-const CACHE_NAME = "prevy-static-v27";
+/* Plataforma asesores: estáticos + páginas offline de clientes. Web Push para recordatorios. */
+const CACHE_NAME = "prevy-static-v28";
+const OFFLINE_HTML_URLS = [
+  "/pension.html",
+  "/editar-cliente.html",
+  "/revisar-clientes.html",
+];
 const PRECACHE_URLS = [
   "/manifest.webmanifest",
   "/app-shell.css",
@@ -7,12 +12,17 @@ const PRECACHE_URLS = [
   "/legal-consent.js",
   "/pwa-push-register.js",
   "/pwa-push-ui.js",
+  "/prevy-offline-store.js",
+  "/prevy-offline-sync.js",
+  "/prevy-offline-ui.js",
   "/pwa-update.js",
+  "/app-shell.js",
+  "/supabase-config.js",
   "/icons/icon-512.svg",
   "/icons/icon-192.png",
   "/icons/icon-512.png",
   "/icons/icon-badge-monochrome.png",
-];
+].concat(OFFLINE_HTML_URLS);
 
 self.addEventListener("install", function (event) {
   /* Sin skipWaiting automático: la nueva versión queda "waiting" hasta que el cliente
@@ -151,13 +161,17 @@ function isStaticAsset(pathname) {
   return /\.(css|js|png|svg|ico|woff2?|webmanifest)$/i.test(pathname);
 }
 
+function isOfflineHtml(pathname) {
+  return OFFLINE_HTML_URLS.indexOf(pathname) !== -1;
+}
+
 self.addEventListener("fetch", function (event) {
   if (event.request.method !== "GET") return;
   var url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
   if (url.pathname.startsWith("/.netlify/")) return;
 
-  if (!isStaticAsset(url.pathname)) return;
+  if (!isStaticAsset(url.pathname) && !isOfflineHtml(url.pathname)) return;
 
   event.respondWith(
     caches.match(event.request).then(function (cached) {

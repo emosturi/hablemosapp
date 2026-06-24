@@ -1102,3 +1102,55 @@ body.prevy-has-float-sub {
   font-size: 13px;
   color: var(--muted);
 }
+
+/* Banner offline / sincronización pendiente */
+#prevy-offline-bar {
+  display: none;
+  position: sticky;
+  top: 0;
+  z-index: 900;
+  border-bottom: 1px solid rgba(234, 88, 12, 0.35);
+  background: rgba(234, 88, 12, 0.12);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.4;
+}
+#prevy-offline-bar.is-offline {
+  border-bottom-color: rgba(234, 88, 12, 0.45);
+  background: rgba(234, 88, 12, 0.14);
+}
+.prevy-offline-bar-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 10px 16px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.prevy-offline-sync-btn {
+  border: 1px solid rgba(0, 105, 108, 0.45);
+  background: var(--surface);
+  color: var(--primary-mid);
+  border-radius: var(--radius);
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.prevy-offline-sync-btn:hover:not(:disabled) {
+  border-color: var(--primary-mid);
+  color: var(--primary-hover);
+}
+.prevy-offline-sync-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Sin conexión: ocultar generación de documentos */
+[data-prevy-offline="1"] #btnMandatoSimple,
+[data-prevy-offline="1"] #btnMandatoCorto,
+[data-prevy-offline="1"] #btnContrato,
+[data-prevy-offline="1"] .doc-badge {
+  display: none !important;
+}

@@ -403,6 +403,7 @@
 
           if (typeof window.applyAppShellUser === "function") window.applyAppShellUser(r.data.session.user);
           if (typeof window.setAppShellGuest === "function") window.setAppShellGuest(false);
+          var userId = r.data.session.user.id;
 
           Promise.resolve(
             window.__prevyWhenSubscriptionReady && window.__prevyWhenSubscriptionReady()
@@ -678,6 +679,77 @@
             if (clientesSubTabsWrapEl) clientesSubTabsWrapEl.style.display = "none";
             noResults.style.display = "none";
 
+            function clientRowToListItem(c) {
+              return {
+                id: c.id,
+                tipo: "cliente",
+                nombre: [c.nombres, c.apellido_paterno, c.apellido_materno].filter(Boolean).join(" "),
+                rut: c.rut || "",
+                telefono: c.telefono || "",
+                created_at: c.created_at,
+                tiene_contrato: c.tiene_contrato === true,
+                tiene_mandato_corto: c.tiene_mandato_corto === true,
+                tiene_mandato_largo: c.tiene_mandato_largo === true,
+                tramite_etapa_actual: c.tramite_etapa_actual,
+                tramite_etapas_fechas: c.tramite_etapas_fechas,
+                numero_contrato_secuencial: undefined,
+                pensionado: c.pensionado === true
+              };
+            }
+
+            function applyListaFromClientes(clientes, potenciales) {
+              clientes.sort(function (a, b) {
+                var na = Number(a.numero_contrato_secuencial);
+                var nb = Number(b.numero_contrato_secuencial);
+                var aTiene = isFinite(na);
+                var bTiene = isFinite(nb);
+                if (aTiene && bTiene && na !== nb) return nb - na;
+                if (aTiene && !bTiene) return -1;
+                if (!aTiene && bTiene) return 1;
+                var ta = a.created_at ? new Date(a.created_at).getTime() : 0;
+                var tb = b.created_at ? new Date(b.created_at).getTime() : 0;
+                return tb - ta;
+              });
+              potenciales.sort(function (a, b) {
+                var ta = a.created_at ? new Date(a.created_at).getTime() : 0;
+                var tb = b.created_at ? new Date(b.created_at).getTime() : 0;
+                return tb - ta;
+              });
+
+              allPensionados = clientes.filter(function (c) { return c.pensionado === true; });
+              allClientes = clientes.filter(function (c) { return c.pensionado !== true; });
+              allPotenciales = potenciales;
+
+              if (allClientes.length === 0 && allPotenciales.length === 0 && allPensionados.length === 0) {
+                emptyEl.style.display = "block";
+                emptyEl.textContent = "No hay clientes ni clientes potenciales.";
+                return;
+              }
+
+              searchWrapEl.style.display = "block";
+              tabsWrapEl.style.display = "flex";
+              renderTab();
+            }
+
+            if (!navigator.onLine && window.prevyOfflineGetClientsForList) {
+              window.prevyOfflineGetClientsForList(userId).then(function (rows) {
+                loadingEl.style.display = "none";
+                if (!rows || !rows.length) {
+                  errorEl.style.display = "block";
+                  errorEl.textContent =
+                    "Sin conexión y no hay clientes en este dispositivo. Abre la lista con internet al menos una vez.";
+                  return;
+                }
+                var clientesOff = rows.map(clientRowToListItem);
+                applyListaFromClientes(clientesOff, []);
+              }).catch(function (err) {
+                loadingEl.style.display = "none";
+                errorEl.style.display = "block";
+                errorEl.textContent = (err && err.message) || "Error al cargar clientes offline.";
+              });
+              return;
+            }
+
             Promise.all([
               supabase.from("clientes").select("id, rut, nombres, apellido_paterno, apellido_materno, telefono, created_at, tiene_contrato, tiene_mandato_corto, tiene_mandato_largo, tramite_etapa_actual, tramite_etapas_fechas, pensionado").order("created_at", { ascending: false }),
               supabase.from("clientes_potenciales").select("id, nombre, telefono, created_at").order("created_at", { ascending: false }),
@@ -732,37 +804,11 @@
                 };
               });
 
-              clientes.sort(function (a, b) {
-                var na = Number(a.numero_contrato_secuencial);
-                var nb = Number(b.numero_contrato_secuencial);
-                var aTiene = isFinite(na);
-                var bTiene = isFinite(nb);
-                if (aTiene && bTiene && na !== nb) return nb - na;
-                if (aTiene && !bTiene) return -1;
-                if (!aTiene && bTiene) return 1;
-                var ta = a.created_at ? new Date(a.created_at).getTime() : 0;
-                var tb = b.created_at ? new Date(b.created_at).getTime() : 0;
-                return tb - ta;
-              });
-              potenciales.sort(function (a, b) {
-                var ta = a.created_at ? new Date(a.created_at).getTime() : 0;
-                var tb = b.created_at ? new Date(b.created_at).getTime() : 0;
-                return tb - ta;
-              });
-
-              allPensionados = clientes.filter(function (c) { return c.pensionado === true; });
-              allClientes = clientes.filter(function (c) { return c.pensionado !== true; });
-              allPotenciales = potenciales;
-
-              if (allClientes.length === 0 && allPotenciales.length === 0 && allPensionados.length === 0) {
-                emptyEl.style.display = "block";
-                emptyEl.textContent = "No hay clientes ni clientes potenciales.";
-                return;
+              if (window.prevyOfflineRefreshCache) {
+                window.prevyOfflineRefreshCache(supabase, userId).catch(function () {});
               }
 
-              searchWrapEl.style.display = "block";
-              tabsWrapEl.style.display = "flex";
-              renderTab();
+              applyListaFromClientes(clientes, potenciales);
             });
           }
 
