@@ -68,6 +68,14 @@
     document.head.appendChild(pushRegScript);
   }
 
+  if (!document.querySelector('script[data-prevy-push-ui]')) {
+    var pushUiScript = document.createElement("script");
+    pushUiScript.src = "/pwa-push-ui.js";
+    pushUiScript.defer = true;
+    pushUiScript.setAttribute("data-prevy-push-ui", "1");
+    document.head.appendChild(pushUiScript);
+  }
+
   if (!document.querySelector('script[data-prevy-legal-consent]')) {
     var legalScript = document.createElement("script");
     legalScript.src = "/legal-consent.js";

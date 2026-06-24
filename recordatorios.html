@@ -137,55 +137,6 @@
         line-height: 1.45;
         max-width: 640px;
       }
-      .banner-push {
-        margin: 0 0 14px;
-        padding: 12px 14px;
-        border-radius: var(--radius);
-        border: 1px solid rgba(0, 105, 108, 0.35);
-        background: rgba(0, 105, 108, 0.08);
-        color: var(--text);
-        font-size: 14px;
-        line-height: 1.45;
-        max-width: 640px;
-      }
-      .banner-push.is-ok {
-        border-color: rgba(13, 148, 136, 0.45);
-        background: rgba(13, 148, 136, 0.1);
-      }
-      .banner-push.is-warn {
-        border-color: rgba(234, 88, 12, 0.45);
-        background: rgba(234, 88, 12, 0.1);
-      }
-      .banner-push-actions {
-        margin-top: 10px;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        align-items: center;
-      }
-      .btn-push-activate {
-        padding: 8px 14px;
-        border-radius: 10px;
-        border: none;
-        background: var(--primary, #00696c);
-        color: #fff;
-        font-size: 14px;
-        font-weight: 700;
-        font-family: inherit;
-        cursor: pointer;
-      }
-      .btn-push-activate:hover {
-        filter: brightness(1.08);
-      }
-      .btn-push-activate:disabled {
-        opacity: 0.55;
-        cursor: not-allowed;
-      }
-      #pushStatusDetail {
-        margin: 6px 0 0;
-        font-size: 13px;
-        color: var(--muted);
-      }
       .btn-borrar {
         padding: 6px 10px;
         font-size: 12px;
@@ -385,141 +336,16 @@
           var uid = r.data.session.user.id;
           var accessToken = r.data.session.access_token;
 
-          function initPushNotifyPanel() {
-            var panel = document.getElementById("pushNotifyPanel");
-            var titleEl = document.getElementById("pushStatusTitle");
-            var detailEl = document.getElementById("pushStatusDetail");
-            var btn = document.getElementById("btnActivarPush");
-            if (!panel || !detailEl) return;
-
-            function setPanelState(kind, title, detail, showBtn) {
-              panel.style.display = "block";
-              panel.classList.remove("is-ok", "is-warn");
-              if (kind) panel.classList.add(kind);
-              if (titleEl && title) titleEl.textContent = title;
-              detailEl.textContent = detail || "";
-              if (btn) {
-                btn.style.display = showBtn ? "inline-block" : "none";
-                btn.disabled = false;
-              }
-            }
-
-            function refreshPushStatus() {
-              if (typeof window.prevyGetWebPushStatus !== "function") {
-                setPanelState(
-                  "is-warn",
-                  "Notificaciones en este dispositivo",
-                  "Actualiza la app (recarga con «Actualizar» si aparece el aviso) para habilitar el registro push.",
-                  false
-                );
-                return;
-              }
-              window.prevyGetWebPushStatus().then(function (st) {
-                if (!st.supported) {
-                  setPanelState(
-                    "is-warn",
-                    "Notificaciones no disponibles",
-                    "Este navegador no admite notificaciones push. Usa Chrome en Android o instala la PWA desde el menú del navegador.",
-                    false
-                  );
-                  return;
-                }
-                if (!st.hasVapid) {
-                  setPanelState(
-                    "is-warn",
-                    "Configuración incompleta",
-                    "Falta la clave pública VAPID en el cliente. Contacta a soporte.",
-                    false
-                  );
-                  return;
-                }
-                if (st.permission === "granted" && st.hasSubscription) {
-                  setPanelState(
-                    "is-ok",
-                    "Notificaciones activas en este dispositivo",
-                    "Recibirás avisos push además de Telegram. Si dejaron de llegar, pulsa el botón para volver a registrar este equipo.",
-                    true
-                  );
-                  if (btn) btn.textContent = "Volver a registrar este dispositivo";
-                  return;
-                }
-                if (st.permission === "denied") {
-                  setPanelState(
-                    "is-warn",
-                    "Notificaciones bloqueadas",
-                    "Debes permitir notificaciones en Ajustes del sitio (icono del candado o «i» en la barra de direcciones) y luego pulsar el botón.",
-                    true
-                  );
-                  if (btn) btn.textContent = "Activar notificaciones en este dispositivo";
-                  return;
-                }
-                setPanelState(
-                  "is-warn",
-                  "Notificaciones no activadas",
-                  "Activa los avisos en este teléfono o tablet para recibir recordatorios aunque no abras Telegram.",
-                  true
-                );
-                if (btn) btn.textContent = "Activar notificaciones en este dispositivo";
-              });
-            }
-
-            refreshPushStatus();
-
-            if (btn) {
-              btn.addEventListener("click", function () {
-                if (typeof window.prevyRegisterWebPush !== "function") return;
-                btn.disabled = true;
-                btn.textContent = "Registrando…";
-                window
-                  .prevyRegisterWebPush(accessToken, uid, { force: true })
-                  .then(function (res) {
-                    if (res && res.ok) {
-                      setPanelState(
-                        "is-ok",
-                        "Notificaciones activas en este dispositivo",
-                        "Listo. Los próximos recordatorios también llegarán como push.",
-                        true
-                      );
-                      btn.textContent = "Volver a registrar este dispositivo";
-                      btn.disabled = false;
-                      return;
-                    }
-                    var reason = (res && res.reason) || "error";
-                    if (reason === "denied") {
-                      setPanelState(
-                        "is-warn",
-                        "Permiso denegado",
-                        "Ve a Ajustes del sitio → Notificaciones → Permitir, y vuelve a pulsar el botón.",
-                        true
-                      );
-                    } else if (reason === "dismissed") {
-                      setPanelState(
-                        "is-warn",
-                        "Permiso no concedido",
-                        "Debes aceptar el diálogo de notificaciones cuando aparezca.",
-                        true
-                      );
-                    } else {
-                      setPanelState(
-                        "is-warn",
-                        "No se pudo registrar",
-                        "Intenta de nuevo. Si usas Android, abre la app en Chrome (no en un navegador embebido).",
-                        true
-                      );
-                    }
-                    btn.textContent = "Activar notificaciones en este dispositivo";
-                    btn.disabled = false;
-                  })
-                  .catch(function () {
-                    btn.disabled = false;
-                    btn.textContent = "Activar notificaciones en este dispositivo";
-                    refreshPushStatus();
-                  });
-              });
-            }
+          function tryInitPushPanel() {
+            if (typeof window.prevyInitPushNotifyPanel !== "function") return false;
+            window.prevyInitPushNotifyPanel({ accessToken: accessToken, userId: uid });
+            return true;
           }
-
-          window.setTimeout(initPushNotifyPanel, 300);
+          if (!tryInitPushPanel()) {
+            window.setTimeout(function () {
+              if (!tryInitPushPanel()) window.setTimeout(tryInitPushPanel, 800);
+            }, 300);
+          }
 
           var tgBanner = document.getElementById("tgBanner");
           supabase

@@ -1051,3 +1051,54 @@ body.prevy-has-float-sub {
   border-color: var(--primary-mid);
   color: var(--primary-hover);
 }
+
+/* Panel Web Push (Ayuda, Recordatorios) */
+.banner-push {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  border: 1px solid rgba(0, 105, 108, 0.35);
+  background: rgba(0, 105, 108, 0.08);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.45;
+  max-width: 640px;
+}
+.banner-push.is-ok {
+  border-color: rgba(13, 148, 136, 0.45);
+  background: rgba(13, 148, 136, 0.1);
+}
+.banner-push.is-warn {
+  border-color: rgba(234, 88, 12, 0.45);
+  background: rgba(234, 88, 12, 0.1);
+}
+.banner-push-actions {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.btn-push-activate {
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: none;
+  background: var(--primary, #00696c);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+}
+.btn-push-activate:hover {
+  filter: brightness(1.08);
+}
+.btn-push-activate:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+#pushStatusDetail {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+}

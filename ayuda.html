@@ -366,6 +366,16 @@
               </p>
             </header>
 
+            <div id="pushNotifyPanel" class="banner-push is-warn" style="display: none" role="status" aria-live="polite">
+              <strong id="pushStatusTitle">Notificaciones en este dispositivo</strong>
+              <p id="pushStatusDetail">Comprobando estado…</p>
+              <div class="banner-push-actions">
+                <button type="button" class="btn-push-activate" id="btnActivarPush" style="display: none">
+                  Activar notificaciones en este dispositivo
+                </button>
+              </div>
+            </div>
+
             <div id="ayuda-section-tutoriales" class="section collapsible collapsed" aria-labelledby="ayudaTutorialesTitle">
               <div class="section-title" role="button" tabindex="0" aria-expanded="false">
                 <span class="toggle-icon" aria-hidden="true">▼</span>
@@ -692,6 +702,25 @@
 
               <details
                 class="faq-item"
+                id="faq-push-notificaciones"
+                data-search="push notificaciones pwa android telefono tablet avisos recordatorios registrar dispositivo sonido vibrar"
+              >
+                <summary>¿Cómo activo las notificaciones push en mi teléfono o tablet?</summary>
+                <div class="faq-body">
+                  <p>Además de Telegram, Prevy puede enviarte <strong>avisos push</strong> en la PWA o en Chrome (útil en Android si no revisas Telegram a tiempo).</p>
+                  <ol>
+                    <li>Abre el menú de tu avatar (arriba a la derecha) y elige <strong>Ayuda</strong>.</li>
+                    <li>En la parte superior verás el panel <strong>Notificaciones en este dispositivo</strong>.</li>
+                    <li>Pulsa <strong>Activar notificaciones en este dispositivo</strong> y acepta el permiso cuando el navegador lo pida.</li>
+                    <li>Si antes funcionaban y dejaron de llegar, usa <strong>Volver a registrar este dispositivo</strong> en el mismo panel.</li>
+                  </ol>
+                  <p class="faq-note">Si el permiso está bloqueado, ve a Ajustes del sitio → Notificaciones → Permitir. Usa Chrome en Android (no un navegador embebido de otra app). Si aparece el aviso de nueva versión de la app, pulsa <strong>Actualizar</strong>.</p>
+                  <p class="faq-note"><a href="#pushNotifyPanel">Ir al panel de notificaciones</a></p>
+                </div>
+              </details>
+
+              <details
+                class="faq-item"
                 id="faq-terminos"
                 data-search="terminos condiciones legales politica"
               >
@@ -905,6 +934,21 @@
           }
           if (typeof window.applyAppShellUser === "function") window.applyAppShellUser(r.data.session.user);
           if (typeof window.setAppShellGuest === "function") window.setAppShellGuest(false);
+
+          var uid = r.data.session.user.id;
+          var accessToken = r.data.session.access_token;
+
+          function tryInitPushPanel() {
+            if (typeof window.prevyInitPushNotifyPanel !== "function") return false;
+            window.prevyInitPushNotifyPanel({ accessToken: accessToken, userId: uid });
+            return true;
+          }
+          if (!tryInitPushPanel()) {
+            window.setTimeout(function () {
+              if (!tryInitPushPanel()) window.setTimeout(tryInitPushPanel, 800);
+            }, 300);
+          }
+
           Promise.resolve(window.__prevyWhenSubscriptionReady && window.__prevyWhenSubscriptionReady()).then(function () {});
         });
       })();
