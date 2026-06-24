@@ -300,7 +300,12 @@
   function prevyTryRegisterWebPush(user) {
     if (!user || !user.id) return;
     function run() {
-      if (typeof window.prevyRegisterWebPushOnFirstLogin !== "function") return;
+      if (
+        typeof window.prevyRegisterWebPush !== "function" &&
+        typeof window.prevyRegisterWebPushOnFirstLogin !== "function"
+      ) {
+        return;
+      }
       var url = window.SUPABASE_URL;
       var key = window.SUPABASE_ANON_KEY;
       if (!url || !key || String(url).indexOf("TU_PROYECTO") !== -1) return;
@@ -310,10 +315,17 @@
         if (!r.data || !r.data.session) return;
         var tok = r.data.session.access_token;
         if (!tok) return;
-        window.prevyRegisterWebPushOnFirstLogin(client, tok, user.id);
+        if (typeof window.prevyRegisterWebPush === "function") {
+          window.prevyRegisterWebPush(tok, user.id, { force: false });
+        } else if (typeof window.prevyRegisterWebPushOnFirstLogin === "function") {
+          window.prevyRegisterWebPushOnFirstLogin(client, tok, user.id);
+        }
       });
     }
-    if (typeof window.prevyRegisterWebPushOnFirstLogin === "function") {
+    if (
+      typeof window.prevyRegisterWebPush === "function" ||
+      typeof window.prevyRegisterWebPushOnFirstLogin === "function"
+    ) {
       run();
       return;
     }

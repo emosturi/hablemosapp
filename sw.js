@@ -1,5 +1,5 @@
 /* Plataforma asesores: caché solo de estáticos propios. Sin HTML ni APIs. Web Push para recordatorios. */
-const CACHE_NAME = "prevy-static-v25";
+const CACHE_NAME = "prevy-static-v26";
 const PRECACHE_URLS = [
   "/manifest.webmanifest",
   "/app-shell.css",
@@ -69,6 +69,7 @@ self.addEventListener("push", function (event) {
     tag: data.tag,
     renotify: true,
     silent: false,
+    vibrate: [200, 100, 200, 100, 200],
     data: { url: data.url },
   };
   event.waitUntil(self.registration.showNotification(data.title, opts));

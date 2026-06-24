@@ -184,7 +184,21 @@ exports.handler = async function (event, context) {
         console.log("[process-reminders] Enviado (Telegram):", r.id);
         enviados += 1;
         const wpOk = await sendReminderPushToUser(supabase, uid, buildReminderPushPayload(r));
-        if (wpOk && wpOk.sent) console.log("[process-reminders] Web Push enviados:", wpOk.sent, "user:", uid);
+        if (wpOk && wpOk.sent) {
+          console.log("[process-reminders] Web Push enviados:", wpOk.sent, "user:", uid);
+        } else {
+          console.warn(
+            "[process-reminders] Telegram OK pero Web Push no entregado: recordatorio=",
+            r.id,
+            "user_id=",
+            uid,
+            "sent=",
+            wpOk && wpOk.sent != null ? wpOk.sent : 0,
+            "reason=",
+            (wpOk && wpOk.reason) || "sin_suscripciones",
+            "— el asesor debe reactivar notificaciones PWA en este dispositivo."
+          );
+        }
       } else if (entregadoPush) {
         await supabase.from("recordatorios").update({ enviado: true }).eq("id", r.id);
         console.log("[process-reminders] Enviado (solo Web Push):", r.id);

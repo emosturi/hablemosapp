@@ -160,5 +160,32 @@ exports.handler = async function (event) {
     muestra: futuros.data || [],
   };
 
+  const pushSubs = await supabase.from("push_subscriptions").select("id, user_id, updated_at", { count: "exact" });
+  const pushRows = pushSubs.data || [];
+  const pushByUser = {};
+  pushRows.forEach(function (row) {
+    const uid = row.user_id ? String(row.user_id) : "";
+    if (!uid) return;
+    if (!pushByUser[uid]) pushByUser[uid] = 0;
+    pushByUser[uid] += 1;
+  });
+
+  out.push_subscriptions = {
+    total: pushSubs.count != null ? pushSubs.count : pushRows.length,
+    error: pushSubs.error ? pushSubs.error.message : null,
+    usuarios_con_al_menos_un_dispositivo: Object.keys(pushByUser).length,
+    por_usuario: pushByUser,
+    muestra_recientes: pushRows
+      .slice()
+      .sort(function (a, b) {
+        return String(b.updated_at || "").localeCompare(String(a.updated_at || ""));
+      })
+      .slice(0, 8)
+      .map(function (r) {
+        return { id: r.id, user_id: r.user_id, updated_at: r.updated_at };
+      }),
+    nota: "Si total=0 o un user_id no aparece, ese asesor no recibirá Web Push (solo Telegram). Tras caducar una suscripción en Android debe reactivar en Recordatorios.",
+  };
+
   return json(200, out);
 };
