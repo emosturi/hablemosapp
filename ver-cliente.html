@@ -2048,6 +2048,47 @@
               return h;
             }
 
+            function datosPensionIncompletos(cRow) {
+              if (!cRow) return true;
+              var comp = (cRow.pension_compania || "").toString().trim();
+              var monto = cRow.pension_monto;
+              var montoOk = monto !== null && monto !== undefined && String(monto).trim() !== "";
+              return !comp || !montoOk;
+            }
+
+            function debeMostrarSeccionPensionado(cRow) {
+              if (!cRow) return false;
+              if (cRow.pensionado === true) return true;
+              return !!(cRow.pension_compania || "").toString().trim();
+            }
+
+            function buildSeccionPensionadoHtml(cRow) {
+              var titulo = cRow.pensionado === true ? "Pensionado" : "Datos de pensión";
+              return (
+                '<div class="section" id="seccionPensionado"><h2>' +
+                titulo +
+                "</h2>" +
+                '<div class="section-pension-sub">' +
+                '<div class="section-pension-head">' +
+                '<p class="section-pension-label">Datos registrados en preparación de cierre</p>' +
+                '<button type="button" class="btn-contrato-editar" id="btnEditarPensionPrep">Editar</button>' +
+                "</div>" +
+                '<div class="grid" id="pensionPrepGrid">' +
+                buildPensionPrepGridHtml(cRow) +
+                "</div></div>" +
+                '<div class="section-pension-sub" id="pensionActualizadosBlock">' +
+                '<div class="section-pension-head">' +
+                '<p class="section-pension-label">Datos actualizados al cierre</p>' +
+                '<button type="button" class="btn-contrato-editar" id="btnEditarPensionActualizados">Editar</button>' +
+                "</div>" +
+                '<div id="pensionActualizadosGrid"' +
+                (pensionActualizadosTieneDatos(cRow.pension_datos_actualizados) ? ' class="grid"' : "") +
+                ">" +
+                buildPensionActualizadosGridHtml(cRow) +
+                "</div></div></div>"
+              );
+            }
+
             function etapaActualNumero(cRow) {
               var v = cRow && cRow.tramite_etapa_actual;
               var n = parseInt(v, 10);
@@ -2108,28 +2149,10 @@
             html +=
               '<div class="section section-notas-asesor"><h2>Notas del asesor</h2>' +
               '<div id="notasAsesorBody" class="notas-body"></div></div>';
-            if (c.pensionado === true) {
-              html += '<div class="section" id="seccionPensionado"><h2>Pensionado</h2>';
-              html += '<div class="section-pension-sub">';
-              html += '<div class="section-pension-head">';
-              html += '<p class="section-pension-label">Datos registrados en preparación de cierre</p>';
-              html += '<button type="button" class="btn-contrato-editar" id="btnEditarPensionPrep">Editar</button>';
-              html += "</div>";
-              html += '<div class="grid" id="pensionPrepGrid">';
-              html += buildPensionPrepGridHtml(c);
-              html += "</div></div>";
-              html += '<div class="section-pension-sub" id="pensionActualizadosBlock">';
-              html += '<div class="section-pension-head">';
-              html += '<p class="section-pension-label">Datos actualizados al cierre</p>';
-              html += '<button type="button" class="btn-contrato-editar" id="btnEditarPensionActualizados">Editar</button>';
-              html += "</div>";
-              html +=
-                '<div id="pensionActualizadosGrid"' +
-                (pensionActualizadosTieneDatos(c.pension_datos_actualizados) ? ' class="grid"' : "") +
-                ">";
-              html += buildPensionActualizadosGridHtml(c);
-              html += "</div></div></div>";
-            } else {
+            if (debeMostrarSeccionPensionado(c)) {
+              html += buildSeccionPensionadoHtml(c);
+            }
+            if (c.pensionado !== true) {
               if (!bonoReconocimientoDefinido(c)) {
                 html +=
                   '<div class="section" id="tramiteActivarWrap">' +
@@ -3136,14 +3159,6 @@
               return { value: out };
             }
 
-            function datosPensionIncompletos(cRow) {
-              if (!cRow) return true;
-              var comp = (cRow.pension_compania || "").toString().trim();
-              var monto = cRow.pension_monto;
-              var montoOk = monto !== null && monto !== undefined && String(monto).trim() !== "";
-              return !comp || !montoOk;
-            }
-
             function mostrarFeedbackPension(msg, esError) {
               if (!modalPensionadoFeedback) return;
               modalPensionadoFeedback.textContent = msg || "";
@@ -3165,14 +3180,38 @@
             var btnEliminarPensionActualizados = document.getElementById("btnEliminarPensionActualizados");
 
             function refrescarSeccionPensionado() {
+              var sec = document.getElementById("seccionPensionado");
               var prep = document.getElementById("pensionPrepGrid");
               var actGrid = document.getElementById("pensionActualizadosGrid");
+              if (sec) {
+                var h2 = sec.querySelector("h2");
+                if (h2) h2.textContent = c.pensionado === true ? "Pensionado" : "Datos de pensión";
+              }
               if (prep) prep.innerHTML = buildPensionPrepGridHtml(c);
               if (actGrid) {
                 var tieneAct = pensionActualizadosTieneDatos(c.pension_datos_actualizados);
                 actGrid.className = tieneAct ? "grid" : "";
                 actGrid.innerHTML = buildPensionActualizadosGridHtml(c);
               }
+            }
+
+            function asegurarSeccionPensionadoVisible() {
+              if (!debeMostrarSeccionPensionado(c)) return;
+              if (document.getElementById("seccionPensionado")) {
+                refrescarSeccionPensionado();
+                wirePensionEditButtons();
+                return;
+              }
+              var notas = document.querySelector(".section-notas-asesor");
+              if (!notas) return;
+              var wrap = document.createElement("div");
+              wrap.innerHTML = buildSeccionPensionadoHtml(c);
+              var sec = wrap.firstElementChild;
+              if (!sec) return;
+              var timeline = document.querySelector(".timeline-section") || document.getElementById("tramiteActivarWrap");
+              if (timeline) timeline.insertAdjacentElement("beforebegin", sec);
+              else notas.insertAdjacentElement("afterend", sec);
+              wirePensionEditButtons();
             }
 
             function rellenarModalPensionadoDesdeCliente() {
@@ -3520,7 +3559,7 @@
                     c.pension_rv_detalle = pensionRvDetalle;
 
                     mostrarFeedbackPension("Datos de pensión guardados.", false);
-                    if (esPensionadoFlag(c.pensionado)) refrescarSeccionPensionado();
+                    asegurarSeccionPensionadoVisible();
                     setTimeout(function () {
                       cerrarModalPensionado();
                     }, 900);
@@ -3686,7 +3725,7 @@
               });
             }
 
-            if (c.pensionado === true) {
+            if (debeMostrarSeccionPensionado(c)) {
               wirePensionEditButtons();
             }
 
