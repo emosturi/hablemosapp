@@ -194,6 +194,34 @@
         line-height: 1.5;
       }
       .need-invite-block a { color: var(--primary-mid); font-weight: 600; }
+      .consent-datos-section {
+        border-color: rgba(0, 96, 108, 0.35);
+        background: rgba(0, 147, 145, 0.06);
+      }
+      .consent-datos-section h2 {
+        font-size: 15px;
+        margin: 0 0 10px;
+      }
+      .consent-datos-label {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        cursor: pointer;
+        font-size: 14px;
+        line-height: 1.5;
+        margin: 0;
+      }
+      .consent-datos-label input[type="checkbox"] {
+        margin-top: 3px;
+      }
+      .consent-datos-link {
+        margin: 10px 0 0;
+        font-size: 13px;
+      }
+      .consent-datos-link a {
+        color: var(--primary-mid);
+        font-weight: 600;
+      }
     </style>
   </head>
   <body>
@@ -665,6 +693,28 @@
             </div>
           </div>
 
+          <div class="section consent-datos-section" id="blockConsentimientoDatos" style="display: none;" aria-labelledby="consentimientoDatosTitle">
+            <h2 id="consentimientoDatosTitle">Protección de datos personales (Ley N° 21.719)</h2>
+            <p class="hint" style="margin: 0 0 12px">
+              Para enviar este formulario debe autorizar el tratamiento de sus datos personales conforme a la legislación chilena vigente,
+              incluida la Ley N° 21.719 (vigente plena desde diciembre de 2026). Sus datos serán utilizados por su asesor previsional para la gestión
+              de su trámite y almacenados en Prevy únicamente como herramienta tecnológica al servicio de ese asesor.
+            </p>
+            <label class="consent-datos-label" for="consentimientoDatosPersonales">
+              <input type="checkbox" id="consentimientoDatosPersonales" name="consentimientoDatosPersonales" value="1" />
+              <span>
+                Autorizo de forma libre, informada, específica e inequívoca el tratamiento de mis datos personales y los de mi grupo familiar
+                que ingrese en este formulario, para la asesoría previsional solicitada a través del asesor que me facilitó este enlace.
+                He sido informado/a de mis derechos de acceso, rectificación, cancelación, oposición y de revocar este consentimiento,
+                conforme a la Ley N° 19.628 y la Ley N° 21.719.
+              </span>
+            </label>
+            <p class="consent-datos-link">
+              <a href="terminos-condiciones.html" target="_blank" rel="noopener noreferrer">Ver información sobre protección de datos y uso de la plataforma</a>
+            </p>
+            <div class="error" data-error-for="consentimiento_datos"></div>
+          </div>
+
           <div class="actions">
             <div class="btns">
               <button type="submit">Enviar Datos</button>
@@ -700,6 +750,18 @@
         return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
           String(s || "").trim()
         );
+      }
+
+      var CONSENTIMIENTO_DATOS_TEXTO_ID = "registro-afiliados-ley21719-v1";
+
+      function buildConsentimientoDatosRegistro() {
+        return {
+          texto_id: CONSENTIMIENTO_DATOS_TEXTO_ID,
+          ley: "21.719",
+          otorgado_en: new Date().toISOString(),
+          canal: "registro_afiliados_enlace_publico",
+          user_agent: navigator.userAgent ? String(navigator.userAgent).slice(0, 500) : null,
+        };
       }
 
       var BANNER_REG_PUBLICO_AFILIADO_HTML =
@@ -876,6 +938,22 @@
           var need = document.getElementById("needInviteBlock");
           if (form) form.style.display = "none";
           if (need) need.style.display = "block";
+        });
+      })();
+
+      (function initConsentimientoDatosUI() {
+        var block = document.getElementById("blockConsentimientoDatos");
+        if (!block) return;
+        var ref = new URLSearchParams(window.location.search).get("ref");
+        if (!registroAfiliadosRefValido(ref)) return;
+        var u = window.SUPABASE_URL;
+        var k = window.SUPABASE_ANON_KEY;
+        if (!u || !k || u.indexOf("TU_PROYECTO") !== -1) return;
+        var sb = pageSupabaseClient || window.createPrevySupabaseClient(u, k);
+        pageSupabaseClient = sb;
+        sb.auth.getSession().then(function (r) {
+          if (r.data && r.data.session) return;
+          block.style.display = "";
         });
       })();
 
@@ -1851,6 +1929,20 @@
             return;
           }
 
+          var chkConsent = document.getElementById("consentimientoDatosPersonales");
+          if (!chkConsent || !chkConsent.checked) {
+            setStatus("");
+            setError(
+              form,
+              "consentimiento_datos",
+              "Debe aceptar el tratamiento de datos personales para enviar el formulario."
+            );
+            var blkConsent = document.getElementById("blockConsentimientoDatos");
+            if (blkConsent) blkConsent.scrollIntoView({ behavior: "smooth", block: "start" });
+            return;
+          }
+          row.consentimiento_datos_personales = buildConsentimientoDatosRegistro();
+
           delete row.user_id;
           supabase
             .rpc("registrar_cliente_por_invite", { p_invite: refToken.trim(), p_row: row })
@@ -1862,6 +1954,13 @@
                   msg = "El enlace de registro no es válido o expiró. Solicite un nuevo enlace a su asesor.";
                 } else if (/rut_invalido/i.test(msg)) {
                   msg = "RUT inválido. Revise el número ingresado.";
+                } else if (/consentimiento_requerido/i.test(msg)) {
+                  msg = "Debe aceptar el tratamiento de datos personales para enviar el formulario.";
+                  setError(form, "consentimiento_datos", msg);
+                  var blkConsentErr = document.getElementById("blockConsentimientoDatos");
+                  if (blkConsentErr) blkConsentErr.scrollIntoView({ behavior: "smooth", block: "start" });
+                  setError(form, "cliente_rut", "");
+                  return;
                 }
                 setError(form, "cliente_rut", msg);
                 return;
@@ -1911,6 +2010,8 @@
         radiosHijos.forEach(function (rh) {
           if (rh.checked) rh.dispatchEvent(new Event("change", { bubbles: true }));
         });
+        var chkConsentClear = document.getElementById("consentimientoDatosPersonales");
+        if (chkConsentClear) chkConsentClear.checked = false;
       });
     </script>
   </body>
