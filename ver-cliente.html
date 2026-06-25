@@ -61,66 +61,6 @@
         opacity: 0.55;
         cursor: not-allowed;
       }
-      .section-block-head {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        justify-content: space-between;
-        gap: 10px;
-        margin: 0 0 10px;
-      }
-      .section-block-head h3 {
-        margin: 0;
-        font-size: 15px;
-        font-weight: 600;
-        color: var(--text);
-      }
-      .pension-tramite-block {
-        margin-bottom: 20px;
-        padding-bottom: 16px;
-        border-bottom: 1px solid var(--border);
-      }
-      .pension-tramite-block:last-of-type {
-        border-bottom: none;
-        margin-bottom: 12px;
-        padding-bottom: 0;
-      }
-      .btn-section-edit {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 5px 12px;
-        border-radius: 8px;
-        border: 1px solid var(--border);
-        background: var(--surface);
-        color: var(--primary);
-        font-size: 13px;
-        font-weight: 600;
-        cursor: pointer;
-        font-family: inherit;
-      }
-      .btn-section-edit:hover {
-        background: rgba(0, 96, 108, 0.08);
-        border-color: rgba(0, 96, 108, 0.35);
-      }
-      .btn-section-edit svg {
-        width: 15px;
-        height: 15px;
-        stroke: currentColor;
-        fill: none;
-        stroke-width: 2;
-        stroke-linecap: round;
-        stroke-linejoin: round;
-      }
-      .timeline-section--readonly .timeline-step {
-        cursor: default;
-        pointer-events: none;
-      }
-      .timeline-section--readonly .timeline-hint--readonly {
-        font-size: 13px;
-        color: var(--muted);
-        margin: 0 0 12px;
-      }
       a.back {
         display: inline-block;
         margin-bottom: 16px;
@@ -942,7 +882,7 @@
         </div>
         <form id="formPensionadoFinal" class="modal-pension-form">
           <div class="modal-pension-body">
-          <fieldset id="pensionFinalActualizoFieldset" style="border: 0; padding: 0; margin: 0 0 16px;">
+          <fieldset style="border: 0; padding: 0; margin: 0 0 16px;">
             <legend style="font-size: 13px; color: var(--muted); margin-bottom: 8px; padding: 0;">¿Se actualizaron los datos respecto a lo registrado en preparación de cierre?</legend>
             <div style="display: flex; flex-wrap: wrap; gap: 16px;">
               <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px;">
@@ -975,7 +915,6 @@
 
           <div class="modal-pension-footer">
             <div class="modal-actions">
-              <button type="button" id="btnEliminarPensionActualizados" class="btn-secondary" style="display: none; margin-right: auto;">Quitar datos actualizados</button>
               <button type="button" id="btnCerrarModalPensionadoFinal" class="btn-secondary">Cancelar</button>
               <button type="submit" id="btnGuardarPensionadoFinal" class="btn-primary">Marcar como pensionado</button>
             </div>
@@ -2085,137 +2024,49 @@
               );
             }
 
-            var ICON_EDIT_PENSION =
-              '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
-
-            function pensionRvDetalleItemsHtml(rvDet) {
-              var h = "";
-              if (!rvDet || typeof rvDet !== "object" || Array.isArray(rvDet)) return h;
-              if (rvDet.meses_periodo_garantizado != null && rvDet.meses_periodo_garantizado !== "") {
-                h += item("Meses período garantizado", rvDet.meses_periodo_garantizado);
-              }
-              var labTipoAum = {
-                sin_aumento: "Sin aumento",
-                aumento_temporal: "Aumento temporal",
-                aumento_sobrevivencia: "Aumento de sobrevivencia",
-              };
-              if (rvDet.tipo_aumento) {
-                h += item("Tipo de aumento", labTipoAum[rvDet.tipo_aumento] || rvDet.tipo_aumento);
-              }
-              if (rvDet.porcentaje_aumento != null && rvDet.porcentaje_aumento !== "") {
-                h += item("Porcentaje de aumento", String(rvDet.porcentaje_aumento) + "%");
-              }
-              if (rvDet.periodo_aumento_meses != null && rvDet.periodo_aumento_meses !== "") {
-                h += item("Período de aumento (meses)", rvDet.periodo_aumento_meses);
-              }
-              return h;
-            }
-
-            function buildPensionPrepGridHtml(cRow) {
-              var h = "";
-              h += item("Compañía", cRow.pension_compania);
-              h += item("Monto pensión", fmtMontoUf(cRow.pension_monto));
-              h += item("Modalidad", cRow.pension_modalidad);
-              h +=
-                item(
-                  "Período garantizado",
-                  cRow.pension_periodo_garantizado === true ? "Sí" : cRow.pension_periodo_garantizado === false ? "No" : ""
-                );
-              h += pensionRvDetalleItemsHtml(cRow.pension_rv_detalle);
-              return h;
-            }
-
-            function buildPensionActualizadosGridHtml(cRow) {
-              var act = cRow.pension_datos_actualizados;
-              if (!act || typeof act !== "object" || Array.isArray(act) || (!act.compania && !act.monto && !act.modalidad)) {
-                return '<p class="timeline-hint--readonly" style="margin:0">Sin datos actualizados registrados.</p>';
-              }
-              var h = "";
-              h += item("Compañía", act.compania);
-              h += item("Monto pensión", fmtMontoUf(act.monto));
-              h += item("Modalidad", act.modalidad);
-              var pg = act.periodo_garantizado;
-              h += item("Período garantizado", pg === true ? "Sí" : pg === false ? "No" : "");
-              return h;
-            }
-
-            function buildTimelineReadonlySection(cRow) {
-              if (!bonoReconocimientoDefinido(cRow)) return "";
-              var actual = etapaActualNumero(cRow);
-              var fechas = fechasTramite(cRow);
-              var items = "";
-              for (var i = 0; i < ETAPAS_TRAMITE.length; i++) {
-                var n = i + 1;
-                var cls = n < actual ? "done" : n === actual ? "current" : "pending";
-                cls += " timeline-step";
-                var fd = fechas[String(n)] != null ? fechas[String(n)] : fechas[n];
-                var sub = "";
-                if (fd) sub = '<p class="etapa-fecha">Completada: ' + fmtDate(String(fd)) + "</p>";
-                else if (n < actual) sub = '<p class="etapa-fecha">Completada (sin fecha registrada)</p>";
-                else if (n === actual) sub = '<p class="etapa-fecha">Etapa en curso</p>';
-                else sub = '<p class="etapa-fecha">Pendiente</p>';
-                items +=
-                  '<li class="' +
-                  cls +
-                  '">' +
-                  '<p class="etapa-titulo">' +
-                  n +
-                  ". " +
-                  ETAPAS_TRAMITE[i] +
-                  "</p>" +
-                  sub +
-                  "</li>";
-              }
-              return (
-                '<div class="timeline-section--readonly" style="margin-top:18px">' +
-                '<h3 style="margin:0 0 8px;font-size:15px">Línea de tiempo (solo lectura)</h3>' +
-                '<p class="timeline-hint--readonly">Fechas del trámite. Para corregir montos de pensión usa los botones Editar de arriba.</p>' +
-                '<div class="timeline-controls">' +
-                '<button type="button" class="btn-descargar-bitacora" id="btnDescargarBitacoraReadonly">descargar bitácora</button>' +
-                "</div>" +
-                '<ol class="timeline">' +
-                items +
-                "</ol></div>"
-              );
-            }
-
-            function buildSeccionDatosTramitePension(cRow) {
-              return (
-                '<div class="section" id="seccionDatosTramitePension">' +
-                "<h2>Datos del trámite de pensión</h2>" +
-                '<div class="pension-tramite-block">' +
-                '<div class="section-block-head">' +
-                "<h3>Preparación de cierre (originales)</h3>" +
-                '<button type="button" class="btn-section-edit" id="btnEditarPensionPrep" title="Editar datos de preparación de cierre">' +
-                ICON_EDIT_PENSION +
-                " Editar</button>" +
-                "</div>" +
-                '<div class="grid" id="pensionPrepGrid">' +
-                buildPensionPrepGridHtml(cRow) +
-                "</div>" +
-                "</div>" +
-                '<div class="pension-tramite-block">' +
-                '<div class="section-block-head">' +
-                "<h3>Datos actualizados al cierre</h3>" +
-                '<button type="button" class="btn-section-edit" id="btnEditarPensionActualizados" title="Editar datos actualizados al cierre">' +
-                ICON_EDIT_PENSION +
-                " Editar</button>" +
-                "</div>" +
-                '<div class="grid" id="pensionActualizadosGrid">' +
-                buildPensionActualizadosGridHtml(cRow) +
-                "</div>" +
-                "</div>" +
-                buildTimelineReadonlySection(cRow) +
-                "</div>"
-              );
-            }
-
             var html = "";
             html +=
               '<div class="section section-notas-asesor"><h2>Notas del asesor</h2>' +
               '<div id="notasAsesorBody" class="notas-body"></div></div>';
             if (c.pensionado === true) {
-              html += buildSeccionDatosTramitePension(c);
+              html += '<div class="section"><h2>Pensionado</h2>';
+              html += '<p style="margin:0 0 10px;font-size:13px;color:var(--muted)">Datos registrados en preparación de cierre</p><div class="grid">';
+              html += item("Compañía", c.pension_compania);
+              html += item("Monto pensión", fmtMontoUf(c.pension_monto));
+              html += item("Modalidad", c.pension_modalidad);
+              html += item("Período garantizado", (c.pension_periodo_garantizado === true) ? "Sí" : (c.pension_periodo_garantizado === false) ? "No" : "");
+              var rvDet = c.pension_rv_detalle;
+              if (rvDet && typeof rvDet === "object" && !Array.isArray(rvDet)) {
+                if (rvDet.meses_periodo_garantizado != null && rvDet.meses_periodo_garantizado !== "") {
+                  html += item("Meses período garantizado", rvDet.meses_periodo_garantizado);
+                }
+                var labTipoAum = {
+                  sin_aumento: "Sin aumento",
+                  aumento_temporal: "Aumento temporal",
+                  aumento_sobrevivencia: "Aumento de sobrevivencia",
+                };
+                if (rvDet.tipo_aumento) {
+                  html += item("Tipo de aumento", labTipoAum[rvDet.tipo_aumento] || rvDet.tipo_aumento);
+                }
+                if (rvDet.porcentaje_aumento != null && rvDet.porcentaje_aumento !== "") {
+                  html += item("Porcentaje de aumento", String(rvDet.porcentaje_aumento) + "%");
+                }
+                if (rvDet.periodo_aumento_meses != null && rvDet.periodo_aumento_meses !== "") {
+                  html += item("Período de aumento (meses)", rvDet.periodo_aumento_meses);
+                }
+              }
+              html += "</div>";
+              var act = c.pension_datos_actualizados;
+              if (act && typeof act === "object" && !Array.isArray(act) && (act.compania || act.monto || act.modalidad)) {
+                html += '<p style="margin:16px 0 10px;font-size:13px;color:var(--muted)">Datos actualizados al cierre (JSON)</p><div class="grid">';
+                html += item("Compañía", act.compania);
+                html += item("Monto pensión", fmtMontoUf(act.monto));
+                html += item("Modalidad", act.modalidad);
+                var pg = act.periodo_garantizado;
+                html += item("Período garantizado", pg === true ? "Sí" : pg === false ? "No" : "");
+                html += "</div>";
+              }
+              html += "</div>";
             } else {
               if (!bonoReconocimientoDefinido(c)) {
                 html +=
@@ -2668,29 +2519,25 @@
             }
 
             function wireBitacoraDescarga() {
-              function attachBitacoraBtn(btn) {
-                if (!btn || btn.dataset.bitacoraWired === "1") return;
-                btn.dataset.bitacoraWired = "1";
-                btn.addEventListener("click", function () {
-                  btn.disabled = true;
-                  var ctxPdf = {
-                    formatRutDisplay: formatRutDisplay,
-                    fmtDate: fmtDate,
-                    etapas: ETAPAS_TRAMITE,
-                    etapaActualNumero: etapaActualNumero,
-                    fechasTramite: fechasTramite
-                  };
-                  descargarPdfMake(buildPdfDocBitacoraTramite(c, ctxPdf), bitacoraPdfSafeBaseName(c))
-                    .catch(function (err) {
-                      alert((err && err.message) ? err.message : "No se pudo generar la bitácora en PDF.");
-                    })
-                    .then(function () {
-                      btn.disabled = false;
-                    });
-                });
-              }
-              attachBitacoraBtn(document.getElementById("btnDescargarBitacora"));
-              attachBitacoraBtn(document.getElementById("btnDescargarBitacoraReadonly"));
+              var btn = document.getElementById("btnDescargarBitacora");
+              if (!btn) return;
+              btn.addEventListener("click", function () {
+                btn.disabled = true;
+                var ctxPdf = {
+                  formatRutDisplay: formatRutDisplay,
+                  fmtDate: fmtDate,
+                  etapas: ETAPAS_TRAMITE,
+                  etapaActualNumero: etapaActualNumero,
+                  fechasTramite: fechasTramite
+                };
+                descargarPdfMake(buildPdfDocBitacoraTramite(c, ctxPdf), bitacoraPdfSafeBaseName(c))
+                  .catch(function (err) {
+                    alert((err && err.message) ? err.message : "No se pudo generar la bitácora en PDF.");
+                  })
+                  .then(function () {
+                    btn.disabled = false;
+                  });
+              });
             }
 
             function cerrarModalCambiarEtapa() {
@@ -3251,8 +3098,6 @@
 
             function cerrarModalPensionado() {
               if (modalPensionado) modalPensionado.classList.remove("open");
-              prepPensionModalAbierta = false;
-              restaurarModalPensionadoTitulo();
               if (modalPensionadoFeedback) {
                 modalPensionadoFeedback.style.display = "none";
                 modalPensionadoFeedback.textContent = "";
@@ -3262,8 +3107,6 @@
 
             function cerrarModalPensionadoFinal() {
               if (modalPensionadoFinal) modalPensionadoFinal.classList.remove("open");
-              pensionFinalModalAbierta = false;
-              restaurarModalPensionadoFinalCierre();
               if (modalPensionadoFinalFeedback) {
                 modalPensionadoFinalFeedback.style.display = "none";
                 modalPensionadoFinalFeedback.textContent = "";
@@ -3354,121 +3197,6 @@
 
             var prepPensionModalAbierta = false;
             var pensionFinalModalAbierta = false;
-            var pensionFinalSoloEdicion = false;
-            var modalPensionadoTitulo = document.getElementById("modalPensionadoTitulo");
-            var modalPensionadoFinalTitulo = document.getElementById("modalPensionadoFinalTitulo");
-            var pensionFinalActualizoFieldset = document.getElementById("pensionFinalActualizoFieldset");
-            var btnEliminarPensionActualizados = document.getElementById("btnEliminarPensionActualizados");
-
-            function refrescarSeccionDatosTramitePension() {
-              var prep = document.getElementById("pensionPrepGrid");
-              var actGrid = document.getElementById("pensionActualizadosGrid");
-              if (prep) prep.innerHTML = buildPensionPrepGridHtml(c);
-              if (actGrid) actGrid.innerHTML = buildPensionActualizadosGridHtml(c);
-            }
-
-            function rellenarModalPensionadoDesdeCliente() {
-              cargarOpcionesPensionado();
-              if (selCompania) {
-                var opt0 = selCompania.options && selCompania.options[0] ? selCompania.options[0] : null;
-                selCompania.value = c.pension_compania || (opt0 ? opt0.value : "");
-              }
-              if (inputMonto) inputMonto.value = c.pension_monto != null && c.pension_monto !== "" ? c.pension_monto : "";
-              if (selModalidad) selModalidad.value = c.pension_modalidad || "";
-              var requierePeriodo = modalidadTieneRentaVitalicia(selModalidad ? selModalidad.value : "");
-              if (wrapPeriodo) wrapPeriodo.style.display = requierePeriodo ? "block" : "none";
-              if (requierePeriodo && selPeriodoGarantizado) {
-                var periodoValor = c.pension_periodo_garantizado;
-                var periodoStr = periodoValor === true ? "Sí" : periodoValor === false ? "No" : "";
-                if (periodoStr) selPeriodoGarantizado.value = periodoStr;
-              }
-              aplicarPrepRvDetalleDesdeCliente();
-              sincronizarVisibilidadPrepRvDetalle();
-            }
-
-            function restaurarModalPensionadoTitulo() {
-              if (modalPensionadoTitulo) {
-                modalPensionadoTitulo.textContent = "Preparación de cierre: datos de pensión";
-              }
-            }
-
-            function abrirModalPensionadoParaEdicion() {
-              if (!modalPensionado) return;
-              if (prepPensionModalAbierta || pensionFinalModalAbierta) return;
-              rellenarModalPensionadoDesdeCliente();
-              if (modalPensionadoTitulo) {
-                modalPensionadoTitulo.textContent = "Editar datos de preparación de cierre";
-              }
-              if (modalPensionadoFeedback) {
-                modalPensionadoFeedback.style.display = "none";
-                modalPensionadoFeedback.textContent = "";
-              }
-              modalPensionado.classList.add("open");
-              prepPensionModalAbierta = true;
-            }
-
-            function pensionActualizadosTieneDatos(act) {
-              return !!(act && typeof act === "object" && !Array.isArray(act) && (act.compania || act.monto || act.modalidad));
-            }
-
-            function restaurarModalPensionadoFinalCierre() {
-              pensionFinalSoloEdicion = false;
-              if (modalPensionadoFinalTitulo) modalPensionadoFinalTitulo.textContent = "Finalización del trámite";
-              if (btnGuardarPensionadoFinal) btnGuardarPensionadoFinal.textContent = "Marcar como pensionado";
-              if (pensionFinalActualizoFieldset) pensionFinalActualizoFieldset.style.display = "";
-              if (btnEliminarPensionActualizados) btnEliminarPensionActualizados.style.display = "none";
-            }
-
-            function abrirModalPensionActualizadosParaEdicion() {
-              if (!modalPensionadoFinal) return;
-              if (pensionFinalModalAbierta || prepPensionModalAbierta) return;
-              pensionFinalSoloEdicion = true;
-              if (modalPensionadoFinalTitulo) {
-                modalPensionadoFinalTitulo.textContent = "Editar datos actualizados al cierre";
-              }
-              if (btnGuardarPensionadoFinal) btnGuardarPensionadoFinal.textContent = "Guardar datos";
-              if (pensionFinalActualizoFieldset) pensionFinalActualizoFieldset.style.display = "none";
-              if (wrapPensionFinalCampos) wrapPensionFinalCampos.style.display = "block";
-              llenarSelectsPension(selFinalCompania, selFinalModalidad, selFinalPeriodo);
-              var act = c.pension_datos_actualizados;
-              if (pensionActualizadosTieneDatos(act)) {
-                if (selFinalCompania && act.compania) selFinalCompania.value = act.compania;
-                if (inputFinalMonto && act.monto != null && act.monto !== "") inputFinalMonto.value = act.monto;
-                if (selFinalModalidad && act.modalidad) selFinalModalidad.value = act.modalidad;
-                if (act.periodo_garantizado === true || act.periodo_garantizado === false) {
-                  if (selFinalPeriodo) selFinalPeriodo.value = act.periodo_garantizado ? "Sí" : "No";
-                }
-              } else {
-                if (inputFinalMonto) inputFinalMonto.value = "";
-                if (selFinalCompania && selFinalCompania.options.length) selFinalCompania.selectedIndex = 0;
-                if (selFinalModalidad && selFinalModalidad.options.length) selFinalModalidad.selectedIndex = 0;
-              }
-              sincronizarWrapPeriodoFinal();
-              if (btnEliminarPensionActualizados) {
-                btnEliminarPensionActualizados.style.display = pensionActualizadosTieneDatos(act) ? "inline-block" : "none";
-              }
-              if (modalPensionadoFinalFeedback) {
-                modalPensionadoFinalFeedback.style.display = "none";
-                modalPensionadoFinalFeedback.textContent = "";
-              }
-              modalPensionadoFinal.classList.add("open");
-              pensionFinalModalAbierta = true;
-            }
-
-            function wirePensionTramiteEditButtons() {
-              var bPrep = document.getElementById("btnEditarPensionPrep");
-              var bAct = document.getElementById("btnEditarPensionActualizados");
-              if (bPrep && bPrep.dataset.pensionEditWired !== "1") {
-                bPrep.dataset.pensionEditWired = "1";
-                bPrep.addEventListener("click", abrirModalPensionadoParaEdicion);
-              }
-              if (bAct && bAct.dataset.pensionEditWired !== "1") {
-                bAct.dataset.pensionEditWired = "1";
-                bAct.addEventListener("click", abrirModalPensionActualizadosParaEdicion);
-              }
-              wireBitacoraDescarga();
-            }
-
             /** @param {boolean} [forzar] true al guardar etapa 11: abre aunque los datos ya estén completos */
             function abrirModalPensionadoSiCorresponde(forzar) {
               if (!modalPensionado) return;
@@ -3479,8 +3207,23 @@
               if (isNaN(etapa) || etapa < 11) return;
               if (!forzar && (etapa !== 11 || !datosPensionIncompletos(c))) return;
 
-              rellenarModalPensionadoDesdeCliente();
-              restaurarModalPensionadoTitulo();
+              cargarOpcionesPensionado();
+              if (selCompania) {
+                var opt0 = selCompania.options && selCompania.options[0] ? selCompania.options[0] : null;
+                selCompania.value = c.pension_compania || (opt0 ? opt0.value : "");
+              }
+              if (inputMonto) inputMonto.value = c.pension_monto != null && c.pension_monto !== "" ? c.pension_monto : "";
+              if (selModalidad) selModalidad.value = c.pension_modalidad || "";
+
+              var requierePeriodo = modalidadTieneRentaVitalicia(selModalidad ? selModalidad.value : "");
+              if (wrapPeriodo) wrapPeriodo.style.display = requierePeriodo ? "block" : "none";
+              if (requierePeriodo && selPeriodoGarantizado) {
+                var periodoValor = c.pension_periodo_garantizado;
+                var periodoStr = periodoValor === true ? "Sí" : periodoValor === false ? "No" : "";
+                if (periodoStr) selPeriodoGarantizado.value = periodoStr;
+              }
+              aplicarPrepRvDetalleDesdeCliente();
+              sincronizarVisibilidadPrepRvDetalle();
 
               if (modalPensionadoFeedback) {
                 modalPensionadoFeedback.style.display = "none";
@@ -3616,7 +3359,6 @@
                     c.pension_rv_detalle = pensionRvDetalle;
 
                     mostrarFeedbackPension("Datos de pensión guardados.", false);
-                    if (esPensionadoFlag(c.pensionado)) refrescarSeccionDatosTramitePension();
                     setTimeout(function () {
                       prepPensionModalAbierta = false;
                       cerrarModalPensionado();
@@ -3632,62 +3374,6 @@
             if (formPensionadoFinal) {
               formPensionadoFinal.addEventListener("submit", function (e) {
                 e.preventDefault();
-
-                if (pensionFinalSoloEdicion) {
-                  if (!selFinalCompania || !inputFinalMonto || !selFinalModalidad) return;
-                  var companiaEd = (selFinalCompania.value || "").toString().trim();
-                  var montoEd = (inputFinalMonto.value || "").toString().trim();
-                  var modalidadEd = (selFinalModalidad.value || "").toString().trim();
-                  var requierePeriodoEd = modalidadTieneRentaVitalicia(modalidadEd);
-                  var periodoStrEd = requierePeriodoEd && selFinalPeriodo ? (selFinalPeriodo.value || "").toString().trim() : "";
-
-                  if (!companiaEd) return mostrarFeedbackPensionFinal("Selecciona la compañía.", true);
-                  if (!montoEd) return mostrarFeedbackPensionFinal("Ingresa el monto de la pensión.", true);
-                  if (!modalidadEd) return mostrarFeedbackPensionFinal("Selecciona la modalidad.", true);
-                  if (requierePeriodoEd && !periodoStrEd) {
-                    return mostrarFeedbackPensionFinal("Selecciona si tiene período garantizado.", true);
-                  }
-
-                  var periodoBoolEd = null;
-                  if (requierePeriodoEd) periodoBoolEd = periodoStrEd === "Sí";
-
-                  var datosAct = {
-                    compania: companiaEd,
-                    monto: montoEd,
-                    modalidad: modalidadEd,
-                    periodo_garantizado: requierePeriodoEd ? periodoBoolEd : null,
-                  };
-
-                  var btnEd = btnGuardarPensionadoFinal || document.getElementById("btnGuardarPensionadoFinal");
-                  if (btnEd) btnEd.disabled = true;
-                  mostrarFeedbackPensionFinal("Guardando…", false);
-
-                  supabase
-                    .from("clientes")
-                    .update({ pension_datos_actualizados: datosAct })
-                    .eq("id", id)
-                    .select()
-                    .single()
-                    .then(function (up) {
-                      if (btnEd) btnEd.disabled = false;
-                      if (up.error) {
-                        mostrarFeedbackPensionFinal(up.error.message || "No se pudieron guardar los datos.", true);
-                        return;
-                      }
-                      c.pension_datos_actualizados = datosAct;
-                      refrescarSeccionDatosTramitePension();
-                      mostrarFeedbackPensionFinal("Datos actualizados guardados.", false);
-                      setTimeout(function () {
-                        cerrarModalPensionadoFinal();
-                      }, 700);
-                    })
-                    .catch(function (err) {
-                      if (btnEd) btnEd.disabled = false;
-                      mostrarFeedbackPensionFinal((err && err.message ? err.message : "Error inesperado"), true);
-                    });
-                  return;
-                }
-
                 var actualizo = radioFinalActualizoSi && radioFinalActualizoSi.checked;
                 var payload = { pensionado: true };
 
@@ -3749,42 +3435,6 @@
                     mostrarFeedbackPensionFinal((err && err.message ? err.message : "Error inesperado"), true);
                   });
               });
-            }
-
-            if (btnEliminarPensionActualizados) {
-              btnEliminarPensionActualizados.addEventListener("click", function () {
-                if (!pensionFinalSoloEdicion) return;
-                if (!confirm("¿Quitar los datos actualizados al cierre? Los datos de preparación no se modifican.")) return;
-                btnEliminarPensionActualizados.disabled = true;
-                mostrarFeedbackPensionFinal("Guardando…", false);
-                supabase
-                  .from("clientes")
-                  .update({ pension_datos_actualizados: null })
-                  .eq("id", id)
-                  .select()
-                  .single()
-                  .then(function (up) {
-                    btnEliminarPensionActualizados.disabled = false;
-                    if (up.error) {
-                      mostrarFeedbackPensionFinal(up.error.message || "No se pudo quitar los datos.", true);
-                      return;
-                    }
-                    c.pension_datos_actualizados = null;
-                    refrescarSeccionDatosTramitePension();
-                    mostrarFeedbackPensionFinal("Datos actualizados eliminados.", false);
-                    setTimeout(function () {
-                      cerrarModalPensionadoFinal();
-                    }, 700);
-                  })
-                  .catch(function (err) {
-                    btnEliminarPensionActualizados.disabled = false;
-                    mostrarFeedbackPensionFinal((err && err.message ? err.message : "Error inesperado"), true);
-                  });
-              });
-            }
-
-            if (c.pensionado === true) {
-              wirePensionTramiteEditButtons();
             }
 
             setTimeout(function () {
