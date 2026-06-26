@@ -222,6 +222,16 @@
         color: var(--primary-mid);
         font-weight: 600;
       }
+      .consent-datos-opcional {
+        margin-top: 14px;
+        padding-top: 14px;
+        border-top: 1px solid var(--border);
+      }
+      .consent-datos-opcional .hint-opcional {
+        margin: 0 0 10px;
+        font-size: 12px;
+        color: var(--muted);
+      }
     </style>
   </head>
   <body>
@@ -712,6 +722,16 @@
             <p class="consent-datos-link">
               <a href="terminos-condiciones.html" target="_blank" rel="noopener noreferrer">Ver información sobre protección de datos y uso de la plataforma</a>
             </p>
+            <div class="consent-datos-opcional">
+              
+              <label class="consent-datos-label" for="autorizaContactoAsesor">
+                <input type="checkbox" id="autorizaContactoAsesor" name="autorizaContactoAsesor" value="1" />
+                <span>
+                  Autorizo a mi asesor previsional a contactarme por teléfono o correo electrónico para informarme sobre el estado de mi trámite,
+                  recordatorios y otras comunicaciones relacionadas con mi asesoría previsional o la de mi grupo familiar.
+                </span>
+              </label>
+            </div>
             <div class="error" data-error-for="consentimiento_datos"></div>
           </div>
 
@@ -755,12 +775,17 @@
       var CONSENTIMIENTO_DATOS_TEXTO_ID = "registro-afiliados-ley21719-v1";
 
       function buildConsentimientoDatosRegistro() {
+        var chkContacto = document.getElementById("autorizaContactoAsesor");
+        var autorizaContacto = !!(chkContacto && chkContacto.checked);
+        var ahora = new Date().toISOString();
         return {
           texto_id: CONSENTIMIENTO_DATOS_TEXTO_ID,
           ley: "21.719",
-          otorgado_en: new Date().toISOString(),
+          otorgado_en: ahora,
           canal: "registro_afiliados_enlace_publico",
           user_agent: navigator.userAgent ? String(navigator.userAgent).slice(0, 500) : null,
+          autoriza_contacto_asesor: autorizaContacto,
+          autoriza_contacto_asesor_en: autorizaContacto ? ahora : null,
         };
       }
 
@@ -2012,6 +2037,8 @@
         });
         var chkConsentClear = document.getElementById("consentimientoDatosPersonales");
         if (chkConsentClear) chkConsentClear.checked = false;
+        var chkContactoClear = document.getElementById("autorizaContactoAsesor");
+        if (chkContactoClear) chkContactoClear.checked = false;
       });
     </script>
   </body>
