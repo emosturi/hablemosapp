@@ -16,6 +16,32 @@
       header { margin: 10px 0 18px; }
       h1 { font-size: clamp(22px, 2.6vw, 28px); letter-spacing: -0.02em; margin: 0; }
       .subtitle { margin: 8px 0 0; color: var(--muted); font-size: 14px; }
+      .cliente-header-meta {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px 10px;
+        margin-top: 8px;
+      }
+      .cliente-header-meta .subtitle {
+        margin: 0;
+      }
+      .cliente-badge-contacto {
+        display: inline-flex;
+        align-items: center;
+        padding: 2px 9px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        color: var(--primary-mid);
+        background: rgba(0, 147, 145, 0.1);
+        border: 1px solid rgba(0, 147, 145, 0.28);
+        white-space: nowrap;
+      }
+      .cliente-badge-contacto[hidden] {
+        display: none !important;
+      }
       .contrato-row {
         display: none;
         align-items: center;
@@ -714,7 +740,16 @@
       <a href="revisar-clientes.html" class="back">← Volver al listado</a>
       <header>
         <h1 id="titulo">Ver cliente</h1>
-        <p class="subtitle" id="subtitulo">Cargando…</p>
+        <div class="cliente-header-meta">
+          <p class="subtitle" id="subtitulo">Cargando…</p>
+          <span
+            id="clienteBadgeContacto"
+            class="cliente-badge-contacto"
+            hidden
+            title="Autorizó que su asesor lo contacte por teléfono o correo electrónico."
+            >Contacto autorizado</span
+          >
+        </div>
         <p class="contrato-row" id="contratoRow">
           <span class="contrato-label">N° de contrato:</span>
           <span class="contrato-valor" id="contratoNumeroDisplay">—</span>
@@ -1957,11 +1992,24 @@
               return cRow.posee_bono_reconocimiento === true || cRow.posee_bono_reconocimiento === false;
             }
 
+            function clienteAutorizaContactoAsesor(cRow) {
+              var consent = cRow && cRow.consentimiento_datos_personales;
+              if (!consent || typeof consent !== "object" || Array.isArray(consent)) return false;
+              return consent.autoriza_contacto_asesor === true;
+            }
+
+            function actualizarBadgeContactoAsesor(cRow) {
+              var el = document.getElementById("clienteBadgeContacto");
+              if (!el) return;
+              el.hidden = !clienteAutorizaContactoAsesor(cRow);
+            }
+
             var c = result.data;
             sincronizarPoseeBonoEnCliente(c);
             var nombre = [c.nombres, c.apellido_paterno, c.apellido_materno].filter(Boolean).join(" ");
             document.getElementById("titulo").textContent = nombre || "Ver cliente";
             document.getElementById("subtitulo").textContent = "RUT: " + (c.rut ? formatRutDisplay(c.rut) : "-");
+            actualizarBadgeContactoAsesor(c);
             document.getElementById("lnkEditar").href = "editar-cliente.html?id=" + encodeURIComponent(id);
             document.getElementById("lnkUsar").href = "pension.html?cliente=" + encodeURIComponent(id);
             cargarNumeroContratoCliente(c);

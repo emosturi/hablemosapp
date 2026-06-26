@@ -70,6 +70,31 @@
         letter-spacing: 0.02em;
       }
 
+      .section-title-main {
+        display: inline-flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .cliente-badge-contacto {
+        display: inline-flex;
+        align-items: center;
+        padding: 2px 9px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        color: var(--primary-mid);
+        background: rgba(0, 147, 145, 0.1);
+        border: 1px solid rgba(0, 147, 145, 0.28);
+        white-space: nowrap;
+      }
+
+      .cliente-badge-contacto[hidden] {
+        display: none !important;
+      }
+
       .hint {
         color: var(--muted);
         font-size: 12px;
@@ -744,7 +769,16 @@
         <form id="pensionForm" novalidate>
           <div class="section" aria-labelledby="mandanteTitle">
             <div class="section-title">
-              <h2 id="mandanteTitle">Mandante</h2>
+              <div class="section-title-main">
+                <h2 id="mandanteTitle">Mandante</h2>
+                <span
+                  id="clienteBadgeContacto"
+                  class="cliente-badge-contacto"
+                  hidden
+                  title="Autorizó que su asesor lo contacte por teléfono o correo electrónico."
+                  >Contacto autorizado</span
+                >
+              </div>
               <span class="hint">Campos con * obligatorios. En pensión de <strong>sobrevivencia</strong>: el mandante es el <strong>beneficiario a cargo</strong> (no el fallecido); complete también «Causante».</span>
             </div>
 
@@ -6708,6 +6742,18 @@
         } catch (_eUrl) {}
       }
 
+      function clienteAutorizaContactoAsesor(cRow) {
+        var consent = cRow && cRow.consentimiento_datos_personales;
+        if (!consent || typeof consent !== "object" || Array.isArray(consent)) return false;
+        return consent.autoriza_contacto_asesor === true;
+      }
+
+      function actualizarBadgeContactoAsesor(cRow) {
+        var el = document.getElementById("clienteBadgeContacto");
+        if (!el) return;
+        el.hidden = !clienteAutorizaContactoAsesor(cRow);
+      }
+
       function resetPensionFormForNewCliente(formEl, outEl, previewEl, statusMsg) {
         formEl.reset();
         clearErrors(formEl);
@@ -6730,6 +6776,7 @@
         refreshAntecedentesApvApvcDetalle();
         updateCuentaBancariaVisibility();
         clearPensionClienteUrl();
+        actualizarBadgeContactoAsesor(null);
         if (supabaseClient) {
           loadAsesorMandatarioPerfil(supabaseClient)
             .then(function (d) {
@@ -7548,6 +7595,7 @@
             }
             if (clienteId) {
               function prefillPensionFromCliente(c, errMsg) {
+                actualizarBadgeContactoAsesor(c);
                 if (!c) {
                   setStatus(errMsg || "No se pudieron cargar los datos del cliente.");
                   scheduleSetPensionFormBaseline(form, 120);
