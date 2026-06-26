@@ -2,9 +2,8 @@
  * Netlify Scheduled Function: envía recordatorios por Telegram al chat del asesor (misma lógica que notify-telegram).
  * Cada fila en recordatorios.user_id define el dueño; TELEGRAM_CHAT_BY_PHONE_JSON + metadata.telefono del asesor.
  * Nunca usa TELEGRAM_CHAT_ID como grupo: todos los recordatorios van solo al chat del asesor dueño.
- * Cron: cada 5 minutos. Con intervalos mayores (p. ej. 15 min) y slots de agenda en punto, el aviso
- * "5 minutos antes" puede degradarse hasta coincidir con la hora de la llamada.
- * Agenda (mensaje fijo desde SQL): envía cuando hora Chile >= (hora de la cita − 5 min), ver recordatorio-hora-chile.js.
+ * Cron: cada 15 minutos. Los slots de agenda se ofrecen en cuadrícula de 15 min.
+ * Agenda (mensaje fijo desde SQL): envía cuando hora Chile >= (hora de la cita − 15 min), ver recordatorio-hora-chile.js.
  */
 const { createClient } = require("@supabase/supabase-js");
 const { loadTelegramChatByPhoneMap } = require("./telegram-advisor-route");
@@ -18,7 +17,7 @@ const {
 } = require("./recordatorio-hora-chile");
 
 exports.config = {
-  schedule: "*/5 * * * *",
+  schedule: "*/15 * * * *",
 };
 
 function buildReminderPushPayload(r) {

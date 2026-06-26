@@ -67,8 +67,8 @@ exports.handler = async function (event) {
     notas: [
       "El cron procesa filas enviado=false con fecha entre (hoy Chile − 1 día) y (hoy Chile + 1 día), para cubrir avisos de agenda el día anterior a una cita muy temprano.",
       "Si hora en la fila está vacía, se considera vencida al momento (no espera hora).",
-      "Si hora tiene valor: recordatorios normales envían cuando hora Chile >= hora de la fila; los de agenda (mensaje que comienza por «Llamada telefónica agendada por la web.») cuando hora Chile >= (hora de la cita − 5 min).",
-      "El schedule debe ser cada 5 minutos; con 15 min los avisos «5 min antes» de slots en punto pueden llegar tarde (hasta la hora de la llamada).",
+      "Si hora tiene valor: recordatorios normales envían cuando hora Chile >= hora de la fila; los de agenda (mensaje que comienza por «Llamada telefónica agendada por la web.») cuando hora Chile >= (hora de la cita − 15 min).",
+      "El schedule del cron es cada 15 minutos, alineado con la cuadrícula de slots de agenda (cada 15 min).",
       "Filas con fecha anterior a (hoy − 1) en Chile y enviado=false no entran en la ventana del cron.",
     ],
     ventana_fechas_cron: { desde: fechaMin, hasta: fechaMax },

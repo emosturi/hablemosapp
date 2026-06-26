@@ -1,6 +1,6 @@
 /**
  * Reglas de hora para recordatorios (zona America/Santiago, solo fecha/hora civil).
- * Agenda de llamadas: disparo 5 min antes de la hora guardada (mensaje fijo desde SQL).
+ * Agenda de llamadas: disparo 15 min antes de la hora guardada (mensaje fijo desde SQL).
  */
 
 const AGENDA_LLAMADA_MSG_PREFIX = "Llamada telefónica agendada por la web.";
@@ -80,7 +80,7 @@ function isAgendaLlamadaRecordatorio(row) {
 /**
  * ¿Debe enviarse ya por reloj Chile?
  * - Sin hora: sí (comportamiento histórico).
- * - Con hora: comparar umbral (agenda: cita − 5 min; resto: hora de la fila).
+ * - Con hora: comparar umbral (agenda: cita − 15 min; resto: hora de la fila).
  * Solo filas cuyo umbral cae en `hoyChileStr` se consideran (resto: otro día).
  */
 function recordatorioDebeEnviarPorHora(hoyChileStr, ahoraHHMM, row) {
@@ -92,7 +92,7 @@ function recordatorioDebeEnviarPorHora(hoyChileStr, ahoraHHMM, row) {
   if (!rNorm) {
     return { ok: true, reason: "sin_hora" };
   }
-  const offsetMin = isAgendaLlamadaRecordatorio(row) ? 5 : 0;
+  const offsetMin = isAgendaLlamadaRecordatorio(row) ? 15 : 0;
   const trig = subtractMinutesFromFechaHora(String(row.fecha || "").trim(), rNorm, offsetMin);
   if (trig.date !== hoyChileStr) {
     return { ok: false, reason: "umbral_otro_dia", umbral: trig, offsetMin };

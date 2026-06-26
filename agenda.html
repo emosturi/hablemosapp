@@ -906,8 +906,6 @@
                   <label for="cfgSeparacion">Separación entre llamadas</label>
                   <select id="cfgSeparacion">
                     <option value="0" selected>Sin separación</option>
-                    <option value="5">5 minutos</option>
-                    <option value="10">10 minutos</option>
                     <option value="15">15 minutos</option>
                     <option value="30">30 minutos</option>
                   </select>
@@ -1759,7 +1757,7 @@
                 if (r.data) {
                   state.config = {
                     duracion: r.data.duracion_llamada_minutos || 60,
-                    separacion: r.data.separacion_minutos || 0
+                    separacion: normalizeSeparacionMin(r.data.separacion_minutos || 0),
                   };
                 } else {
                   state.config = { duracion: 60, separacion: 0 };
@@ -1825,16 +1823,25 @@
             refreshDirty();
           }
 
+          function normalizeSeparacionMin(sep) {
+            var n = parseInt(sep, 10);
+            if (isNaN(n) || n < 0) return 0;
+            if (n > 0 && n < 15) return 15;
+            if (n > 30) return 30;
+            if (n !== 0 && n !== 15 && n !== 30) return Math.round(n / 15) * 15;
+            return n;
+          }
+
           /* ----- Modal config ----- */
           function openConfig() {
             el.cfgDur.value = String(state.config.duracion);
-            el.cfgSep.value = String(state.config.separacion);
+            el.cfgSep.value = String(normalizeSeparacionMin(state.config.separacion));
             el.modalBackdrop.classList.add("open");
           }
           function closeConfig() { el.modalBackdrop.classList.remove("open"); }
           function saveConfig() {
             var dur = parseInt(el.cfgDur.value, 10);
-            var sep = parseInt(el.cfgSep.value, 10);
+            var sep = normalizeSeparacionMin(parseInt(el.cfgSep.value, 10));
             if (isNaN(dur) || isNaN(sep)) return;
             var payload = {
               user_id: uid,

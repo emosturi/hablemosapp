@@ -11,7 +11,7 @@
 # Orden: reglas más específicas (host completo en `from`) antes que el catch-all `/`.
 
 [functions."process-reminders"]
-  schedule = "*/5 * * * *"
+  schedule = "*/15 * * * *"
 
 [functions."sync-birthday-reminders"]
   schedule = "0 8 * * *"
