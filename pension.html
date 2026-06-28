@@ -2142,6 +2142,60 @@
         return "<p>" + TEXTO_DECLARACION_TRABAJO_PESADO_CONTRATO + "</p>";
       }
 
+      var TITULO_TRAMITE_TRABAJO_PESADO = "PENSIÓN DE VEJEZ POR TRABAJO PESADO";
+
+      function tituloEncabezadoContratoPdf(mandante, numeroContrato) {
+        if (pensionEsTrabajoPesadoTipo(mandante.tipoPension)) {
+          return [
+            "CONTRATO DE ASESORÍA PREVISIONAL PARA TRÁMITE DE " + TITULO_TRAMITE_TRABAJO_PESADO + " N° ",
+            { text: aMayus(numeroContrato), bold: true },
+          ];
+        }
+        return [
+          "CONTRATO DE PRESTACIÓN DE SERVICIOS DE ASESORÍA PARA PENSIONARSE O CAMBIAR MODALIDAD DE PENSIÓN N° ",
+          { text: aMayus(numeroContrato), bold: true },
+        ];
+      }
+
+      function tituloEncabezadoContratoHtml(numeroContrato, esTrabajoPesado) {
+        if (esTrabajoPesado) {
+          return (
+            "CONTRATO DE ASESORÍA PREVISIONAL PARA TRÁMITE DE<br/>" +
+            TITULO_TRAMITE_TRABAJO_PESADO +
+            " Nº <b>" +
+            numeroContrato +
+            "</b>"
+          );
+        }
+        return (
+          "CONTRATO DE PRESTACIÓN DE SERVICIOS DE ASESORÍA PARA<br/>" +
+          "PENSIONARSE O CAMBIAR MODALIDAD DE PENSIÓN Nº <b>" +
+          numeroContrato +
+          "</b>"
+        );
+      }
+
+      function tituloMandatoLargoEncabezado(mandante) {
+        if (pensionEsTrabajoPesadoTipo(mandante.tipoPension)) {
+          return "MANDATO PARA INICIAR TRÁMITE DE " + TITULO_TRAMITE_TRABAJO_PESADO;
+        }
+        return "MANDATO PARA INICIAR TRÁMITE DE " + aMayus(mandante.tipoPension);
+      }
+
+      function subtituloMandatoLargoEncabezado(mandante) {
+        if (pensionEsTrabajoPesadoTipo(mandante.tipoPension)) return "";
+        return aMayus(mandante.tipoPension);
+      }
+
+      function tituloMandatoCortoEncabezado(mandante) {
+        var esCambioModalidad = mandante.cambioModalidadTramite === "Sí";
+        var accion = esCambioModalidad ? "INICIAR TRÁMITE DE CAMBIO DE MODALIDAD" : "RETIRAR CERTIFICADO DE SALDO";
+        if (pensionEsTrabajoPesadoTipo(mandante.tipoPension)) {
+          return "MANDATO PARA " + accion + " DE " + TITULO_TRAMITE_TRABAJO_PESADO;
+        }
+        return "MANDATO PARA " + accion + " DE " + aMayus(mandante.tipoPension);
+      }
+
       /**
        * Línea de encabezado del causante para contratos/mandatos de sobrevivencia.
        * Formato: "CAUSANTE : NOMBRES APELLIDOP APELLIDOM, RUT : 12.345.678-9"
@@ -2483,8 +2537,13 @@
 
         var content = [];
 
-        content.push({ text: "MANDATO PARA INICIAR TRÁMITE DE " + aMayus(mandante.tipoPension), fontSize: 16, bold: true, alignment: "center", margin: [0, 0, 0, 4] });
-        content.push({ text: aMayus(mandante.tipoPension), fontSize: 11, alignment: "center", margin: [0, 0, 0, 6] });
+        content.push({ text: tituloMandatoLargoEncabezado(mandante), fontSize: 16, bold: true, alignment: "center", margin: [0, 0, 0, 4] });
+        var subTituloMandatoLargo = subtituloMandatoLargoEncabezado(mandante);
+        if (subTituloMandatoLargo) {
+          content.push({ text: subTituloMandatoLargo, fontSize: 11, alignment: "center", margin: [0, 0, 0, 6] });
+        } else {
+          content.push({ text: "", margin: [0, 0, 0, 6] });
+        }
         content.push(pmBloqueFolioMandato(data));
 
         var esSobDoc = pensionEsSobrevivenciaTipo(mandante.tipoPension);
@@ -2694,8 +2753,7 @@
         var nombreMandante = ((mandante.nombres || "") + " " + (mandante.apellidoPaterno || "") + " " + (mandante.apellidoMaterno || "")).trim();
         var nombreMandatario = ((mandatario.nombres || "") + " " + (mandatario.apellidoPaterno || "") + " " + (mandatario.apellidoMaterno || "")).trim();
         var fechaHoy = fechaHoyHablado();
-        var esCambioModalidad = mandante.cambioModalidadTramite === "Sí";
-        var titulo = "MANDATO PARA " + aMayus(esCambioModalidad ? "INICIAR TRÁMITE DE CAMBIO DE MODALIDAD" : "RETIRAR CERTIFICADO DE SALDO") + " DE " + aMayus(mandante.tipoPension);
+        var titulo = tituloMandatoCortoEncabezado(mandante);
 
         var content = [];
         content.push({ text: titulo, fontSize: 14, bold: true, alignment: "center", margin: [0, 0, 0, 6] });
@@ -2882,7 +2940,7 @@
         var causContr = data.causante || {};
 
         content.push({
-          text: ["CONTRATO DE PRESTACIÓN DE SERVICIOS DE ASESORÍA PARA PENSIONARSE O CAMBIAR MODALIDAD DE PENSIÓN N° ", { text: aMayus(numeroContrato), bold: true }],
+          text: tituloEncabezadoContratoPdf(mandante, numeroContrato),
           fontSize: 14, bold: true, alignment: "center", margin: [0, 0, 0, 12]
         });
 
@@ -3425,6 +3483,8 @@
         }
 
         var parrafoTrabajoPesadoMandatoHtml = parrafoHtmlTrabajoPesadoMandato(mandante.tipoPension);
+        var tituloMandatoLargoHtml = tituloMandatoLargoEncabezado(mandante);
+        var subtituloMandatoLargoHtml = subtituloMandatoLargoEncabezado(mandante);
 
         const html = `
         <html>
@@ -3591,8 +3651,8 @@
 
         <body style="width:794px;max-width:794px;min-width:794px;margin:0;padding:0;box-sizing:border-box;font-family:Arial;font-size:12pt;line-height:1.5;text-align:justify;overflow-wrap:break-word;word-wrap:break-word;color:#111;background:#fff;">
 
-        <h2 style="font-size:16pt;font-weight:bold;line-height:1.25;text-align:center;text-transform:uppercase;width:100%;display:block;margin:20px 0 0 0;box-sizing:border-box;">MANDATO PARA INICIAR TRÁMITE DE ${aMayus(mandante.tipoPension)}</h2>
-        <h3 class="mandato-encabezado-tipo" style="font-size:11pt;font-weight:normal;line-height:1.3;text-align:center;text-transform:uppercase;width:100%;display:block;margin-top:10px;">${aMayus(mandante.tipoPension)}</h3>
+        <h2 style="font-size:16pt;font-weight:bold;line-height:1.25;text-align:center;text-transform:uppercase;width:100%;display:block;margin:20px 0 0 0;box-sizing:border-box;">${tituloMandatoLargoHtml}</h2>
+        ${subtituloMandatoLargoHtml ? `<h3 class="mandato-encabezado-tipo" style="font-size:11pt;font-weight:normal;line-height:1.3;text-align:center;text-transform:uppercase;width:100%;display:block;margin-top:10px;">${subtituloMandatoLargoHtml}</h3>` : ""}
         ${htmlLineaFolioMandatoDesdeData(data)}
 
         ${parrafoIntroMandatoHtml}
@@ -4079,6 +4139,7 @@
         }
 
         var parrafoTrabajoPesadoMandatoCortoHtml = parrafoHtmlTrabajoPesadoMandato(mandante.tipoPension);
+        var tituloMandatoCortoHtml = tituloMandatoCortoEncabezado(mandante);
 
         var lineaCausanteMandatoCortoHtml = "";
         if (esSobCortoHtml) {
@@ -4120,7 +4181,7 @@
         </head>
         <body style="width:794px;max-width:794px;min-width:794px;margin:0;padding:0;box-sizing:border-box;font-family:Arial;font-size:12pt;line-height:1.5;text-align:justify;overflow-wrap:break-word;word-wrap:break-word;color:#111;background:#fff;">
 
-        <h2 style="text-align:center;text-transform:uppercase;width:100%;display:block;margin:20px 0 0 0;box-sizing:border-box;">MANDATO PARA  ${aMayus(mandante.cambioModalidadTramite === "Sí" ? "INICIAR TRÁMITE DE CAMBIO DE MODALIDAD" : "RETIRAR CERTIFICADO DE SALDO")} DE ${aMayus(mandante.tipoPension)}</h2>
+        <h2 style="text-align:center;text-transform:uppercase;width:100%;display:block;margin:20px 0 0 0;box-sizing:border-box;">${tituloMandatoCortoHtml}</h2>
         ${htmlLineaFolioMandatoDesdeData(data)}
 
         ${parrafoIntroMandatoCortoHtml}
@@ -4398,6 +4459,8 @@
         }
 
         var parrafoTrabajoPesadoContratoHtml = parrafoHtmlTrabajoPesadoContrato(mandante.tipoPension);
+        var esTrabajoPesadoContratoHtml = pensionEsTrabajoPesadoTipo(mandante.tipoPension);
+        var tituloContratoHtml = tituloEncabezadoContratoHtml(numeroContrato, esTrabajoPesadoContratoHtml);
 
         var lineaCausanteContratoHtml = "";
         if (esSobContratoHtml) {
@@ -4541,8 +4604,7 @@
         </head>
         <body style="width:794px;max-width:794px;min-width:794px;margin:0;padding:0;box-sizing:border-box;font-family:Arial;font-size:11pt;line-height:1.4;text-align:justify;overflow-wrap:break-word;word-wrap:break-word;color:#111;background:#fff;">
 
-        <h1 style="${contratoH1Style}">CONTRATO DE PRESTACIÓN DE SERVICIOS DE ASESORÍA PARA<br/>
-        PENSIONARSE O CAMBIAR MODALIDAD DE PENSIÓN Nº <b>${numeroContrato}</b></h1>
+        <h1 style="${contratoH1Style}">${tituloContratoHtml}</h1>
 
         <h2 style="${contratoH2Style}">INDIVIDUALIZACIÓN DE LAS PARTES</h2>
 
